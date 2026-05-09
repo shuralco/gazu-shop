@@ -199,7 +199,7 @@ NULL у `inventory.price` = використовувати базову `product
 | **+** | Multi-vendor pricing (inventory.price) + storefront selector | ✅ 2026-05-09 |
 | 2 | Reservations: reserve у InventoryService на checkout, release on cancel, ship → decrement qty | ✅ 2026-05-09 |
 | 5 | Split TTN: одне замовлення → N ТТН (по одному на склад) з відповідним sender | ✅ 2026-05-09 |
-| 4 | Inventory transfers UI: міжсклад переміщення з approve flow | 🔜 |
+| 4 | Inventory transfers UI: міжсклад переміщення з approve flow | ✅ 2026-05-09 |
 | 6 | Geo-detect склад: показувати найближчий зверху селектора | 🔜 |
 | 7 | Per-warehouse shipping cost: окрема ставка від кожного складу | 🔜 |
 
@@ -231,6 +231,39 @@ splitNova() → 3 NpShipments created
   shipment #2 | warehouse=2 (Львів)  | weight=0.500 | cost=3209
   shipment #3 | warehouse=3 (Дніпро) | weight=0.500 | cost=3312
 Re-run: 0 new shipments (idempotent)
+```
+
+### Inventory Transfers (Phase 4 — як працює)
+
+`inventory_transfers` (з міграції `2026_05_06_140000`) + `inventory_transfer_items` зберігають заявки на міжсклад переміщення. State machine: `draft → sent → received` або `cancelled` на будь-якому етапі.
+
+**`TransferService`** (`app/Services/Warehouse/TransferService.php`):
+
+```php
+$svc = app(TransferService::class);
+$transfer = $svc->createDraft($fromWh, $toWh, userId: 1, note: '...');
+$svc->addItem($transfer, $product, qty: 5);
+$svc->ship($transfer, userId: 1);     // списує з $from
+$svc->receive($transfer, userId: 1);  // приходує на $to
+$svc->cancel($transfer, userId: 1, reason: '...');  // повертає на $from якщо було shipped
+```
+
+Кожна операція через `InventoryService::subtract/add` з `lockForUpdate()` → race-safe. Append `StockMovement` (`transfer_out` / `transfer_in`).
+
+**Filament admin** (`app/Filament/Resources/InventoryTransferResource.php`):
+
+- `/admin/inventory-transfers` — list з статусом-badge (Чернетка / У дорозі / Отримано / Скасовано), filters per status / from / to.
+- Create: вибір from/to + items relation manager (кнопка «Додати позицію»).
+- Per-row actions: ✈ Ship (visible на draft), 📥 Receive (visible на sent), ❌ Cancel (visible на draft/sent з reason form).
+- Edit заблоковано після ship — поля from/to/items immutable.
+
+**Verified end-to-end на /gazu fork:**
+```
+Kyiv qty=18, Lviv qty=6 (before)
+→ createDraft(Kyiv→Lviv) + addItem(product, qty=5)
+→ ship() → Kyiv qty=13, Lviv qty=6
+→ receive() → Kyiv qty=13, Lviv qty=11
+status: received
 ```
 
 ### Reservations flow (Phase 2 — як працює)
