@@ -175,9 +175,21 @@ class StoreController extends Controller
 
         $related = $this->fetchProducts(4);
 
+        // Per-warehouse inventory rows for the warehouse selector.
+        $warehouseStocks = collect();
+        if (isset($product->id) && $product->id) {
+            $warehouseStocks = \App\Models\Inventory::with('warehouse')
+                ->where('product_id', $product->id)
+                ->whereHas('warehouse', fn ($q) => $q->where('is_active', true))
+                ->get()
+                ->sortByDesc(fn ($i) => $i->quantity > 0 ? 1 : 0)
+                ->values();
+        }
+
         return view("gazu.product.$variant", [
             'p' => $product,
             'related' => $related,
+            'warehouseStocks' => $warehouseStocks,
             'activeNav' => 'catalog',
             'cartCount' => 3,
         ]);

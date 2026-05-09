@@ -25,6 +25,8 @@ class Inventory extends Model
         'warehouse_id',
         'quantity',
         'reserved_quantity',
+        'price',
+        'compare_at_price',
         'reorder_point',
         'reorder_quantity',
         'last_counted_at',
@@ -33,6 +35,8 @@ class Inventory extends Model
     protected $casts = [
         'quantity' => 'integer',
         'reserved_quantity' => 'integer',
+        'price' => 'decimal:2',
+        'compare_at_price' => 'decimal:2',
         'reorder_point' => 'integer',
         'reorder_quantity' => 'integer',
         'last_counted_at' => 'datetime',
@@ -54,6 +58,14 @@ class Inventory extends Model
     protected function availableQuantity(): Attribute
     {
         return Attribute::get(fn () => max(0, $this->quantity - $this->reserved_quantity));
+    }
+
+    /**
+     * Effective price for this (product, warehouse): override if set, otherwise base product price.
+     */
+    protected function effectivePrice(): Attribute
+    {
+        return Attribute::get(fn () => $this->price !== null ? (float) $this->price : (float) ($this->product->price ?? 0));
     }
 
     public function scopeForProduct(Builder $q, int $productId): Builder

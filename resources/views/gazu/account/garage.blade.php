@@ -191,7 +191,7 @@
                             <x-gazu.icon name="close" size="20"/>
                         </button>
                     </div>
-                    <form :action="editing ? `{{ url('/gazu/garage') }}/${editing.id}` : ''" method="POST" class="grid grid-cols-2 gap-3">
+                    <form :action="editing ? `{{ route('gazu.garage') }}/${editing.id}` : ''" method="POST" class="grid grid-cols-2 gap-3">
                         @csrf
                         <template x-if="editing">
                             <div class="contents">

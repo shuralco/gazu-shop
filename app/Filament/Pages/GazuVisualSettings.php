@@ -135,7 +135,7 @@ class GazuVisualSettings extends Page implements HasForms
             ['label' => 'Гуртом', 'url' => '#'],
             ['label' => 'Доставка та оплата', 'url' => '#'],
             ['label' => 'Гарантія', 'url' => '#'],
-            ['label' => 'Контакти', 'url' => '/gazu/contacts'],
+            ['label' => 'Контакти', 'url' => '/contacts'],
         ],
 
         // Header

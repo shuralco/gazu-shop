@@ -15,13 +15,16 @@ class CartController extends Controller
     public function add(Request $request)
     {
         $request->validate([
-            'product_id' => 'required|integer',
-            'quantity'   => 'integer|min:1',
+            'product_id'   => 'required|integer',
+            'quantity'     => 'integer|min:1',
+            'warehouse_id' => 'nullable|integer',
         ]);
 
         Cart::add2Cart(
             (int) $request->input('product_id'),
             (int) $request->input('quantity', 1),
+            null,
+            $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
         );
 
         $count = Cart::getCartQuantityItems();

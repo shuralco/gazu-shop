@@ -1,25 +1,114 @@
-@props(['price' => 184, 'oldPrice' => null, 'qty' => 12, 'discount' => null, 'productId' => null])
+@props([
+    'price' => 184,
+    'oldPrice' => null,
+    'qty' => 12,
+    'discount' => null,
+    'productId' => null,
+    'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
+])
 @php
     $priceFmt = number_format((float) $price, 0, '.', ' ');
+    $stocks = $warehouseStocks instanceof \Illuminate\Support\Collection ? $warehouseStocks : collect();
+    $defaultStock = $stocks->firstWhere(fn ($s) => $s->quantity > 0);
+    $defaultWh = $defaultStock?->warehouse_id;
+    $defaultPrice = $defaultStock && $defaultStock->price !== null ? (float) $defaultStock->price : (float) $price;
+    // Build JS lookup: { warehouseId: { price, compare, qty, city, eta } }
+    $stocksJs = $stocks->mapWithKeys(fn ($s) => [
+        $s->warehouse_id => [
+            'price'   => $s->price !== null ? (float) $s->price : (float) $price,
+            'compare' => $s->compare_at_price !== null ? (float) $s->compare_at_price : null,
+            'qty'     => max(0, $s->quantity - $s->reserved_quantity),
+            'city'    => $s->warehouse->city ?: $s->warehouse->name,
+            'eta'     => $s->warehouse->delivery_eta ?: '1-3 дні',
+        ],
+    ])->all();
 @endphp
-<div class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-6 font-text" x-data="{ q: 1, price: {{ (float) $price }} }">
+<div class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
+     x-data="{
+        q: 1,
+        warehouseId: {{ $defaultWh ? (int) $defaultWh : 'null' }},
+        stocks: {{ \Illuminate\Support\Js::from($stocksJs) }},
+        get price() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].price : {{ (float) $defaultPrice }}; },
+        get compareAt() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].compare : null; },
+        get available() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].qty : {{ (int) $qty }}; },
+        fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); }
+     }">
     <div class="flex items-baseline gap-3 mb-1">
         <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none" style="font-size: 40px;">
-            <span x-text="(price * q).toLocaleString('uk-UA').replace(/,/g, ' ')">{{ $priceFmt }}</span> <span class="text-2xl font-medium text-[var(--gazu-graphite)]">₴</span>
+            <span x-text="fmt(price * q)">{{ $priceFmt }}</span> <span class="text-2xl font-medium text-[var(--gazu-graphite)]">₴</span>
         </span>
-        @if($oldPrice)
-            <div class="flex flex-col gap-0.5">
+        <div class="flex flex-col gap-0.5">
+            <template x-if="compareAt && compareAt > price">
+                <span class="text-sm text-[var(--gazu-muted)] line-through" x-text="fmt(compareAt) + ' ₴'"></span>
+            </template>
+            @if($oldPrice && !$stocks->isNotEmpty())
                 <span class="text-sm text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</span>
                 @if($discount)
                     <span class="text-[11px] gazu-mono px-1.5 py-0.5 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] rounded">−{{ $discount }}%</span>
                 @endif
-            </div>
-        @endif
+            @endif
+        </div>
     </div>
     <div class="text-[11px] text-[var(--gazu-graphite)] mb-2" x-show="q > 1" x-cloak>
-        {{ $priceFmt }} ₴ × <span x-text="q"></span> шт.
+        <span x-text="fmt(price)"></span> ₴ × <span x-text="q"></span> шт.
     </div>
-    <div class="mt-1"><x-gazu.stock qty="{{ $qty }}"/></div>
+    <div class="mt-1">
+        <span x-text="available > 0 ? ('У наявності · ' + available + ' шт') : 'Немає в наявності'"
+              :class="available > 0 ? 'text-[var(--gazu-success)] font-medium' : 'text-[var(--gazu-danger)] font-medium'"
+              class="text-[13px]">У наявності</span>
+    </div>
+
+    @if($stocks->isNotEmpty())
+        @php $visible = 3; $hasMore = $stocks->count() > $visible; @endphp
+        <div class="mt-4" x-data="{ expanded: false }">
+            <div class="text-[11px] uppercase tracking-wide font-bold text-[var(--gazu-graphite)] mb-2">Доставка зі складу</div>
+            <div class="flex flex-col gap-1.5">
+                @foreach($stocks as $idx => $s)
+                    @php
+                        $available = max(0, $s->quantity - $s->reserved_quantity);
+                        $sPrice = $s->price !== null ? (float) $s->price : (float) $price;
+                        $sCompare = $s->compare_at_price !== null ? (float) $s->compare_at_price : null;
+                        $whCity = $s->warehouse->city ?: $s->warehouse->name;
+                        $whEta = $s->warehouse->delivery_eta ?: '1-3 дні';
+                    @endphp
+                    <button type="button"
+                        @click="warehouseId = {{ (int) $s->warehouse_id }}"
+                        @if($idx >= $visible) x-show="expanded" x-transition.opacity.duration.150ms @endif
+                        @disabled($available <= 0)
+                        :class="warehouseId === {{ (int) $s->warehouse_id }} ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)] text-white' : 'border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-graphite)]'"
+                        class="w-full flex items-center justify-between gap-3 px-3 py-2.5 border rounded-md transition-colors text-left
+                            @if($available <= 0) opacity-50 cursor-not-allowed @endif">
+                        <div class="flex items-center gap-2.5 min-w-0">
+                            <div class="w-3.5 h-3.5 rounded-full border-2 flex-shrink-0"
+                                 :class="warehouseId === {{ (int) $s->warehouse_id }} ? 'border-white bg-white' : 'border-[var(--gazu-graphite)]'">
+                                <div x-show="warehouseId === {{ (int) $s->warehouse_id }}" class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-ink)] m-auto mt-[3px]"></div>
+                            </div>
+                            <div class="min-w-0">
+                                <div class="font-medium text-[13px] truncate">{{ $whCity }}</div>
+                                <div class="text-[11px] opacity-70 truncate">
+                                    {{ $whEta }}
+                                    @if($available > 0) · {{ $available }} шт @else · немає @endif
+                                </div>
+                            </div>
+                        </div>
+                        <div class="text-right flex-shrink-0">
+                            @if($sCompare && $sCompare > $sPrice)
+                                <div class="text-[10px] line-through opacity-60">{{ number_format($sCompare, 0, '.', ' ') }} ₴</div>
+                            @endif
+                            <div class="font-semibold text-[13px] gazu-mono">{{ number_format($sPrice, 0, '.', ' ') }} ₴</div>
+                        </div>
+                    </button>
+                @endforeach
+            </div>
+            @if($hasMore)
+                <button type="button" @click="expanded = !expanded"
+                    class="w-full mt-1.5 py-1.5 text-[12px] text-[var(--gazu-blue)] bg-transparent border-0 cursor-pointer">
+                    <span x-show="!expanded">+ Показати ще {{ $stocks->count() - $visible }}</span>
+                    <span x-show="expanded" x-cloak>− Сховати</span>
+                </button>
+            @endif
+        </div>
+    @endif
 
     <div class="h-px bg-[var(--gazu-line)] my-5"></div>
 
@@ -27,6 +116,7 @@
         @csrf
         <input type="hidden" name="product_id" value="{{ $productId }}">
         <input type="hidden" name="quantity" :value="q">
+        <input type="hidden" name="warehouse_id" :value="warehouseId">
 
         <div class="flex items-center gap-3 mb-3.5">
             <span class="text-[13px] text-[var(--gazu-graphite)]">Кількість</span>
@@ -38,13 +128,18 @@
             <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono">шт.</span>
         </div>
 
-        @if($qty > 0 && $productId)
-            <button type="submit" class="w-full py-4 bg-[var(--gazu-ink)] text-white border-0 rounded-lg text-[15px] font-semibold cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-ink-2)]">
-                <x-gazu.icon name="cart" size="18"/> Додати в кошик · <span x-text="(price * q).toLocaleString('uk-UA').replace(/,/g, ' ')">{{ $priceFmt }}</span> ₴
-            </button>
-        @else
-            <button type="button" disabled class="w-full py-4 bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] border-0 rounded-lg text-[15px] font-semibold cursor-not-allowed">
-                Під замовлення
+        @if($productId)
+            <button type="submit" :disabled="available <= 0"
+                :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-white cursor-pointer hover:bg-[var(--gazu-ink-2)]'"
+                class="w-full py-4 border-0 rounded-lg text-[15px] font-semibold inline-flex items-center justify-center gap-2">
+                <template x-if="available > 0">
+                    <span class="inline-flex items-center gap-2">
+                        <x-gazu.icon name="cart" size="18"/> Додати в кошик · <span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴
+                    </span>
+                </template>
+                <template x-if="available <= 0">
+                    <span>Під замовлення</span>
+                </template>
             </button>
         @endif
 

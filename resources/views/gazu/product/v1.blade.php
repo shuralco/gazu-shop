@@ -164,7 +164,14 @@
             </div>
 
             <div class="lg:sticky lg:top-4 lg:self-start">
-                <x-gazu.buy-panel :price="$price" :oldPrice="$oldPrice" :qty="$qty" :discount="$discount" :productId="is_object($p) ? ($p->id ?? null) : null"/>
+                <x-gazu.buy-panel
+                    :price="$price"
+                    :oldPrice="$oldPrice"
+                    :qty="$qty"
+                    :discount="$discount"
+                    :productId="is_object($p) ? ($p->id ?? null) : null"
+                    :warehouseStocks="$warehouseStocks ?? collect()"
+                />
             </div>
         </div>
 

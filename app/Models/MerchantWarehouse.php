@@ -31,6 +31,7 @@ class MerchantWarehouse extends Model
         'email',
         'manager_user_id',
         'working_hours',
+        'delivery_eta',
         'is_active',
         'is_default',
         'pickup_supported',

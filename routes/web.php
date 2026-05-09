@@ -9,11 +9,8 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
-// Root → /gazu home
-Route::get('/', fn () => redirect()->route('gazu.home'));
-
-// GAZU storefront
-Route::prefix('gazu')->name('gazu.')->middleware(['web'])->group(function () {
+// GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
+Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
 
     Route::get('/', [$c, 'home'])->name('home');

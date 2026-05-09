@@ -7,18 +7,24 @@ use App\Models\Product;
 class Cart
 {
     // add product to cart - optimized version with variant support
-    public static function add2Cart(int $productId, int $quantity = 1, ?int $variantId = null): bool
+    public static function add2Cart(int $productId, int $quantity = 1, ?int $variantId = null, ?int $warehouseId = null): bool
     {
-        $cartKey = $variantId ? "{$productId}_v{$variantId}" : (string) $productId;
+        // Per-warehouse cart key — same product from different warehouses are separate cart lines.
+        $cartKey = (string) $productId;
+        if ($variantId) {
+            $cartKey .= "_v{$variantId}";
+        }
+        if ($warehouseId) {
+            $cartKey .= "_w{$warehouseId}";
+        }
 
-        // Fast path: if product already in cart, just update quantity
+        // Fast path: if same (product, variant, warehouse) already in cart, bump quantity.
         if (session()->has("cart.{$cartKey}")) {
             session(["cart.{$cartKey}.quantity" => session("cart.{$cartKey}.quantity") + $quantity]);
 
             return true;
         }
 
-        // Ultra-fast cache with 1-hour TTL for instant cart operations
         $cacheKey = "cart_product_{$productId}";
         $product = cache()->remember($cacheKey, 3600, function () use ($productId) {
             return Product::query()
@@ -26,36 +32,46 @@ class Cart
                 ->find($productId);
         });
 
-        if ($product) {
-            $title = $product->title;
-            $price = $product->price;
-            $image = $product->getImage();
-
-            if ($variantId) {
-                $variant = \App\Models\ProductVariant::with('optionValues')->find($variantId);
-                if ($variant) {
-                    $title .= ' (' . $variant->getDisplayName() . ')';
-                    $price = $variant->getEffectivePrice();
-                    if ($variant->image) {
-                        $image = $variant->image;
-                    }
-                }
-            }
-
-            $new_product = [
-                'title' => $title,
-                'slug' => $product->getLocalizedSlug(),
-                'image' => $image,
-                'price' => $price,
-                'quantity' => $quantity,
-                'variant_id' => $variantId,
-            ];
-            session(["cart.{$cartKey}" => $new_product]);
-
-            return true;
+        if (! $product) {
+            return false;
         }
 
-        return false;
+        $title = $product->title;
+        $price = $product->price;
+        $image = $product->getImage();
+
+        if ($variantId) {
+            $variant = \App\Models\ProductVariant::with('optionValues')->find($variantId);
+            if ($variant) {
+                $title .= ' (' . $variant->getDisplayName() . ')';
+                $price = $variant->getEffectivePrice();
+                if ($variant->image) {
+                    $image = $variant->image;
+                }
+            }
+        }
+
+        // Per-warehouse price override.
+        if ($warehouseId) {
+            $inv = \App\Models\Inventory::where('product_id', $productId)
+                ->where('warehouse_id', $warehouseId)
+                ->first();
+            if ($inv && $inv->price !== null) {
+                $price = $inv->price;
+            }
+        }
+
+        session(["cart.{$cartKey}" => [
+            'title' => $title,
+            'slug' => $product->getLocalizedSlug(),
+            'image' => $image,
+            'price' => $price,
+            'quantity' => $quantity,
+            'variant_id' => $variantId,
+            'warehouse_id' => $warehouseId,
+        ]]);
+
+        return true;
     }
 
     // remove product from cart
