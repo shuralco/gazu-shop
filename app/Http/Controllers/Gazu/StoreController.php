@@ -102,7 +102,6 @@ class StoreController extends Controller
             'popular' => $products->skip(4)->take(4)->values(),
             'categories' => $categories,
             'activeNav' => $variant === 'v2' ? 'compat' : 'catalog',
-            'cartCount' => 3,
         ]);
     }
 
@@ -191,7 +190,6 @@ class StoreController extends Controller
             'related' => $related,
             'warehouseStocks' => $warehouseStocks,
             'activeNav' => 'catalog',
-            'cartCount' => 3,
         ]);
     }
 
@@ -218,7 +216,6 @@ class StoreController extends Controller
     {
         return view('gazu.checkout', [
             'activeNav' => null,
-            'cartCount' => 3,
         ]);
     }
 
@@ -322,7 +319,7 @@ class StoreController extends Controller
 
     public function sto()
     {
-        return view('gazu.sto', ['activeNav' => 'sto', 'cartCount' => 3]);
+        return view('gazu.sto', ['activeNav' => 'sto']);
     }
 
     public function blog(?string $slug = null)
@@ -356,12 +353,12 @@ class StoreController extends Controller
 
     public function contacts()
     {
-        return view('gazu.contacts', ['activeNav' => null, 'cartCount' => 3]);
+        return view('gazu.contacts', ['activeNav' => null]);
     }
 
     public function vin()
     {
-        return view('gazu.vin', ['activeNav' => 'vin', 'cartCount' => 3]);
+        return view('gazu.vin', ['activeNav' => 'vin']);
     }
 
     public function search(Request $request)
@@ -746,7 +743,7 @@ class StoreController extends Controller
 
     public function notFound()
     {
-        return response()->view('gazu.404', ['activeNav' => null, 'cartCount' => 3], 404);
+        return response()->view('gazu.404', ['activeNav' => null], 404);
     }
 
     // Mobile previews

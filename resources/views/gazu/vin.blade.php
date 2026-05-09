@@ -8,9 +8,11 @@
         $s = $gazuSettings ?? [];
         $title = $s['gazu_vin_title'] ?? 'Підбір за VIN-кодом';
         $description = $s['gazu_vin_description'] ?? 'Введіть 17-значний VIN-код вашого авто. Система автоматично визначить марку, модель, рік випуску, тип двигуна — і покаже сумісні запчастини з оригінальних каталогів.';
+        $brandsCount = isset($brands) ? count($brands) : \App\Models\Brand::query()->where('is_active', true)->count();
+        $brandsLabel = $brandsCount >= 100 ? '100+' : ($brandsCount >= 50 ? '50+' : ($brandsCount >= 10 ? '10+' : (string) $brandsCount));
         $steps = $s['gazu_vin_steps'] ?? [
             ['num' => '1', 'title' => 'Знайдіть VIN', 'desc' => 'У техпаспорті, на лобовому склі або у дверному отворі водія'],
-            ['num' => '2', 'title' => 'Введіть код', 'desc' => 'Система перевірить його за каталогами 240+ виробників'],
+            ['num' => '2', 'title' => 'Введіть код', 'desc' => 'Система перевірить його за каталогами '.$brandsLabel.' виробників'],
             ['num' => '3', 'title' => 'Отримайте список', 'desc' => 'Тільки сумісні запчастини, без помилок підбору'],
         ];
     @endphp

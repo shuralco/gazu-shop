@@ -216,7 +216,6 @@ class CheckoutController extends Controller
         return view('gazu.checkout-success', [
             'order' => $orderModel,
             'activeNav' => null,
-            'cartCount' => 0,
         ]);
     }
 
