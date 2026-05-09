@@ -152,13 +152,14 @@ class CheckoutController extends Controller
                 $productId = is_numeric($key) ? (int) $key : (int) explode('_', $key)[0];
 
                 OrderProduct::create([
-                    'order_id'   => $order->id,
-                    'product_id' => $productId,
-                    'title'      => is_array($item['title'] ?? null) ? ($item['title']['uk'] ?? json_encode($item['title'])) : ($item['title'] ?? 'Товар'),
-                    'price'      => (float) ($item['price'] ?? 0),
-                    'quantity'   => (int) ($item['quantity'] ?? 1),
-                    'image'      => $item['image'] ?? null,
-                    'slug'       => is_array($item['slug'] ?? null) ? ($item['slug']['uk'] ?? null) : ($item['slug'] ?? null),
+                    'order_id'     => $order->id,
+                    'product_id'   => $productId,
+                    'warehouse_id' => isset($item['warehouse_id']) ? (int) $item['warehouse_id'] : null,
+                    'title'        => is_array($item['title'] ?? null) ? ($item['title']['uk'] ?? json_encode($item['title'])) : ($item['title'] ?? 'Товар'),
+                    'price'        => (float) ($item['price'] ?? 0),
+                    'quantity'     => (int) ($item['quantity'] ?? 1),
+                    'image'        => $item['image'] ?? null,
+                    'slug'         => is_array($item['slug'] ?? null) ? ($item['slug']['uk'] ?? null) : ($item['slug'] ?? null),
                 ]);
             }
 

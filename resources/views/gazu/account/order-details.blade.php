@@ -85,27 +85,48 @@
             {{-- Items --}}
             <h2 class="gazu-display text-xl font-semibold mb-3">{{ plural_uk_count($order->orderProducts->count(), 'Товар', 'Товари', 'Товарів') }}</h2>
             <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-4">
-                @foreach($order->orderProducts as $i => $op)
+                @php
+                    // Group order products by warehouse_id so users see "Зі складу X" sections.
+                    $orderProducts = $order->orderProducts->load('warehouse');
+                    $byWarehouse = $orderProducts->groupBy(fn ($op) => $op->warehouse_id ?? 0);
+                    $isMulti = $byWarehouse->count() > 1;
+                @endphp
+                @foreach($byWarehouse as $whId => $items)
                     @php
-                        $title = is_array($op->title) ? ($op->title['uk'] ?? '—') : ($op->title ?? '—');
-                        $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
-                        $kind = $kinds[($op->product_id ?? 0) % count($kinds)];
-                        $line = (float) $op->price * (int) $op->quantity;
+                        $wh = $whId ? \App\Models\MerchantWarehouse::find($whId) : null;
                     @endphp
-                    <div class="flex items-center gap-3 p-4 {{ $i ? 'border-t border-[var(--gazu-line)]' : '' }}">
-                        <div class="w-14 h-14 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
-                            <x-gazu.part-image kind="{{ $kind }}" size="48"/>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            @if($op->slug)
-                                <a href="{{ route('gazu.product.show', ['slug' => $op->slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug hover:text-[var(--gazu-blue)]">{{ $title }}</a>
-                            @else
-                                <span class="text-[var(--gazu-ink)] font-medium leading-snug">{{ $title }}</span>
+                    @if($wh && ($isMulti || $wh->delivery_eta))
+                        <div class="bg-[var(--gazu-mist)] px-4 py-2 border-b border-[var(--gazu-line)] flex items-center gap-2 text-xs">
+                            <x-gazu.icon name="location" size="14" stroke="var(--gazu-blue)"/>
+                            <span class="font-medium text-[var(--gazu-ink)]">{{ $wh->city ?: $wh->name }}</span>
+                            @if($wh->delivery_eta)
+                                <span class="text-[var(--gazu-muted)]">·</span>
+                                <span class="text-[var(--gazu-graphite)]">{{ $wh->delivery_eta }}</span>
                             @endif
-                            <div class="text-xs text-[var(--gazu-graphite)] gazu-mono mt-0.5">{{ $op->quantity }} × {{ number_format((float) $op->price, 0, '.', ' ') }} ₴</div>
                         </div>
-                        <div class="gazu-display font-bold text-[var(--gazu-ink)] whitespace-nowrap">{{ number_format($line, 0, '.', ' ') }} ₴</div>
-                    </div>
+                    @endif
+                    @foreach($items as $i => $op)
+                        @php
+                            $title = is_array($op->title) ? ($op->title['uk'] ?? '—') : ($op->title ?? '—');
+                            $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
+                            $kind = $kinds[($op->product_id ?? 0) % count($kinds)];
+                            $line = (float) $op->price * (int) $op->quantity;
+                        @endphp
+                        <div class="flex items-center gap-3 p-4 {{ ($i || ! $loop->parent->first) ? 'border-t border-[var(--gazu-line)]' : '' }}">
+                            <div class="w-14 h-14 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
+                                <x-gazu.part-image kind="{{ $kind }}" size="48"/>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                @if($op->slug)
+                                    <a href="{{ route('gazu.product.show', ['slug' => $op->slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug hover:text-[var(--gazu-blue)]">{{ $title }}</a>
+                                @else
+                                    <span class="text-[var(--gazu-ink)] font-medium leading-snug">{{ $title }}</span>
+                                @endif
+                                <div class="text-xs text-[var(--gazu-graphite)] gazu-mono mt-0.5">{{ $op->quantity }} × {{ number_format((float) $op->price, 0, '.', ' ') }} ₴</div>
+                            </div>
+                            <div class="gazu-display font-bold text-[var(--gazu-ink)] whitespace-nowrap">{{ number_format($line, 0, '.', ' ') }} ₴</div>
+                        </div>
+                    @endforeach
                 @endforeach
                 <div class="bg-[var(--gazu-paper)] p-4 flex justify-between items-baseline border-t border-[var(--gazu-line)]">
                     <span class="font-medium text-[var(--gazu-ink)]">Усього</span>
