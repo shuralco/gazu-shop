@@ -43,7 +43,7 @@ class NpShipment extends Model
     ];
 
     protected $fillable = [
-        'order_id', 'ref', 'ttn', 'status', 'np_status', 'np_status_code',
+        'order_id', 'warehouse_id', 'ref', 'ttn', 'status', 'np_status', 'np_status_code',
         // Sender
         'sender_ref', 'sender_city_ref', 'sender_warehouse_ref', 'sender_address',
         'sender_contact_ref', 'sender_contact_name', 'sender_phone',
@@ -99,6 +99,14 @@ class NpShipment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    /**
+     * Власний склад (відправник). Може бути null для legacy / global-sender shipments.
+     */
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(MerchantWarehouse::class, 'warehouse_id');
     }
 
     /**

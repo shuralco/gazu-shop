@@ -23,7 +23,7 @@ class UpShipment extends Model
     public const STATUS_RETURNED = 'returned';
 
     protected $fillable = [
-        'order_id', 'ttn', 'status', 'up_status_text', 'up_status_code',
+        'order_id', 'warehouse_id', 'ttn', 'status', 'up_status_text', 'up_status_code',
         'recipient_name', 'recipient_phone', 'recipient_email',
         'recipient_city_id', 'recipient_city_name',
         'recipient_branch_id', 'recipient_branch_address', 'recipient_postcode',
@@ -52,6 +52,11 @@ class UpShipment extends Model
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function warehouse(): BelongsTo
+    {
+        return $this->belongsTo(MerchantWarehouse::class, 'warehouse_id');
     }
 
     public function scopeForOrder(Builder $query, int $orderId): Builder

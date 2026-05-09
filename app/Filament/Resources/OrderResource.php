@@ -1409,6 +1409,40 @@ class OrderResource extends Resource
                     ->icon('heroicon-o-pencil')
                     ->size('lg')
                     ->tooltip('Змінити'),
+                Tables\Actions\Action::make('splitShipments')
+                    ->label('')
+                    ->icon('heroicon-o-rectangle-stack')
+                    ->size('lg')
+                    ->color('warning')
+                    ->tooltip('Створити ТТН для кожного складу')
+                    ->visible(function (Order $record) {
+                        $whCount = $record->orderProducts()
+                            ->whereNotNull('warehouse_id')
+                            ->distinct('warehouse_id')
+                            ->count('warehouse_id');
+                        return $whCount > 1;
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading(fn (Order $record) => 'Розбити замовлення №'.$record->id.' на ТТН')
+                    ->modalDescription('Згенерувати окрему ТТН для кожного складу. ТТН створюються як draft — без виклику API НП. Зможете відредагувати та відправити вручну.')
+                    ->form([
+                        \Filament\Forms\Components\Select::make('provider')
+                            ->label('Перевізник')
+                            ->options(['nova' => 'Нова Пошта', 'ukr' => 'УкрПошта'])
+                            ->default('nova')
+                            ->required(),
+                    ])
+                    ->action(function (Order $record, array $data) {
+                        $splitter = app(\App\Services\Shipping\OrderShipmentSplitter::class);
+                        $shipments = $splitter->split($record, $data['provider'] ?? 'nova');
+
+                        \Filament\Notifications\Notification::make()
+                            ->title($shipments->count() > 0
+                                ? 'Створено '.$shipments->count().' draft-ТТН'
+                                : 'ТТН не створено (усі склади вже мають shipment)')
+                            ->success()
+                            ->send();
+                    }),
                 Tables\Actions\Action::make('markCompleted')
                     ->label('')
                     ->icon('heroicon-o-check-circle')

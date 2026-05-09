@@ -165,12 +165,14 @@ class NovaPoshtaTtnCreator
     /**
      * Resolve NP sender refs in priority order:
      *   1) shipment.sender_* fields (explicit override on this TTN)
-     *   2) order.warehouse.np_sender_* (per-warehouse origin)
-     *   3) DisplaySetting np_sender_* (legacy global fallback)
+     *   2) shipment.warehouse.np_sender_* (split-TTN per-warehouse origin)
+     *   3) order.warehouse.np_sender_* (single-warehouse order)
+     *   4) DisplaySetting np_sender_* (legacy global fallback)
      */
     protected function resolveSender(NpShipment $shipment): array
     {
-        $warehouse = $shipment->order?->warehouse
+        $warehouse = $shipment->warehouse
+            ?? $shipment->order?->warehouse
             ?? MerchantWarehouse::default();
 
         return [

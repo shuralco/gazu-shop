@@ -198,10 +198,40 @@ NULL у `inventory.price` = використовувати базову `product
 | 3 | Per-warehouse NP/UP senders | ✅ |
 | **+** | Multi-vendor pricing (inventory.price) + storefront selector | ✅ 2026-05-09 |
 | 2 | Reservations: reserve у InventoryService на checkout, release on cancel, ship → decrement qty | ✅ 2026-05-09 |
+| 5 | Split TTN: одне замовлення → N ТТН (по одному на склад) з відповідним sender | ✅ 2026-05-09 |
 | 4 | Inventory transfers UI: міжсклад переміщення з approve flow | 🔜 |
-| 5 | Split TTN: одне замовлення → N ТТН (по одному на склад) з відповідним sender | 🔜 |
 | 6 | Geo-detect склад: показувати найближчий зверху селектора | 🔜 |
 | 7 | Per-warehouse shipping cost: окрема ставка від кожного складу | 🔜 |
+
+### Split TTN (Phase 5 — як працює)
+
+`np_shipments.warehouse_id` + `up_shipments.warehouse_id` (FK на `merchant_warehouses`) пінять конкретну shipment до її source складу.
+
+**`OrderShipmentSplitter`** (`app/Services/Shipping/OrderShipmentSplitter.php`):
+
+```php
+$shipments = app(OrderShipmentSplitter::class)->splitNova($order);  // або splitUkr / split($order, 'nova')
+```
+
+Метод групує `order_products` по `warehouse_id`, створює одну draft-shipment на група (status `draft`, без виклику NP API). Recipient + delivery prefs копіюються з order. Sender — резолвиться пізніше при створенні TTN.
+
+`NovaPoshtaTtnCreator::resolveSender()` тепер дивиться:
+1. `$shipment->sender_*` (explicit override)
+2. `$shipment->warehouse->np_sender_*` (split-TTN)
+3. `$shipment->order->warehouse->np_sender_*` (single-warehouse order)
+4. `DisplaySetting` (legacy global)
+
+**Filament UI**: на `/admin/orders` біля кожного замовлення з 2+ складами зʼявляється кнопка `[]` (rectangle-stack). Натискання → modal з вибором перевізника (НП/УП) → створює N draft-shipments. Idempotent: повторний клік не дублює — пропускає склади що вже мають shipment.
+
+**Verified end-to-end на /gazu fork:**
+```
+Order #1 (3 lines from 3 warehouses):
+splitNova() → 3 NpShipments created
+  shipment #1 | warehouse=1 (Київ)   | weight=0.500 | cost=3450
+  shipment #2 | warehouse=2 (Львів)  | weight=0.500 | cost=3209
+  shipment #3 | warehouse=3 (Дніпро) | weight=0.500 | cost=3312
+Re-run: 0 new shipments (idempotent)
+```
 
 ### Reservations flow (Phase 2 — як працює)
 
