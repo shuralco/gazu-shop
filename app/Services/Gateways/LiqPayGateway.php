@@ -46,7 +46,7 @@ class LiqPayGateway implements PaymentGatewayInterface
             'description' => "Замовлення #{$order->id} у SimpleShop",
             'order_id' => $order->id,
             'language' => 'uk',
-            'result_url' => route('orders.success', ['order' => $order->id]),
+            'result_url' => route('gazu.checkout.success', ['order' => $order->id]),
             'server_url' => route('webhooks.liqpay'),
         ];
 

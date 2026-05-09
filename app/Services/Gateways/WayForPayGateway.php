@@ -113,7 +113,7 @@ class WayForPayGateway implements PaymentGatewayInterface
                 ->setMerchantDomainName($this->merchantDomainName)
                 ->setClient($client)
                 ->setProducts($products)
-                ->setReturnUrl(route('orders.success', $order))
+                ->setReturnUrl(route('gazu.checkout.success', $order))
                 ->setServiceUrl(route('webhooks.wayforpay'));
 
             // Отримати форму для відправки

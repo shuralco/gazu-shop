@@ -69,8 +69,6 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function registerViewComposers(): void
     {
-        view()->composer('errors.404', \App\View\Composers\Error404Composer::class);
-
         // GAZU storefront — share live mega-menu data (Categories + Brands) into header.
         view()->composer(
             ['gazu.layout', 'gazu.partials.header', 'gazu.partials.mega-menu'],

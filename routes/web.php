@@ -2,141 +2,17 @@
 
 use Illuminate\Support\Facades\Route;
 
-// GAZU shop — root delegates to gazu home directly (fork from brutal codebase).
-Route::get('/', function () {
-    return redirect()->route('gazu.home');
-});
+/*
+|--------------------------------------------------------------------------
+| GAZU shop — fork of brutal-codebase, /gazu storefront only.
+| Brutal /uk storefront removed in cleanup (2026-05-09).
+|--------------------------------------------------------------------------
+*/
 
-// All public routes with locale prefix
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'throttle:global', 'set-locale'])
-    ->group(function () {
-        Route::get('/', \App\Livewire\HomeComponent::class)->name('home');
-        Route::get('/specials', \App\Livewire\Product\SpecialsComponent::class)->name('specials');
-        Route::get('/hits', \App\Livewire\Product\HitsComponent::class)->name('hits');
-        Route::get('/new', \App\Livewire\Product\NewProductsComponent::class)->name('new');
-        Route::get('/cart', function () {
-            return redirect()->route('checkout', ['locale' => app()->getLocale()]);
-        });
-        Route::get('/search', \App\Livewire\Search\SearchComponent::class)->name('search');
-        Route::get('/brands', \App\Livewire\Product\BrandsComponent::class)->name('brands');
-        Route::get('/comparison', \App\Livewire\Product\ComparisonComponent::class)->name('comparison');
+// Root → /gazu home
+Route::get('/', fn () => redirect()->route('gazu.home'));
 
-        // Public TTN tracking page (no auth required)
-        Route::get('/track/{ttn?}', \App\Livewire\Tracking\TrackingComponent::class)->name('tracking');
-
-        // CMS Pages
-        Route::get('/page/{slug}', \App\Livewire\PageComponent::class)->name('page');
-
-        // Mobile test route
-        Route::match(['GET', 'POST'], '/mobile-test', function () {
-            return view('mobile-test');
-        })->name('mobile-test');
-    });
-
-// Checkout route with specific rate limiting (allow guests)
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'throttle:checkout', 'set-locale'])
-    ->group(function () {
-        Route::get('/checkout', \App\Livewire\Cart\CheckoutComponent::class)->name('checkout');
-    });
-
-// Product routes (longer/complex slugs with numbers) - higher priority
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'throttle:global', 'set-locale'])
-    ->group(function () {
-        Route::get('/{product_slug}', \App\Livewire\Product\ProductComponent::class)
-            ->name('product')
-            ->where('product_slug', '[a-z0-9\-]*[0-9]+[a-z0-9\-]*');
-    });
-
-// Brand routes - specific brand pages
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'throttle:global', 'set-locale'])
-    ->group(function () {
-        Route::get('/brands/{brand:slug}', \App\Livewire\Product\BrandComponent::class)->name('brand');
-    });
-
-// Offline page (PWA)
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'set-locale'])
-    ->group(function () {
-        Route::get('/offline', fn() => view('offline'))->name('offline');
-    });
-
-// Legal pages (public, no auth required)
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'set-locale'])
-    ->group(function () {
-        Route::get('/privacy', \App\Livewire\Pages\PrivacyPolicyComponent::class)->name('privacy');
-        Route::get('/terms', \App\Livewire\Pages\TermsComponent::class)->name('terms');
-        Route::get('/returns', \App\Livewire\Pages\ReturnPolicyComponent::class)->name('returns');
-        Route::get('/offer', \App\Livewire\Pages\PublicOfferComponent::class)->name('offer');
-    });
-
-// Guest routes with specific rate limiting for authentication
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'guest', 'set-locale'])
-    ->group(function () {
-        Route::get('/register', \App\Livewire\User\RegisterComponent::class)
-            ->name('register')
-            ->middleware('throttle:register');
-        Route::get('/login', \App\Livewire\User\LoginComponent::class)
-            ->name('login')
-            ->middleware('throttle:login');
-    });
-
-// Authenticated routes (MUST be before category catch-all)
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'auth', 'set-locale'])
-    ->group(function () {
-        Route::get('/logout', function () {
-            auth()->logout();
-            return redirect()->route('login', ['locale' => app()->getLocale()]);
-        })->name('logout');
-        Route::get('/account', \App\Livewire\User\AccountComponent::class)->name('account');
-        Route::get('/change-account', \App\Livewire\User\ChangeAccountComponent::class)->name('change-account');
-        Route::get('/orders', \App\Livewire\User\OrderComponent::class)->name('orders');
-        Route::get('/order-show/{id}', \App\Livewire\User\OrderShowComponent::class)->name('orders-show');
-        Route::get('/wishlist', \App\Livewire\User\WishlistComponent::class)->name('wishlist');
-        Route::get('/addresses', \App\Livewire\User\AddressBookComponent::class)->name('addresses');
-        Route::get('/loyalty', \App\Livewire\User\LoyaltyComponent::class)->name('loyalty');
-        Route::get('/settings', \App\Livewire\User\ProfileSettingsComponent::class)->name('settings');
-    });
-
-// Category routes (without numbers) - lower priority, MUST be after explicit routes
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'throttle:global', 'set-locale'])
-    ->group(function () {
-        Route::get('/{category_slug}', \App\Livewire\Product\CategoryComponent::class)
-            ->name('category')
-            ->where('category_slug', '[a-z\-]+');
-    });
-
-// Payment and webhook routes (with locale prefix for user-facing pages)
-Route::prefix('{locale}')
-    ->where(['locale' => implode('|', config('app.available_locales', ['uk', 'en']))])
-    ->middleware(['web', 'set-locale'])
-    ->group(function () {
-        Route::match(['GET', 'POST'], '/orders/{order}/success', \App\Livewire\Order\OrderSuccessComponent::class)
-            ->name('orders.success');
-
-        Route::get('/orders/{order}/payment', \App\Livewire\Payment\PaymentMethodSelector::class)
-            ->name('orders.payment')
-            ->middleware('auth');
-    });
-
-// GAZU theme — паралельний storefront-прев'ю на префіксі /gazu (BEFORE catch-all redirect).
-// Не зачіпає чинного storefront. Контролер: App\Http\Controllers\Gazu\StoreController.
+// GAZU storefront
 Route::prefix('gazu')->name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
 
@@ -190,6 +66,7 @@ Route::prefix('gazu')->name('gazu.')->middleware(['web'])->group(function () {
     $wish = \App\Http\Controllers\Gazu\WishlistController::class;
     Route::get('/wishlist', [$wish, 'index'])->name('wishlist');
     Route::post('/wishlist/toggle', [$wish, 'toggle'])->name('wishlist.toggle');
+
     Route::get('/sto', [$c, 'sto'])->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
@@ -203,37 +80,9 @@ Route::prefix('gazu')->name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/np/calculate', [$c, 'npCalculate'])->name('api.np.calculate');
     Route::get('/api/up/cities', [$c, 'upCities'])->name('api.up.cities');
     Route::get('/api/up/post-offices', [$c, 'upPostOffices'])->name('api.up.post-offices');
+
     Route::get('/404', [$c, 'notFound'])->name('404');
-
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');
-});
-
-// Backward compatibility: redirect old non-prefixed URLs to locale-prefixed versions
-Route::middleware(['web'])->group(function () {
-    $publicPaths = [
-        'specials', 'hits', 'new', 'search', 'brands', 'comparison',
-        'checkout', 'privacy', 'terms', 'returns', 'offer',
-        'login', 'register', 'account', 'logout', 'orders', 'wishlist',
-        'addresses', 'loyalty', 'settings', 'change-account', 'mobile-test',
-    ];
-    foreach ($publicPaths as $path) {
-        Route::get('/' . $path, function () use ($path) {
-            return redirect('/' . app()->getLocale() . '/' . $path, 301);
-        });
-    }
-
-    // Catch-all for old product/category slugs without locale prefix
-    // (skip 'gazu' — it has its own route group above)
-    Route::get('/{slug}', function (string $slug) {
-        $available = config('app.available_locales', ['uk', 'en']);
-        if (in_array($slug, $available)) {
-            return redirect('/' . $slug);
-        }
-        if ($slug === 'gazu') {
-            abort(404);
-        }
-        return redirect('/' . app()->getLocale() . '/' . $slug, 301);
-    })->where('slug', '[a-z0-9\-]+');
 });
 
 // Product feeds (no locale prefix)
@@ -259,7 +108,7 @@ Route::withoutMiddleware(['web'])->group(function () {
     })->name('feed.olx');
 });
 
-// SEO and Sitemap routes (no locale prefix)
+// SEO and Sitemap
 Route::withoutMiddleware(['web'])->group(function () {
     Route::get('/sitemap.xml', [\App\Http\Controllers\SitemapController::class, 'index'])->name('sitemap.index');
     Route::get('/sitemap-main.xml', [\App\Http\Controllers\SitemapController::class, 'main'])->name('sitemap.main');
@@ -269,7 +118,7 @@ Route::withoutMiddleware(['web'])->group(function () {
 });
 Route::post('/sitemap/clear-cache', [\App\Http\Controllers\SitemapController::class, 'clearCache'])->name('sitemap.clear-cache');
 
-// Webhook routes (no CSRF, no locale prefix)
+// Payment + delivery webhooks (no CSRF)
 Route::post('/webhooks/liqpay', [\App\Http\Controllers\WebhookController::class, 'liqpay'])
     ->name('webhooks.liqpay')
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
@@ -282,7 +131,6 @@ Route::post('/webhooks/monobank', [\App\Http\Controllers\WebhookController::clas
     ->name('webhooks.monobank')
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
-// Nova Poshta status push webhook
 Route::post('/api/np-webhook', \App\Http\Controllers\NpWebhookController::class)
     ->name('webhooks.np')
     ->withoutMiddleware([
@@ -290,5 +138,5 @@ Route::post('/api/np-webhook', \App\Http\Controllers\NpWebhookController::class)
         \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
     ]);
 
-// Admin routes
+// Filament admin
 require __DIR__.'/admin.php';

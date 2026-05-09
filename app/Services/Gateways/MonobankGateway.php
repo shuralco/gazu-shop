@@ -82,7 +82,7 @@ class MonobankGateway implements PaymentGatewayInterface
                 ],
                 'amount' => (int) round($order->total * 100), // сума в копійках
                 'ccy' => 980, // код валюти UAH
-                'redirectUrl' => route('orders.success', $order),
+                'redirectUrl' => route('gazu.checkout.success', $order),
                 'webHookUrl' => $this->webHookUrl,
                 'validity' => 3600, // термін дії посилання в секундах (1 година)
                 'paymentType' => 'debit', // тип операції

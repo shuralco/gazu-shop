@@ -15,15 +15,10 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\CacheHeaders::class);
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
-            'set-locale' => \App\Http\Middleware\SetLocale::class,
             'module' => \App\Http\Middleware\RequiresModule::class,
         ]);
-        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
-            return route('login', ['locale' => app()->getLocale()]);
-        });
-        $middleware->redirectUsersTo(function (\Illuminate\Http\Request $request) {
-            return route('home', ['locale' => app()->getLocale()]);
-        });
+        $middleware->redirectGuestsTo(fn () => route('gazu.auth'));
+        $middleware->redirectUsersTo(fn () => route('gazu.home'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
         $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
