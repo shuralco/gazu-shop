@@ -148,19 +148,35 @@ class CheckoutController extends Controller
 
             $order = Order::create($orderData);
 
+            $invService = app(\App\Services\Warehouse\InventoryService::class);
+
             foreach ($cart as $key => $item) {
                 $productId = is_numeric($key) ? (int) $key : (int) explode('_', $key)[0];
+                $whId = isset($item['warehouse_id']) ? (int) $item['warehouse_id'] : null;
+                $qty = (int) ($item['quantity'] ?? 1);
 
                 OrderProduct::create([
                     'order_id'     => $order->id,
                     'product_id'   => $productId,
-                    'warehouse_id' => isset($item['warehouse_id']) ? (int) $item['warehouse_id'] : null,
+                    'warehouse_id' => $whId,
                     'title'        => is_array($item['title'] ?? null) ? ($item['title']['uk'] ?? json_encode($item['title'])) : ($item['title'] ?? 'Товар'),
                     'price'        => (float) ($item['price'] ?? 0),
-                    'quantity'     => (int) ($item['quantity'] ?? 1),
+                    'quantity'     => $qty,
                     'image'        => $item['image'] ?? null,
                     'slug'         => is_array($item['slug'] ?? null) ? ($item['slug']['uk'] ?? null) : ($item['slug'] ?? null),
                 ]);
+
+                // Reserve inventory inside the same transaction; throws on out-of-stock.
+                if ($whId) {
+                    $product = \App\Models\Product::find($productId);
+                    $warehouse = \App\Models\MerchantWarehouse::find($whId);
+                    if ($product && $warehouse) {
+                        $invService->reserve(
+                            $product, $warehouse, $qty,
+                            $order, auth()->id(), 'Reserve on order #'.$order->id,
+                        );
+                    }
+                }
             }
 
             return $order;
