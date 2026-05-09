@@ -1,0 +1,189 @@
+version: '3.8'
+
+services:
+  # Laravel Application (PHP-FPM + Nginx)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simpleshop-app
+    restart: unless-stopped
+    environment:
+      - APP_NAME=SimpleShop
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_URL=https://shop.textory.online
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=simpleshop
+      - DB_USERNAME=simpleshop
+      - DB_PASSWORD=SimpleShop2025!
+      - CACHE_DRIVER=redis
+      - SESSION_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=Redis2025!
+      - REDIS_PORT=6379
+      - SCOUT_DRIVER=meilisearch
+      - SCOUT_QUEUE=false
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=masterKey
+    volumes:
+      - app_storage:/var/www/html/storage/app
+      - app_logs:/var/www/html/storage/logs
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - simpleshop-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.simpleshop-http.rule=Host(`shop.textory.online`)"
+      - "traefik.http.routers.simpleshop-http.entrypoints=http"
+      - "traefik.http.routers.simpleshop-http.middlewares=redirect-to-https"
+      - "traefik.http.routers.simpleshop-https.rule=Host(`shop.textory.online`)"
+      - "traefik.http.routers.simpleshop-https.entrypoints=https"
+      - "traefik.http.routers.simpleshop-https.tls=true"
+      - "traefik.http.routers.simpleshop-https.tls.certresolver=letsencrypt"
+      - "traefik.http.services.simpleshop.loadbalancer.server.port=80"
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: simpleshop-mysql
+    restart: unless-stopped
+    environment:
+      - MYSQL_ROOT_PASSWORD=RootPassword2025!
+      - MYSQL_DATABASE=simpleshop
+      - MYSQL_USER=simpleshop
+      - MYSQL_PASSWORD=SimpleShop2025!
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - simpleshop-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRootPassword2025!"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: simpleshop-redis
+    restart: unless-stopped
+    command: redis-server --requirepass Redis2025!
+    volumes:
+      - redis_data:/data
+    networks:
+      - simpleshop-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "Redis2025!", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Meilisearch
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: simpleshop-meilisearch
+    restart: unless-stopped
+    environment:
+      - MEILI_MASTER_KEY=masterKey
+      - MEILI_NO_ANALYTICS=true
+    volumes:
+      - meilisearch_data:/meili_data
+    networks:
+      - simpleshop-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Queue Worker (Laravel Horizon/Queue)
+  queue:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simpleshop-queue
+    restart: unless-stopped
+    command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    environment:
+      - APP_ENV=production
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=simpleshop
+      - DB_USERNAME=simpleshop
+      - DB_PASSWORD=SimpleShop2025!
+      - CACHE_DRIVER=redis
+      - QUEUE_CONNECTION=redis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=Redis2025!
+      - SCOUT_DRIVER=meilisearch
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=masterKey
+    depends_on:
+      - app
+      - mysql
+      - redis
+      - meilisearch
+    networks:
+      - simpleshop-network
+
+  # Scheduler (Laravel Cron)
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simpleshop-scheduler
+    restart: unless-stopped
+    command: sh -c "while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"
+    environment:
+      - APP_ENV=production
+      - DB_CONNECTION=mysql
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_DATABASE=simpleshop
+      - DB_USERNAME=simpleshop
+      - DB_PASSWORD=SimpleShop2025!
+      - CACHE_DRIVER=redis
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=Redis2025!
+      - SCOUT_DRIVER=meilisearch
+      - MEILISEARCH_HOST=http://meilisearch:7700
+      - MEILISEARCH_KEY=masterKey
+    depends_on:
+      - app
+      - mysql
+      - redis
+      - meilisearch
+    networks:
+      - simpleshop-network
+
+volumes:
+  app_storage:
+    name: simpleshop-storage
+  app_logs:
+    name: simpleshop-logs
+  mysql_data:
+    name: simpleshop-mysql-data
+  redis_data:
+    name: simpleshop-redis-data
+  meilisearch_data:
+    name: simpleshop-meilisearch-data
+
+networks:
+  simpleshop-network:
+    name: simpleshop-network
+    driver: bridge

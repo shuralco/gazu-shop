@@ -1,0 +1,90 @@
+@extends('gazu.layout')
+
+@section('title', 'GAZU — пошук автозапчастин за OEM-кодом і VIN')
+
+@section('content')
+    {{-- Hero — VIN/OEM-first --}}
+    <section class="py-12" style="background: linear-gradient(180deg, var(--gazu-mist) 0%, var(--gazu-paper) 100%);">
+        <div class="gazu-container gazu-grid-hero-vin">
+            <div>
+                @php
+                    $s = $gazuSettings ?? [];
+                    $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Магазин автозапчастин · 50 000+ артикулів';
+                    $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Знайди потрібну деталь';
+                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">OEM-кодом</span> або <span style="color:var(--gazu-blue)">VIN</span>.';
+                    $heroDescription = $s['gazu_hero_description'] ?? 'Точний підбір з оригінальних каталогів. 12 відділень в Україні, доставка 1–3 дні, гарантія на кожну позицію.';
+                @endphp
+                <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5">{{ $heroSubtitle }}</div>
+                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: 56px; line-height: 1.02; letter-spacing: -0.035em;">
+                    {{ $heroTitle1 }}<br>{!! $heroTitle2Html !!}
+                </h1>
+                <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mt-4 max-w-lg">{{ $heroDescription }}</p>
+
+                {{-- Tabbed search --}}
+                <div class="mt-7 bg-white rounded-[10px] border border-[var(--gazu-line)] overflow-hidden" style="box-shadow: var(--gazu-shadow-2);">
+                    <div class="flex border-b border-[var(--gazu-line)]">
+                        @foreach(['Артикул / OEM', 'За VIN-кодом', 'За авто'] as $i => $t)
+                            <button type="button"
+                                    class="px-4.5 py-3.5 text-[13px] cursor-pointer {{ $i === 0 ? 'bg-white text-[var(--gazu-ink)] font-semibold' : 'bg-[var(--gazu-paper)] text-[var(--gazu-graphite)]' }}"
+                                    style="border-bottom: 2px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'transparent' }};">{{ $t }}</button>
+                        @endforeach
+                    </div>
+                    <div class="p-4">
+                        <form action="{{ route('gazu.search') }}" method="GET" class="flex gap-2">
+                            <input name="q" placeholder="Введіть OEM-код деталі"
+                                   class="flex-1 px-4 py-3.5 gazu-mono text-[15px] border border-[var(--gazu-line)] rounded-md outline-none">
+                            <button type="submit" class="px-6 bg-[var(--gazu-ink)] text-white border-0 rounded-md font-medium text-sm cursor-pointer inline-flex items-center gap-2">
+                                <x-gazu.icon name="search" size="16"/> Пошук
+                            </button>
+                        </form>
+                        <div class="mt-2.5 text-xs text-[var(--gazu-graphite)]">
+                            Приклади: <span class="gazu-mono text-[var(--gazu-ink)]">06A 115 561 B</span> · <span class="gazu-mono text-[var(--gazu-ink)]">1K0 407 151 BC</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap gap-6 mt-5 text-xs text-[var(--gazu-graphite)]">
+                    <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Без передоплати</span>
+                    <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Гарантія 12+ міс.</span>
+                    <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Повернення 14 днів</span>
+                </div>
+            </div>
+
+            {{-- Visual --}}
+            @php
+                $vKind = $gazuSettings['gazu_hero_visual_image_kind'] ?? 'bearing';
+                $vOem = $gazuSettings['gazu_hero_visual_oem_code'] ?? 'OEM 8V0·498·625·A';
+                $vTitle = $gazuSettings['gazu_hero_visual_title'] ?? 'Підшипник маточини передньої FAG';
+                $vSubtitle = $gazuSettings['gazu_hero_visual_subtitle'] ?? '713 6107 70';
+                $vPrice = $gazuSettings['gazu_hero_visual_price'] ?? '1 620 ₴';
+            @endphp
+            <div class="bg-white rounded-xl border border-[var(--gazu-line)] relative overflow-hidden" style="aspect-ratio: 4/3;">
+                <div class="absolute inset-0 gazu-grid-pattern"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <x-gazu.part-image kind="{{ $vKind }}" size="280"/>
+                </div>
+                @if($vOem)
+                    <div class="absolute top-4 left-4 px-2.5 py-1.5 bg-[var(--gazu-ink)] text-white gazu-mono text-[11px] tracking-wider rounded">{{ $vOem }}</div>
+                @endif
+                @if($vTitle || $vSubtitle || $vPrice)
+                    <div class="absolute bottom-4 left-4 right-4 p-3 bg-white/95 rounded-lg border border-[var(--gazu-line)] text-xs">
+                        @if($vTitle)<div class="text-[var(--gazu-graphite)]">{{ $vTitle }}</div>@endif
+                        @if($vSubtitle || $vPrice)
+                            <div class="flex justify-between mt-1">
+                                <span class="gazu-mono text-[var(--gazu-muted)]">{{ $vSubtitle }}</span>
+                                <span class="gazu-display font-bold text-[var(--gazu-ink)]">{{ $vPrice }}</span>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </div>
+        </div>
+    </section>
+
+    <x-gazu.trust-strip/>
+    <x-gazu.category-tiles/>
+    <x-gazu.featured-row title="Акції тижня" badge="−20%" :items="$featured"/>
+    <x-gazu.vin-block/>
+    <x-gazu.featured-row title="Хіти продажів" :items="$popular"/>
+    <x-gazu.brand-strip/>
+@endsection

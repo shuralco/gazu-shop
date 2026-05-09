@@ -1,0 +1,141 @@
+/* =================================================================
+   AUTO-PARTS THEME — design tokens
+   =================================================================
+
+   Variant theme demonstrating portability of brutal.css schema.
+   Same variable names, different visual personality:
+     - Modern automotive blue+orange palette
+     - Rounded corners + soft shadows
+     - Tight typography with industrial feel
+     - Subtle hero patterns (no graphic stripes)
+
+   Activate by running:  php artisan theme:use auto-parts
+================================================================= */
+
+@theme {
+    /* Typography */
+    --font-display: 'Roboto Condensed', 'Inter', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-weight-bold: 600;
+    --font-weight-display: 800;
+
+    /* Color palette — automotive: deep navy + orange accent */
+    --color-fg: #0f172a;            /* slate-900 */
+    --color-bg: #f8fafc;            /* slate-50 — slight off-white */
+    --color-card: #ffffff;
+    --color-brand: #1e40af;         /* blue-700 */
+    --color-accent: #ea580c;        /* orange-600 */
+    --color-muted: #64748b;
+    --color-success: #059669;
+    --color-danger: #dc2626;
+    --color-warning: #d97706;
+    --color-info: #2563eb;
+
+    /* Surface tints */
+    --color-surface-muted: #f1f5f9;
+    --color-surface-divider: #e2e8f0;
+
+    /* Borders — thin and subtle */
+    --border-thin: 1px solid var(--color-surface-divider);
+    --border-strong: 1px solid var(--color-fg);
+    --border-thick: 2px solid var(--color-brand);
+    --border-color-strong: var(--color-fg);
+    --border-color-subtle: var(--color-surface-divider);
+
+    /* Radii — rounded corners across the board */
+    --radius-sm: 4px;
+    --radius-card: 8px;
+    --radius-pill: 9999px;
+
+    /* Shadows — soft elevation, not 3D offset */
+    --shadow-btn-rest: 0 2px 4px rgba(15, 23, 42, 0.08);
+    --shadow-btn-hover: 0 4px 8px rgba(15, 23, 42, 0.12);
+    --shadow-btn-active: 0 1px 2px rgba(15, 23, 42, 0.16);
+    --shadow-card-elevated: 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-input-focus: 0 0 0 3px rgba(30, 64, 175, 0.2);
+
+    /* Spacing scale */
+    --gap-xs: 8px;
+    --gap-sm: 16px;
+    --gap-md: 24px;
+    --gap-lg: 32px;
+    --gap-xl: 48px;
+    --gap-2xl: 64px;
+
+    /* Hero / decorative pattern parameters — no stripes */
+    --pattern-hero-color: var(--color-brand);
+    --pattern-hero-opacity: 0.04;
+    --pattern-grid-line-color: rgba(30, 64, 175, 0.05);
+    --pattern-grid-size: 24px;
+    --pattern-stripes-size: 60px;
+
+    /* Scrollbar — subtle automotive style */
+    --scrollbar-track-bg: var(--color-surface-muted);
+    --scrollbar-thumb-bg: var(--color-brand);
+    --scrollbar-thumb-hover-bg: #1e3a8a;
+    --scrollbar-width: 10px;
+
+    /* Z-index scale (unchanged) */
+    --z-toast: 9000;
+    --z-progress-bar: 8000;
+    --z-modal: 7000;
+    --z-dropdown: 5000;
+
+    /* === Semantic component tokens === */
+
+    /* Button — softer, automotive feel */
+    --btn-padding-y: 12px;
+    --btn-padding-x: 24px;
+    --btn-font-weight: 600;
+    --btn-text-transform: none;
+    --btn-letter-spacing: 0;
+    --btn-border-radius: var(--radius-sm);
+
+    --btn-primary-bg: var(--color-brand);
+    --btn-primary-fg: #ffffff;
+    --btn-primary-border: 1px solid var(--color-brand);
+    --btn-primary-shadow: var(--shadow-btn-rest);
+    --btn-primary-shadow-hover: var(--shadow-btn-hover);
+
+    --btn-secondary-bg: var(--color-card);
+    --btn-secondary-fg: var(--color-fg);
+    --btn-secondary-border: 1px solid var(--color-surface-divider);
+    --btn-secondary-shadow: var(--shadow-btn-rest);
+
+    --btn-ghost-bg: transparent;
+    --btn-ghost-fg: var(--color-brand);
+    --btn-ghost-border: 1px solid transparent;
+
+    /* Card */
+    --card-bg: var(--color-card);
+    --card-border: var(--border-thin);
+    --card-radius: var(--radius-card);
+    --card-shadow: var(--shadow-card-elevated);
+    --card-padding: 24px;
+
+    /* Input */
+    --input-bg: var(--color-card);
+    --input-fg: var(--color-fg);
+    --input-border: var(--border-thin);
+    --input-radius: var(--radius-sm);
+    --input-padding-y: 10px;
+    --input-padding-x: 14px;
+    --input-focus-shadow: var(--shadow-input-focus);
+
+    /* Badge */
+    --badge-bg: var(--color-accent);
+    --badge-fg: #ffffff;
+    --badge-border-radius: var(--radius-pill);
+    --badge-padding-y: 3px;
+    --badge-padding-x: 10px;
+    --badge-font-weight: 600;
+    --badge-font-size: 12px;
+    --badge-text-transform: none;
+
+    /* Section */
+    --section-padding-y: 64px;
+    --section-padding-x: 24px;
+    --section-title-weight: var(--font-weight-display);
+    --section-title-transform: none;
+    --section-title-letter-spacing: -0.01em;
+}

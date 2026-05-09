@@ -1,0 +1,58 @@
+<?php
+
+return [
+    'required' => 'Поле «:attribute» обов’язкове.',
+    'string'   => 'Поле «:attribute» має бути рядком.',
+    'integer'  => 'Поле «:attribute» має бути цілим числом.',
+    'numeric'  => 'Поле «:attribute» має бути числом.',
+    'boolean'  => 'Поле «:attribute» має бути true або false.',
+    'email'    => 'Введіть коректну email-адресу.',
+    'date'     => 'Поле «:attribute» має бути датою.',
+    'after_or_equal' => 'Поле «:attribute» має бути не раніше :date.',
+    'in'       => 'Вибране значення для «:attribute» неприпустиме.',
+    'exists'   => 'Вибране значення для «:attribute» не існує.',
+    'min' => [
+        'string'  => 'Поле «:attribute» має містити щонайменше :min символів.',
+        'numeric' => 'Поле «:attribute» має бути не менше :min.',
+        'array'   => 'Поле «:attribute» має містити щонайменше :min елементів.',
+    ],
+    'max' => [
+        'string'  => 'Поле «:attribute» не може бути довшим за :max символів.',
+        'numeric' => 'Поле «:attribute» має бути не більше :max.',
+        'array'   => 'Поле «:attribute» має містити не більше :max елементів.',
+    ],
+    'between' => [
+        'string'  => 'Поле «:attribute» має містити від :min до :max символів.',
+        'numeric' => 'Поле «:attribute» має бути в межах :min — :max.',
+    ],
+    'confirmed' => 'Підтвердження «:attribute» не збігається.',
+    'unique'    => 'Таке значення «:attribute» вже існує.',
+    'regex'     => 'Поле «:attribute» має невірний формат.',
+
+    'attributes' => [
+        'first_name' => 'Імʼя',
+        'last_name'  => 'Прізвище',
+        'phone'      => 'Телефон',
+        'email'      => 'Email',
+        'shipping_method' => 'Спосіб доставки',
+        'shipping_city'   => 'Місто',
+        'shipping_warehouse' => 'Відділення',
+        'shipping_warehouse_type' => 'Тип відділення',
+        'shipping_street' => 'Вулиця',
+        'shipping_house'  => 'Будинок',
+        'shipping_apartment' => 'Квартира',
+        'shipping_floor'  => 'Поверх',
+        'shipping_preferred_date' => 'Бажана дата',
+        'shipping_preferred_time' => 'Бажаний час',
+        'shipping_postcode' => 'Індекс',
+        'shipping_address'  => 'Адреса',
+        'shipping_up_city'  => 'Місто (УкрПошта)',
+        'shipping_up_office' => 'Відділення (УкрПошта)',
+        'payment_method'    => 'Спосіб оплати',
+        'note'              => 'Коментар',
+        'product_id'        => 'Товар',
+        'quantity'          => 'Кількість',
+    ],
+
+    'custom' => [],
+];

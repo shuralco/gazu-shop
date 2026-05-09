@@ -1,0 +1,226 @@
+/* ================================================
+   UI COMPONENT LIBRARY (token-driven, theme-agnostic)
+   Consumed by <x-ui.button>, <x-ui.card>, <x-ui.input>,
+   <x-ui.badge>, <x-ui.section>. To restyle, edit only the
+   tokens in resources/css/tokens/{theme}.css.
+   ================================================ */
+
+/* === Button === */
+.btn-ui--primary,
+.btn-ui--secondary,
+.btn-ui--ghost {
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    font-weight: var(--btn-font-weight);
+    text-transform: var(--btn-text-transform);
+    letter-spacing: var(--btn-letter-spacing);
+    border-radius: var(--btn-border-radius);
+}
+
+.btn-ui--primary {
+    background: var(--btn-primary-bg);
+    color: var(--btn-primary-fg);
+    border: var(--btn-primary-border);
+    box-shadow: var(--btn-primary-shadow);
+}
+.btn-ui--primary:hover {
+    box-shadow: var(--btn-primary-shadow-hover);
+}
+
+.btn-ui--secondary {
+    background: var(--btn-secondary-bg);
+    color: var(--btn-secondary-fg);
+    border: var(--btn-secondary-border);
+    box-shadow: var(--btn-secondary-shadow);
+}
+
+.btn-ui--ghost {
+    background: var(--btn-ghost-bg);
+    color: var(--btn-ghost-fg);
+    border: var(--btn-ghost-border);
+}
+
+/* === Card === */
+.card-ui {
+    background: var(--card-bg);
+    border: var(--card-border);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+}
+.card-ui--padded {
+    padding: var(--card-padding);
+}
+.card-ui--elevated {
+    box-shadow: var(--shadow-card-elevated);
+}
+
+/* === Input === */
+.input-ui {
+    background: var(--input-bg);
+    color: var(--input-fg);
+    border: var(--input-border);
+    border-radius: var(--input-radius);
+    padding: var(--input-padding-y) var(--input-padding-x);
+    font-weight: 500;
+}
+.input-ui:focus {
+    outline: none;
+    box-shadow: var(--input-focus-shadow);
+}
+
+/* === Badge === */
+.badge-ui {
+    border-radius: var(--badge-border-radius);
+    padding: var(--badge-padding-y) var(--badge-padding-x);
+    font-weight: var(--badge-font-weight);
+    font-size: var(--badge-font-size);
+    text-transform: var(--badge-text-transform);
+    line-height: 1;
+}
+.badge-ui--default { background: var(--badge-bg); color: var(--badge-fg); }
+.badge-ui--success { background: var(--color-success); color: #fff; }
+.badge-ui--danger  { background: var(--color-danger);  color: #fff; }
+.badge-ui--warning { background: var(--color-warning); color: #fff; }
+.badge-ui--info    { background: var(--color-info);    color: #fff; }
+.badge-ui--accent  { background: var(--color-accent);  color: #fff; }
+
+/* === Alert === */
+.alert-ui {
+    border-radius: var(--card-radius);
+}
+.alert-ui--info {
+    background: color-mix(in srgb, var(--color-info) 8%, var(--color-bg));
+    border-color: var(--color-info);
+    color: var(--color-fg);
+}
+.alert-ui--success {
+    background: color-mix(in srgb, var(--color-success) 8%, var(--color-bg));
+    border-color: var(--color-success);
+    color: var(--color-fg);
+}
+.alert-ui--warning {
+    background: color-mix(in srgb, var(--color-warning) 12%, var(--color-bg));
+    border-color: var(--color-warning);
+    color: var(--color-fg);
+}
+.alert-ui--danger {
+    background: color-mix(in srgb, var(--color-danger) 8%, var(--color-bg));
+    border-color: var(--color-danger);
+    color: var(--color-fg);
+}
+
+/* === Section === */
+.section-ui {
+    padding: var(--section-padding-y) var(--section-padding-x);
+}
+.section-ui__title {
+    font-family: var(--font-display);
+    font-weight: var(--section-title-weight);
+    text-transform: var(--section-title-transform);
+    letter-spacing: var(--section-title-letter-spacing);
+    color: var(--color-fg);
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+    line-height: 1.1;
+    margin: 0;
+}
+.section-ui__subtitle {
+    color: var(--color-muted);
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+}
+
+/* ================================================
+   LAYOUT COMPONENT STYLES
+   ================================================ */
+
+/* PRODUCT CARD STACKING FIX */
+.product-card {
+    /* Force all product elements to stay below navigation */
+    z-index: auto !important;
+    /* Allow normal styling transforms but prevent stacking contexts */
+    position: relative;
+}
+
+/* FORCE REMOVE MAIN Z-INDEX */
+.main, main {
+    z-index: auto !important;
+    position: relative !important;
+}
+
+/* CART MODAL - Highest priority above all elements */
+#cartModal, .cart-modal {
+    z-index: 1000000 !important;
+}
+
+.mega-menu h4 {
+    font-weight: 900;
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+}
+
+.mega-menu a {
+    display: block;
+    padding: 8px 0;
+    color: #333;
+    font-weight: 500;
+    transition: all 0.2s;
+}
+
+.mega-menu a:hover {
+    color: black;
+    font-weight: 700;
+    padding-left: 8px;
+}
+
+#catalogArrow, #horizontalCatalogArrow {
+    transition: transform 0.3s ease;
+}
+
+/* Horizontal Menu and Mega Menu Styles */
+#horizontalMenu {
+    position: relative;
+}
+
+.horizontal-mega-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background: #1f2937;
+    border-bottom: 4px solid #374151;
+    display: none;
+    z-index: 9998 !important;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.horizontal-mega-menu.active {
+    display: block;
+    /* Remove animation with transforms */
+    opacity: 1;
+}
+
+.horizontal-mega-menu h5 {
+    font-weight: 700;
+    font-size: 12px;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    color: white;
+}
+
+.horizontal-mega-menu a,
+.horizontal-mega-menu-link {
+    display: block;
+    padding: 6px 0;
+    color: #d1d5db;
+    font-weight: 400;
+    transition: all 0.2s;
+    text-decoration: none;
+}
+
+.horizontal-mega-menu a:hover,
+.horizontal-mega-menu-link:hover {
+    color: white;
+    font-weight: 600;
+    padding-left: 6px;
+}

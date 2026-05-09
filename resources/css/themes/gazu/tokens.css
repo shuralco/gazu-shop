@@ -1,0 +1,38 @@
+/* GAZU — design tokens (mirror of design-bundle gazu/project/tokens.css)
+   Scoped under .gazu-theme so they don't leak into the existing storefront. */
+.gazu-theme {
+    --gazu-ink:        #0E1B2C;
+    --gazu-ink-2:      #1A2740;
+    --gazu-steel:      #1F3A5F;
+    --gazu-blue:       #2453A6;
+    --gazu-blue-600:   #1E47A1;
+    --gazu-blue-700:   #15387D;
+    --gazu-azure:      #3672D9;
+    --gazu-mist:       #E6ECF3;
+    --gazu-bone:       #F5F2EC;
+    --gazu-paper:      #FBFAF7;
+    --gazu-white:      #FFFFFF;
+
+    --gazu-line:       #E4E7EB;
+    --gazu-line-2:     #CFD4DB;
+    --gazu-graphite:   #5A6573;
+    --gazu-muted:      #8A93A1;
+
+    --gazu-success:    #2E7D5A;
+    --gazu-success-bg: #E6F2EC;
+    --gazu-warn:       #B86E1A;
+    --gazu-warn-bg:    #FAF1E2;
+    --gazu-danger:     #B23B3B;
+    --gazu-danger-bg:  #FAE8E8;
+
+    --gazu-r-sm: 4px;
+    --gazu-r-md: 8px;
+    --gazu-r-lg: 12px;
+    --gazu-shadow-1: 0 1px 2px rgba(14,27,44,0.06), 0 1px 0 rgba(14,27,44,0.04);
+    --gazu-shadow-2: 0 4px 16px rgba(14,27,44,0.08);
+
+    --gazu-font-display: "Space Grotesk", system-ui, sans-serif;
+    --gazu-font-text:    "Inter Tight", system-ui, sans-serif;
+    --gazu-font-mono:    "JetBrains Mono", ui-monospace, monospace;
+    --gazu-font-archivo: "Archivo Black", "Space Grotesk", system-ui, sans-serif;
+}

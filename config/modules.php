@@ -1,0 +1,116 @@
+<?php
+
+/**
+ * Module registry. Toggle individual features without removing code.
+ *
+ * Set MODULE_{NAME}=false in .env to disable a feature for a specific
+ * client deploy. Disabled modules:
+ *   - hide their Filament navigation entries
+ *   - skip their scheduled jobs
+ *   - block their routes via the `module:` middleware
+ *   - return false from module('name')->enabled() helper
+ *
+ * Data IS preserved — re-enable restores everything intact.
+ */
+
+return [
+
+    'multi_warehouse' => [
+        'name' => 'Багатоскладовий облік',
+        'description' => 'Декілька власних складів, переміщення, приходування, авто-списання при ТТН',
+        'enabled' => env('MODULE_MULTI_WAREHOUSE', true),
+        'requires' => [],
+    ],
+
+    'loyalty' => [
+        'name' => 'Програма лояльності',
+        'description' => 'Бонусні бали, рівні клієнтів, історія транзакцій',
+        'enabled' => env('MODULE_LOYALTY', true),
+        'requires' => [],
+    ],
+
+    'wholesale' => [
+        'name' => 'Гуртові ціни (B2B)',
+        'description' => 'Групи клієнтів, спеціальні ціни, гуртові мінімалки',
+        'enabled' => env('MODULE_WHOLESALE', true),
+        'requires' => [],
+    ],
+
+    'comparison' => [
+        'name' => 'Порівняння товарів',
+        'description' => 'Кнопка «порівняти», окрема сторінка зі списком та характеристиками',
+        'enabled' => env('MODULE_COMPARISON', true),
+        'requires' => [],
+    ],
+
+    'coupons' => [
+        'name' => 'Купони / промокоди',
+        'description' => 'Знижки за кодами на checkout',
+        'enabled' => env('MODULE_COUPONS', true),
+        'requires' => [],
+    ],
+
+    'reviews' => [
+        'name' => 'Відгуки про товари',
+        'description' => 'Користувацькі рейтинги, модерація з адмінки',
+        'enabled' => env('MODULE_REVIEWS', true),
+        'requires' => [],
+    ],
+
+    'novaposhta' => [
+        'name' => 'Нова Пошта',
+        'description' => 'API + selector + ТТН + scan-sheets + tracking',
+        'enabled' => env('MODULE_NOVAPOSHTA', true),
+        'requires' => [],
+    ],
+
+    'ukrposhta' => [
+        'name' => 'УкрПошта',
+        'description' => 'API + selector + eCom ТТН',
+        'enabled' => env('MODULE_UKRPOSHTA', true),
+        'requires' => [],
+    ],
+
+    'rozetka_delivery' => [
+        'name' => 'Rozetka Delivery',
+        'description' => 'Інтеграція з Розетка Delivery',
+        'enabled' => env('MODULE_ROZETKA_DELIVERY', false),
+        'requires' => [],
+    ],
+
+    'meest_express' => [
+        'name' => 'Meest Express',
+        'description' => 'Інтеграція з Meest',
+        'enabled' => env('MODULE_MEEST_EXPRESS', false),
+        'requires' => [],
+    ],
+
+    'auto_parts_seed' => [
+        'name' => 'Auto-parts demo каталог',
+        'description' => 'Готовий пакет з категоріями, брендами, товарами автозапчастин',
+        'enabled' => env('MODULE_AUTO_PARTS_SEED', false),
+        'requires' => [],
+    ],
+
+    'quick_fill' => [
+        'name' => 'Швидке наповнення (Chinese supplier)',
+        'description' => 'Excel-стиль набивання товарів з 1688/Aliexpress: закупка в CNY/USD, авто-розрахунок ціни, CSV-імпорт',
+        'enabled' => env('MODULE_QUICK_FILL', true),
+        'requires' => [],
+    ],
+
+    'feed_export' => [
+        'name' => 'Експорт фідів (Rozetka/Prom/OLX)',
+        'description' => 'Генерація YML/XML фідів для Rozetka, Prom, OLX, Google Shopping. Адмін-панель з фільтрами та регенерацією.',
+        'enabled' => env('MODULE_FEED_EXPORT', true),
+        'requires' => [],
+    ],
+
+    'gazu_garage' => [
+        'name' => 'Гараж користувача (GAZU)',
+        'description' => 'Користувацька модель UserCar: збереження своїх авто, primary, фільтр "Ваш автомобіль" у каталозі, "Підходить для X" на product page. Вимкнено за замовчуванням до активації клієнтом.',
+        'enabled' => env('MODULE_GAZU_GARAGE', false),
+        'requires' => [],
+    ],
+
+];

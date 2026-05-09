@@ -1,0 +1,177 @@
+@props([
+    'priceRange' => ['min' => 0, 'max' => 10000, 'currentMin' => 0, 'currentMax' => 10000],
+    'availableBrands' => collect(),
+    'selectedBrands' => [],
+    'availableConditions' => null,
+    'selectedConditions' => [],
+    'inStockOnly' => false,
+    'searchQuery' => '',
+    'category' => null,
+])
+@php
+    $brands = collect($availableBrands);
+    $selected = collect($selectedBrands);
+    $rangeFromUrl = ['min','max','sort'];
+    $hasFilters = !empty(request('brand')) || request()->filled('min') || request()->filled('max') || request('stock') === 'in';
+@endphp
+
+<form method="GET" action="{{ url()->current() }}" class="font-text text-sm" x-data="{ priceMin: {{ (int) $priceRange['currentMin'] }}, priceMax: {{ (int) $priceRange['currentMax'] }} }">
+    {{-- Зберігаємо з URL: ?cat, ?q, ?sort при subimt --}}
+    @foreach (['cat', 'q', 'sort'] as $kept)
+        @if (request()->filled($kept))
+            <input type="hidden" name="{{ $kept }}" value="{{ request($kept) }}">
+        @endif
+    @endforeach
+
+    {{-- Ваш автомобіль — модуль gazu_garage --}}
+    @if(module('gazu_garage')->enabled())
+        @php
+            $primaryCar = auth()->check() ? auth()->user()->primaryCar : null;
+            $rows = [];
+            if ($primaryCar) {
+                $rows = [
+                    ['Марка', $primaryCar->make, true],
+                    ['Модель', $primaryCar->model, true],
+                    ['Рік', $primaryCar->year ?: '—', (bool) $primaryCar->year],
+                    ['Двигун', $primaryCar->engine ?: '—', (bool) $primaryCar->engine],
+                    ['Кузов', $primaryCar->body_type ?: '—', (bool) $primaryCar->body_type],
+                ];
+            }
+        @endphp
+        <div class="bg-[var(--gazu-mist)] p-4 rounded-lg mb-5">
+            <div class="text-xs gazu-mono text-[var(--gazu-graphite)] tracking-widest uppercase mb-2.5">Ваш автомобіль</div>
+            @if($primaryCar)
+                <div class="flex flex-col gap-2">
+                    @foreach($rows as [$k, $v, $filled])
+                        <div class="flex items-center gap-2.5 px-2.5 py-2 bg-white rounded {{ $filled ? 'border border-[var(--gazu-line)]' : 'border border-[var(--gazu-line-2)] opacity-60' }}">
+                            <span class="text-[11px] text-[var(--gazu-graphite)] w-14">{{ $k }}</span>
+                            <span class="flex-1 text-[13px] {{ $filled ? 'text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-muted)]' }}">{{ $v }}</span>
+                            @if($filled)<x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/>@endif
+                        </div>
+                    @endforeach
+                </div>
+                <a href="{{ route('gazu.garage') }}" class="block w-full mt-2.5 py-2 bg-transparent border border-dashed border-[var(--gazu-line-2)] rounded text-xs text-[var(--gazu-graphite)] cursor-pointer text-center no-underline">Змінити авто</a>
+            @else
+                <p class="text-xs text-[var(--gazu-graphite)] mb-2">@auth Додайте авто у Гараж — фільтр буде підставляти його автоматично @else Увійдіть, щоб зберегти своє авто @endauth</p>
+                <a href="{{ auth()->check() ? route('gazu.garage') : route('gazu.auth') }}"
+                   class="block w-full py-2 bg-[var(--gazu-ink)] text-white rounded text-xs text-center no-underline hover:bg-[var(--gazu-ink-2)]">
+                    @auth + Додати авто @else Увійти @endauth
+                </a>
+            @endif
+        </div>
+    @endif
+
+    {{-- Ціна --}}
+    <details class="border-b border-[var(--gazu-line)] py-3.5" open>
+        <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-sm font-medium text-[var(--gazu-ink)]">Ціна, ₴</span>
+            <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
+        </summary>
+        <div class="mt-3">
+            <div class="flex gap-2">
+                <input type="number" name="min" x-model="priceMin"
+                       min="{{ $priceRange['min'] }}" max="{{ $priceRange['max'] }}"
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none">
+                <input type="number" name="max" x-model="priceMax"
+                       min="{{ $priceRange['min'] }}" max="{{ $priceRange['max'] }}"
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none">
+            </div>
+            <div class="text-[11px] text-[var(--gazu-muted)] mt-2">
+                Від <span class="gazu-mono">{{ number_format($priceRange['min'], 0, '.', ' ') }} ₴</span>
+                до <span class="gazu-mono">{{ number_format($priceRange['max'], 0, '.', ' ') }} ₴</span>
+            </div>
+        </div>
+    </details>
+
+    {{-- Виробник --}}
+    @if($brands->isNotEmpty())
+        <details class="border-b border-[var(--gazu-line)] py-3.5" open>
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+                <span class="text-sm font-medium text-[var(--gazu-ink)]">Виробник</span>
+                <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
+            </summary>
+            <div class="mt-3">
+                @foreach($brands as $row)
+                    @php
+                        $name = is_object($row) ? $row->manufacturer : ($row['manufacturer'] ?? '');
+                        $count = is_object($row) ? $row->count : ($row['count'] ?? 0);
+                        $checked = $selected->contains($name);
+                    @endphp
+                    <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]">
+                        <input type="checkbox" name="brand[]" value="{{ $name }}"
+                               class="sr-only" {{ $checked ? 'checked' : '' }}
+                               onchange="this.form.submit()">
+                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center shrink-0">
+                            @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
+                        </span>
+                        <span class="flex-1">{{ $name }}</span>
+                        <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $count }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </details>
+    @endif
+
+    {{-- Стан --}}
+    @php
+        $conditions = collect($availableConditions ?? collect());
+        $selectedConds = collect($selectedConditions ?? []);
+        $condLabels = ['new' => 'Новий', 'used' => 'Б/у', 'refurbished' => 'Відновлений'];
+    @endphp
+    @if($conditions->isNotEmpty())
+        <details class="border-b border-[var(--gazu-line)] py-3.5" open>
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+                <span class="text-sm font-medium text-[var(--gazu-ink)]">Стан</span>
+                <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
+            </summary>
+            <div class="mt-3">
+                @foreach($conditions as $row)
+                    @php
+                        $val = is_object($row) ? $row->condition : ($row['condition'] ?? '');
+                        $count = is_object($row) ? $row->count : ($row['count'] ?? 0);
+                        $checked = $selectedConds->contains($val);
+                        $label = $condLabels[$val] ?? ucfirst($val);
+                    @endphp
+                    <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]">
+                        <input type="checkbox" name="condition[]" value="{{ $val }}"
+                               class="sr-only" {{ $checked ? 'checked' : '' }}
+                               onchange="this.form.submit()">
+                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center shrink-0">
+                            @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
+                        </span>
+                        <span class="flex-1">{{ $label }}</span>
+                        <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $count }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </details>
+    @endif
+
+    {{-- Наявність --}}
+    <details class="border-b border-[var(--gazu-line)] py-3.5" {{ $inStockOnly ? 'open' : '' }}>
+        <summary class="flex justify-between items-center cursor-pointer list-none">
+            <span class="text-sm font-medium text-[var(--gazu-ink)]">Наявність</span>
+            <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
+        </summary>
+        <div class="mt-3">
+            <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)]">
+                <input type="checkbox" name="stock" value="in" class="sr-only"
+                       {{ $inStockOnly ? 'checked' : '' }} onchange="this.form.submit()">
+                <span class="w-4 h-4 border-[1.5px] {{ $inStockOnly ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center">
+                    @if($inStockOnly)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
+                </span>
+                <span class="flex-1">Тільки в наявності</span>
+            </label>
+        </div>
+    </details>
+
+    <button type="submit" class="w-full mt-4 py-3 bg-[var(--gazu-ink)] text-white border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
+        Застосувати фільтри
+    </button>
+    @if($hasFilters || request()->filled('q'))
+        <a href="{{ $category ? url()->current().'?cat='.($category->slug ?? $category->id) : url()->current() }}"
+           class="block w-full mt-1.5 py-2 bg-transparent text-center text-[var(--gazu-graphite)] text-xs no-underline">
+            Скинути всі фільтри
+        </a>
+    @endif
+</form>

@@ -1,0 +1,774 @@
+<?php
+
+namespace App\Http\Controllers\Gazu;
+
+use App\Http\Controllers\Controller;
+use App\Models\Brand;
+use App\Models\Category;
+use App\Models\Product;
+use Illuminate\Http\Request;
+
+/**
+ * GAZU storefront — окрема пісочниця, що живе на префіксі /gazu.
+ * Не зачіпає чинного storefront / Livewire-сторінок.
+ */
+class StoreController extends Controller
+{
+    private array $imageKinds = ['filter', 'pad', 'shock', 'bulb', 'oil', 'spark', 'bearing', 'wiper'];
+
+    private function decorate(Product $p): Product
+    {
+        // Накладаємо UI-поля поверх живої моделі, не торкаючись БД.
+        $p->oem = $p->sku ?: ($p->barcode ?: '');
+        // name: пріоритет translatable title, потім name-колонка
+        $rawTitle = $p->getRawOriginal('title');
+        $localizedTitle = is_string($rawTitle) && str_starts_with($rawTitle, '{')
+            ? (json_decode($rawTitle, true)['uk'] ?? null)
+            : $rawTitle;
+        $p->name = $localizedTitle ?: ($p->name ?? '');
+        $brand = $p->brand?->name ?? $p->manufacturer ?? 'GAZU';
+        $p->brand = $brand;
+        $p->image_kind = $this->imageKinds[($p->id ?? 0) % count($this->imageKinds)];
+        $p->qty = method_exists($p, 'totalAvailableQuantity') ? (int) $p->totalAvailableQuantity() : (int) ($p->quantity ?? 0);
+        if (! $p->qty) {
+            $p->qty = (int) ($p->quantity ?? 0);
+        }
+        $p->reviews = (int) ($p->reviews_count ?? 0);
+        $p->fits = $p->excerpt ?? null;
+        $p->condition = $p->is_new ? 'Новий' : 'Новий';
+        $p->discount = ($p->old_price && $p->price && $p->old_price > $p->price)
+            ? (int) round((($p->old_price - $p->price) / $p->old_price) * 100)
+            : null;
+        $p->url = route('gazu.product.show', ['slug' => $p->slug ?? $p->id]);
+
+        return $p;
+    }
+
+    private function fetchProducts(int $limit = 8): \Illuminate\Support\Collection
+    {
+        $q = Product::query()->with(['category'])->where('is_active', true);
+        if (\Schema::hasColumn('products', 'brand_id')) {
+            $q->with('brand');
+        }
+        $items = $q->orderByDesc('rating')->limit($limit)->get();
+
+        if ($items->isEmpty()) {
+            return $this->mockProducts($limit);
+        }
+
+        return $items->map(fn ($p) => $this->decorate($p));
+    }
+
+    private function mockProducts(int $limit = 8): \Illuminate\Support\Collection
+    {
+        $base = [
+            ['name' => 'Фільтр масляний BOSCH F 026 407 023', 'oem' => '06A 115 561 B', 'brand' => 'Bosch', 'image_kind' => 'filter', 'price' => 184, 'old_price' => 240, 'discount' => 23, 'condition' => 'Новий', 'qty' => 12, 'rating' => 4.7, 'reviews' => 42, 'fits' => 'VW Passat B8 2014–2024 · 2.0 TDI'],
+            ['name' => 'Колодки гальмівні передні TRW GDB1763', 'oem' => '8K0 698 151 H', 'brand' => 'TRW', 'image_kind' => 'pad', 'price' => 1240, 'condition' => 'Новий', 'qty' => 7, 'rating' => 4.9, 'reviews' => 128, 'fits' => 'Audi A4 B8 / VW Passat B8 / Skoda Superb III'],
+            ['name' => 'Амортизатор задній KYB 343396 Excel-G', 'oem' => '5Q0 513 045', 'brand' => 'KYB', 'image_kind' => 'shock', 'price' => 1890, 'condition' => 'Новий', 'qty' => 4, 'rating' => 4.6, 'reviews' => 73, 'fits' => 'VW Golf VII / Skoda Octavia A7'],
+            ['name' => 'Лампа головного світла OSRAM Night Breaker H7 +200%', 'oem' => '64210NB200', 'brand' => 'Osram', 'image_kind' => 'bulb', 'price' => 620, 'old_price' => 780, 'discount' => 20, 'condition' => 'Новий', 'qty' => 32, 'rating' => 4.8, 'reviews' => 215, 'fits' => 'Універсальна, цоколь H7'],
+            ['name' => 'Олива моторна Mobil 1 ESP 5W-30 4 л', 'oem' => '154297', 'brand' => 'Mobil', 'image_kind' => 'oil', 'price' => 2150, 'condition' => 'Новий', 'qty' => 18, 'rating' => 4.9, 'reviews' => 312, 'fits' => 'Дизельні двигуни з DPF, ACEA C3'],
+            ['name' => 'Свічка запалювання NGK BKR6E-11 (2756)', 'oem' => '101 000 045 AA', 'brand' => 'NGK', 'image_kind' => 'spark', 'price' => 142, 'condition' => 'Новий', 'qty' => 86, 'rating' => 4.7, 'reviews' => 504, 'fits' => 'VAG бензинові 1.4–2.0 TSI'],
+            ['name' => 'Підшипник маточини передньої FAG 713 6107 70', 'oem' => '8V0 498 625 A', 'brand' => 'FAG', 'image_kind' => 'bearing', 'price' => 1620, 'condition' => 'Новий', 'qty' => 0, 'rating' => 4.5, 'reviews' => 38, 'fits' => 'Audi A3 8V / VW Golf VII'],
+            ['name' => 'Щітки склоочисника Bosch Aerotwin AR653S 650+450', 'oem' => '3 397 118 933', 'brand' => 'Bosch', 'image_kind' => 'wiper', 'price' => 780, 'condition' => 'Новий', 'qty' => 24, 'rating' => 4.8, 'reviews' => 189, 'fits' => 'Більшість моделей VAG 2010+'],
+        ];
+
+        return collect(array_slice($base, 0, $limit))->map(function ($p, $i) {
+            $p['id'] = $i + 1;
+            $p['url'] = route('gazu.product.show', ['slug' => 'sample-'.($i + 1)]);
+            return (object) $p;
+        });
+    }
+
+    private function fetchCategories(): \Illuminate\Support\Collection
+    {
+        if (! class_exists(Category::class)) {
+            return collect();
+        }
+        try {
+            return Category::query()->where('is_active', true)->where('parent_id', null)->orderBy('sort_order')->limit(8)->get();
+        } catch (\Throwable $e) {
+            return collect();
+        }
+    }
+
+    public function home(string $variant = 'v1')
+    {
+        $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
+        $products = $this->fetchProducts(8);
+        $categories = $this->fetchCategories();
+
+        return view("gazu.home.$variant", [
+            'featured' => $products->take(4),
+            'popular' => $products->skip(4)->take(4)->values(),
+            'categories' => $categories,
+            'activeNav' => $variant === 'v2' ? 'compat' : 'catalog',
+            'cartCount' => 3,
+        ]);
+    }
+
+    public function catalog(Request $request, string $variant = 'v1')
+    {
+        $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
+
+        $query = new \App\Services\Gazu\CatalogQuery($request);
+        $category = $query->category();
+        $paginator = $query->paginate($category);
+
+        // Декорація під product-card props.
+        $products = collect($paginator->items())->map(fn ($p) => $this->decorate($p));
+        if ($products->isEmpty() && ! $request->hasAny(['cat', 'q', 'brand', 'min', 'max', 'stock'])) {
+            // Жодних товарів і жодних фільтрів — показуємо моки, щоб шаблон не виглядав порожнім.
+            $products = $this->mockProducts(12);
+        }
+
+        return view("gazu.catalog.$variant", [
+            'products'            => $products,
+            'paginator'           => $paginator,
+            'category'            => $category,
+            'priceRange'          => $query->priceRange($category),
+            'availableBrands'     => $query->availableBrands($category),
+            'selectedBrands'      => $query->selectedBrands(),
+            'availableConditions' => $query->availableConditions($category),
+            'selectedConditions'  => $query->selectedConditions(),
+            'searchQuery'         => (string) $request->query('q', ''),
+            'currentSort'         => (string) $request->query('sort', 'popular'),
+            'inStockOnly'         => $request->query('stock') === 'in',
+            'totalCount'          => $paginator->total(),
+            'activeNav'           => 'catalog',
+        ]);
+    }
+
+    public function product(string $slug, string $variant = 'v1')
+    {
+        $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
+
+        // 1) Спробуємо чисельний id (якщо переданий sample-1 → 1)
+        $product = null;
+        if (is_numeric($slug)) {
+            $product = Product::query()->find((int) $slug);
+        }
+
+        // 2) JSON-slug — Spatie translatable зберігає як {"uk": "...", "en": "..."}
+        if (! $product) {
+            $product = Product::query()
+                ->where('slug->uk', $slug)
+                ->orWhere('slug->en', $slug)
+                ->first();
+        }
+
+        // 3) Якщо slug закінчується на "-{id}" (наша конвенція з seed) — витягнемо id
+        if (! $product && preg_match('/-(\d+)$/', $slug, $m)) {
+            $product = Product::query()->find((int) $m[1]);
+        }
+
+        // 4) Plain-string slug (для legacy)
+        if (! $product) {
+            $product = Product::query()->where('slug', $slug)->first();
+        }
+
+        if ($product) {
+            $product = $this->decorate($product);
+        } else {
+            // Лише якщо БД порожня — показуємо mock
+            $product = $this->mockProducts(1)->first();
+        }
+
+        $related = $this->fetchProducts(4);
+
+        return view("gazu.product.$variant", [
+            'p' => $product,
+            'related' => $related,
+            'activeNav' => 'catalog',
+            'cartCount' => 3,
+        ]);
+    }
+
+    public function cart()
+    {
+        $cart = \App\Helpers\Cart\Cart::getCart();
+        if (empty($cart)) {
+            return view('gazu.cart.empty', ['activeNav' => null]);
+        }
+
+        return view('gazu.cart.index', [
+            'cart' => $cart,
+            'cartTotal' => \App\Helpers\Cart\Cart::getCartTotal(),
+            'activeNav' => null,
+        ]);
+    }
+
+    public function emptyCart()
+    {
+        return view('gazu.cart.empty', ['activeNav' => null]);
+    }
+
+    public function checkout()
+    {
+        return view('gazu.checkout', [
+            'activeNav' => null,
+            'cartCount' => 3,
+        ]);
+    }
+
+    public function account(Request $request)
+    {
+        $user = $request->user();
+        $orders = $user
+            ? $user->orders()->with('orderProducts')->orderByDesc('id')->paginate(10)
+            : collect();
+
+        return view('gazu.account.orders', [
+            'user' => $user,
+            'orders' => $orders,
+            'activeNav' => null,
+        ]);
+    }
+
+    public function orderDetails(Request $request, int $order)
+    {
+        $user = $request->user();
+        $orderModel = \App\Models\Order::with('orderProducts')->find($order);
+        if (! $orderModel || $orderModel->user_id !== $user->id) {
+            abort(404);
+        }
+
+        return view('gazu.account.order-details', [
+            'user' => $user,
+            'order' => $orderModel,
+            'activeNav' => null,
+        ]);
+    }
+
+    public function garage()
+    {
+        return view('gazu.account.garage', [
+            'user' => auth()->user(),
+            'activeNav' => null,
+        ]);
+    }
+
+    public function brand(?string $slug = null)
+    {
+        // /gazu/brand (без slug) → список усіх брендів
+        if (! $slug) {
+            $allBrands = Brand::query()
+                ->when(\Schema::hasColumn('brands', 'is_active'), fn ($q) => $q->where('is_active', true))
+                ->orderBy('name')
+                ->withCount('products')
+                ->get();
+
+            return view('gazu.brand-list', [
+                'brands' => $allBrands,
+                'activeNav' => 'brands',
+            ]);
+        }
+
+        // /gazu/brand/{slug} → конкретний бренд
+        $brand = Brand::query()->where('slug', $slug)->orWhere('slug', strtolower($slug))->first();
+        if (! $brand) {
+            // fallback: спробуємо знайти по name (case-insensitive)
+            $brand = Brand::query()->whereRaw('LOWER(name) = ?', [strtolower($slug)])->first();
+        }
+        if (! $brand) abort(404);
+
+        $products = Product::query()
+            ->where('is_active', true)
+            ->where(function ($q) use ($brand) {
+                $q->where('brand_id', $brand->id)
+                  ->orWhere('manufacturer', $brand->name);
+            })
+            ->orderByDesc('rating')
+            ->limit(12)
+            ->get()
+            ->map(fn ($p) => $this->decorate($p));
+
+        $productsCount = Product::query()
+            ->where('is_active', true)
+            ->where(fn ($q) => $q->where('brand_id', $brand->id)->orWhere('manufacturer', $brand->name))
+            ->count();
+
+        // Категорії, в яких є товари цього бренду — для блоку «За категоріями»
+        $categories = Category::query()
+            ->whereIn('id', Product::query()
+                ->where('is_active', true)
+                ->where(fn ($q) => $q->where('brand_id', $brand->id)->orWhere('manufacturer', $brand->name))
+                ->pluck('category_id')
+                ->filter()
+                ->unique()
+            )
+            ->limit(8)
+            ->get();
+
+        return view('gazu.brand', [
+            'brand' => $brand,
+            'products' => $products,
+            'productsCount' => $productsCount,
+            'brandCategories' => $categories,
+            'activeNav' => 'brands',
+        ]);
+    }
+
+    public function sto()
+    {
+        return view('gazu.sto', ['activeNav' => 'sto', 'cartCount' => 3]);
+    }
+
+    public function blog(?string $slug = null)
+    {
+        if ($slug) {
+            $page = \App\Models\Page::query()
+                ->where('is_active', true)
+                ->where(function ($q) use ($slug) {
+                    $q->where('slug->uk', $slug)->orWhere('slug->en', $slug)->orWhere('slug', $slug);
+                })
+                ->first();
+            if (! $page) abort(404);
+
+            return view('gazu.blog-show', [
+                'page' => $page,
+                'activeNav' => 'blog',
+            ]);
+        }
+
+        $posts = \App\Models\Page::query()
+            ->where('is_active', true)
+            ->when(\Schema::hasColumn('pages', 'template'), fn ($q) => $q->where('template', 'blog_post'))
+            ->orderByDesc('id')
+            ->paginate(12);
+
+        return view('gazu.blog', [
+            'posts' => $posts,
+            'activeNav' => 'blog',
+        ]);
+    }
+
+    public function contacts()
+    {
+        return view('gazu.contacts', ['activeNav' => null, 'cartCount' => 3]);
+    }
+
+    public function vin()
+    {
+        return view('gazu.vin', ['activeNav' => 'vin', 'cartCount' => 3]);
+    }
+
+    public function search(Request $request)
+    {
+        $q = (string) $request->query('q', '');
+        $query = new \App\Services\Gazu\CatalogQuery($request);
+        $paginator = $query->paginate(null);
+        $products = collect($paginator->items())->map(fn ($p) => $this->decorate($p));
+
+        return view('gazu.catalog.v1', [
+            'products' => $products,
+            'paginator' => $paginator,
+            'category' => null,
+            'priceRange' => $query->priceRange(null),
+            'availableBrands' => $query->availableBrands(null),
+            'selectedBrands' => $query->selectedBrands(),
+            'searchQuery' => $q,
+            'currentSort' => (string) $request->query('sort', 'popular'),
+            'inStockOnly' => $request->query('stock') === 'in',
+            'totalCount' => $paginator->total(),
+            'activeNav' => 'catalog',
+        ]);
+    }
+
+    /**
+     * AJAX: Nova Poshta cities autocomplete.
+     */
+    public function npCities(Request $request)
+    {
+        $q = mb_strtolower(trim((string) $request->query('q', '')));
+        $items = $this->queryCities($q);
+
+        // Lazy fetch from NP API if local DB has no match
+        if ($q !== '' && mb_strlen($q) >= 2 && $items->isEmpty()) {
+            try {
+                $svc = app(\App\Services\NovaPoshtaApiService::class);
+                $r = $svc->searchCities($request->query('q'), 10);
+                foreach ($r['data'] ?? [] as $c) {
+                    \App\Models\NpCity::updateOrCreate(['ref' => $c['Ref']], [
+                        'description' => $c['Description'],
+                        'description_ru' => $c['DescriptionRu'] ?? null,
+                        'area_ref' => $c['Area'] ?? null,
+                        'area_description' => $c['AreaDescription'] ?? null,
+                        'settlement_type' => $c['SettlementTypeDescription'] ?? null,
+                        'is_branch' => (bool) ($c['IsBranch'] ?? false),
+                    ]);
+                }
+                $items = $this->queryCities($q);
+            } catch (\Throwable $e) {
+                \Log::warning('NP cities lazy fetch failed', ['e' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json([
+            'items' => $items->map(fn ($c) => [
+                'ref' => $c->ref,
+                'name' => $c->description,
+                'area' => $c->area_description,
+                'type' => $c->settlement_type,
+            ])->all(),
+        ]);
+    }
+
+    private function queryCities(string $q)
+    {
+        $query = \App\Models\NpCity::query();
+        if ($q !== '') {
+            $query->where(function ($x) use ($q) {
+                $x->whereRaw('LOWER(description) LIKE ?', ["$q%"])
+                  ->orWhereRaw('LOWER(description) LIKE ?', ["%$q%"])
+                  ->orWhereRaw('LOWER(description_ru) LIKE ?', ["%$q%"]);
+            });
+            $query->orderByRaw(
+                "CASE WHEN LOWER(description) = ? THEN 0 WHEN LOWER(description) LIKE ? THEN 1 WHEN settlement_type = 'місто' THEN 2 ELSE 3 END",
+                [$q, "$q%"]
+            );
+        }
+
+        return $query->orderBy('description')
+            ->limit(15)
+            ->get(['ref', 'description', 'area_description', 'settlement_type']);
+    }
+
+    /**
+     * AJAX: Nova Poshta warehouses for given city ref/name.
+     */
+    public function npWarehouses(Request $request)
+    {
+        $cityRef = (string) $request->query('city_ref', '');
+        $cityName = (string) $request->query('city', '');
+        $q = mb_strtolower(trim((string) $request->query('q', '')));
+        // type: branch (звичайні відділення) | postomat | all
+        $type = (string) $request->query('type', 'branch');
+
+        // Якщо city_ref не передано — шукаємо за назвою
+        if ($cityRef === '' && $cityName !== '') {
+            $matched = \App\Models\NpCity::where('description', $cityName)
+                ->orWhereRaw('LOWER(description) LIKE ?', [mb_strtolower($cityName).'%'])
+                ->orderByRaw("CASE WHEN LOWER(description) = ? THEN 0 WHEN settlement_type = 'місто' THEN 1 ELSE 2 END", [mb_strtolower($cityName)])
+                ->first();
+            if ($matched) {
+                $cityRef = $matched->ref;
+            }
+        }
+
+        // Без міста — нема результатів (інакше повертатиме випадкові #1 з різних сіл)
+        if ($cityRef === '') {
+            return response()->json(['items' => []]);
+        }
+
+        $build = function () use ($cityRef, $type, $q) {
+            return \App\Models\NpWarehouse::query()
+                ->when(\Schema::hasColumn('np_warehouses', 'is_active'), fn ($x) => $x->where('is_active', true))
+                ->where('city_ref', $cityRef)
+                ->when($type === 'postomat', fn ($x) => $x->where('type_description', 'Postomat'))
+                ->when($type === 'branch', fn ($x) => $x->where(function ($w) {
+                    $w->whereIn('type_description', ['Branch', 'Store', 'DropOff'])
+                      ->orWhereNull('type_description')
+                      ->orWhere('type_description', '');
+                }))
+                ->when($q !== '', function ($x) use ($q) {
+                    $x->where(function ($w) use ($q) {
+                        $w->whereRaw('LOWER(description) LIKE ?', ["%$q%"])
+                          ->orWhere('number', 'like', "%$q%");
+                    });
+                })
+                ->orderByRaw('CAST(COALESCE(NULLIF(number,""), site_key) AS UNSIGNED)')
+                ->limit(500)
+                ->get(['ref', 'number', 'site_key', 'description', 'short_address', 'type_description', 'latitude', 'longitude']);
+        };
+
+        $items = $build();
+
+        // Lazy fetch — якщо для цього міста ще не sync-нуто warehouses, тягнемо з NP API
+        $hasAnyForCity = \App\Models\NpWarehouse::where('city_ref', $cityRef)->exists();
+        if (! $hasAnyForCity) {
+            try {
+                $svc = app(\App\Services\NovaPoshtaApiService::class);
+                $page = 1;
+                while (true) {
+                    $r = $svc->getWarehouses($cityRef, '', 500, $page);
+                    if (! ($r['success'] ?? false) || empty($r['data'])) {
+                        break;
+                    }
+                    foreach ($r['data'] as $w) {
+                        \App\Models\NpWarehouse::updateOrCreate(['ref' => $w['Ref']], [
+                            'site_key' => $w['Number'] ?? null,
+                            'number' => $w['Number'] ?? null,
+                            'description' => $w['Description'],
+                            'short_address' => $w['ShortAddress'] ?? null,
+                            'city_ref' => $w['CityRef'] ?? $cityRef,
+                            'city_description' => $w['CityDescription'] ?? null,
+                            'type_ref' => $w['TypeOfWarehouse'] ?? null,
+                            'type_description' => $w['CategoryOfWarehouse'] ?? null,
+                            'longitude' => $w['Longitude'] ?? null,
+                            'latitude' => $w['Latitude'] ?? null,
+                            'total_max_weight' => (int) ($w['TotalMaxWeightAllowed'] ?? 30),
+                            'is_active' => ($w['WarehouseStatus'] ?? 'Working') === 'Working',
+                        ]);
+                    }
+                    if (count($r['data']) < 500) {
+                        break;
+                    }
+                    $page++;
+                }
+                $items = $build();
+            } catch (\Throwable $e) {
+                \Log::warning('NP warehouses lazy fetch failed', ['e' => $e->getMessage()]);
+            }
+        }
+
+        return response()->json([
+            'items' => $items->map(fn ($w) => [
+                'ref' => $w->ref,
+                'number' => $w->number ?: $w->site_key,
+                'name' => $w->description,
+                'short_address' => $w->short_address,
+                'type' => $w->type_description,
+                'is_postomat' => $w->type_description === 'Postomat',
+                'lat' => is_numeric($w->latitude) ? (float) $w->latitude : null,
+                'lng' => is_numeric($w->longitude) ? (float) $w->longitude : null,
+            ])->all(),
+        ]);
+    }
+
+    /**
+     * AJAX: УкрПошта — міста за назвою.
+     */
+    public function upCities(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json(['items' => []]);
+        }
+        try {
+            $svc = app(\App\Services\UkrPoshtaApiService::class);
+            $r = $svc->getCities($q);
+            $items = collect($r ?? [])
+                ->map(fn ($c) => is_object($c) ? (array) $c : (array) $c)
+                ->take(15)
+                ->map(fn ($c) => [
+                    'id' => (int) ($c['CITY_ID'] ?? 0),
+                    'name' => trim(($c['SHORTCITYTYPE_UA'] ?? '').' '.($c['CITY_UA'] ?? $c['CITY_EN'] ?? '')),
+                    'region' => $c['REGION_UA'] ?? $c['DISTRICT_UA'] ?? '',
+                ])
+                ->filter(fn ($c) => $c['name'] !== '' && $c['id'] > 0)
+                ->values()->all();
+
+            return response()->json(['items' => $items]);
+        } catch (\Throwable $e) {
+            \Log::warning('UP cities fetch failed', ['e' => $e->getMessage()]);
+
+            return response()->json(['items' => []]);
+        }
+    }
+
+    /**
+     * AJAX: УкрПошта — поштові відділення для міста.
+     */
+    public function upPostOffices(Request $request)
+    {
+        $cityId = (int) $request->query('city_id', 0);
+        if ($cityId === 0) {
+            return response()->json(['items' => []]);
+        }
+        try {
+            $svc = app(\App\Services\UkrPoshtaApiService::class);
+            $r = $svc->getPostOffices($cityId);
+            $items = collect($r ?? [])
+                ->map(fn ($p) => is_object($p) ? (array) $p : (array) $p)
+                ->take(80)
+                ->map(fn ($p) => [
+                    'id' => (int) ($p['ID'] ?? 0),
+                    'name' => $p['PO_SHORT'] ?? $p['PO_LONG'] ?? '',
+                    'address' => $p['ADDRESS'] ?? '',
+                    'postcode' => (string) ($p['POSTCODE'] ?? $p['POSTINDEX'] ?? ''),
+                    'phone' => $p['PHONE'] ?? '',
+                ])
+                ->filter(fn ($p) => $p['postcode'] !== '' && $p['id'] > 0)
+                ->sortBy('postcode')
+                ->values()->all();
+
+            return response()->json(['items' => $items]);
+        } catch (\Throwable $e) {
+            \Log::warning('UP post offices fetch failed', ['e' => $e->getMessage()]);
+
+            return response()->json(['items' => []]);
+        }
+    }
+
+    /**
+     * AJAX: NP розрахунок вартості + дати доставки.
+     */
+    public function npCalculate(Request $request)
+    {
+        $cityRef = (string) $request->query('city_ref', '');
+        $type = (string) $request->query('type', 'branch'); // branch | postomat | np_courier
+        if ($cityRef === '') {
+            return response()->json(['cost' => null, 'days' => null]);
+        }
+
+        $serviceType = match ($type) {
+            'np_courier' => 'WarehouseDoors',
+            default => 'WarehouseWarehouse',
+        };
+
+        $cart = \App\Helpers\Cart\Cart::getCart();
+        $cartTotal = (float) \App\Helpers\Cart\Cart::getCartTotal();
+        $weight = max(0.5, collect($cart)->sum(fn ($i) => (float) ($i['weight'] ?? 0.5) * (int) ($i['quantity'] ?? 1)));
+
+        $sender = config('novaposhta.sender_city_ref', '8d5a980d-391c-11dd-90d9-001a92567626');
+
+        try {
+            $svc = app(\App\Services\NovaPoshtaApiService::class);
+            $priceR = $svc->calculateShippingCost([
+                'CitySender' => $sender,
+                'CityRecipient' => $cityRef,
+                'ServiceType' => $serviceType,
+                'Weight' => (string) $weight,
+                'Cost' => (string) (int) $cartTotal,
+                'CargoType' => 'Parcel',
+                'SeatsAmount' => '1',
+            ]);
+            $cost = $priceR['data'][0]['Cost'] ?? null;
+
+            $dateR = $svc->getEstimatedDeliveryDate($sender, $cityRef, $serviceType);
+            $deliveryDate = $dateR['data'][0]['DeliveryDate']['date'] ?? null;
+            $days = null;
+            if ($deliveryDate) {
+                $days = max(1, (int) round((strtotime($deliveryDate) - time()) / 86400));
+            }
+
+            return response()->json([
+                'cost' => $cost ? (int) $cost : null,
+                'days' => $days,
+                'date' => $deliveryDate ? \Illuminate\Support\Carbon::parse($deliveryDate)->format('d.m') : null,
+            ]);
+        } catch (\Throwable $e) {
+            \Log::warning('NP calculate failed', ['e' => $e->getMessage()]);
+
+            return response()->json(['cost' => null, 'days' => null]);
+        }
+    }
+
+    /**
+     * AJAX: NP streets for given city (для NP Курʼєра).
+     */
+    public function npStreets(Request $request)
+    {
+        $cityRef = (string) $request->query('city_ref', '');
+        $q = trim((string) $request->query('q', ''));
+        if ($cityRef === '' || mb_strlen($q) < 2) {
+            return response()->json(['items' => []]);
+        }
+        try {
+            $svc = app(\App\Services\NovaPoshtaApiService::class);
+            $r = $svc->getStreets($cityRef, $q);
+            $items = collect($r['data'] ?? [])->map(fn ($s) => [
+                'ref' => $s['Ref'] ?? '',
+                'name' => trim(($s['StreetsTypeRef_Description'] ?? $s['StreetsType'] ?? 'вул.').' '.($s['Description'] ?? '')),
+            ])->all();
+
+            return response()->json(['items' => $items]);
+        } catch (\Throwable $e) {
+            \Log::warning('NP streets fetch failed', ['e' => $e->getMessage()]);
+
+            return response()->json(['items' => []]);
+        }
+    }
+
+    /**
+     * AJAX endpoint для live-search autocomplete у header.
+     */
+    public function searchSuggest(Request $request)
+    {
+        $q = trim((string) $request->query('q', ''));
+        if (mb_strlen($q) < 2) {
+            return response()->json(['items' => [], 'total' => 0]);
+        }
+
+        $like = '%'.$q.'%';
+        $items = Product::query()
+            ->where('is_active', true)
+            ->where(function ($w) use ($like) {
+                $w->where('sku', 'like', $like)
+                  ->orWhere('barcode', 'like', $like)
+                  ->orWhere('manufacturer', 'like', $like)
+                  ->orWhere('title', 'like', $like);
+            })
+            ->orderByDesc('rating')
+            ->limit(8)
+            ->get(['id', 'title', 'slug', 'sku', 'manufacturer', 'price', 'image']);
+
+        $imgKinds = $this->imageKinds;
+        $payload = $items->map(function ($p) use ($imgKinds) {
+            $title = is_array($p->title) ? ($p->title['uk'] ?? '') : ($p->title ?? '');
+            $slug = is_array($p->slug) ? ($p->slug['uk'] ?? '') : ($p->slug ?? '');
+            return [
+                'id' => $p->id,
+                'title' => $title,
+                'sku' => $p->sku,
+                'manufacturer' => $p->manufacturer ?: '',
+                'price' => (float) $p->price,
+                'price_formatted' => number_format((float) $p->price, 0, '.', ' '),
+                'image_kind' => $imgKinds[$p->id % count($imgKinds)],
+                'url' => route('gazu.product.show', ['slug' => $slug ?: $p->id]),
+            ];
+        });
+
+        return response()->json([
+            'items' => $payload,
+            'total' => Product::query()
+                ->where('is_active', true)
+                ->where(function ($w) use ($like) {
+                    $w->where('sku', 'like', $like)
+                      ->orWhere('manufacturer', 'like', $like)
+                      ->orWhere('title', 'like', $like);
+                })->count(),
+            'q' => $q,
+        ]);
+    }
+
+    public function notFound()
+    {
+        return response()->view('gazu.404', ['activeNav' => null, 'cartCount' => 3], 404);
+    }
+
+    // Mobile previews
+    public function mobile(Request $request, string $page = 'home')
+    {
+        $page = in_array($page, ['home', 'catalog', 'product', 'cart'], true) ? $page : 'home';
+
+        $data = ['activeNav' => null];
+
+        if ($page === 'catalog') {
+            $query = new \App\Services\Gazu\CatalogQuery($request);
+            $category = $query->category();
+            $paginator = $query->paginate($category);
+            $items = collect($paginator->items())->map(fn ($p) => $this->decorate($p));
+            if ($items->isEmpty() && ! $request->hasAny(['cat', 'q', 'brand'])) {
+                $items = $this->mockProducts(6);
+            }
+            $data['products'] = $items;
+            $data['paginator'] = $paginator;
+            $data['category'] = $category;
+            $data['totalCount'] = $paginator->total();
+        } elseif ($page === 'cart') {
+            $cart = \App\Helpers\Cart\Cart::getCart();
+            $data['cart'] = $cart;
+            $data['cartTotal'] = \App\Helpers\Cart\Cart::getCartTotal();
+            $data['products'] = $this->fetchProducts(0);
+        } elseif ($page === 'product') {
+            $first = Product::query()->where('is_active', true)->orderByDesc('rating')->first();
+            $data['product'] = $first ? $this->decorate($first) : $this->mockProducts(1)->first();
+            $data['products'] = collect();
+        } else {
+            $data['products'] = $this->fetchProducts(6);
+        }
+
+        return view("gazu.mobile.$page", $data);
+    }
+}

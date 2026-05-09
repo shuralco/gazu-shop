@@ -1,0 +1,251 @@
+/* GAZU — separate Tailwind entry (does NOT touch resources/css/app.css).
+   Used only for /gazu/* pages via @vite('resources/css/themes/gazu/gazu.css'). */
+
+@import 'tailwindcss';
+@import './tokens.css';
+
+@source '../../../views/gazu/**/*.blade.php';
+@source '../../../views/components/gazu/**/*.blade.php';
+
+@theme {
+    --color-gazu-ink:        #0E1B2C;
+    --color-gazu-ink-2:      #1A2740;
+    --color-gazu-steel:      #1F3A5F;
+    --color-gazu-blue:       #2453A6;
+    --color-gazu-blue-600:   #1E47A1;
+    --color-gazu-blue-700:   #15387D;
+    --color-gazu-azure:      #3672D9;
+    --color-gazu-mist:       #E6ECF3;
+    --color-gazu-bone:       #F5F2EC;
+    --color-gazu-paper:      #FBFAF7;
+    --color-gazu-line:       #E4E7EB;
+    --color-gazu-line-2:     #CFD4DB;
+    --color-gazu-graphite:   #5A6573;
+    --color-gazu-muted:      #8A93A1;
+    --color-gazu-success:    #2E7D5A;
+    --color-gazu-success-bg: #E6F2EC;
+    --color-gazu-warn:       #B86E1A;
+    --color-gazu-warn-bg:    #FAF1E2;
+    --color-gazu-danger:     #B23B3B;
+    --color-gazu-danger-bg:  #FAE8E8;
+
+    --font-display: 'Space Grotesk', system-ui, sans-serif;
+    --font-text:    'Inter Tight', system-ui, sans-serif;
+    --font-mono:    'JetBrains Mono', ui-monospace, monospace;
+    --font-archivo: 'Archivo Black', 'Space Grotesk', system-ui, sans-serif;
+}
+
+html.gazu, body.gazu {
+    background: var(--gazu-paper);
+    color: var(--gazu-ink);
+    font-family: var(--gazu-font-text);
+    -webkit-font-smoothing: antialiased;
+}
+
+.gazu-theme * { box-sizing: border-box; }
+[x-cloak] { display: none !important; }
+
+/* Reusable building blocks */
+.gazu-container { max-width: 1280px; margin-inline: auto; padding-inline: 24px; }
+
+.gazu-btn-primary {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .75rem 1rem; background: var(--gazu-ink); color: #fff; border: 0; border-radius: 8px;
+    font-weight: 500; font-size: 14px; cursor: pointer; transition: background .15s;
+}
+.gazu-btn-primary:hover { background: var(--gazu-ink-2); }
+
+.gazu-btn-blue {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .75rem 1rem; background: var(--gazu-blue); color: #fff; border: 0; border-radius: 8px;
+    font-weight: 500; font-size: 14px; cursor: pointer; transition: background .15s;
+}
+.gazu-btn-blue:hover { background: var(--gazu-blue-600); }
+
+.gazu-btn-outline {
+    display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+    padding: .65rem .9rem; background: #fff; color: var(--gazu-ink); border: 1px solid var(--gazu-line);
+    border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; transition: border-color .15s;
+}
+.gazu-btn-outline:hover { border-color: var(--gazu-ink); }
+
+.gazu-card {
+    background: #fff; border: 1px solid var(--gazu-line); border-radius: 8px;
+}
+
+.gazu-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 16px; border: 1px solid var(--gazu-line);
+    background: #fff; font-size: 12px; color: var(--gazu-ink);
+}
+
+.gazu-mono { font-family: var(--gazu-font-mono); }
+.gazu-display { font-family: var(--gazu-font-display); letter-spacing: -0.025em; }
+.gazu-archivo { font-family: var(--gazu-font-archivo); letter-spacing: -0.04em; }
+
+/* Hero pattern (used on home V1 visual) */
+.gazu-grid-pattern {
+    background-image:
+        repeating-linear-gradient(0deg, transparent 0 39px, rgba(14,27,44,0.04) 39px 40px),
+        repeating-linear-gradient(90deg, transparent 0 39px, rgba(14,27,44,0.04) 39px 40px);
+}
+.gazu-grid-pattern-dark {
+    background-image:
+        repeating-linear-gradient(-45deg, transparent 0 60px, rgba(255,255,255,0.02) 60px 61px);
+}
+
+/* Drill drawer slide */
+.gazu-drill-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 18px; border-bottom: 1px solid var(--gazu-line);
+    color: var(--gazu-ink); text-decoration: none; font-size: 14px; font-weight: 500;
+}
+.gazu-drill-row.bold { font-weight: 700; text-transform: uppercase; letter-spacing: .02em; }
+
+/* GAZU layout utilities — explicit, robust against Tailwind arbitrary-value parsing edge-cases */
+.gazu-grid-sidebar { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .gazu-grid-sidebar { grid-template-columns: 280px 1fr; } }
+
+.gazu-grid-buy { display: grid; gap: 32px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .gazu-grid-buy { grid-template-columns: 1fr 380px; } }
+
+.gazu-grid-buy-left { display: grid; gap: 32px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .gazu-grid-buy-left { grid-template-columns: 480px 1fr; } }
+
+.gazu-grid-cart { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .gazu-grid-cart { grid-template-columns: 1fr 360px; } }
+
+.gazu-grid-account { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .gazu-grid-account { grid-template-columns: 280px 1fr; } }
+
+.gazu-grid-list { display: grid; gap: 16px; grid-template-columns: 140px minmax(0, 1fr) 200px; }
+
+.gazu-grid-hero-vin { display: grid; gap: 48px; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 1024px) { .gazu-grid-hero-vin { grid-template-columns: 1.2fr 1fr; } }
+
+.gazu-grid-hero-picker { display: grid; gap: 60px; grid-template-columns: 1fr; align-items: center; }
+@media (min-width: 1024px) { .gazu-grid-hero-picker { grid-template-columns: 1fr 1.1fr; } }
+
+.gazu-grid-product-tabs { display: grid; gap: 28px; grid-template-columns: 1.1fr 1fr; }
+
+.gazu-grid-cart-row {
+    display: grid;
+    grid-template-columns: 100px 1fr 140px 140px 40px;
+    align-items: center; gap: 16px; padding: 16px;
+}
+
+.gazu-grid-order-row {
+    display: grid;
+    grid-template-columns: 1fr 100px 100px 140px 100px;
+    gap: 16px; align-items: center;
+}
+
+.gazu-grid-brand-hero {
+    display: grid; gap: 28px; align-items: center;
+    grid-template-columns: 160px 1fr 220px;
+}
+
+.gazu-grid-contacts { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 1024px) { .gazu-grid-contacts { grid-template-columns: 400px 1fr; } }
+
+/* Mobile sticky bottom nav */
+.gazu-mobile-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: #fff; border-top: 1px solid var(--gazu-line);
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    z-index: 30;
+}
+
+/* Print-friendly: hide complex bits — leave for later */
+
+/* Filament admin lives under /admin — gazu styles are scoped via .gazu-theme so admin is not affected. */
+
+/* ───────────────────────────────────────────────
+   GAZU FX — анімації, переходи, toast
+   ─────────────────────────────────────────────── */
+
+/* View Transitions API — плавні переходи між сторінками */
+@view-transition { navigation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 220ms; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+::view-transition-old(root) { animation-name: gazu-fade-out; }
+::view-transition-new(root) { animation-name: gazu-fade-in; }
+@keyframes gazu-fade-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-6px); } }
+@keyframes gazu-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Cart icon bounce (data-gazu-cart-icon) */
+.gazu-bounce { animation: gazu-bounce-kf 0.6s cubic-bezier(0.36, 0, 0.66, -0.56); }
+@keyframes gazu-bounce-kf {
+    0%, 100% { transform: scale(1); }
+    25%      { transform: scale(1.25) rotate(-8deg); }
+    50%      { transform: scale(0.92) rotate(6deg); }
+    75%      { transform: scale(1.08) rotate(-4deg); }
+}
+
+/* Stagger animation для product/category cards */
+.gazu-stagger > * { opacity: 0; animation: gazu-stagger-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.gazu-stagger > *:nth-child(1)  { animation-delay: 0.02s; }
+.gazu-stagger > *:nth-child(2)  { animation-delay: 0.06s; }
+.gazu-stagger > *:nth-child(3)  { animation-delay: 0.10s; }
+.gazu-stagger > *:nth-child(4)  { animation-delay: 0.14s; }
+.gazu-stagger > *:nth-child(5)  { animation-delay: 0.18s; }
+.gazu-stagger > *:nth-child(6)  { animation-delay: 0.22s; }
+.gazu-stagger > *:nth-child(7)  { animation-delay: 0.26s; }
+.gazu-stagger > *:nth-child(8)  { animation-delay: 0.30s; }
+.gazu-stagger > *:nth-child(n+9){ animation-delay: 0.34s; }
+@keyframes gazu-stagger-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Toast container + items */
+.gazu-toast-container {
+    position: fixed; top: 16px; right: 16px; z-index: 70;
+    display: flex; flex-direction: column; gap: 10px;
+    pointer-events: none;
+}
+.gazu-toast {
+    pointer-events: auto;
+    background: var(--gazu-ink, #0e0e10); color: #fff;
+    padding: 12px 16px; border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    display: flex; align-items: center; gap: 10px;
+    min-width: 240px; max-width: 380px;
+    animation: gazu-toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.gazu-toast.success { background: var(--gazu-success, #10b981); }
+.gazu-toast.error   { background: #dc2626; }
+.gazu-toast.info    { background: var(--gazu-blue, #2563eb); }
+.gazu-toast[data-leaving="1"] { animation: gazu-toast-out 0.25s ease-in both; }
+@keyframes gazu-toast-in  { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes gazu-toast-out { from { opacity: 1; transform: translateX(0); }   to { opacity: 0; transform: translateX(40px); } }
+
+/* Pulse for focus prompts */
+.gazu-pulse {
+    animation: gazu-pulse-kf 1.4s ease-in-out infinite;
+}
+@keyframes gazu-pulse-kf {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4); }
+    50%      { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0); }
+}
+
+/* Skeleton loader */
+.gazu-skeleton {
+    background: linear-gradient(90deg, #eee 0%, #f5f5f5 50%, #eee 100%);
+    background-size: 200% 100%;
+    animation: gazu-skeleton-kf 1.4s ease-in-out infinite;
+    border-radius: 6px;
+}
+@keyframes gazu-skeleton-kf {
+    0%   { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
+
+/* Number flip / count-up */
+.gazu-count-up { transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1); display: inline-block; }
+.gazu-count-up[data-changed="1"] { animation: gazu-count-flip 0.4s ease; }
+@keyframes gazu-count-flip {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.18); color: var(--gazu-success); }
+    100% { transform: scale(1); }
+}

@@ -1,0 +1,147 @@
+/* =================================================================
+   BRUTAL MINIMALISM — design tokens
+   =================================================================
+
+   Single source of truth for the "brutal" theme. Replace this file
+   (or layer another @theme on top) to swap themes — auto-parts, etc.
+
+   Usage in CSS: var(--color-fg), var(--shadow-btn-rest), …
+   Usage in Tailwind utility names: bg-(--color-bg) text-(--color-fg)
+
+   Convention:
+     --color-*    palette
+     --radius-*   border radius
+     --shadow-*   shadow stacks
+     --border-*   borders
+     --font-*     typography
+     --gap-*      spacing
+     --pattern-*  hero / decorative pattern parameters
+================================================================= */
+
+@theme {
+    /* Typography */
+    --font-display: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-weight-bold: 700;
+    --font-weight-display: 900;
+
+    /* Color palette — brutal contrast: pure black on pure white */
+    --color-fg: #000000;
+    --color-bg: #ffffff;
+    --color-card: #ffffff;
+    --color-brand: #000000;
+    --color-accent: #fbbf24;        /* yellow accent for highlights */
+    --color-muted: #6b7280;
+    --color-success: #10b981;
+    --color-danger: #ef4444;
+    --color-warning: #f59e0b;
+    --color-info: #3b82f6;
+
+    /* Surface tints */
+    --color-surface-muted: #f3f4f6;
+    --color-surface-divider: #e5e7eb;
+
+    /* Border thickness + colors */
+    --border-thin: 1px solid var(--color-fg);
+    --border-strong: 2px solid var(--color-fg);
+    --border-thick: 3px solid var(--color-fg);
+    --border-color-strong: var(--color-fg);
+    --border-color-subtle: rgba(0, 0, 0, 0.1);
+
+    /* Radii — brutal default = sharp corners */
+    --radius-sm: 0px;
+    --radius-card: 0px;
+    --radius-pill: 0px;
+
+    /* Shadows — brutal 3D offset */
+    --shadow-btn-rest: 0 6px 0 var(--color-fg);
+    --shadow-btn-hover: 0 3px 0 var(--color-fg);
+    --shadow-btn-active: 0 0 0 var(--color-fg);
+    --shadow-card-elevated: 8px 8px 0 var(--color-fg);
+    --shadow-input-focus: 0 0 0 2px var(--color-fg);
+
+    /* Spacing scale */
+    --gap-xs: 8px;
+    --gap-sm: 16px;
+    --gap-md: 24px;
+    --gap-lg: 32px;
+    --gap-xl: 48px;
+    --gap-2xl: 64px;
+
+    /* Hero / decorative pattern parameters */
+    --pattern-hero-color: var(--color-fg);
+    --pattern-hero-opacity: 0.05;
+    --pattern-grid-line-color: rgba(0, 0, 0, 0.02);
+    --pattern-grid-size: 32px;
+    --pattern-stripes-size: 40px;
+
+    /* Scrollbar */
+    --scrollbar-track-bg: #f1f1f1;
+    --scrollbar-thumb-bg: var(--color-fg);
+    --scrollbar-thumb-hover-bg: #333333;
+    --scrollbar-width: 8px;
+
+    /* Z-index scale */
+    --z-toast: 9000;
+    --z-progress-bar: 8000;
+    --z-modal: 7000;
+    --z-dropdown: 5000;
+
+    /* === Semantic component tokens (consumed by <x-ui.*>) === */
+
+    /* Button */
+    --btn-padding-y: 12px;
+    --btn-padding-x: 24px;
+    --btn-font-weight: 700;
+    --btn-text-transform: uppercase;
+    --btn-letter-spacing: 0.05em;
+    --btn-border-radius: var(--radius-sm);
+
+    --btn-primary-bg: var(--color-fg);
+    --btn-primary-fg: var(--color-bg);
+    --btn-primary-border: 2px solid var(--color-fg);
+    --btn-primary-shadow: var(--shadow-btn-rest);
+    --btn-primary-shadow-hover: var(--shadow-btn-hover);
+
+    --btn-secondary-bg: var(--color-bg);
+    --btn-secondary-fg: var(--color-fg);
+    --btn-secondary-border: 2px solid var(--color-fg);
+    --btn-secondary-shadow: none;
+
+    --btn-ghost-bg: transparent;
+    --btn-ghost-fg: var(--color-fg);
+    --btn-ghost-border: 2px dashed var(--color-fg);
+
+    /* Card */
+    --card-bg: var(--color-card);
+    --card-border: var(--border-strong);
+    --card-radius: var(--radius-card);
+    --card-shadow: none;
+    --card-padding: var(--gap-md);
+
+    /* Input */
+    --input-bg: var(--color-bg);
+    --input-fg: var(--color-fg);
+    --input-border: var(--border-strong);
+    --input-radius: var(--radius-sm);
+    --input-padding-y: 12px;
+    --input-padding-x: 16px;
+    --input-focus-shadow: var(--shadow-input-focus);
+
+    /* Badge */
+    --badge-bg: var(--color-fg);
+    --badge-fg: var(--color-bg);
+    --badge-border-radius: var(--radius-sm);
+    --badge-padding-y: 4px;
+    --badge-padding-x: 8px;
+    --badge-font-weight: 700;
+    --badge-font-size: 12px;
+    --badge-text-transform: uppercase;
+
+    /* Section (page section wrapper) */
+    --section-padding-y: var(--gap-2xl);
+    --section-padding-x: var(--gap-md);
+    --section-title-weight: var(--font-weight-display);
+    --section-title-transform: uppercase;
+    --section-title-letter-spacing: -0.02em;
+}

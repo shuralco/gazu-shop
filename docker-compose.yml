@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  simpleshop:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lionex-simpleshop
+    restart: unless-stopped
+    env_file:
+      - .env
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.simpleshop.rule=Host(`shop.textory.online`)"
+      - "traefik.http.routers.simpleshop.entrypoints=https"
+      - "traefik.http.routers.simpleshop.tls=true"
+      - "traefik.http.routers.simpleshop.tls.certresolver=letsencrypt"
+      - "traefik.http.services.simpleshop.loadbalancer.server.port=80"
+    volumes:
+      - simpleshop_storage:/var/www/html/storage/app
+    networks:
+      - coolify
+      - lionex-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  simpleshop_storage:
+    name: lionex-simpleshop-storage
+
+networks:
+  coolify:
+    external: true
+  lionex-network:
+    external: true

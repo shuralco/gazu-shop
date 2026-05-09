@@ -1,0 +1,920 @@
+@import 'tailwindcss';
+@import './tokens/brutal.css';
+@import './components.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+}
+
+/* ================================================
+   BRUTAL MINIMALISM STYLES FOR SIMPLESHOP
+   Driven by tokens in resources/css/tokens/brutal.css.
+   To swap themes, supply a different tokens file.
+   ================================================ */
+
+/* Brutal default: sharp corners. Themed via --radius-sm.
+   Removed the global !important — use the variable instead so other
+   components can opt out per-element by overriding --radius-sm. */
+* {
+    border-radius: var(--radius-sm);
+}
+
+body {
+    font-family: var(--font-body);
+    color: var(--color-fg);
+    background-color: var(--color-bg);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: var(--scrollbar-width); }
+::-webkit-scrollbar-track { background: var(--scrollbar-track-bg); }
+::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb-bg); }
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover-bg); }
+
+/* Scroll Progress Bar */
+.scroll-progress {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 4px;
+    height: 0%;
+    background: var(--color-fg);
+    z-index: var(--z-progress-bar);
+    transition: height 0.2s ease;
+}
+
+/* Hero Background Pattern */
+.hero-pattern {
+    background-color: var(--color-bg);
+    background-image:
+        linear-gradient(45deg, var(--pattern-hero-color) 25%, transparent 25%),
+        linear-gradient(-45deg, var(--pattern-hero-color) 25%, transparent 25%),
+        linear-gradient(45deg, transparent 75%, var(--pattern-hero-color) 75%),
+        linear-gradient(-45deg, transparent 75%, var(--pattern-hero-color) 75%);
+    background-size: var(--pattern-stripes-size) var(--pattern-stripes-size);
+    background-position:
+        0 0,
+        0 calc(var(--pattern-stripes-size) / 2),
+        calc(var(--pattern-stripes-size) / 2) calc(-1 * var(--pattern-stripes-size) / 2),
+        calc(-1 * var(--pattern-stripes-size) / 2) 0px;
+    opacity: var(--pattern-hero-opacity);
+}
+
+/* Hero Grid Pattern */
+.grid-pattern {
+    background:
+        linear-gradient(to right, var(--pattern-grid-line-color) 1px, transparent 1px),
+        linear-gradient(to bottom, var(--pattern-grid-line-color) 1px, transparent 1px);
+    background-size: var(--pattern-grid-size) var(--pattern-grid-size);
+}
+
+/* Hero Text Outline */
+.text-outline {
+    -webkit-text-stroke: 2px var(--color-fg);
+    -webkit-text-fill-color: transparent;
+}
+
+/* 3D Button Effect */
+.btn-3d {
+    transition: all 0.2s ease;
+    box-shadow: var(--shadow-btn-rest);
+    touch-action: manipulation;
+    user-select: none;
+}
+
+.btn-3d:hover {
+    transform: translateY(3px);
+    box-shadow: var(--shadow-btn-hover);
+}
+
+.btn-3d:active {
+    transform: translateY(6px);
+    box-shadow: var(--shadow-btn-active);
+}
+
+/* Mobile-first responsive system */
+.hero-container {
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 32px 16px;
+    text-align: center;
+}
+
+.content-wrapper {
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+/* Hide visual element on mobile, show only on desktop */
+.visual-wrapper {
+    display: none;
+}
+
+/* Desktop layout */
+@media (min-width: 768px) {
+    .hero-container {
+        padding: 48px 32px;
+    }
+    
+    .content-wrapper {
+        max-width: 1200px;
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 64px;
+        align-items: center;
+        text-align: left;
+    }
+    
+    .visual-wrapper {
+        display: block;
+        max-width: 320px;
+        margin: 0;
+    }
+}
+
+@media (min-width: 1024px) {
+    .hero-container {
+        padding: 64px 48px;
+    }
+    
+    .content-wrapper {
+        gap: 80px;
+        max-width: 1400px;
+    }
+    
+    .visual-wrapper {
+        max-width: 380px;
+    }
+}
+
+/* Enhanced mobile typography */
+.headline {
+    font-size: clamp(2.5rem, 12vw, 3.75rem);
+    line-height: 0.85;
+    margin-bottom: 24px;
+    letter-spacing: -0.02em;
+}
+
+@media (min-width: 768px) {
+    .headline {
+        font-size: clamp(3.5rem, 6vw, 5.5rem);
+        margin-bottom: 32px;
+        letter-spacing: -0.03em;
+    }
+}
+
+.subtitle {
+    font-size: clamp(1rem, 4.5vw, 1.125rem);
+    line-height: 1.3;
+    margin-bottom: 32px;
+}
+
+@media (min-width: 768px) {
+    .subtitle {
+        font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+        line-height: 1.4;
+        margin-bottom: 48px;
+    }
+}
+
+/* Enhanced mobile button */
+.mobile-button {
+    width: 100%;
+    min-height: 56px;
+    font-size: clamp(1rem, 4vw, 1.125rem);
+    padding: 16px 24px;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+}
+
+@media (min-width: 480px) {
+    .mobile-button {
+        max-width: 280px;
+        margin: 0 auto;
+    }
+}
+
+@media (min-width: 768px) {
+    .mobile-button {
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 20px 32px;
+        font-size: clamp(1.125rem, 2vw, 1.25rem);
+    }
+}
+
+/* Mobile decorative elements */
+.mobile-decoration {
+    position: absolute;
+    pointer-events: none;
+}
+
+.mobile-decoration-1 {
+    top: 10%;
+    right: 8%;
+    width: 16px;
+    height: 16px;
+    background: black;
+    transform: rotate(45deg);
+}
+
+.mobile-decoration-2 {
+    bottom: 15%;
+    left: 5%;
+    width: 12px;
+    height: 12px;
+    border: 2px solid black;
+    transform: rotate(12deg);
+}
+
+@media (min-width: 768px) {
+    .mobile-decoration {
+        display: none;
+    }
+}
+
+/* Enhanced mobile stats grid */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 2px solid #000;
+    width: 100%;
+    max-width: 400px;
+}
+
+@media (min-width: 640px) {
+    .stats-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 24px;
+        margin-top: 40px;
+        padding-top: 32px;
+        max-width: 600px;
+    }
+}
+
+@media (min-width: 768px) {
+    .stats-grid {
+        margin-top: 48px;
+        padding-top: 40px;
+        max-width: 800px;
+    }
+}
+
+/* Safe area for mobile devices */
+@supports (padding: max(0px)) {
+    .hero-container {
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: max(32px, env(safe-area-inset-bottom));
+    }
+}
+
+/* Touch optimization */
+.touch-optimized {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+}
+
+/* Desktop Mega Menu */
+.mega-menu {
+    position: fixed !important;
+    top: 115px !important;
+    left: 0 !important;
+    right: 0 !important;
+    background: white !important;
+    max-height: 0 !important;
+    overflow: hidden !important;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease-in-out !important;
+    z-index: 999 !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Invisible bridge to prevent hover gap between button and mega menu */
+.mega-menu::before {
+    content: '';
+    position: absolute;
+    top: -30px;
+    left: 0;
+    right: 0;
+    height: 30px;
+    background: transparent;
+}
+
+@media (max-width: 767px) {
+    .mega-menu { top: 108px; } /* Мобільна версія без horizontal menu */
+}
+
+.mega-menu.active {
+    max-height: 800px !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible !important;
+}
+
+.mega-menu .grid > div {
+    width: auto !important;
+    min-width: 0 !important;
+}
+
+/* Horizontal Mega Menu */
+.horizontal-mega-menu { 
+    position: fixed; 
+    top: 136px; /* Same as main mega menu */
+    left: 0; 
+    right: 0;
+    background: black; 
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease-in-out;
+    z-index: 9998; 
+}
+
+@media (max-width: 767px) {
+    .horizontal-mega-menu { top: 108px; }
+}
+
+.horizontal-mega-menu.active { 
+    max-height: 400px;
+}
+
+/* Force hide horizontal menu and related black elements on mobile devices */
+@media (max-width: 767px) {
+    #horizontalMenu,
+    .horizontal-mega-menu {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+        overflow: hidden !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Hide any stray black backgrounds on mobile */
+    .bg-black.hidden {
+        display: none !important;
+    }
+    
+    /* Hide all notification popups on mobile devices */
+    .fi-no-notification,
+    .notification,
+    [x-data*="notification"],
+    .fi-no,
+    .toast,
+    .toastr,
+    #toast-container {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Disable heavy animations on mobile but keep basic transitions */
+    @keyframes shimmer,
+    @keyframes skeleton-pulse,
+    @keyframes slideInRight,
+    @keyframes fadeOutUp {
+        animation-duration: 0s !important;
+        animation-delay: 0s !important;
+    }
+    
+    /* Keep basic button and hover transitions */
+    button,
+    a,
+    .transition-colors,
+    .transition-all {
+        transition-duration: 0.15s !important;
+    }
+    
+    /* Force hide mega menu and its promo strip on mobile */
+    .mega-menu {
+        display: none !important;
+        visibility: hidden !important;
+        max-height: 0 !important;
+        overflow: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+    }
+    
+    /* Hide mega menu promo strip specifically */
+    .mega-menu .bg-black,
+    #megaMenu .bg-black {
+        display: none !important;
+        visibility: hidden !important;
+        height: 0 !important;
+    }
+}
+
+/* Notification positioning and auto-hide */
+.fi-no-notification,
+.notification {
+    position: fixed !important;
+    top: 100px !important;
+    right: 20px !important;
+    max-width: 350px !important;
+    z-index: 9999 !important;
+    animation: slideInRight 0.3s ease-out, fadeOutUp 0.5s ease-in 2.5s forwards !important;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOutUp {
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+        visibility: hidden;
+    }
+}
+
+/* Auto-hide notifications after 3 seconds */
+.fi-no-notification:not(:hover),
+.notification:not(:hover) {
+    animation-delay: 0s, 3s !important;
+}
+
+/* Mobile Menu */
+.mobile-menu-panel {
+    position: fixed;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100vh;
+    background: white;
+    z-index: 11000;
+    transition: left 0.3s ease-in-out;
+    overflow-y: auto;
+}
+
+.mobile-menu-panel.active {
+    left: 0;
+}
+
+.mobile-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0,0,0,0.5);
+    z-index: 10500;
+    display: none;
+}
+
+.mobile-overlay.active {
+    display: block;
+}
+
+/* Product Grid */
+@media (min-width: 768px) {
+    .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; align-items: stretch; }
+}
+@media (max-width: 767px) {
+    .product-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    
+    /* Square images for mobile */
+    .product-card .aspect-square {
+        aspect-ratio: 1 / 1;
+        height: auto;
+        width: 100%;
+    }
+    
+    /* Mobile quantity buttons optimization */
+    .quantity-btn {
+        width: 2.5rem !important;  /* w-10 instead of w-12 */
+        height: 2.5rem !important; /* h-10 instead of h-12 */
+        font-size: 1rem !important; /* Smaller text */
+    }
+    
+    .quantity-btn + div {
+        width: 3rem !important;    /* w-12 instead of w-16 */  
+        height: 2.5rem !important; /* h-10 instead of h-12 */
+        font-size: 1rem !important;
+    }
+    
+    /* Product page layout fixes */
+    .grid.lg\\:grid-cols-2 {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+    
+    /* Gallery thumbnails mobile fix */
+    .gallery-scroll .w-20 {
+        width: 3.5rem !important; /* w-14 instead of w-20 */
+        height: 3.5rem !important; /* h-14 instead of h-20 */
+    }
+    
+    .product-card .h-64 {
+        height: auto;
+        aspect-ratio: 1 / 1;
+    }
+    
+    /* Smaller text for mobile 2-column layout */
+    .product-card h3 {
+        font-size: 0.875rem !important;
+        line-height: 1.2 !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .product-card .text-xl {
+        font-size: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .product-card .p-4 {
+        padding: 0.75rem !important;
+    }
+    
+    .product-card .btn-black-sm {
+        font-size: 0.75rem !important;
+        padding: 0.5rem 0.75rem !important;
+    }
+    
+    /* Compact mobile layout */
+    .product-card .md\\:p-6 {
+        padding: 0.75rem !important;
+    }
+}
+
+/* Line clamp utility */
+.line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
+/* Skeleton animation for image loading */
+@keyframes skeleton-pulse {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* Skeleton animations only when enabled */
+.skeletons-enabled .skeleton-loader {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200px 100%;
+    animation: skeleton-pulse 1.5s infinite;
+}
+
+.skeletons-disabled .skeleton-loader {
+    background: transparent;
+    animation: none;
+}
+
+/* Enhanced Skeleton Animation */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.skeletons-enabled .skeleton-shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+.skeletons-disabled .skeleton-shimmer {
+    background: transparent;
+    animation: none;
+    display: none !important;
+}
+
+/* Ensure images are always visible when skeletons disabled */
+.skeletons-disabled img {
+    opacity: 1 !important;
+}
+
+/* Prevent layout shift when modal opens by reserving scrollbar space */
+html {
+    overflow-y: scroll;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+/* Mobile product page optimizations */
+@media (max-width: 767px) {
+    /* Ensure main content doesn't overflow */
+    main {
+        overflow-x: hidden;
+        width: 100%;
+    }
+    
+    /* Product page specific fixes */
+    .max-w-screen-2xl {
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+    
+    /* Fix grid gaps and spacing */
+    .gap-8,
+    .lg\\:gap-16 {
+        gap: 1rem !important;
+    }
+    
+    /* Prevent horizontal scroll in tabs */
+    .flex.gap-0.overflow-x-auto {
+        gap: 0.25rem !important;
+    }
+    
+    /* Mobile button optimizations */
+    .btn-black {
+        font-size: 0.875rem !important;
+        padding: 0.75rem 1rem !important;
+    }
+}
+
+/* Individual cart button loading states */
+button[wire\:target*="add2Cart"][disabled] {
+    opacity: 0.5 !important;
+    pointer-events: none;
+}
+
+button[wire\:target*="add2Cart"]:not([disabled]) {
+    opacity: 1 !important;
+}
+
+
+.skeleton-block {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+}
+
+.product-card { 
+    background: white !important; 
+    border: 2px solid black !important; 
+    overflow: hidden; 
+    transition: all 0.2s ease; 
+    /* Force brutal design override any bootstrap conflicts */
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+.product-card:hover { 
+    transform: translateY(-4px);
+    box-shadow: 8px 8px 0 black; 
+}
+
+/* Buttons */
+.btn-black-sm { 
+    background: black !important; 
+    color: white !important; 
+    border: 2px solid black !important; 
+    padding: 8px 16px !important; 
+    font-weight: 700 !important; 
+    font-size: 14px !important; 
+    transition: all 0.2s ease; 
+    cursor: pointer; 
+    /* Override bootstrap button styles */
+    border-radius: var(--radius-sm);
+    box-shadow: none !important;
+    text-decoration: none !important;
+}
+.btn-black-sm:hover { 
+    background: white !important; 
+    color: black !important; 
+}
+
+.btn-black { 
+    background: black; 
+    color: white; 
+    border: 2px solid black; 
+    padding: 12px 24px; 
+    font-weight: 700; 
+    font-size: 16px; 
+    transition: all 0.2s ease; 
+    cursor: pointer; 
+}
+.btn-black:hover { 
+    background: white; 
+    color: black; 
+}
+
+.btn-white { 
+    background: white; 
+    color: black; 
+    border: 2px solid black; 
+    padding: 12px 24px; 
+    font-weight: 700; 
+    font-size: 16px; 
+    transition: all 0.2s ease; 
+    cursor: pointer; 
+}
+.btn-white:hover { 
+    background: black; 
+    color: white; 
+}
+
+/* Submenu */
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.submenu.active {
+    max-height: 500px;
+}
+
+/* Category Wall */
+.category-wall-item {
+    background: white;
+    border: 2px solid black;
+    padding: 32px;
+    text-align: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.category-wall-item:hover {
+    background: black;
+    color: white;
+}
+
+.category-wall-item:hover .category-icon {
+    border-color: white;
+}
+
+.category-icon {
+    width: 80px;
+    height: 80px;
+    border: 2px solid black;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+}
+
+/* Product Gallery Scroll */
+.gallery-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #000 #f1f1f1;
+    /* Prevent horizontal overflow issues on mobile */
+    max-width: 100%;
+    padding-right: 1rem;
+}
+
+.gallery-scroll::-webkit-scrollbar {
+    height: 6px; /* Thinner on mobile */
+}
+
+.gallery-scroll::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border: 1px solid #000;
+}
+
+.gallery-scroll::-webkit-scrollbar-thumb {
+    background: #000;
+    border-radius: 0;
+}
+
+.gallery-scroll::-webkit-scrollbar-thumb:hover {
+    background: #333;
+}
+
+/* Mobile gallery improvements */
+@media (max-width: 767px) {
+    .gallery-scroll {
+        gap: 0.5rem !important; /* Smaller gap */
+        padding-bottom: 0.25rem !important;
+        padding-right: 0.5rem;
+    }
+    
+    .gallery-scroll::-webkit-scrollbar {
+        height: 4px; /* Even thinner scrollbar */
+    }
+}
+
+/* Cart Badge */
+.cart-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: black;
+    color: white;
+    border: 2px solid white;
+    font-size: 12px;
+    font-weight: 900;
+    min-width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(1);
+    transition: transform 0.2s ease;
+}
+
+.cart-badge.updated {
+    transform: scale(1.2);
+}
+
+/* Cart Modal Override - Force Proper Positioning */
+#cartModal {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    z-index: 10000 !important;
+    display: none !important;
+    opacity: 0 !important;
+    transition: opacity 0.3s ease !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+#cartModal.active {
+    display: flex !important;
+    opacity: 1 !important;
+}
+
+#cartModal .cart-content {
+    position: relative !important;
+    background: white !important;
+    border: 4px solid black !important;
+    max-width: 600px !important;
+    width: 90% !important;
+    max-height: 80vh !important;
+    transform: scale(0.9) !important;
+    transition: transform 0.3s ease !important;
+    overflow: hidden !important;
+}
+
+#cartModal.active .cart-content {
+    transform: scale(1) !important;
+}
+
+/* Force Brutal Cart Button Styles - Override Bootstrap */
+.cart-btn-brutal {
+    background: black !important;
+    color: white !important;
+    border: 2px solid black !important;
+    padding: 12px 24px !important;
+    font-weight: 900 !important;
+    font-size: 16px !important;
+    text-transform: uppercase !important;
+    transition: all 0.2s ease !important;
+    cursor: pointer !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    border-radius: var(--radius-sm);
+    position: relative !important;
+}
+
+.cart-btn-brutal:hover {
+    background: white !important;
+    color: black !important;
+    border: 2px solid black !important;
+}
+
+.cart-btn-brutal:focus,
+.cart-btn-brutal:active {
+    background: white !important;
+    color: black !important;
+    border: 2px solid black !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+

@@ -1,0 +1,47 @@
+#!/bin/sh
+set -e
+
+echo "[entrypoint] Starting SimpleShop container..."
+
+# Ensure storage directories exist with correct permissions
+mkdir -p /var/www/html/storage/logs \
+         /var/www/html/storage/framework/cache/data \
+         /var/www/html/storage/framework/sessions \
+         /var/www/html/storage/framework/views \
+         /var/www/html/storage/app/public \
+         /var/www/html/bootstrap/cache
+
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Clear stale compiled views (perms or content may be stale after bind-mount swap)
+rm -f /var/www/html/storage/framework/views/*.php
+
+# Create storage symlink (force-recreate if broken or pointing to old path)
+if [ ! -e /var/www/html/public/storage ] || [ ! -d /var/www/html/public/storage/ ]; then
+    rm -f /var/www/html/public/storage
+    php artisan storage:link --force 2>/dev/null || true
+fi
+
+# Publish Filament assets (re-publish on every start — bind-mounted public/ may not have them)
+echo "[entrypoint] Publishing Filament assets..."
+php artisan filament:assets --ansi 2>&1 || echo "[entrypoint] WARNING: filament:assets failed, continuing..."
+
+# Run migrations
+echo "[entrypoint] Running migrations..."
+php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations failed, continuing..."
+
+# Cache configuration
+echo "[entrypoint] Caching configuration..."
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+
+# Setup Meilisearch if configured
+if [ "$SCOUT_DRIVER" = "meilisearch" ]; then
+    echo "[entrypoint] Setting up Meilisearch indexes..."
+    php artisan search:setup 2>&1 || echo "[entrypoint] WARNING: search:setup failed, continuing..."
+fi
+
+echo "[entrypoint] Starting supervisord..."
+exec /usr/bin/supervisord -c /etc/supervisord.conf

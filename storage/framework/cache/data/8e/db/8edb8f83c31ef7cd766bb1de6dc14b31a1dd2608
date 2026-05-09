@@ -1,0 +1,15 @@
+1764575153s:575:"<?xml version="1.0" encoding="UTF-8"?>
+<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <sitemap>
+        <loc>https://www.liteshop.com.ua/sitemap-main.xml</loc>
+        <lastmod>2025-12-01T07:21:53.036747Z</lastmod>
+    </sitemap>
+    <sitemap>
+        <loc>https://www.liteshop.com.ua/sitemap-categories.xml</loc>
+        <lastmod>2025-12-01T07:21:53.039352Z</lastmod>
+    </sitemap>
+    <sitemap>
+        <loc>https://www.liteshop.com.ua/sitemap-products.xml</loc>
+        <lastmod>2025-12-01T07:21:53.040214Z</lastmod>
+    </sitemap>
+</sitemapindex>";
