@@ -74,16 +74,33 @@ class Cart
         return true;
     }
 
-    // remove product from cart
-    public static function removeProductFromCart(int $productId): bool
+    /**
+     * Remove a single cart line by full cart key (productId, productId_v{var},
+     * productId_v{var}_w{wh}, productId_w{wh}). For backwards compat with
+     * callers that pass a plain productId, also strips every "{productId}_*"
+     * line so users get the expected "remove product" behaviour.
+     */
+    public static function removeProductFromCart(int|string $key): bool
     {
-        if (self::hasProductInCart($productId)) {
-            session()->forget("cart.{$productId}");
+        $key = (string) $key;
 
+        if (session()->has("cart.{$key}")) {
+            session()->forget("cart.{$key}");
             return true;
         }
 
-        return false;
+        // Plain productId — also strip per-warehouse / per-variant lines for that product.
+        $cart = session('cart') ?: [];
+        $found = false;
+        foreach (array_keys($cart) as $cartKey) {
+            $cartKey = (string) $cartKey;
+            if ($cartKey === $key || str_starts_with($cartKey, $key.'_')) {
+                session()->forget("cart.{$cartKey}");
+                $found = true;
+            }
+        }
+
+        return $found;
     }
 
     // get cart
@@ -125,18 +142,33 @@ class Cart
     }
 
     // has product in cart
-    public static function hasProductInCart(int $productId): bool
+    public static function hasProductInCart(int|string $key): bool
     {
-        return session()->has("cart.$productId");
+        return session()->has('cart.'.$key);
     }
 
-    // update item quantity
-    public static function updateItemQuantity(int $productId, int $quantity): bool
+    /**
+     * Update quantity for a single cart line. Accepts full cart key
+     * (productId, productId_v{var}, productId_w{wh}, productId_v{var}_w{wh}).
+     * Backwards-compat: plain productId targets every line of that product.
+     */
+    public static function updateItemQuantity(int|string $key, int $quantity): bool
     {
+        $key = (string) $key;
+
+        if (session()->has("cart.{$key}")) {
+            session(["cart.{$key}.quantity" => $quantity]);
+            return true;
+        }
+
+        $cart = session('cart') ?: [];
         $updated = false;
-        if (self::hasProductInCart($productId)) {
-            session(["cart.{$productId}.quantity" => $quantity]);
-            $updated = true;
+        foreach (array_keys($cart) as $cartKey) {
+            $cartKey = (string) $cartKey;
+            if ($cartKey === $key || str_starts_with($cartKey, $key.'_')) {
+                session(["cart.{$cartKey}.quantity" => $quantity]);
+                $updated = true;
+            }
         }
 
         return $updated;

@@ -42,6 +42,20 @@ class InventoryRelationManager extends RelationManager
                 ->minValue(0)
                 ->required()
                 ->default(0),
+            Forms\Components\TextInput::make('price')
+                ->label('Ціна на цьому складі (₴)')
+                ->helperText('Якщо порожньо — використовується базова ціна товару')
+                ->numeric()
+                ->minValue(0)
+                ->step(0.01)
+                ->prefix('₴'),
+            Forms\Components\TextInput::make('compare_at_price')
+                ->label('Стара ціна / акційне порівняння (₴)')
+                ->helperText('Показується закресленою біля поточної')
+                ->numeric()
+                ->minValue(0)
+                ->step(0.01)
+                ->prefix('₴'),
             Forms\Components\TextInput::make('reorder_point')
                 ->label('Поріг для алерту')
                 ->numeric()
@@ -74,6 +88,16 @@ class InventoryRelationManager extends RelationManager
                     ->state(fn (Inventory $r) => $r->available_quantity)
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger')
                     ->weight('bold'),
+                Tables\Columns\TextColumn::make('price')
+                    ->label('Ціна (₴)')
+                    ->money('UAH', divideBy: 1)
+                    ->placeholder('базова')
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('compare_at_price')
+                    ->label('Стара ціна (₴)')
+                    ->money('UAH', divideBy: 1)
+                    ->placeholder('—')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('reorder_point')
                     ->label('Поріг')
                     ->placeholder('—')

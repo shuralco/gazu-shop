@@ -55,6 +55,10 @@
                         $price = (float) ($item['price'] ?? 0);
                         $qty = (int) ($item['quantity'] ?? 1);
                         $img = $item['image'] ?? null;
+                        $warehouseId = (int) ($item['warehouse_id'] ?? 0);
+                        $warehouse = $warehouseId
+                            ? \App\Models\MerchantWarehouse::find($warehouseId)
+                            : null;
                         $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
                         $kind = $kinds[$productId % count($kinds)];
                     @endphp
@@ -127,6 +131,16 @@
                                 <a href="{{ route('gazu.product.show', ['slug' => $slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug">{{ $title }}</a>
                             @else
                                 <span class="text-[var(--gazu-ink)] font-medium leading-snug">{{ $title }}</span>
+                            @endif
+                            @if($warehouse)
+                                <div class="mt-1.5 inline-flex items-center gap-1.5 text-[11px] text-[var(--gazu-graphite)]">
+                                    <x-gazu.icon name="location" size="12" stroke="var(--gazu-blue)"/>
+                                    <span>{{ $warehouse->city ?: $warehouse->name }}</span>
+                                    @if($warehouse->delivery_eta)
+                                        <span class="text-[var(--gazu-muted)]">·</span>
+                                        <span>{{ $warehouse->delivery_eta }}</span>
+                                    @endif
+                                </div>
                             @endif
                         </div>
                         <div class="flex items-center border border-[var(--gazu-line)] rounded-md">

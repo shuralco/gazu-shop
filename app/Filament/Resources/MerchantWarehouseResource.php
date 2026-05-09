@@ -121,6 +121,11 @@ class MerchantWarehouseResource extends Resource
                                 ->keyLabel('День')
                                 ->valueLabel('Години (наприклад 09:00–18:00)')
                                 ->columnSpanFull(),
+                            Forms\Components\TextInput::make('delivery_eta')
+                                ->label('Термін доставки')
+                                ->helperText('Короткий лейбл, який бачить клієнт у селекторі складу: «1 день», «2-3 дні»')
+                                ->maxLength(64)
+                                ->placeholder('1-3 дні'),
                         ]),
 
                     Forms\Components\Tabs\Tab::make('Нова Пошта sender')
@@ -189,6 +194,12 @@ class MerchantWarehouseResource extends Resource
                         default => $state,
                     }),
                 Tables\Columns\TextColumn::make('city')->label('Місто'),
+                Tables\Columns\TextColumn::make('delivery_eta')
+                    ->label('Доставка')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('info')
+                    ->toggleable(),
                 Tables\Columns\IconColumn::make('is_default')->label('Default')->boolean(),
                 Tables\Columns\IconColumn::make('is_active')->label('Активний')->boolean()->sortable(),
                 Tables\Columns\TextColumn::make('inventory_count')
