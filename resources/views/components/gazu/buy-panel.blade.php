@@ -102,9 +102,15 @@
             </div>
             @if($hasMore)
                 <button type="button" @click="expanded = !expanded"
-                    class="w-full mt-1.5 py-1.5 text-[12px] text-[var(--gazu-blue)] bg-transparent border-0 cursor-pointer">
-                    <span x-show="!expanded">+ Показати ще {{ $stocks->count() - $visible }}</span>
-                    <span x-show="expanded" x-cloak>− Сховати</span>
+                    class="w-full mt-2 py-2.5 text-[13px] font-medium text-[var(--gazu-ink)] bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-md cursor-pointer hover:bg-[var(--gazu-line-2)] inline-flex items-center justify-center gap-2 transition-colors">
+                    <span x-show="!expanded" class="inline-flex items-center gap-1.5">
+                        <x-gazu.icon name="plus" size="14"/>
+                        Показати ще {{ $stocks->count() - $visible }} {{ $stocks->count() - $visible === 1 ? 'склад' : 'склади' }}
+                    </span>
+                    <span x-show="expanded" x-cloak class="inline-flex items-center gap-1.5">
+                        <x-gazu.icon name="minus" size="14"/>
+                        Сховати
+                    </span>
                 </button>
             @endif
         </div>
@@ -118,41 +124,64 @@
         <input type="hidden" name="quantity" :value="q">
         <input type="hidden" name="warehouse_id" :value="warehouseId">
 
-        <div class="flex items-center gap-3 mb-3.5">
-            <span class="text-[13px] text-[var(--gazu-graphite)]">Кількість</span>
-            <div class="flex items-center border border-[var(--gazu-line)] rounded-md">
-                <button type="button" @click="q = Math.max(1, q-1)" class="w-9 h-9 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center"><x-gazu.icon name="minus" size="14"/></button>
-                <input x-model.number="q" type="number" min="1" class="w-12 text-center border-0 py-2 text-sm gazu-mono font-medium text-[var(--gazu-ink)] outline-none">
-                <button type="button" @click="q = q+1" class="w-9 h-9 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center"><x-gazu.icon name="plus" size="14"/></button>
+        {{-- Quantity selector — bigger, centered, easier to tap --}}
+        <div class="flex items-center justify-between gap-3 mb-4">
+            <span class="text-[13px] font-medium text-[var(--gazu-graphite)]">Кількість</span>
+            <div class="flex items-center bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
+                <button type="button" @click="q = Math.max(1, q-1)"
+                    class="w-11 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    :disabled="q <= 1">
+                    <x-gazu.icon name="minus" size="16"/>
+                </button>
+                <input x-model.number="q" type="number" min="1" :max="available || 99"
+                    class="w-14 h-11 text-center border-0 bg-white text-base gazu-mono font-semibold text-[var(--gazu-ink)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                <button type="button" @click="q = Math.min((available || 99), q+1)"
+                    class="w-11 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    :disabled="available > 0 && q >= available">
+                    <x-gazu.icon name="plus" size="16"/>
+                </button>
             </div>
-            <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono">шт.</span>
+            <span x-show="available > 0" class="text-[11px] text-[var(--gazu-muted)] gazu-mono">
+                макс. <span x-text="available"></span>
+            </span>
         </div>
-
-        @if($productId)
-            <button type="submit" :disabled="available <= 0"
-                :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-white cursor-pointer hover:bg-[var(--gazu-ink-2)]'"
-                class="w-full py-4 border-0 rounded-lg text-[15px] font-semibold inline-flex items-center justify-center gap-2">
-                <template x-if="available > 0">
-                    <span class="inline-flex items-center gap-2">
-                        <x-gazu.icon name="cart" size="18"/> Додати в кошик · <span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴
-                    </span>
-                </template>
-                <template x-if="available <= 0">
-                    <span>Під замовлення</span>
-                </template>
-            </button>
-        @endif
 
         @php
             $oneClickEnabled = ($gazuSettings['gazu_oneclick_enabled'] ?? true);
             $oneClickLabel = $gazuSettings['gazu_oneclick_label'] ?? 'Купити в один клік';
             $oneClickMessage = $gazuSettings['gazu_oneclick_message'] ?? 'Менеджер передзвонить за 5 хвилин для уточнення доставки';
         @endphp
-        @if($oneClickEnabled && $productId)
-            <button type="button" @click.prevent="$dispatch('open-oneclick', { productId: {{ $productId }}, qty: q })"
-                    class="w-full mt-2 py-3.5 bg-white text-[var(--gazu-ink)] border-[1.5px] border-[var(--gazu-ink)] rounded-lg text-sm font-medium cursor-pointer">
-                {{ $oneClickLabel }}
-            </button>
+
+        {{-- Primary + secondary action grid: cart fills width, 1-click is companion --}}
+        @if($productId)
+            <div class="grid grid-cols-1 gap-2.5">
+                <button type="submit" :disabled="available <= 0"
+                    :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-white hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
+                    class="w-full h-14 border-0 rounded-lg text-[15px] font-semibold inline-flex items-center justify-center gap-2.5 transition-colors">
+                    <template x-if="available > 0">
+                        <span class="inline-flex items-center gap-2.5">
+                            <x-gazu.icon name="cart" size="20"/>
+                            <span>Додати в кошик</span>
+                            <span class="opacity-70">·</span>
+                            <span class="gazu-mono"><span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴</span>
+                        </span>
+                    </template>
+                    <template x-if="available <= 0">
+                        <span class="inline-flex items-center gap-2">
+                            <x-gazu.icon name="clock" size="18"/>
+                            Під замовлення
+                        </span>
+                    </template>
+                </button>
+
+                @if($oneClickEnabled)
+                    <button type="button" @click.prevent="$dispatch('open-oneclick', { productId: {{ $productId }}, qty: q })"
+                            class="w-full h-12 bg-white text-[var(--gazu-ink)] border-[1.5px] border-[var(--gazu-ink)] rounded-lg text-[14px] font-medium cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-mist)] transition-colors">
+                        <x-gazu.icon name="phone" size="16"/>
+                        {{ $oneClickLabel }}
+                    </button>
+                @endif
+            </div>
         @endif
     </form>
 
