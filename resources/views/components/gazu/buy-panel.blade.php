@@ -5,11 +5,16 @@
     'discount' => null,
     'productId' => null,
     'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
+    'closestWarehouseId' => null, // geo-detected warehouse ID (Phase 6)
 ])
 @php
     $priceFmt = number_format((float) $price, 0, '.', ' ');
     $stocks = $warehouseStocks instanceof \Illuminate\Support\Collection ? $warehouseStocks : collect();
-    $defaultStock = $stocks->firstWhere(fn ($s) => $s->quantity > 0);
+    // Prefer geo-detected warehouse if it has stock; otherwise first in-stock.
+    $defaultStock = $closestWarehouseId
+        ? $stocks->first(fn ($s) => $s->warehouse_id === $closestWarehouseId && $s->quantity > 0)
+        : null;
+    $defaultStock ??= $stocks->firstWhere(fn ($s) => $s->quantity > 0);
     $defaultWh = $defaultStock?->warehouse_id;
     $defaultPrice = $defaultStock && $defaultStock->price !== null ? (float) $defaultStock->price : (float) $price;
     // Build JS lookup: { warehouseId: { price, compare, qty, city, eta } }
@@ -84,7 +89,15 @@
                                 <div x-show="warehouseId === {{ (int) $s->warehouse_id }}" class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-ink)] m-auto mt-[3px]"></div>
                             </div>
                             <div class="min-w-0">
-                                <div class="font-medium text-[13px] truncate">{{ $whCity }}</div>
+                                <div class="font-medium text-[13px] truncate inline-flex items-center gap-1.5">
+                                    <span>{{ $whCity }}</span>
+                                    @if($closestWarehouseId && $s->warehouse_id === $closestWarehouseId)
+                                        <span class="text-[9px] gazu-mono px-1 py-0.5 rounded uppercase tracking-wider"
+                                              :class="warehouseId === {{ (int) $s->warehouse_id }} ? 'bg-white/15 text-white' : 'bg-[var(--gazu-blue-bg, #E0EBFF)] text-[var(--gazu-blue)]'">
+                                            ближче вам
+                                        </span>
+                                    @endif
+                                </div>
                                 <div class="text-[11px] opacity-70 truncate">
                                     {{ $whEta }}
                                     @if($available > 0) · {{ $available }} шт @else · немає @endif

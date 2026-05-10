@@ -176,12 +176,22 @@ class StoreController extends Controller
 
         // Per-warehouse inventory rows for the warehouse selector.
         $warehouseStocks = collect();
+        $closestWarehouseId = null;
         if (isset($product->id) && $product->id) {
+            $closest = app(\App\Services\Warehouse\WarehouseLocator::class)->closestForRequest();
+            $closestWarehouseId = $closest?->id;
+
             $warehouseStocks = \App\Models\Inventory::with('warehouse')
                 ->where('product_id', $product->id)
                 ->whereHas('warehouse', fn ($q) => $q->where('is_active', true))
                 ->get()
-                ->sortByDesc(fn ($i) => $i->quantity > 0 ? 1 : 0)
+                // Sort: closest first (when in stock), then in-stock, then by sort_order.
+                ->sortBy([
+                    fn ($a, $b) => ($b->warehouse_id === $closestWarehouseId && $b->quantity > 0 ? 1 : 0)
+                        <=> ($a->warehouse_id === $closestWarehouseId && $a->quantity > 0 ? 1 : 0),
+                    fn ($a, $b) => ($b->quantity > 0 ? 1 : 0) <=> ($a->quantity > 0 ? 1 : 0),
+                    fn ($a, $b) => ($a->warehouse->sort_order ?? 0) <=> ($b->warehouse->sort_order ?? 0),
+                ])
                 ->values();
         }
 
@@ -189,6 +199,7 @@ class StoreController extends Controller
             'p' => $product,
             'related' => $related,
             'warehouseStocks' => $warehouseStocks,
+            'closestWarehouseId' => $closestWarehouseId,
             'activeNav' => 'catalog',
         ]);
     }

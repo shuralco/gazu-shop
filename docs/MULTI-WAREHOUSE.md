@@ -201,7 +201,7 @@ NULL у `inventory.price` = використовувати базову `product
 | 5 | Split TTN: одне замовлення → N ТТН (по одному на склад) з відповідним sender | ✅ 2026-05-09 |
 | 4 | Inventory transfers UI: міжсклад переміщення з approve flow | ✅ 2026-05-09 |
 | 7 | Per-warehouse shipping cost: окрема ставка від кожного складу | ✅ 2026-05-10 |
-| 6 | Geo-detect склад: показувати найближчий зверху селектора | 🔜 |
+| 6 | Geo-detect склад: показувати найближчий зверху селектора | ✅ 2026-05-10 |
 
 ### Split TTN (Phase 5 — як працює)
 
@@ -231,6 +231,44 @@ splitNova() → 3 NpShipments created
   shipment #2 | warehouse=2 (Львів)  | weight=0.500 | cost=3209
   shipment #3 | warehouse=3 (Дніпро) | weight=0.500 | cost=3312
 Re-run: 0 new shipments (idempotent)
+```
+
+### Geo-detect closest warehouse (Phase 6 — як працює)
+
+При завантаженні product page визначаємо найближчий до клієнта склад через
+IP-геолокацію та haversine, preselect'имо його у селекторі та підсвічуємо
+бейджем «ближче вам».
+
+**`GeoLocator`** (`app/Services/Geo/GeoLocator.php`):
+- HTTP GET на `ip-api.com/json/{ip}` (1.5s timeout, retry 1×)
+- Per-IP cache 24h → 1 запит на унікального відвідувача на день
+- Returns null для private/loopback IP
+
+**`WarehouseLocator`** (`app/Services/Warehouse/WarehouseLocator.php`):
+- `closestForRequest(?Request)` → `?MerchantWarehouse`
+- Стратегія: GeoLocator(ip) → lat/lng → haversine до warehouses з coords → найближчий
+- Soft fallback: city-name match («Київ» → MAIN-01) якщо coords нема
+- Hard fallback: `MerchantWarehouse::default()` → перший active
+- Per-session cache (`session->get('closest_warehouse_id')`)
+
+**Інтеграція:**
+- `Gazu/StoreController::product()` передає `$closestWarehouseId` у view
+- `<x-gazu.buy-panel :closestWarehouseId="..." />` бере перевагу: preselect = closest з stock; fallback = first in stock
+- Sort у warehouseStocks: closest+stock → in-stock → за sort_order
+- UI badge `«ближче вам»` показується на closest warehouse у селекторі
+
+**Verified:**
+```
+GeoLocator(8.8.8.8)        → Ashburn, US
+GeoLocator(188.163.84.1)   → Lviv, Ukraine
+
+Haversine закриває:
+  From Kyiv    → Київ    (0.2 km)
+  From Lviv    → Львів   (0.0 km)
+  From Kharkiv → Харків  (0.4 km)
+  From Odesa   → Дніпро  (392.3 km)  // нема Одеса-склад
+
+Browser test: Київ unselected → badge «ближче вам» видно
 ```
 
 ### Per-warehouse shipping (Phase 7 — як працює)

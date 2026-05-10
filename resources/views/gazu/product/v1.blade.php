@@ -171,6 +171,7 @@
                     :discount="$discount"
                     :productId="is_object($p) ? ($p->id ?? null) : null"
                     :warehouseStocks="$warehouseStocks ?? collect()"
+                    :closestWarehouseId="$closestWarehouseId ?? null"
                 />
             </div>
         </div>
