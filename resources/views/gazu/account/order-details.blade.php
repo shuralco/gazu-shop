@@ -93,7 +93,9 @@
                 @endphp
                 @foreach($byWarehouse as $whId => $items)
                     @php
-                        $wh = $whId ? \App\Models\MerchantWarehouse::find($whId) : null;
+                        // Warehouse already eager-loaded via $orderProducts->load('warehouse'),
+                        // grab from the first item instead of refetching from DB.
+                        $wh = $whId ? ($items->first()->warehouse ?? null) : null;
                     @endphp
                     @if($wh && ($isMulti || $wh->delivery_eta))
                         <div class="bg-[var(--gazu-mist)] px-4 py-2 border-b border-[var(--gazu-line)] flex items-center gap-2 text-xs">

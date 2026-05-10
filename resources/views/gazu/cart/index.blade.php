@@ -45,6 +45,14 @@
                 this.$watch('total', () => { this.flash('grandEl'); this.flash('subEl'); });
             }
          }">
+        @php
+            // Eager-load all warehouses referenced by the cart in ONE query
+            // instead of MerchantWarehouse::find() per cart line (N+1).
+            $cartWarehouseIds = collect($cart)->pluck('warehouse_id')->filter()->unique()->all();
+            $cartWarehouses = $cartWarehouseIds
+                ? \App\Models\MerchantWarehouse::query()->whereIn('id', $cartWarehouseIds)->get()->keyBy('id')
+                : collect();
+        @endphp
         <div>
             <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden">
                 @foreach($cart as $key => $item)
@@ -56,9 +64,7 @@
                         $qty = (int) ($item['quantity'] ?? 1);
                         $img = $item['image'] ?? null;
                         $warehouseId = (int) ($item['warehouse_id'] ?? 0);
-                        $warehouse = $warehouseId
-                            ? \App\Models\MerchantWarehouse::find($warehouseId)
-                            : null;
+                        $warehouse = $warehouseId ? ($cartWarehouses[$warehouseId] ?? null) : null;
                         $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
                         $kind = $kinds[$productId % count($kinds)];
                     @endphp
