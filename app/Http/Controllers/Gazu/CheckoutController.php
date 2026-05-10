@@ -105,7 +105,8 @@ class CheckoutController extends Controller
         $shippingCost = (float) $shippingBreakdown['shipping_total'];
         $total = (float) $shippingBreakdown['grand_total'];
 
-        $order = DB::transaction(function () use ($cart, $data, $subtotal, $shippingCost, $total) {
+        try {
+            $order = DB::transaction(function () use ($cart, $data, $subtotal, $shippingCost, $total) {
             $orderData = [
                 'user_id'    => auth()->id(),
                 'first_name' => $data['first_name'],
@@ -184,13 +185,41 @@ class CheckoutController extends Controller
             }
 
             return $order;
-        });
+            });
+        } catch (\RuntimeException $e) {
+            // InventoryService::reserve() throws when stock is insufficient.
+            // Surface it as a friendly cart-back redirect with the line at fault.
+            if (str_contains($e->getMessage(), 'Cannot reserve') || str_contains($e->getMessage(), 'available')) {
+                $line = $this->stockFailureLine($e->getMessage(), $cart);
+                return redirect()->route('gazu.cart')
+                    ->withInput()
+                    ->withErrors([
+                        'stock' => $line
+                            ? 'На складі «'.$line.'» вже не вистачає тієї кількості. Будь ласка, оновіть кошик.'
+                            : 'Деяких товарів на обраному складі не вистачає. Оновіть кошик і спробуйте знову.',
+                    ]);
+            }
+            throw $e;
+        }
 
         Cart::clearCart();
         $this->sendOrderEmails($order);
 
         return redirect()->route('gazu.checkout.success', ['order' => $order->id])
             ->with('order_message', 'Замовлення створено. Менеджер передзвонить.');
+    }
+
+    /**
+     * Best-effort: extract a human warehouse-city label from a reserve()
+     * RuntimeException message of the form "...at warehouse {id}...".
+     */
+    private function stockFailureLine(string $message, array $cart): ?string
+    {
+        if (preg_match('/warehouse\s+(\d+)/', $message, $m)) {
+            $wh = \App\Models\MerchantWarehouse::find((int) $m[1]);
+            return $wh?->city ?: $wh?->name;
+        }
+        return null;
     }
 
     private function sendOrderEmails(Order $order): void

@@ -22,6 +22,17 @@
         </div>
     @endif
 
+    @if($errors->any())
+        <div role="alert" class="bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] px-4 py-3 rounded-md mb-4 text-sm flex items-start gap-2">
+            <x-gazu.icon name="close" size="16" stroke="var(--gazu-danger)" class="shrink-0 mt-0.5"/>
+            <div>
+                @foreach($errors->all() as $msg)
+                    <div>{{ $msg }}</div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
     <div class="gazu-grid-cart"
          x-data="{
             total: {{ (float) $cartTotal }},
