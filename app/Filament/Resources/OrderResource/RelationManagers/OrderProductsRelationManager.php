@@ -107,7 +107,16 @@ class OrderProductsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('title')
-            ->modifyQueryUsing(fn ($query) => $query->with('product'))
+            ->modifyQueryUsing(fn ($query) => $query->with(['product', 'warehouse']))
+            ->defaultGroup(
+                Tables\Grouping\Group::make('warehouse_id')
+                    ->label('Склад відправлення')
+                    ->getTitleFromRecordUsing(fn (OrderProduct $r) => $r->warehouse
+                        ? ($r->warehouse->city ?: $r->warehouse->name).
+                          ($r->warehouse->delivery_eta ? ' · '.$r->warehouse->delivery_eta : '')
+                        : 'Без складу')
+                    ->collapsible()
+            )
             ->columns([
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Фото')
@@ -115,6 +124,13 @@ class OrderProductsRelationManager extends RelationManager
                     ->extraImgAttributes(['class' => 'rounded-lg ring-1 ring-black/5 object-cover bg-gray-50'])
                     ->defaultImageUrl(asset('assets/img/placeholder.svg'))
                     ->checkFileExistence(false)
+                    ->toggleable(),
+
+                Tables\Columns\TextColumn::make('warehouse.city')
+                    ->label('Склад')
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('info')
                     ->toggleable(),
 
                 Tables\Columns\TextColumn::make('title')

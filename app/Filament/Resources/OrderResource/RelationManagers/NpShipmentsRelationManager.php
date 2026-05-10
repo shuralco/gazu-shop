@@ -46,7 +46,17 @@ class NpShipmentsRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('ttn')
+            ->modifyQueryUsing(fn ($query) => $query->with('warehouse'))
             ->columns([
+                Tables\Columns\TextColumn::make('warehouse.city')
+                    ->label('Склад')
+                    ->description(fn ($record) => $record->warehouse?->code)
+                    ->placeholder('—')
+                    ->badge()
+                    ->color('info')
+                    ->sortable()
+                    ->toggleable(),
+
                 Tables\Columns\TextColumn::make('ttn')
                     ->label('ТТН')
                     ->copyable()
