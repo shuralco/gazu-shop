@@ -4,6 +4,88 @@
 
 ---
 
+## 2026-05-09 — 2026-05-10 — Multi-warehouse + multi-vendor epic ✅
+
+> Повна реалізація Phase 1-7 + multi-vendor pricing + production-readiness. Детально див. [`docs/MULTI-WAREHOUSE.md`](MULTI-WAREHOUSE.md) і [`docs/DEPLOY.md`](DEPLOY.md). Marketing-pitch — у [`docs/MARKETING.md`](MARKETING.md).
+
+### Schema
+- `merchant_warehouses` — own warehouses + per-warehouse NP/UP sender refs + delivery_eta + shipping_cost + free_shipping_threshold + lat/lng
+- `inventory` — pivot product↔warehouse + price + compare_at_price + reserved_quantity
+- `stock_movements` — append-only audit log
+- `inventory_transfers` + `inventory_transfer_items` — міжсклад переміщення
+- `np_shipments.warehouse_id` + `up_shipments.warehouse_id` — split TTN per склад
+- `orders.warehouse_id` + `order_products.warehouse_id` — fulfillment routing
+
+### Phase 1 Foundation
+- `MerchantWarehouse`, `Inventory`, `StockMovement` моделі + `MerchantWarehouseResource` (CRUD з табами Основне/Адреса/NP sender/UP sender)
+- `InventoryService` — `add/subtract/reserve/release/ship/adjust/move` з `lockForUpdate()` (race-safe)
+- `InventoryRelationManager` на ProductResource — таблиця складів цього товару + editable price/compare_at_price + adjust action
+
+### Phase 2 Reservations
+- Checkout (Brutal Livewire + GAZU controller) → `InventoryService::reserve()` всередині транзакції
+- `OrderObserver::updated`: status='cancelled' → release, status='shipped' → ship (decrement qty + reserved atomically)
+- Race-safe під concurrent checkouts
+
+### Phase 3 Per-warehouse senders
+- `merchant_warehouses.np_sender_*` + `up_sender_*` — sender refs per склад
+- `NovaPoshtaTtnCreator::resolveSender()` priority: shipment.sender → shipment.warehouse → order.warehouse → DisplaySetting (legacy)
+
+### Phase 4 Inventory transfers UI
+- `TransferService` — state machine draft → sent → received (cancel будь-коли)
+- `InventoryTransferResource` Filament — list/edit + actions Ship / Receive / Cancel з reason form
+
+### Phase 5 Split TTN
+- `OrderShipmentSplitter::splitNova/splitUkr` — 1 order → N draft shipments per warehouse
+- OrderResource Filament action «Розбити по складах» (visible коли 2+ warehouses у замовленні)
+- Idempotent на re-run
+
+### Multi-vendor pricing
+- `inventory.price` (override) + `compare_at_price` (strikethrough) — different price per warehouse, фолбек на products.price
+- Cart key = `productId_v{var}_w{wh}` — той самий товар з різних складів = різні cart lines
+- Storefront warehouse selector (Brutal Livewire + GAZU Alpine) — 3 видимих + accordion. UI **не розкриває** що це різні постачальники — клієнт бачить «склад у місті»
+- Cart line + order detail UI groupBy warehouse_id з banner «📦 Київ · 1 день»
+
+### Phase 6 Geo-detect closest warehouse
+- `GeoLocator` — IP → ip-api.com (1.5s timeout, 24h cache)
+- `WarehouseLocator::closestForRequest()` — haversine sort + city-name fallback + default fallback
+- StoreController передає `$closestWarehouseId` → buy-panel preselect + UI badge «ближче вам»
+- Trust proxies bootstrap config — `request->ip()` повертає real IP за Coolify/Traefik
+
+### Phase 7 Per-warehouse shipping cost
+- `merchant_warehouses.shipping_cost` + `free_shipping_threshold` (nullable)
+- `ShippingCalculator::breakdown()` — group cart by warehouse_id, apply per-group shipping_cost (waived above threshold)
+- Cart UI: per-warehouse breakdown «📍 Київ безкоштовно / 📍 Харків 110 ₴» + hint «+500 ₴ до безкоштовної»
+- CheckoutController пише orders.shipping_cost з breakdown; orders.total = subtotal + shipping
+
+### SPA navigation
+- 75 wire:navigate anchors через GAZU views + components. Verified: livewire:navigate event fires, beforeunload не спрацьовує, history.pushState OK
+- Custom Laravel paginator view `vendor.pagination.gazu` з wire:navigate
+- Strip wire:navigate з payment / admin / target=_blank links
+
+### Polish round
+- N+1 fix: cart + order-details + brutal cart-modal pre-load усі warehouse_ids одним whereIn (3-line cart: 3 queries → 1)
+- UX out-of-stock: RuntimeException → friendly redirect to /cart with errors['stock'] showing exact warehouse city
+- a11y: role=radiogroup/radio, :aria-checked, :aria-expanded, descriptive aria-labels, min-h-[44px] touch targets
+- Mobile: cart row grid-template-areas (3 cols mobile / 5 cols desktop)
+- Filament admin order detail: collapsible group «📦 Київ · 1 день» над order_products
+
+### Tests
+- Inventory suite: 47 → 65 (+18 tests, +60 assertions)
+- New: `ShippingCalculatorTest` (5), `OrderShipmentSplitterTest` (4), `WarehouseLocatorTest` (5), `GazuCheckoutFlowTest` (4 e2e HTTP)
+
+### Docs
+- `docs/MULTI-WAREHOUSE.md` — tech reference (schema, models, services, file map, roadmap)
+- `docs/MARKETING.md` — sales positioning (4 ICP, USP, тарифи Starter/Pro/GAZU/White-label, конкуренти, sales scripts)
+- `docs/DEPLOY.md` — Coolify production checklist (12 секцій, troubleshooting table)
+
+### GAZU fork
+- Окремий repo `/home/lionex/projects/gazu-shop` — auto-parts storefront без Brutal `/uk` legacy
+- Root URLs без `/gazu` префіксу (`/catalog`, `/cart`, `/vin`, etc.)
+- Окрема БД `gazu_shop`, окремі volumes, паралельно до simpleshop на `:8089`
+- Hardcoded marketing-числа («50 000+ артикулів», «12 відділень», «240+ брендів») замінені на real DB counts через GazuMenuComposer.shopStats з tier-aware bucket («10+/50+/100+/240+»)
+
+---
+
 ## 2026-05-07 — Theme Phase 2 + onboarding wizard
 
 ### Theme system Phase 2
