@@ -32,7 +32,14 @@ class GazuMenuComposer
         }
 
         $view->with('megaTree', self::$cachedTree);
-        $view->with('brands', self::$cachedBrands);
+
+        // Composer's `$brands` is for header/mega-menu/brand-strip — do NOT
+        // clobber a `$brands` already passed by a controller (e.g. brand-list
+        // page passes a Brand-Collection with products_count). Set only when
+        // missing.
+        if (! array_key_exists('brands', $view->getData())) {
+            $view->with('brands', self::$cachedBrands);
+        }
 
         // Live cart count — не кешуємо, має оновлюватись на кожен запит.
         $view->with('cartCount', Cart::getCartQuantityItems());

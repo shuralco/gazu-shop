@@ -15,7 +15,7 @@
         @endif
         <span class="flex-1"></span>
         @foreach((array) $links as $link)
-            <a href="{{ $link['url'] ?? '#' }}" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-white">{{ $link['label'] ?? '' }}</a>
+            <a wire:navigate href="{{ $link['url'] ?? '#' }}" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-white">{{ $link['label'] ?? '' }}</a>
         @endforeach
         <span class="hidden md:inline text-[#5A6573]">|</span>
         <span class="text-white">UA</span><span class="text-[#5A6573]">RU</span>

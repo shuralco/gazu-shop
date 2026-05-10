@@ -74,7 +74,7 @@
                 </div>
 
                 @if($orders->lastPage() > 1)
-                    <div class="mt-6">{{ $orders->links() }}</div>
+                    <div class="mt-6">{{ $orders->links("vendor.pagination.gazu") }}</div>
                 @endif
             @endif
         </div>

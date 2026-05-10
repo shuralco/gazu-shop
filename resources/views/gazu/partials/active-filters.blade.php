@@ -33,11 +33,11 @@
                 }
                 unset($params['page']);
             @endphp
-            <a href="{{ url()->current() . (count($params) ? '?' . http_build_query($params) : '') }}"
+            <a wire:navigate href="{{ url()->current() . (count($params) ? '?' . http_build_query($params) : '') }}"
                class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] rounded-2xl text-xs text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]">
                 {{ $chip['label'] }} <x-gazu.icon name="close" size="12" stroke="var(--gazu-graphite)"/>
             </a>
         @endforeach
-        <a href="{{ url()->current() }}" class="bg-transparent border-0 text-[var(--gazu-danger)] text-xs cursor-pointer px-2.5 py-1.5 no-underline">Очистити все</a>
+        <a wire:navigate href="{{ url()->current() }}" class="bg-transparent border-0 text-[var(--gazu-danger)] text-xs cursor-pointer px-2.5 py-1.5 no-underline">Очистити все</a>
     </div>
 @endif

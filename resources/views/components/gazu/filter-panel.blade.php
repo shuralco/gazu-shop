@@ -53,7 +53,7 @@
                 <a wire:navigate href="{{ route('gazu.garage') }}" class="block w-full mt-2.5 py-2 bg-transparent border border-dashed border-[var(--gazu-line-2)] rounded text-xs text-[var(--gazu-graphite)] cursor-pointer text-center no-underline">Змінити авто</a>
             @else
                 <p class="text-xs text-[var(--gazu-graphite)] mb-2">@auth Додайте авто у Гараж — фільтр буде підставляти його автоматично @else Увійдіть, щоб зберегти своє авто @endauth</p>
-                <a href="{{ auth()->check() ? route('gazu.garage') : route('gazu.auth') }}"
+                <a wire:navigate href="{{ auth()->check() ? route('gazu.garage') : route('gazu.auth') }}"
                    class="block w-full py-2 bg-[var(--gazu-ink)] text-white rounded text-xs text-center no-underline hover:bg-[var(--gazu-ink-2)]">
                     @auth + Додати авто @else Увійти @endauth
                 </a>
@@ -169,7 +169,7 @@
         Застосувати фільтри
     </button>
     @if($hasFilters || request()->filled('q'))
-        <a href="{{ $category ? url()->current().'?cat='.($category->slug ?? $category->id) : url()->current() }}"
+        <a wire:navigate href="{{ $category ? url()->current().'?cat='.($category->slug ?? $category->id) : url()->current() }}"
            class="block w-full mt-1.5 py-2 bg-transparent text-center text-[var(--gazu-graphite)] text-xs no-underline">
             Скинути всі фільтри
         </a>

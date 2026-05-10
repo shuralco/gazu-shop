@@ -50,7 +50,7 @@
         </button>
     @endif
 
-    <a href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline">
+    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline">
         <x-gazu.part-image kind="{{ $image }}" size="{{ $compact ? 130 : 170 }}"/>
     </a>
 
@@ -60,7 +60,7 @@
             <span class="gazu-mono text-[11px] text-[var(--gazu-graphite)]">{{ $brand }}</span>
         </div>
 
-        <a href="{{ $url }}" class="text-[13px] text-[var(--gazu-ink)] leading-snug font-medium no-underline line-clamp-2" style="min-height: 36px;">
+        <a wire:navigate href="{{ $url }}" class="text-[13px] text-[var(--gazu-ink)] leading-snug font-medium no-underline line-clamp-2" style="min-height: 36px;">
             {{ $name }}
         </a>
 
@@ -130,7 +130,7 @@
                     Під замовлення
                 </button>
             @else
-                <a href="{{ $url }}" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
+                <a wire:navigate href="{{ $url }}" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
                     <x-gazu.icon name="cart" size="14"/> Деталі
                 </a>
             @endif

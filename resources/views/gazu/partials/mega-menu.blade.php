@@ -100,7 +100,7 @@
         <nav class="border-r border-[var(--gazu-line)] py-3.5 bg-[var(--gazu-paper)]">
             @foreach($megaTree as $c)
                 @php $catLink = ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog'); @endphp
-                <a href="{{ $catLink }}"
+                <a wire:navigate href="{{ $catLink }}"
                    @mouseenter="activeMega = '{{ $c['id'] }}'"
                    :class="activeMega === '{{ $c['id'] }}' ? 'bg-white text-[var(--gazu-ink)] font-semibold' : 'text-[var(--gazu-graphite)]'"
                    :style="activeMega === '{{ $c['id'] }}' ? 'border-left:3px solid var(--gazu-blue)' : 'border-left:3px solid transparent'"
@@ -121,7 +121,7 @@
                         <x-gazu.cat-icon kind="{{ $c['id'] }}" size="28"/>
                         <h3 class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] m-0">{{ $c['label'] }}</h3>
                         <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format($c['count'], 0, '.', ' ') }} товарів</span>
-                        <a href="{{ ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
+                        <a wire:navigate href="{{ ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
                     </div>
                     <div class="grid gap-x-7 gap-y-5" style="grid-template-columns: repeat({{ min(max(count($c['groups']), 1), 4) }}, 1fr);">
                         @foreach($c['groups'] as $g)
@@ -151,7 +151,10 @@
             <div>
                 <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-2.5">Топ бренди</div>
                 <div class="grid grid-cols-3 gap-1.5">
-                    @foreach(array_slice($brands, 0, 9) as $b)
+                    @php
+                        $menuBrands = is_array($brands) ? $brands : ($brands instanceof \Illuminate\Support\Enumerable ? $brands->pluck('name')->all() : []);
+                    @endphp
+                    @foreach(array_slice($menuBrands, 0, 9) as $b)
                         <div class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white cursor-pointer">{{ $b }}</div>
                     @endforeach
                 </div>

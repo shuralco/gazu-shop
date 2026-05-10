@@ -70,7 +70,7 @@
                     <div class="p-4 text-center text-sm text-[var(--gazu-graphite)]">Шукаю…</div>
                 </template>
                 <template x-for="item in items" :key="item.id">
-                    <a :href="item.url" class="flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--gazu-paper)] no-underline border-b border-[var(--gazu-line)] last:border-b-0">
+                    <a wire:navigate :href="item.url" class="flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--gazu-paper)] no-underline border-b border-[var(--gazu-line)] last:border-b-0">
                         <div class="w-10 h-10 bg-[var(--gazu-paper)] rounded shrink-0 flex items-center justify-center text-[10px] gazu-mono text-[var(--gazu-muted)]" x-text="item.image_kind"></div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-[var(--gazu-ink)] truncate" x-text="item.title"></div>
@@ -84,7 +84,7 @@
                     </a>
                 </template>
                 <template x-if="total > items.length">
-                    <a :href="`{{ route('gazu.search') }}?q=${encodeURIComponent(q)}`"
+                    <a wire:navigate :href="`{{ route('gazu.search') }}?q=${encodeURIComponent(q)}`"
                        class="block px-3 py-2.5 text-center bg-[var(--gazu-paper)] text-sm text-[var(--gazu-blue)] no-underline hover:bg-[var(--gazu-mist)]">
                         Усі <span x-text="total"></span> результатів →
                     </a>
@@ -115,7 +115,7 @@
                     @endif
                 @endauth
             </a>
-            <a href="{{ auth()->check() ? route('gazu.account') : route('gazu.auth') }}"
+            <a wire:navigate href="{{ auth()->check() ? route('gazu.account') : route('gazu.auth') }}"
                title="{{ auth()->check() ? auth()->user()->name : 'Вхід / Реєстрація' }}"
                class="w-11 h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="user" size="20"/>
@@ -147,7 +147,7 @@
                 ['sto', 'СТО та послуги', route('gazu.sto')],
                 ['blog', 'Блог', route('gazu.blog')],
             ] as [$k, $label, $url])
-                <a href="{{ $url }}"
+                <a wire:navigate href="{{ $url }}"
                    class="px-3.5 py-3.5 no-underline {{ $activeNav === $k ? 'text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-graphite)]' }}"
                    style="border-bottom: 2px solid {{ $activeNav === $k ? 'var(--gazu-blue)' : 'transparent' }};">{{ $label }}</a>
             @endforeach

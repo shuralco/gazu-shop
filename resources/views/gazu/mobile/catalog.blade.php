@@ -19,7 +19,7 @@
                     ? request()->fullUrlWithQuery(['brand' => null])
                     : request()->fullUrlWithQuery(['brand' => [$pill]]);
             @endphp
-            <a href="{{ $url }}" class="px-3 py-1.5 rounded-full text-xs whitespace-nowrap no-underline {{ $isActive ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white border border-[var(--gazu-line)] text-[var(--gazu-graphite)]' }}">
+            <a wire:navigate href="{{ $url }}" class="px-3 py-1.5 rounded-full text-xs whitespace-nowrap no-underline {{ $isActive ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white border border-[var(--gazu-line)] text-[var(--gazu-graphite)]' }}">
                 {{ $pill }}
             </a>
         @endforeach

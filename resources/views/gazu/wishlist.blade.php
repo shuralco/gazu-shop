@@ -22,7 +22,7 @@
                 @auth Поки що нічого в обраному @else Увійдіть, щоб переглянути обране @endauth
             </div>
             <p class="text-sm text-[var(--gazu-graphite)] mb-4">Натискайте ♥ на картках товарів, щоб зберегти їх сюди.</p>
-            <a href="{{ auth()->check() ? route('gazu.catalog') : route('gazu.auth') }}" class="gazu-btn-primary no-underline">
+            <a wire:navigate href="{{ auth()->check() ? route('gazu.catalog') : route('gazu.auth') }}" class="gazu-btn-primary no-underline">
                 @auth До каталогу @else Увійти @endauth
             </a>
         </div>

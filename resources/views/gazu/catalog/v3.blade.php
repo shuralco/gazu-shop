@@ -45,7 +45,7 @@
                             $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
                         @endphp
                         <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
-                            <a href="{{ $url }}" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center" style="aspect-ratio:1;">
+                            <a wire:navigate href="{{ $url }}" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center" style="aspect-ratio:1;">
                                 <x-gazu.part-image kind="{{ $kind }}" size="140"/>
                             </a>
                             <div class="flex flex-col gap-2 min-w-0">
@@ -62,7 +62,7 @@
                                         <span class="text-[11px] text-[var(--gazu-graphite)]">{{ number_format($rating, 1) }} ({{ $reviews }})</span>
                                     </div>
                                 </div>
-                                <a href="{{ $url }}" class="gazu-display text-[17px] font-semibold text-[var(--gazu-ink)] no-underline">{{ $name }}</a>
+                                <a wire:navigate href="{{ $url }}" class="gazu-display text-[17px] font-semibold text-[var(--gazu-ink)] no-underline">{{ $name }}</a>
                                 <div class="flex gap-3.5 text-xs text-[var(--gazu-graphite)] flex-wrap">
                                     <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">OEM:</span> <span class="gazu-mono text-[var(--gazu-ink)]">{{ $oem }}</span></span>
                                     <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Гарантія:</span> 12 міс</span>

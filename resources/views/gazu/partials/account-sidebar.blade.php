@@ -30,7 +30,7 @@
     @endphp
     <nav class="flex flex-col gap-0.5">
         @foreach($navItems as [$k, $l, $ic, $url])
-            <a href="{{ $url }}"
+            <a wire:navigate href="{{ $url }}"
                class="flex items-center gap-3 px-3 py-2.5 rounded text-sm no-underline {{ $active === $k ? 'bg-[var(--gazu-paper)] text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-graphite)]' }}"
                style="border-left: 3px solid {{ $active === $k ? 'var(--gazu-blue)' : 'transparent' }};">
                 <x-gazu.icon name="{{ $ic }}" size="18"/>

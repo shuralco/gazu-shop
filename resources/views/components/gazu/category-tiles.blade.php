@@ -46,7 +46,7 @@
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
         @foreach($cats as $c)
-            <a href="{{ $c['url'] ?? route('gazu.catalog') }}" class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-5 flex flex-col gap-2.5 no-underline text-[var(--gazu-ink)] cursor-pointer relative overflow-hidden hover:border-[var(--gazu-line-2)]">
+            <a wire:navigate href="{{ $c['url'] ?? route('gazu.catalog') }}" class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-5 flex flex-col gap-2.5 no-underline text-[var(--gazu-ink)] cursor-pointer relative overflow-hidden hover:border-[var(--gazu-line-2)]">
                 <div class="absolute -right-2 -top-2 opacity-10">
                     <x-gazu.part-image kind="{{ $c['kind'] }}" size="120"/>
                 </div>

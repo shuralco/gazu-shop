@@ -55,7 +55,7 @@
         </div>
 
         @if(method_exists($posts, 'lastPage') && $posts->lastPage() > 1)
-            <div class="mt-6">{{ $posts->links() }}</div>
+            <div class="mt-6">{{ $posts->links("vendor.pagination.gazu") }}</div>
         @endif
     @else
         {{-- Fallback демо-картки якщо в БД немає Page з template=blog_post --}}

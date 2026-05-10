@@ -38,7 +38,7 @@
         <h2 class="gazu-display text-lg font-semibold mb-2">{{ $catsTitle }}</h2>
         <div class="grid grid-cols-2 gap-2 mb-5">
             @foreach($mobCats as $c)
-                <a href="{{ $c['url'] }}" class="bg-white border border-[var(--gazu-line)] rounded-lg p-3 no-underline text-[var(--gazu-ink)] flex items-center gap-2">
+                <a wire:navigate href="{{ $c['url'] }}" class="bg-white border border-[var(--gazu-line)] rounded-lg p-3 no-underline text-[var(--gazu-ink)] flex items-center gap-2">
                     <div class="w-10 h-10 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center">
                         <x-gazu.part-image kind="{{ $c['kind'] }}" size="32"/>
                     </div>

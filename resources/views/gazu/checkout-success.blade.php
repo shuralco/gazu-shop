@@ -117,7 +117,7 @@
         <div class="flex gap-2 justify-center flex-wrap">
             @if($needsPayment)
                 @auth
-                    <a href="{{ url('/'.app()->getLocale().'/orders/'.$order->id.'/payment') }}"
+                    <a wire:navigate href="{{ url('/'.app()->getLocale().'/orders/'.$order->id.'/payment') }}"
                        class="gazu-btn-primary no-underline">
                         💳 Перейти до оплати
                     </a>
