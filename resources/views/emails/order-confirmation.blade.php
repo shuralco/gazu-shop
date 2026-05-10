@@ -52,19 +52,34 @@
                 {{ __('general.email_price') }}
             </td>
         </tr>
-        <!-- Items -->
-        @foreach($order->orderProducts as $item)
-            <tr>
-                <td style="padding: 14px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; color: #333333; font-weight: 600;">
-                    {{ $item->title }}
-                </td>
-                <td style="padding: 14px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; color: #333333; text-align: center;">
-                    {{ $item->quantity }}
-                </td>
-                <td style="padding: 14px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; color: #000000; text-align: right; font-weight: 700;">
-                    {{ formatPrice($item->price * $item->quantity) }}
-                </td>
-            </tr>
+        <!-- Items, optionally grouped by warehouse -->
+        @php
+            $orderProducts = $order->orderProducts->load('warehouse');
+            $byWarehouse = $orderProducts->groupBy(fn ($op) => $op->warehouse_id ?? 0);
+            $isMulti = $byWarehouse->count() > 1;
+        @endphp
+        @foreach($byWarehouse as $whId => $items)
+            @php $wh = $whId ? $items->first()->warehouse : null; @endphp
+            @if($wh && ($isMulti || $wh->delivery_eta))
+                <tr>
+                    <td colspan="3" style="padding: 12px 0 6px; font-size: 12px; color: #666; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #e5e5e5;">
+                        📦 {{ $wh->city ?: $wh->name }}@if($wh->delivery_eta) · {{ $wh->delivery_eta }}@endif
+                    </td>
+                </tr>
+            @endif
+            @foreach($items as $item)
+                <tr>
+                    <td style="padding: 14px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; color: #333333; font-weight: 600;">
+                        {{ $item->title }}
+                    </td>
+                    <td style="padding: 14px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; color: #333333; text-align: center;">
+                        {{ $item->quantity }}
+                    </td>
+                    <td style="padding: 14px 0; border-bottom: 1px solid #e5e5e5; font-size: 14px; color: #000000; text-align: right; font-weight: 700;">
+                        {{ formatPrice($item->price * $item->quantity) }}
+                    </td>
+                </tr>
+            @endforeach
         @endforeach
     </table>
 
