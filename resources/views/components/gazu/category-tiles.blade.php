@@ -42,7 +42,7 @@
 <section class="gazu-container pt-16 pb-6">
     <div class="flex items-baseline justify-between mb-7">
         <h2 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0">{{ $gazuSettings['gazu_section_categories'] ?? 'Каталог за категоріями' }}</h2>
-        <a href="{{ route('gazu.catalog') }}" class="text-sm text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1.5">Усі категорії <x-gazu.icon name="arrow-r" size="14"/></a>
+        <a wire:navigate href="{{ route('gazu.catalog') }}" class="text-sm text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1.5">Усі категорії <x-gazu.icon name="arrow-r" size="14"/></a>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5">
         @foreach($cats as $c)

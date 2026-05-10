@@ -133,7 +133,7 @@
                                 @endif
                                 <div class="flex flex-col gap-1.5">
                                     @foreach($g['items'] as [$name, $n])
-                                        <a href="{{ route('gazu.catalog') }}" class="flex items-baseline gap-2 text-[13px] text-[var(--gazu-graphite)] no-underline hover:text-[var(--gazu-ink)]">
+                                        <a wire:navigate href="{{ route('gazu.catalog') }}" class="flex items-baseline gap-2 text-[13px] text-[var(--gazu-graphite)] no-underline hover:text-[var(--gazu-ink)]">
                                             <span class="flex-1">{{ $name }}</span>
                                             <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $n }}</span>
                                         </a>

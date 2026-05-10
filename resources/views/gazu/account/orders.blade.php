@@ -42,7 +42,7 @@
                     </div>
                     <div class="gazu-display text-xl font-semibold mb-2">Замовлень поки немає</div>
                     <p class="text-sm text-[var(--gazu-graphite)] mb-4">Як тільки оформите перше замовлення, воно зʼявиться тут.</p>
-                    <a href="{{ route('gazu.catalog') }}" class="gazu-btn-primary no-underline">До каталогу</a>
+                    <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-primary no-underline">До каталогу</a>
                 </div>
             @else
                 <div class="flex flex-col gap-3">
@@ -65,7 +65,7 @@
                                     {{ $st['label'] }}
                                 </span>
                             </div>
-                            <a href="{{ route('gazu.account.order', ['order' => $order->id]) }}"
+                            <a wire:navigate href="{{ route('gazu.account.order', ['order' => $order->id]) }}"
                                class="gazu-btn-outline text-xs px-3 py-2 no-underline text-right">
                                 Деталі →
                             </a>

@@ -9,7 +9,7 @@
     @include('gazu.partials.topbar')
 
     <div class="gazu-container py-4 flex items-center gap-5">
-        <a href="{{ route('gazu.home') }}" class="no-underline">
+        <a wire:navigate href="{{ route('gazu.home') }}" class="no-underline">
             <x-gazu.logo size="26"/>
         </a>
 
@@ -106,7 +106,7 @@
 
         {{-- Actions --}}
         <div class="flex items-center gap-1 shrink-0">
-            <a href="{{ route('gazu.wishlist') }}" title="Обране" class="w-11 h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
+            <a wire:navigate href="{{ route('gazu.wishlist') }}" title="Обране" class="w-11 h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="heart" size="20"/>
                 @auth
                     @php $wlc = \DB::table('wishlists')->where('user_id', auth()->id())->count(); @endphp
@@ -123,7 +123,7 @@
                     <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[var(--gazu-success)] rounded-full border-2 border-white"></span>
                 @endauth
             </a>
-            <a href="{{ route('gazu.cart') }}"
+            <a wire:navigate href="{{ route('gazu.cart') }}"
                data-gazu-cart-icon
                x-data="{ count: {{ (int) $cartCount }} }"
                x-on:cart-updated.window="count = $event.detail.count"

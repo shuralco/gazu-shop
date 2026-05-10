@@ -85,7 +85,7 @@
                         @endif
 
                         <div class="flex gap-2 flex-wrap">
-                            <a href="{{ route('gazu.catalog') }}" class="gazu-btn-primary flex-1 text-xs py-2 no-underline">Запчастини для авто</a>
+                            <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-primary flex-1 text-xs py-2 no-underline">Запчастини для авто</a>
                             @if(! $car->is_primary)
                                 <form action="{{ route('gazu.garage.primary', ['car' => $car->id]) }}" method="POST" class="inline">
                                     @csrf

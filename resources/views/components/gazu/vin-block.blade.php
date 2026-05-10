@@ -38,7 +38,7 @@
                 <div><div class="text-[11px] text-[var(--gazu-graphite)]">Рік</div><div class="font-semibold">{{ $year }}</div></div>
                 <div><div class="text-[11px] text-[var(--gazu-graphite)]">Двигун</div><div class="font-semibold gazu-mono">{{ $engine }}</div></div>
             </div>
-            <a href="{{ route('gazu.vin') }}" class="w-full py-3.5 bg-[var(--gazu-ink)] text-white border-0 rounded-lg text-sm font-medium cursor-pointer inline-flex items-center justify-center gap-2 no-underline">
+            <a wire:navigate href="{{ route('gazu.vin') }}" class="w-full py-3.5 bg-[var(--gazu-ink)] text-white border-0 rounded-lg text-sm font-medium cursor-pointer inline-flex items-center justify-center gap-2 no-underline">
                 Показати запчастини для цього авто <x-gazu.icon name="arrow-r" size="16"/>
             </a>
         </div>

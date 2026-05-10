@@ -12,9 +12,9 @@
     <h2 class="gazu-display text-2xl font-semibold mt-3 mb-2">{{ $title }}</h2>
     <p class="text-sm text-[var(--gazu-graphite)] max-w-md mx-auto mb-7">{{ $desc }}</p>
     <div class="flex gap-2 justify-center flex-wrap">
-        <a href="{{ route('gazu.home') }}" class="gazu-btn-primary no-underline">На головну</a>
-        <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Каталог</a>
-        <a href="{{ route('gazu.vin') }}" class="gazu-btn-outline no-underline">VIN-пошук</a>
+        <a wire:navigate href="{{ route('gazu.home') }}" class="gazu-btn-primary no-underline">На головну</a>
+        <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Каталог</a>
+        <a wire:navigate href="{{ route('gazu.vin') }}" class="gazu-btn-outline no-underline">VIN-пошук</a>
     </div>
 </div>
 @endsection

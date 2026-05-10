@@ -39,7 +39,7 @@
                                         class="py-3 px-2 gazu-display font-semibold text-[13px] border-[1.5px] rounded-md cursor-pointer {{ $i === 0 ? 'bg-[var(--gazu-ink)] text-white border-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)]' }}">{{ $b }}</button>
                             @endforeach
                         </div>
-                        <a href="{{ route('gazu.brand') }}" class="inline-block bg-transparent border-0 text-[var(--gazu-blue)] text-xs pt-2.5 cursor-pointer no-underline">Усі {{ $brandsTotal }} марок →</a>
+                        <a wire:navigate href="{{ route('gazu.brand') }}" class="inline-block bg-transparent border-0 text-[var(--gazu-blue)] text-xs pt-2.5 cursor-pointer no-underline">Усі {{ $brandsTotal }} марок →</a>
                     </div>
 
                     <div class="grid grid-cols-2 gap-2.5">

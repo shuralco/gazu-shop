@@ -30,7 +30,7 @@
                     $cat = $post->menu_group ?? 'Стаття';
                     $date = $post->created_at?->format('d.m.Y') ?? '';
                 @endphp
-                <a href="{{ route('gazu.blog.show', ['slug' => $slug]) }}"
+                <a wire:navigate href="{{ route('gazu.blog.show', ['slug' => $slug]) }}"
                    class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden no-underline text-[var(--gazu-ink)] flex flex-col hover:border-[var(--gazu-line-2)]">
                     <div class="aspect-video bg-[var(--gazu-paper)] flex items-center justify-center">
                         @if(! empty($post->og_image))

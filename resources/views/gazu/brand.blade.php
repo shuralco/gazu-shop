@@ -31,7 +31,7 @@
         <div class="flex flex-col gap-2 text-center">
             <div class="gazu-display text-3xl font-bold text-[var(--gazu-ink)]">{{ number_format($productsCount, 0, '.', ' ') }}</div>
             <div class="text-xs text-[var(--gazu-graphite)]">{{ plural_uk($productsCount, 'артикул', 'артикули', 'артикулів') }} у каталозі</div>
-            <a href="{{ route('gazu.catalog', ['brand' => [$brand->name]]) }}" class="gazu-btn-primary mt-2 no-underline">Дивитись каталог</a>
+            <a wire:navigate href="{{ route('gazu.catalog', ['brand' => [$brand->name]]) }}" class="gazu-btn-primary mt-2 no-underline">Дивитись каталог</a>
         </div>
     </section>
 
@@ -43,7 +43,7 @@
                     $catSlug = $cat->slug ?: $cat->id;
                     $catName = $cat->title ?? $cat->name ?? 'Категорія';
                 @endphp
-                <a href="{{ route('gazu.catalog', ['cat' => $catSlug, 'brand' => [$brand->name]]) }}"
+                <a wire:navigate href="{{ route('gazu.catalog', ['cat' => $catSlug, 'brand' => [$brand->name]]) }}"
                    class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)]">
                     <div class="font-medium">{{ $catName }}</div>
                 </a>
@@ -63,7 +63,7 @@
         <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
             <div class="gazu-display text-xl font-semibold mb-2">Зараз немає товарів</div>
             <p class="text-sm text-[var(--gazu-graphite)] mb-4">Скоро тут зʼявляться оновлення асортименту.</p>
-            <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Усі товари</a>
+            <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Усі товари</a>
         </div>
     @else
         <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5">
@@ -73,7 +73,7 @@
         </div>
         @if($productsCount > $products->count())
             <div class="text-center mt-6">
-                <a href="{{ route('gazu.catalog', ['brand' => [$brand->name]]) }}" class="gazu-btn-outline no-underline">
+                <a wire:navigate href="{{ route('gazu.catalog', ['brand' => [$brand->name]]) }}" class="gazu-btn-outline no-underline">
                     Усі {{ number_format($productsCount, 0, '.', ' ') }} {{ plural_uk($productsCount, 'товар', 'товари', 'товарів') }} {{ $brand->name }} →
                 </a>
             </div>

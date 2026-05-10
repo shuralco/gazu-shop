@@ -14,8 +14,8 @@
     <h1 class="gazu-display text-3xl font-semibold text-[var(--gazu-ink)] m-0 mb-2">{{ $title }}</h1>
     <p class="text-sm text-[var(--gazu-graphite)] max-w-md mx-auto mb-7">{{ $desc }}</p>
     <div class="flex gap-2 justify-center">
-        <a href="{{ route('gazu.catalog') }}" class="gazu-btn-primary no-underline">До каталогу</a>
-        <a href="{{ route('gazu.vin') }}" class="gazu-btn-outline no-underline">VIN-пошук</a>
+        <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-primary no-underline">До каталогу</a>
+        <a wire:navigate href="{{ route('gazu.vin') }}" class="gazu-btn-outline no-underline">VIN-пошук</a>
     </div>
 </div>
 @endsection

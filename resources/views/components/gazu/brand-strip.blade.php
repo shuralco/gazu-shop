@@ -24,11 +24,11 @@
         @php
             $brandsLabel = $shopStats['brands_label'] ?? 'усі бренди';
         @endphp
-        <a href="{{ route('gazu.brand') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Усі {{ $brandsLabel }} →</a>
+        <a wire:navigate href="{{ route('gazu.brand') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Усі {{ $brandsLabel }} →</a>
     </div>
     <div class="grid grid-cols-3 md:grid-cols-6 gap-2.5">
         @foreach($brands as $b)
-            <a href="{{ route('gazu.brand', ['slug' => \Str::slug($b)]) }}"
+            <a wire:navigate href="{{ route('gazu.brand', ['slug' => \Str::slug($b)]) }}"
                class="bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gazu-display text-lg font-semibold text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]"
                style="aspect-ratio: 5/2;">{{ $b }}</a>
         @endforeach

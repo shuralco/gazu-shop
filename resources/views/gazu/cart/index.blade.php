@@ -128,7 +128,7 @@
                         </div>
                         <div class="min-w-0">
                             @if($slug)
-                                <a href="{{ route('gazu.product.show', ['slug' => $slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug">{{ $title }}</a>
+                                <a wire:navigate href="{{ route('gazu.product.show', ['slug' => $slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug">{{ $title }}</a>
                             @else
                                 <span class="text-[var(--gazu-ink)] font-medium leading-snug">{{ $title }}</span>
                             @endif
@@ -167,7 +167,7 @@
             </div>
 
             <div class="mt-4 flex items-center gap-3">
-                <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">← Продовжити покупки</a>
+                <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">← Продовжити покупки</a>
                 <span class="flex-1"></span>
                 <form action="{{ route('gazu.cart.clear') }}" method="POST">
                     @csrf
@@ -188,7 +188,7 @@
                 <span class="text-[var(--gazu-ink)] font-medium">До сплати</span>
                 <span x-ref="grandEl" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up" x-text="fmt(total) + ' ₴'">{{ number_format($cartTotal, 0, '.', ' ') }} ₴</span>
             </div>
-            <a href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
+            <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
         </div>
     </div>
 </div>

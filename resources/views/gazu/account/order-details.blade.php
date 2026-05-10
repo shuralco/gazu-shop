@@ -118,7 +118,7 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 @if($op->slug)
-                                    <a href="{{ route('gazu.product.show', ['slug' => $op->slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug hover:text-[var(--gazu-blue)]">{{ $title }}</a>
+                                    <a wire:navigate href="{{ route('gazu.product.show', ['slug' => $op->slug]) }}" class="text-[var(--gazu-ink)] no-underline font-medium leading-snug hover:text-[var(--gazu-blue)]">{{ $title }}</a>
                                 @else
                                     <span class="text-[var(--gazu-ink)] font-medium leading-snug">{{ $title }}</span>
                                 @endif
@@ -136,11 +136,11 @@
 
             {{-- Actions --}}
             <div class="flex gap-2 flex-wrap">
-                <a href="{{ route('gazu.account') }}" class="gazu-btn-outline no-underline">← Усі замовлення</a>
+                <a wire:navigate href="{{ route('gazu.account') }}" class="gazu-btn-outline no-underline">← Усі замовлення</a>
                 @if($needsPayment)
                     <a href="{{ url('/'.app()->getLocale().'/orders/'.$order->id.'/payment') }}" class="gazu-btn-primary no-underline">💳 Перейти до оплати</a>
                 @endif
-                <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Замовити ще</a>
+                <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Замовити ще</a>
             </div>
         </div>
     </div>

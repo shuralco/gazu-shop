@@ -47,7 +47,7 @@
                     <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center mt-4">
                         <div class="gazu-display text-2xl font-semibold mb-2">Нічого не знайдено</div>
                         <p class="text-sm text-[var(--gazu-graphite)] mb-4">Спробуйте змінити фільтри або скинути всі.</p>
-                        <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Скинути фільтри</a>
+                        <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Скинути фільтри</a>
                     </div>
                 @else
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 mt-4 gazu-stagger">

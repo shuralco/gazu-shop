@@ -12,7 +12,7 @@
             </div>
             <div class="text-sm font-medium mb-2">{{ $gazuSettings['gazu_cart_empty_title'] ?? 'Кошик порожній' }}</div>
             <p class="text-xs text-[var(--gazu-graphite)] mb-3">{{ $gazuSettings['gazu_cart_empty_desc'] ?? 'Додайте товари з каталогу' }}</p>
-            <a href="{{ route('gazu.catalog') }}" class="gazu-btn-primary text-xs no-underline">До каталогу</a>
+            <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-primary text-xs no-underline">До каталогу</a>
         </div>
     @else
         <div class="flex flex-col gap-2">
@@ -61,7 +61,7 @@
 
 @if(! empty($cart))
 <div class="fixed bottom-12 left-0 right-0 max-w-[420px] mx-auto bg-white border-t border-[var(--gazu-line)] p-3 z-20">
-    <a href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full py-3 no-underline">Оформити замовлення</a>
+    <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full py-3 no-underline">Оформити замовлення</a>
 </div>
 @endif
 

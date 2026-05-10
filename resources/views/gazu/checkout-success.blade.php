@@ -122,16 +122,16 @@
                         💳 Перейти до оплати
                     </a>
                 @else
-                    <a href="{{ route('gazu.auth') }}" class="gazu-btn-primary no-underline">Увійти для оплати</a>
+                    <a wire:navigate href="{{ route('gazu.auth') }}" class="gazu-btn-primary no-underline">Увійти для оплати</a>
                 @endauth
-                <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Продовжити покупки</a>
+                <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Продовжити покупки</a>
             @else
-                <a href="{{ route('gazu.home') }}" class="gazu-btn-primary no-underline">На головну</a>
-                <a href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Продовжити покупки</a>
+                <a wire:navigate href="{{ route('gazu.home') }}" class="gazu-btn-primary no-underline">На головну</a>
+                <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Продовжити покупки</a>
             @endif
 
             @auth
-                <a href="{{ route('gazu.account') }}" class="gazu-btn-outline no-underline">Мої замовлення</a>
+                <a wire:navigate href="{{ route('gazu.account') }}" class="gazu-btn-outline no-underline">Мої замовлення</a>
             @endauth
         </div>
 

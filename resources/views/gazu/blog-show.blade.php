@@ -42,9 +42,9 @@
         </div>
 
         <div class="mt-10 pt-6 border-t border-[var(--gazu-line)] flex items-center justify-between">
-            <a href="{{ route('gazu.blog') }}" class="gazu-btn-outline no-underline">← Усі статті</a>
+            <a wire:navigate href="{{ route('gazu.blog') }}" class="gazu-btn-outline no-underline">← Усі статті</a>
             <div class="flex gap-2">
-                <a href="{{ route('gazu.catalog') }}" class="gazu-btn-primary no-underline">Перейти до каталогу</a>
+                <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-primary no-underline">Перейти до каталогу</a>
             </div>
         </div>
     </article>

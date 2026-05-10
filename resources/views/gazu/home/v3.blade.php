@@ -53,7 +53,7 @@
                         </div>
                     @endforeach
                 </div>
-                <a href="{{ route('gazu.catalog') }}" class="mt-3 w-full py-3.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md font-medium text-sm cursor-pointer text-center no-underline block">
+                <a wire:navigate href="{{ route('gazu.catalog') }}" class="mt-3 w-full py-3.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md font-medium text-sm cursor-pointer text-center no-underline block">
                     Підібрати запчастини
                 </a>
                 <div class="absolute -right-5 -bottom-7 opacity-15">

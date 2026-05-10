@@ -50,7 +50,7 @@
                         </div>
                     @endforeach
                 </div>
-                <a href="{{ route('gazu.garage') }}" class="block w-full mt-2.5 py-2 bg-transparent border border-dashed border-[var(--gazu-line-2)] rounded text-xs text-[var(--gazu-graphite)] cursor-pointer text-center no-underline">Змінити авто</a>
+                <a wire:navigate href="{{ route('gazu.garage') }}" class="block w-full mt-2.5 py-2 bg-transparent border border-dashed border-[var(--gazu-line-2)] rounded text-xs text-[var(--gazu-graphite)] cursor-pointer text-center no-underline">Змінити авто</a>
             @else
                 <p class="text-xs text-[var(--gazu-graphite)] mb-2">@auth Додайте авто у Гараж — фільтр буде підставляти його автоматично @else Увійдіть, щоб зберегти своє авто @endauth</p>
                 <a href="{{ auth()->check() ? route('gazu.garage') : route('gazu.auth') }}"

@@ -15,7 +15,7 @@
     @else
         <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             @foreach($brands as $b)
-                <a href="{{ route('gazu.brand', ['slug' => $b->slug ?: \Str::slug($b->name)]) }}"
+                <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b->slug ?: \Str::slug($b->name)]) }}"
                    class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)] flex flex-col items-center justify-center gap-2 aspect-[5/3]">
                     <div class="gazu-display font-bold text-lg text-center">{{ $b->name }}</div>
                     @if(($b->products_count ?? 0) > 0)
