@@ -130,8 +130,23 @@ html.gazu, body.gazu {
 
 .gazu-grid-cart-row {
     display: grid;
-    grid-template-columns: 100px 1fr 140px 140px 40px;
-    align-items: center; gap: 16px; padding: 16px;
+    grid-template-columns: 80px 1fr 40px;
+    grid-template-areas: "img title actions" "img qty   actions" "img price actions";
+    align-items: center; gap: 8px 12px; padding: 12px;
+}
+.gazu-grid-cart-row > :nth-child(1) { grid-area: img; }
+.gazu-grid-cart-row > :nth-child(2) { grid-area: title; }
+.gazu-grid-cart-row > :nth-child(3) { grid-area: qty; justify-self: start; }
+.gazu-grid-cart-row > :nth-child(4) { grid-area: price; justify-self: start; }
+.gazu-grid-cart-row > :nth-child(5) { grid-area: actions; }
+@media (min-width: 768px) {
+    .gazu-grid-cart-row {
+        grid-template-columns: 100px 1fr 140px 140px 40px;
+        grid-template-areas: "img title qty price actions";
+        align-items: center; gap: 16px; padding: 16px;
+    }
+    .gazu-grid-cart-row > :nth-child(3),
+    .gazu-grid-cart-row > :nth-child(4) { justify-self: auto; }
 }
 
 .gazu-grid-order-row {

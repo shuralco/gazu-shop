@@ -65,7 +65,7 @@
 
     @if($stocks->isNotEmpty())
         @php $visible = 3; $hasMore = $stocks->count() > $visible; @endphp
-        <div class="mt-4" x-data="{ expanded: false }">
+        <div class="mt-4" x-data="{ expanded: false }" role="radiogroup" aria-label="Вибір складу для доставки">
             <div class="text-[11px] uppercase tracking-wide font-bold text-[var(--gazu-graphite)] mb-2">Доставка зі складу</div>
             <div class="flex flex-col gap-1.5">
                 @foreach($stocks as $idx => $s)
@@ -75,13 +75,22 @@
                         $sCompare = $s->compare_at_price !== null ? (float) $s->compare_at_price : null;
                         $whCity = $s->warehouse->city ?: $s->warehouse->name;
                         $whEta = $s->warehouse->delivery_eta ?: '1-3 дні';
+                        $ariaLabel = sprintf(
+                            '%s, %s, %s, %s ₴',
+                            $whCity, $whEta,
+                            $available > 0 ? $available.' шт у наявності' : 'немає в наявності',
+                            number_format($sPrice, 0, '.', ' ')
+                        );
                     @endphp
                     <button type="button"
+                        role="radio"
+                        :aria-checked="warehouseId === {{ (int) $s->warehouse_id }}"
+                        aria-label="{{ $ariaLabel }}"
                         @click="warehouseId = {{ (int) $s->warehouse_id }}"
                         @if($idx >= $visible) x-show="expanded" x-transition.opacity.duration.150ms @endif
                         @disabled($available <= 0)
                         :class="warehouseId === {{ (int) $s->warehouse_id }} ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)] text-white' : 'border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-graphite)]'"
-                        class="w-full flex items-center justify-between gap-3 px-3 py-2.5 border rounded-md transition-colors text-left
+                        class="w-full flex items-center justify-between gap-3 px-3 py-2.5 border rounded-md transition-colors text-left min-h-[44px]
                             @if($available <= 0) opacity-50 cursor-not-allowed @endif">
                         <div class="flex items-center gap-2.5 min-w-0">
                             <div class="w-3.5 h-3.5 rounded-full border-2 flex-shrink-0"
@@ -115,7 +124,9 @@
             </div>
             @if($hasMore)
                 <button type="button" @click="expanded = !expanded"
-                    class="w-full mt-2 py-2.5 text-[13px] font-medium text-[var(--gazu-ink)] bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-md cursor-pointer hover:bg-[var(--gazu-line-2)] inline-flex items-center justify-center gap-2 transition-colors">
+                    :aria-expanded="expanded"
+                    aria-label="Показати більше складів"
+                    class="w-full mt-2 py-2.5 text-[13px] font-medium text-[var(--gazu-ink)] bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-md cursor-pointer hover:bg-[var(--gazu-line-2)] inline-flex items-center justify-center gap-2 transition-colors min-h-[44px]">
                     <span x-show="!expanded" class="inline-flex items-center gap-1.5">
                         <x-gazu.icon name="plus" size="14"/>
                         Показати ще {{ $stocks->count() - $visible }} {{ $stocks->count() - $visible === 1 ? 'склад' : 'склади' }}
@@ -142,13 +153,16 @@
             <span class="text-[13px] font-medium text-[var(--gazu-graphite)]">Кількість</span>
             <div class="flex items-center bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
                 <button type="button" @click="q = Math.max(1, q-1)"
+                    aria-label="Зменшити кількість"
                     class="w-11 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     :disabled="q <= 1">
                     <x-gazu.icon name="minus" size="16"/>
                 </button>
                 <input x-model.number="q" type="number" min="1" :max="available || 99"
+                    aria-label="Кількість"
                     class="w-14 h-11 text-center border-0 bg-white text-base gazu-mono font-semibold text-[var(--gazu-ink)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                 <button type="button" @click="q = Math.min((available || 99), q+1)"
+                    aria-label="Збільшити кількість"
                     class="w-11 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     :disabled="available > 0 && q >= available">
                     <x-gazu.icon name="plus" size="16"/>

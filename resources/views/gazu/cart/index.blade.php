@@ -160,14 +160,16 @@
                                 </div>
                             @endif
                         </div>
-                        <div class="flex items-center border border-[var(--gazu-line)] rounded-md">
+                        <div class="flex items-center border border-[var(--gazu-line)] rounded-md" role="group" aria-label="Кількість">
                             <button type="button" @click="setQty(qty - 1)" :disabled="busy || qty <= 1"
-                                    class="w-9 h-9 border-0 bg-transparent text-[var(--gazu-ink)] cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed">
+                                    aria-label="Зменшити"
+                                    class="w-11 h-11 md:w-9 md:h-9 border-0 bg-transparent text-[var(--gazu-ink)] cursor-pointer flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed">
                                 <x-gazu.icon name="minus" size="14"/>
                             </button>
-                            <span class="w-10 text-center py-2 text-sm gazu-mono font-medium" :class="busy && 'opacity-50'" x-text="qty">{{ $qty }}</span>
+                            <span class="w-10 text-center py-2 text-sm gazu-mono font-medium" :class="busy && 'opacity-50'" x-text="qty" aria-live="polite">{{ $qty }}</span>
                             <button type="button" @click="setQty(qty + 1)" :disabled="busy"
-                                    class="w-9 h-9 border-0 bg-transparent text-[var(--gazu-ink)] cursor-pointer flex items-center justify-center disabled:opacity-40">
+                                    aria-label="Збільшити"
+                                    class="w-11 h-11 md:w-9 md:h-9 border-0 bg-transparent text-[var(--gazu-ink)] cursor-pointer flex items-center justify-center disabled:opacity-40">
                                 <x-gazu.icon name="plus" size="14"/>
                             </button>
                         </div>
@@ -176,7 +178,8 @@
                             <div class="text-[11px] text-[var(--gazu-graphite)]"><span x-text="fmt(price)">{{ number_format($price, 0, '.', ' ') }}</span> ₴ × <span x-text="qty">{{ $qty }}</span></div>
                         </div>
                         <button type="button" @click="remove()" :disabled="busy"
-                                class="w-9 h-9 bg-transparent text-[var(--gazu-graphite)] border-0 cursor-pointer flex items-center justify-center hover:text-[var(--gazu-danger)] disabled:opacity-40">
+                                aria-label="Видалити з кошика"
+                                class="w-11 h-11 md:w-9 md:h-9 bg-transparent text-[var(--gazu-graphite)] border-0 cursor-pointer flex items-center justify-center hover:text-[var(--gazu-danger)] disabled:opacity-40">
                             <x-gazu.icon name="trash" size="18"/>
                         </button>
                     </div>
