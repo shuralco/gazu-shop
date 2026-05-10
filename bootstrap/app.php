@@ -13,6 +13,21 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->append(\App\Http\Middleware\CacheHeaders::class);
+
+        // Trust upstream proxies (Coolify, Traefik, Caddy, nginx) so
+        // request()->ip() returns the real visitor IP for geo-detect,
+        // rate-limiting, and audit logs. Reads TRUSTED_PROXIES env (csv
+        // or "*" for all). Defaults to "*" — appropriate when the only
+        // public entrypoint is the reverse proxy.
+        $middleware->trustProxies(
+            at: env('TRUSTED_PROXIES', '*'),
+            headers: \Illuminate\Http\Request::HEADER_X_FORWARDED_FOR
+                | \Illuminate\Http\Request::HEADER_X_FORWARDED_HOST
+                | \Illuminate\Http\Request::HEADER_X_FORWARDED_PORT
+                | \Illuminate\Http\Request::HEADER_X_FORWARDED_PROTO
+                | \Illuminate\Http\Request::HEADER_X_FORWARDED_AWS_ELB,
+        );
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\AdminMiddleware::class,
             'module' => \App\Http\Middleware\RequiresModule::class,
