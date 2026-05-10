@@ -126,6 +126,23 @@ class MerchantWarehouseResource extends Resource
                                 ->helperText('Короткий лейбл, який бачить клієнт у селекторі складу: «1 день», «2-3 дні»')
                                 ->maxLength(64)
                                 ->placeholder('1-3 дні'),
+                            Forms\Components\Grid::make(2)->schema([
+                                Forms\Components\TextInput::make('shipping_cost')
+                                    ->label('Ставка доставки (₴)')
+                                    ->helperText('Базова ставка доставки із цього складу')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->step(0.01)
+                                    ->prefix('₴')
+                                    ->default(0),
+                                Forms\Components\TextInput::make('free_shipping_threshold')
+                                    ->label('Поріг безкоштовної доставки (₴)')
+                                    ->helperText('Якщо сума замовлення з цього складу ≥ цього значення, доставка безкоштовна. Порожньо = поріг вимкнено')
+                                    ->numeric()
+                                    ->minValue(0)
+                                    ->step(0.01)
+                                    ->prefix('₴'),
+                            ]),
                         ]),
 
                     Forms\Components\Tabs\Tab::make('Нова Пошта sender')

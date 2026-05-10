@@ -200,8 +200,8 @@ NULL у `inventory.price` = використовувати базову `product
 | 2 | Reservations: reserve у InventoryService на checkout, release on cancel, ship → decrement qty | ✅ 2026-05-09 |
 | 5 | Split TTN: одне замовлення → N ТТН (по одному на склад) з відповідним sender | ✅ 2026-05-09 |
 | 4 | Inventory transfers UI: міжсклад переміщення з approve flow | ✅ 2026-05-09 |
+| 7 | Per-warehouse shipping cost: окрема ставка від кожного складу | ✅ 2026-05-10 |
 | 6 | Geo-detect склад: показувати найближчий зверху селектора | 🔜 |
-| 7 | Per-warehouse shipping cost: окрема ставка від кожного складу | 🔜 |
 
 ### Split TTN (Phase 5 — як працює)
 
@@ -231,6 +231,43 @@ splitNova() → 3 NpShipments created
   shipment #2 | warehouse=2 (Львів)  | weight=0.500 | cost=3209
   shipment #3 | warehouse=3 (Дніпро) | weight=0.500 | cost=3312
 Re-run: 0 new shipments (idempotent)
+```
+
+### Per-warehouse shipping (Phase 7 — як працює)
+
+`merchant_warehouses.shipping_cost` (decimal, default 0) + `merchant_warehouses.free_shipping_threshold` (decimal, nullable). Якщо в кошику зі складу набрано на ≥ threshold — доставка з нього безкоштовна.
+
+**`ShippingCalculator`** (`app/Services/Cart/ShippingCalculator.php`):
+
+```php
+$breakdown = app(ShippingCalculator::class)->breakdown();
+// Returns:
+//   groups: [{warehouse, subtotal, shipping, free, items}, ...]
+//   subtotal, shipping_total, grand_total
+```
+
+Cart line groupBy `warehouse_id` → per-group subtotal → free? subtotal ≥ threshold : false → shipping = free ? 0 : warehouse.shipping_cost.
+
+**Filament admin** (`MerchantWarehouseResource` → tab «Адреса»):
+- `shipping_cost` (₴, default 0)
+- `free_shipping_threshold` (₴, nullable — порожньо = поріг вимкнено)
+
+**GAZU Cart UI** (`gazu/cart/index.blade.php`):
+- Окремий блок «Доставка» з рядком per warehouse: city + сума (або «безкоштовно»)
+- Підказка «+ N ₴ до безкоштовної» для груп нижче threshold
+- Підсумок «Разом доставка» + «До сплати» (subtotal + shipping)
+
+**Checkout** копіює `shipping_cost` (з breakdown) у `orders.shipping_cost`. `subtotal` пишеться окремо від `total` (= subtotal + shipping_cost).
+
+**Verified end-to-end на /gazu fork:**
+```
+Cart: Kharkiv 1×3622.50 + Kyiv 1×3450 = 7072.50
+  → Kharkiv: ship=110 ₴ (no threshold)
+  → Kyiv: subtotal 3450 ≥ 2000 → free
+  → Grand: 7182.50 ₴
+
+Cart: Kyiv 1×17250 (5×3450)
+  → Kyiv: subtotal 17250 ≥ 2000 → free → grand 17250
 ```
 
 ### Inventory Transfers (Phase 4 — як працює)

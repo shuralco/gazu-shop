@@ -100,9 +100,12 @@ class CheckoutController extends Controller
             $data['shipping_address'] = trim(($data['shipping_postcode'] ?? '').' '.($data['shipping_address'] ?? '')) ?: ($data['shipping_up_office'] ?? null);
         }
 
-        $total = Cart::getCartTotal();
+        $shippingBreakdown = app(\App\Services\Cart\ShippingCalculator::class)->breakdown($cart);
+        $subtotal = (float) $shippingBreakdown['subtotal'];
+        $shippingCost = (float) $shippingBreakdown['shipping_total'];
+        $total = (float) $shippingBreakdown['grand_total'];
 
-        $order = DB::transaction(function () use ($cart, $data, $total) {
+        $order = DB::transaction(function () use ($cart, $data, $subtotal, $shippingCost, $total) {
             $orderData = [
                 'user_id'    => auth()->id(),
                 'first_name' => $data['first_name'],
@@ -111,6 +114,7 @@ class CheckoutController extends Controller
                 'email'      => $data['email'] ?? null,
                 'locale'     => app()->getLocale() ?: 'uk',
                 'status'     => 'pending',
+                'subtotal'   => $subtotal,
                 'total'      => $total,
                 'shipping_method' => $data['shipping_method'] ?? 'novaposhta',
                 'shipping_city'   => $data['shipping_city'] ?? null,
@@ -135,7 +139,7 @@ class CheckoutController extends Controller
                 'payment_status'  => 'pending',
                 'note'       => $data['note'] ?? null,
                 'discount_amount' => 0,
-                'shipping_cost'   => 0,
+                'shipping_cost'   => $shippingCost,
                 'fulfillment_status' => 'pending',
             ];
 

@@ -176,17 +176,63 @@
             </div>
         </div>
 
+        @php
+            $shipping = app(\App\Services\Cart\ShippingCalculator::class)->breakdown($cart);
+        @endphp
         <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 self-start">
             <h3 class="gazu-display text-xl font-semibold m-0 mb-4">Підсумок</h3>
             <div class="flex justify-between mb-2 text-sm">
                 <span class="text-[var(--gazu-graphite)]" x-text="count + ' ' + (count === 1 ? 'позиція' : (count >= 2 && count <= 4 ? 'позиції' : 'позицій'))">{{ plural_uk_count($positionsCount, 'позиція', 'позиції', 'позицій') }}</span>
-                <span x-ref="subEl" class="text-[var(--gazu-ink)] gazu-count-up" x-text="fmt(total) + ' ₴'">{{ number_format($cartTotal, 0, '.', ' ') }} ₴</span>
+                <span x-ref="subEl" class="text-[var(--gazu-ink)] gazu-count-up" x-text="fmt(total) + ' ₴'">{{ number_format($shipping['subtotal'], 0, '.', ' ') }} ₴</span>
             </div>
-            <div class="flex justify-between mb-2 text-sm"><span class="text-[var(--gazu-graphite)]">Доставка</span><span class="text-[var(--gazu-graphite)]">розрахунок при оформленні</span></div>
-            <div class="h-px bg-[var(--gazu-line)] my-3"></div>
-            <div class="flex justify-between items-baseline mb-4">
+
+            {{-- Per-warehouse shipping breakdown --}}
+            @if(count($shipping['groups']) > 0)
+                <div class="my-3 pt-3 border-t border-[var(--gazu-line)]">
+                    <div class="text-[11px] uppercase tracking-wide text-[var(--gazu-graphite)] mb-2 font-bold">Доставка</div>
+                    @foreach($shipping['groups'] as $g)
+                        @php
+                            $w = $g['warehouse'];
+                            $whName = $w?->city ?: ($w?->name ?: 'Склад');
+                        @endphp
+                        <div class="flex justify-between items-baseline mb-1.5 text-xs">
+                            <span class="text-[var(--gazu-graphite)] inline-flex items-center gap-1">
+                                <x-gazu.icon name="location" size="11" stroke="var(--gazu-blue)"/>
+                                <span>{{ $whName }}</span>
+                            </span>
+                            <span class="gazu-mono">
+                                @if($g['free'])
+                                    <span class="text-[var(--gazu-success)]">безкоштовно</span>
+                                @else
+                                    {{ number_format($g['shipping'], 0, '.', ' ') }} ₴
+                                @endif
+                            </span>
+                        </div>
+                        @if(! $g['free'] && $w?->free_shipping_threshold)
+                            @php $remaining = (float) $w->free_shipping_threshold - $g['subtotal']; @endphp
+                            @if($remaining > 0)
+                                <div class="text-[10px] text-[var(--gazu-muted)] mb-1.5 ml-4">
+                                    + {{ number_format($remaining, 0, '.', ' ') }} ₴ до безкоштовної
+                                </div>
+                            @endif
+                        @endif
+                    @endforeach
+                    <div class="flex justify-between text-sm pt-2 mt-1 border-t border-[var(--gazu-line)]">
+                        <span class="text-[var(--gazu-graphite)]">Разом доставка</span>
+                        <span class="font-medium gazu-mono">
+                            @if($shipping['shipping_total'] == 0)
+                                <span class="text-[var(--gazu-success)]">безкоштовно</span>
+                            @else
+                                {{ number_format($shipping['shipping_total'], 0, '.', ' ') }} ₴
+                            @endif
+                        </span>
+                    </div>
+                </div>
+            @endif
+
+            <div class="flex justify-between items-baseline mb-4 pt-3 border-t border-[var(--gazu-line)]">
                 <span class="text-[var(--gazu-ink)] font-medium">До сплати</span>
-                <span x-ref="grandEl" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up" x-text="fmt(total) + ' ₴'">{{ number_format($cartTotal, 0, '.', ' ') }} ₴</span>
+                <span x-ref="grandEl" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up">{{ number_format($shipping['grand_total'], 0, '.', ' ') }} ₴</span>
             </div>
             <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
         </div>
