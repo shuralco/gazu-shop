@@ -9,10 +9,13 @@
             <div>
                 @php
                     $s = $gazuSettings ?? [];
-                    $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Магазин автозапчастин · 50 000+ артикулів';
+                    $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Магазин автозапчастин'.(isset($shopStats['products_label']) ? ' · '.$shopStats['products_label'] : '');
                     $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Знайди потрібну деталь';
                     $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">OEM-кодом</span> або <span style="color:var(--gazu-blue)">VIN</span>.';
-                    $heroDescription = $s['gazu_hero_description'] ?? 'Точний підбір з оригінальних каталогів. 12 відділень в Україні, доставка 1–3 дні, гарантія на кожну позицію.';
+                    $heroDescription = $s['gazu_hero_description'] ?? sprintf(
+                        'Точний підбір з оригінальних каталогів. %s в Україні, доставка 1–3 дні, гарантія на кожну позицію.',
+                        $shopStats['warehouses_label'] ?? 'власні склади'
+                    );
                 @endphp
                 <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5">{{ $heroSubtitle }}</div>
                 <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: 56px; line-height: 1.02; letter-spacing: -0.035em;">

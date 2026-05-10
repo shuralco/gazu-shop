@@ -3,7 +3,7 @@
 
 @php
     $s = $gazuSettings ?? [];
-    $kicker = $s['gazu_mobile_hero_kicker'] ?? '50 000+ артикулів';
+    $kicker = $s['gazu_mobile_hero_kicker'] ?? ($shopStats['products_label'] ?? 'Каталог автозапчастин');
     $titleHtml = $s['gazu_mobile_hero_title_html'] ?? 'Знайди деталь за <span style="color:var(--gazu-blue)">OEM</span>';
     $catsTitle = $s['gazu_mobile_categories_title'] ?? 'Категорії';
     $hitsTitle = $s['gazu_mobile_hits_title'] ?? 'Хіти';

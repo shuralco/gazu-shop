@@ -21,7 +21,10 @@
 <section class="gazu-container py-10">
     <div class="flex items-baseline justify-between mb-5">
         <h2 class="gazu-display text-[28px] font-semibold text-[var(--gazu-ink)] m-0">{{ $gazuSettings['gazu_section_brands'] ?? 'Топ-бренди' }}</h2>
-        <a href="{{ route('gazu.brand') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Усі 240+ брендів →</a>
+        @php
+            $brandsLabel = $shopStats['brands_label'] ?? 'усі бренди';
+        @endphp
+        <a href="{{ route('gazu.brand') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Усі {{ $brandsLabel }} →</a>
     </div>
     <div class="grid grid-cols-3 md:grid-cols-6 gap-2.5">
         @foreach($brands as $b)

@@ -1,6 +1,6 @@
 @php
     $s = $gazuSettings ?? [];
-    $cities = $s['gazu_topbar_cities'] ?? 'Київ, Львів, Дніпро · 12 відділень';
+    $cities = $s['gazu_topbar_cities'] ?? ($shopStats['cities_with_count'] ?? 'Україна');
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
     $links = $s['gazu_topbar_links'] ?? [];
 @endphp

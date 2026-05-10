@@ -47,14 +47,14 @@ class GazuVisualSettings extends Page implements HasForms
         // Hero V3 (Split — для майстрів + водіїв)
         'gazu_hero_v3_left_kicker' => 'Для майстрів СТО',
         'gazu_hero_v3_left_title' => "Швидкий пошук\nза OEM-кодом",
-        'gazu_hero_v3_left_description' => 'Прямий доступ до 50 000+ артикулів. Аналоги і замінники в один клік.',
+        'gazu_hero_v3_left_description' => null, // composed dynamically from shopStats.products_label
         'gazu_hero_v3_left_perks' => ['VIN-декодер', 'Пакетний пошук', 'Гуртові ціни'],
         'gazu_hero_v3_right_kicker' => 'Для водіїв',
         'gazu_hero_v3_right_title' => "Підбір за вашим\nавто",
         'gazu_hero_v3_right_description' => 'Марка, модель, рік — і ви побачите тільки сумісні запчастини.',
 
         // Mobile
-        'gazu_mobile_hero_kicker' => '50 000+ артикулів',
+        'gazu_mobile_hero_kicker' => null, // composed from shopStats.products_label
         'gazu_mobile_hero_title_html' => 'Знайди деталь за <span style="color:var(--gazu-blue)">OEM</span>',
         'gazu_mobile_categories_title' => 'Категорії',
         'gazu_mobile_hits_title' => 'Хіти',
@@ -129,7 +129,7 @@ class GazuVisualSettings extends Page implements HasForms
         'gazu_cart_empty_desc' => 'Додайте товари з каталогу або скористайтесь VIN-пошуком, щоб знайти точні запчастини для свого авто.',
 
         // Top bar
-        'gazu_topbar_cities' => 'Київ, Львів, Дніпро · 12 відділень',
+        'gazu_topbar_cities' => null, // composed from shopStats.cities_with_count
         'gazu_topbar_hours' => 'Пн-Нд 8:00–20:00',
         'gazu_topbar_links' => [
             ['label' => 'Гуртом', 'url' => '#'],
@@ -152,10 +152,10 @@ class GazuVisualSettings extends Page implements HasForms
         ],
 
         // Hero
-        'gazu_hero_subtitle' => 'Магазин автозапчастин · 50 000+ артикулів',
+        'gazu_hero_subtitle' => null, // composed from shopStats.products_label
         'gazu_hero_title_1' => 'Знайди потрібну деталь',
         'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">OEM-кодом</span> або <span style="color:var(--gazu-blue)">VIN</span>.',
-        'gazu_hero_description' => 'Точний підбір з оригінальних каталогів. 12 відділень в Україні, доставка 1–3 дні, гарантія на кожну позицію.',
+        'gazu_hero_description' => null, // composed from shopStats.warehouses_label
 
         // Hero V1 — visual картка справа (демо-товар у hero)
         'gazu_hero_visual_oem_code' => 'OEM 8V0·498·625·A',
@@ -185,7 +185,7 @@ class GazuVisualSettings extends Page implements HasForms
         'gazu_oneclick_message' => 'Менеджер передзвонить за 5 хвилин для уточнення доставки',
 
         // Footer
-        'gazu_footer_about' => 'Інтернет-магазин автозапчастин. Понад 50 000 артикулів, доставка по Україні, гарантія на кожну деталь.',
+        'gazu_footer_about' => null, // composed from shopStats.products_label
         'gazu_footer_columns' => [
             ['title' => 'Каталог', 'items' => ['Двигун', 'Гальмівна система', 'Підвіска', 'Електрика', 'Кузов', 'Салон']],
             ['title' => 'Клієнтам', 'items' => ['Доставка та оплата', 'Гарантія та повернення', 'Питання та відповіді', 'Бонусна програма', 'Гуртовим клієнтам']],

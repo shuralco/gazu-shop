@@ -69,9 +69,10 @@ class AppServiceProvider extends ServiceProvider
      */
     protected function registerViewComposers(): void
     {
-        // GAZU storefront — share live mega-menu data (Categories + Brands) into header.
+        // GAZU storefront — share menu, cart count, computed shop stats and
+        // visual settings into every gazu view + every gazu blade component.
         view()->composer(
-            ['gazu.layout', 'gazu.partials.header', 'gazu.partials.mega-menu'],
+            ['gazu.*', 'components.gazu.*'],
             \App\View\Composers\GazuMenuComposer::class,
         );
     }

@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'GAZU — каталог автозапчастин')</title>
-    <meta name="description" content="@yield('description', 'Інтернет-магазин автозапчастин · 50 000+ артикулів · доставка по Україні')">
+    @php $metaProductsLabel = $shopStats['products_label'] ?? 'широкий каталог'; @endphp
+    <meta name="description" content="@yield('description', 'Інтернет-магазин автозапчастин · '.$metaProductsLabel.' · доставка по Україні')">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

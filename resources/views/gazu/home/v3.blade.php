@@ -7,7 +7,10 @@
     $left = [
         'kicker' => $s['gazu_hero_v3_left_kicker'] ?? 'Для майстрів СТО',
         'title' => $s['gazu_hero_v3_left_title'] ?? "Швидкий пошук\nза OEM-кодом",
-        'desc'  => $s['gazu_hero_v3_left_description'] ?? 'Прямий доступ до 50 000+ артикулів. Аналоги і замінники в один клік.',
+        'desc'  => $s['gazu_hero_v3_left_description'] ?? sprintf(
+            'Прямий доступ до %s. Аналоги і замінники в один клік.',
+            $shopStats['products_label'] ?? 'каталогу'
+        ),
         'perks' => $s['gazu_hero_v3_left_perks'] ?? ['VIN-декодер', 'Пакетний пошук', 'Гуртові ціни'],
     ];
     $right = [
