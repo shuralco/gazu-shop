@@ -50,6 +50,20 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction --no-script
 # Copy ALL application files
 COPY . .
 
+# Create storage + bootstrap/cache directories BEFORE composer post-autoload
+# (artisan package:discover writes its manifest into bootstrap/cache, will
+# fail with "directory must be present" otherwise — these paths are .gitignored
+# and don't exist in the cloned source).
+RUN mkdir -p storage/logs \
+    storage/framework/cache/data \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/app/public \
+    bootstrap/cache \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage \
+    && chmod -R 775 /var/www/html/bootstrap/cache
+
 # Run post-install scripts (package:discover, etc.) and publish Filament assets
 RUN composer run-script post-autoload-dump --no-interaction \
     && php artisan filament:assets --ansi
@@ -62,17 +76,6 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 # Copy entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Create storage directories and set permissions
-RUN mkdir -p storage/logs \
-    storage/framework/cache/data \
-    storage/framework/sessions \
-    storage/framework/views \
-    storage/app/public \
-    bootstrap/cache \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage \
-    && chmod -R 775 /var/www/html/bootstrap/cache
 
 EXPOSE 80
 
