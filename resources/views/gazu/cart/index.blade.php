@@ -252,7 +252,7 @@
 
             <div class="flex justify-between items-baseline mb-4 pt-3 border-t border-[var(--gazu-line)]">
                 <span class="text-[var(--gazu-ink)] font-medium">До сплати</span>
-                <span x-ref="grandEl" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up">{{ number_format($shipping['grand_total'], 0, '.', ' ') }} ₴</span>
+                <span x-ref="grandEl" x-text="fmt(total + ({{ (int) $shipping['shipping_total'] }})) + ' ₴'" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up">{{ number_format($shipping['grand_total'], 0, '.', ' ') }} ₴</span>
             </div>
             <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
         </div>
