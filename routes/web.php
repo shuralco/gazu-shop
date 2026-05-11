@@ -29,10 +29,12 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/cart/empty', [$c, 'emptyCart'])->name('cart.empty');
 
     $cart = \App\Http\Controllers\Gazu\CartController::class;
-    Route::post('/cart/add',    [$cart, 'add'])->name('cart.add');
-    Route::post('/cart/update', [$cart, 'update'])->name('cart.update');
-    Route::post('/cart/remove', [$cart, 'remove'])->name('cart.remove');
-    Route::post('/cart/clear',  [$cart, 'clear'])->name('cart.clear');
+    Route::middleware('throttle:60,1')->group(function () use ($cart) {
+        Route::post('/cart/add',    [$cart, 'add'])->name('cart.add');
+        Route::post('/cart/update', [$cart, 'update'])->name('cart.update');
+        Route::post('/cart/remove', [$cart, 'remove'])->name('cart.remove');
+        Route::post('/cart/clear',  [$cart, 'clear'])->name('cart.clear');
+    });
 
     $checkout = \App\Http\Controllers\Gazu\CheckoutController::class;
     Route::get('/checkout', [$checkout, 'index'])->name('checkout');
@@ -42,8 +44,10 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
 
     $auth = \App\Http\Controllers\Gazu\AuthController::class;
     Route::get('/auth', [$auth, 'show'])->name('auth');
-    Route::post('/auth/login', [$auth, 'login'])->name('auth.login');
-    Route::post('/auth/register', [$auth, 'register'])->name('auth.register');
+    Route::middleware('throttle:10,1')->group(function () use ($auth) {
+        Route::post('/auth/login', [$auth, 'login'])->name('auth.login');
+        Route::post('/auth/register', [$auth, 'register'])->name('auth.register');
+    });
     Route::post('/auth/logout', [$auth, 'logout'])->name('auth.logout');
 
     Route::middleware('auth')->group(function () use ($c) {

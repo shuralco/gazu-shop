@@ -50,6 +50,18 @@ if [ "$MODULE_AUTO_PARTS_SEED" = "true" ]; then
     fi
 fi
 
+# Bootstrap admin user + default warehouse (idempotent — re-runnable safely).
+ADMIN_MARKER=/var/www/html/storage/app/.admin-bootstrapped
+if [ ! -f "$ADMIN_MARKER" ]; then
+    echo "[entrypoint] Bootstrapping admin user + default warehouse..."
+    if php artisan gazu:bootstrap-admin 2>&1; then
+        touch "$ADMIN_MARKER"
+        echo "[entrypoint] Admin bootstrap done. Login at /admin/login with admin@gazu.com / changeme123 — CHANGE PASSWORD IMMEDIATELY."
+    else
+        echo "[entrypoint] WARNING: admin bootstrap failed, continuing..."
+    fi
+fi
+
 # Debug: show effective env (first chars of secrets, full values of toggles)
 echo "[entrypoint] ENV check:"
 echo "  APP_ENV=$APP_ENV  APP_DEBUG=$APP_DEBUG  APP_URL=$APP_URL"

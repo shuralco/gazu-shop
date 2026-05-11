@@ -1,6 +1,7 @@
 @extends('gazu.layout')
 
-@section('title', $p->name ?? 'Товар' . ' — GAZU')
+@section('title', ($p->name ?? 'Товар') . ' — GAZU')
+@section('og_type', 'product')
 
 @php
     $name = is_object($p) ? ($p->name ?? '') : ($p['name'] ?? '');
@@ -50,6 +51,32 @@
         ];
     }
 @endphp
+
+@section('jsonld')
+<script type="application/ld+json">
+@json([
+    '@context' => 'https://schema.org',
+    '@type' => 'Product',
+    'name' => $name,
+    'sku' => $oem,
+    'brand' => ['@type' => 'Brand', 'name' => $brand ?: 'GAZU'],
+    'description' => $fits ?: $name,
+    'offers' => [
+        '@type' => 'Offer',
+        'price' => number_format($price, 2, '.', ''),
+        'priceCurrency' => 'UAH',
+        'availability' => $qty > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+        'url' => url()->current(),
+    ],
+] + ($rating > 0 && $reviews > 0 ? [
+    'aggregateRating' => [
+        '@type' => 'AggregateRating',
+        'ratingValue' => (string) $rating,
+        'reviewCount' => $reviews,
+    ],
+] : []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+</script>
+@endsection
 
 @section('content')
     <div class="gazu-container">
