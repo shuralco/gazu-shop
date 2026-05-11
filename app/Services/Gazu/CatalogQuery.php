@@ -78,6 +78,9 @@ class CatalogQuery
             // Try brand_id FK first via subquery (avoids JOIN ambiguity on
             // is_active columns shared by both tables). AutoPartsSeeder
             // populates brand_id only; legacy data populates manufacturer.
+            // NOTE: Brand.name is HasTranslations (JSON column), so we use
+            // .slug (non-translatable) as the filter value and resolve to
+            // display name via the Translatable accessor.
             $useBrandFk = \Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands');
             if ($useBrandFk) {
                 $base = $this->scope(Product::query(), $cat);
@@ -91,9 +94,12 @@ class CatalogQuery
                 if ($brandIdCounts->isNotEmpty()) {
                     $brands = \App\Models\Brand::query()
                         ->whereIn('id', $brandIdCounts->keys())
-                        ->get(['id', 'name']);
+                        ->get(['id', 'name', 'slug']);
                     return $brands->map(fn ($b) => (object) [
-                        'manufacturer' => $b->name,
+                        // Send slug as filter value (URL ?brand[]=<slug>),
+                        // show translated name as label.
+                        'manufacturer' => (string) ($b->slug ?: $b->name),
+                        'label' => (string) $b->name,
                         'count' => $brandIdCounts[$b->id] ?? 0,
                     ])->sortByDesc('count')->values();
                 }
@@ -218,11 +224,11 @@ class CatalogQuery
         if (empty($brands)) return $q;
 
         if (\Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands')) {
-            // Resolve names → ids once, then filter by FK. Cheaper than
-            // whereHas (no correlated subquery) and avoids NULL OR semantics
-            // when manufacturer column is NULL on seeded products.
+            // Brand.name is HasTranslations (stored as JSON) so we can't do
+            // a direct WHERE name IN (...). Filter values are slugs (sent
+            // by availableBrands as 'manufacturer'). Resolve slug→id.
             $brandIds = \App\Models\Brand::query()
-                ->whereIn('name', $brands)
+                ->whereIn('slug', $brands)
                 ->pluck('id')
                 ->all();
 

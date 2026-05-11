@@ -93,18 +93,22 @@
             <div class="mt-3">
                 @foreach($brands as $row)
                     @php
-                        $name = is_object($row) ? $row->manufacturer : ($row['manufacturer'] ?? '');
+                        // `manufacturer` = filter value (slug for FK-backed brands,
+                        // or literal manufacturer string for legacy products).
+                        // `label` = display name (translated via HasTranslations).
+                        $value = is_object($row) ? $row->manufacturer : ($row['manufacturer'] ?? '');
+                        $label = is_object($row) ? ($row->label ?? $row->manufacturer) : ($row['label'] ?? $row['manufacturer'] ?? '');
                         $count = is_object($row) ? $row->count : ($row['count'] ?? 0);
-                        $checked = $selected->contains($name);
+                        $checked = $selected->contains($value);
                     @endphp
                     <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]">
-                        <input type="checkbox" name="brand[]" value="{{ $name }}"
+                        <input type="checkbox" name="brand[]" value="{{ $value }}"
                                class="sr-only" {{ $checked ? 'checked' : '' }}
                                onchange="this.form.submit()">
                         <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center shrink-0">
                             @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
                         </span>
-                        <span class="flex-1">{{ $name }}</span>
+                        <span class="flex-1">{{ $label }}</span>
                         <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $count }}</span>
                     </label>
                 @endforeach
