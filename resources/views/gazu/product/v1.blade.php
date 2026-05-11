@@ -52,30 +52,33 @@
     }
 @endphp
 
+@php
+    $jsonldProduct = [
+        '@context' => 'https://schema.org',
+        '@type' => 'Product',
+        'name' => $name,
+        'sku' => $oem,
+        'brand' => ['@type' => 'Brand', 'name' => $brand ?: 'GAZU'],
+        'description' => $fits ?: $name,
+        'offers' => [
+            '@type' => 'Offer',
+            'price' => number_format($price, 2, '.', ''),
+            'priceCurrency' => 'UAH',
+            'availability' => $qty > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'url' => url()->current(),
+        ],
+    ];
+    if ($rating > 0 && $reviews > 0) {
+        $jsonldProduct['aggregateRating'] = [
+            '@type' => 'AggregateRating',
+            'ratingValue' => (string) $rating,
+            'reviewCount' => $reviews,
+        ];
+    }
+@endphp
+
 @section('jsonld')
-<script type="application/ld+json">
-@json([
-    '@context' => 'https://schema.org',
-    '@type' => 'Product',
-    'name' => $name,
-    'sku' => $oem,
-    'brand' => ['@type' => 'Brand', 'name' => $brand ?: 'GAZU'],
-    'description' => $fits ?: $name,
-    'offers' => [
-        '@type' => 'Offer',
-        'price' => number_format($price, 2, '.', ''),
-        'priceCurrency' => 'UAH',
-        'availability' => $qty > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
-        'url' => url()->current(),
-    ],
-] + ($rating > 0 && $reviews > 0 ? [
-    'aggregateRating' => [
-        '@type' => 'AggregateRating',
-        'ratingValue' => (string) $rating,
-        'reviewCount' => $reviews,
-    ],
-] : []), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-</script>
+<script type="application/ld+json">{!! json_encode($jsonldProduct, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
 
 @section('content')
