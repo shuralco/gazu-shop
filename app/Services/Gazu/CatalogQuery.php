@@ -24,7 +24,15 @@ class CatalogQuery
 {
     public const PER_PAGE = 24;
 
+    private static ?bool $hasConditionColumn = null;
+    private static ?array $categoryTree = null;
+
     public function __construct(private Request $request) {}
+
+    private static function hasConditionColumn(): bool
+    {
+        return self::$hasConditionColumn ??= \Schema::hasColumn('products', 'condition');
+    }
 
     public function category(): ?Category
     {
@@ -112,10 +120,21 @@ class CatalogQuery
 
     private function collectDescendantIds(Category $cat): array
     {
+        $tree = self::$categoryTree ??= Category::query()
+            ->select('id', 'parent_id')
+            ->get()
+            ->groupBy('parent_id')
+            ->map(fn ($rows) => $rows->pluck('id')->all())
+            ->all();
+
         $ids = [$cat->id];
-        $children = Category::where('parent_id', $cat->id)->pluck('id')->all();
-        foreach ($children as $cid) {
-            $ids = array_merge($ids, $this->collectDescendantIds(Category::find($cid)));
+        $stack = [$cat->id];
+        while ($stack) {
+            $parent = array_pop($stack);
+            foreach ($tree[$parent] ?? [] as $childId) {
+                $ids[] = $childId;
+                $stack[] = $childId;
+            }
         }
         return $ids;
     }
@@ -167,7 +186,7 @@ class CatalogQuery
 
     public function availableConditions(?Category $cat): \Illuminate\Support\Collection
     {
-        if (! \Schema::hasColumn('products', 'condition')) {
+        if (! self::hasConditionColumn()) {
             return collect();
         }
         $base = $this->scope(Product::query(), $cat);
@@ -183,7 +202,7 @@ class CatalogQuery
     private function applyConditions(Builder $q): Builder
     {
         $conds = $this->selectedConditions();
-        if (! empty($conds) && \Schema::hasColumn('products', 'condition')) {
+        if (! empty($conds) && self::hasConditionColumn()) {
             $q->whereIn('condition', $conds);
         }
         return $q;
