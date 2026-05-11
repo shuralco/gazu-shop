@@ -20,12 +20,23 @@ class CartController extends Controller
             'warehouse_id' => 'nullable|integer',
         ]);
 
-        Cart::add2Cart(
+        $added = Cart::add2Cart(
             (int) $request->input('product_id'),
             (int) $request->input('quantity', 1),
             null,
             $request->filled('warehouse_id') ? (int) $request->input('warehouse_id') : null,
         );
+
+        if (! $added) {
+            $msg = 'Товар не знайдено';
+            if ($request->wantsJson() || $request->ajax()) {
+                return response()->json([
+                    'ok'      => false,
+                    'message' => $msg,
+                ], 404);
+            }
+            return back()->withErrors(['cart' => $msg]);
+        }
 
         $count = Cart::getCartQuantityItems();
         $msg = "Додано в кошик · усього $count позицій";

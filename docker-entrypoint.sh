@@ -31,6 +31,19 @@ php artisan filament:assets --ansi 2>&1 || echo "[entrypoint] WARNING: filament:
 echo "[entrypoint] Running migrations..."
 php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations failed, continuing..."
 
+# Auto-seed demo catalog on FIRST deploy only (when products table is empty).
+# Triggered by MODULE_AUTO_PARTS_SEED=true. Idempotent: skips if rows exist.
+if [ "$MODULE_AUTO_PARTS_SEED" = "true" ]; then
+    COUNT=$(php artisan tinker --execute='echo \App\Models\Product::count();' 2>/dev/null | tr -dc '0-9')
+    if [ "${COUNT:-0}" -eq 0 ]; then
+        echo "[entrypoint] Empty products table — seeding AutoPartsSeeder..."
+        php artisan db:seed --class=AutoPartsSeeder --force 2>&1 \
+            || echo "[entrypoint] WARNING: AutoPartsSeeder failed, continuing..."
+    else
+        echo "[entrypoint] Products table has $COUNT rows — skipping auto-seed."
+    fi
+fi
+
 # Debug: show effective env (first chars of secrets, full values of toggles)
 echo "[entrypoint] ENV check:"
 echo "  APP_ENV=$APP_ENV  APP_DEBUG=$APP_DEBUG  APP_URL=$APP_URL"
