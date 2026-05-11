@@ -14,7 +14,11 @@
 
     @vite(['resources/css/themes/gazu/gazu.css'])
     @livewireStyles
-    <script defer src="{{ asset('assets/js/alpine-3.14.1.min.js') }}"></script>
+    {{-- Alpine.js is bundled with Livewire 3 (@livewireScripts at end of body).
+         Loading alpine-3.14.1.min.js separately created a SECOND instance,
+         causing 'Detected multiple instances of Alpine running' + every
+         x-on/@click handler firing TWICE = cart fetch + page navigation
+         race = ERR_NETWORK_CHANGED + 'page jumping'. --}}
     <script defer src="{{ asset('assets/js/gazu-np-map.js') }}"></script>
     <script defer src="{{ asset('assets/js/gazu-fx.js') }}"></script>
 </head>
