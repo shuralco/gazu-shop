@@ -254,7 +254,57 @@ git push -u origin main
 
 ---
 
-## 13. Що читати далі
+## 13. Auto-deploy pipeline (railway)
+
+### Coolify polling
+Coolify сам poll'ить GitHub раз на ~хвилину. Якщо `git_repository` public — після `git push origin main` Coolify бачить новий commit і запускає rebuild без webhook'у.
+
+### GitHub Actions trigger
+Для негайного deploy (без чекання poll) — `.github/workflows/ci.yml` має job `deploy`:
+```yaml
+deploy:
+  needs: [test, build]
+  if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+  steps:
+    - run: |
+        curl -fsSL "${{ secrets.COOLIFY_WEBHOOK }}" \
+             -H "Authorization: Bearer ${{ secrets.COOLIFY_TOKEN }}"
+```
+
+Один раз налаштувати:
+1. **Coolify** → application `gazu-app` → tab «Webhooks» → копіюй deploy URL
+2. **GitHub repo** → Settings → Secrets and variables → Actions:
+   - `COOLIFY_WEBHOOK` = URL з Coolify
+   - `COOLIFY_TOKEN` = bearer token з Coolify
+3. Push на `main` → tests run → tests pass → curl webhook → Coolify rebuilds → live.
+
+Без secrets workflow логує `::notice::` і покладається на Coolify polling.
+
+### Iteration loop (debug fail'ів)
+```js
+deployments.list_by_app({ applicationUuid: <app_uuid> })
+// → знайди status:failed, його deployment_uuid
+deployments.get({ id: <deploy_uuid> })
+// → велика JSON (1-2 MB), збережи у tool-results/, парси python'ом
+// → знайди stderr lines з 'Error' / 'failed' / 'must be present'
+```
+Найчастіші проблеми у Laravel deploy:
+| Симптом | Причина | Фікс |
+|---|---|---|
+| `bootstrap/cache directory must be present` | dir не у git | commit `bootstrap/cache/.gitkeep` + `mkdir` у Dockerfile ПЕРЕД composer |
+| `503 no available server` | build не завершився / контейнер upexited | `applications.get → status` |
+| `Mass Assignment Exception on user fillable` | model не оновлено в image | rebuild з `force:true` |
+| Stale schema after migration column add | `php artisan migrate --force` руками | Coolify не запускає migrations авто, додай у `docker-entrypoint.sh` або post-deployment-command |
+
+## 14. Memory cheat-sheet
+
+Якщо забув куди дивитись:
+- `~/.claude/projects/.../memory/coolify_deploy_procedure.md` — full procedure
+- `mcp__coolify__projects list` → шукай за `description: "...domain..."`
+- `mcp__coolify__servers list` → IP сервера для sslip.io
+- GitHub: `https://github.com/shuralco?tab=repositories`
+
+## 15. Що читати далі
 
 - `MULTI-WAREHOUSE.md` — поточний стан фічі (схема, моделі, services, API)
 - `MARKETING.md` — позиціонування для замовника
