@@ -191,6 +191,31 @@ class StoreController extends Controller
 
         $related = $this->fetchProducts(4);
 
+        // Real "analogs": same-category products excluding self.
+        // Prefer explicit related_products pivot if any rows of type='analog' exist;
+        // fallback to category-mate suggestion.
+        $analogs = collect();
+        if (isset($product->id) && $product->id) {
+            $pivotAnalogs = \App\Models\Product::query()
+                ->whereHas('relatedProducts', fn ($q) => $q
+                    ->where('related_products.product_id', $product->id)
+                    ->where('related_products.type', 'analog'))
+                ->limit(8)
+                ->get();
+            if ($pivotAnalogs->isNotEmpty()) {
+                $analogs = $pivotAnalogs->map(fn ($x) => $this->decorate($x));
+            } elseif ($product->category_id) {
+                $analogs = \App\Models\Product::query()
+                    ->where('category_id', $product->category_id)
+                    ->where('id', '!=', $product->id)
+                    ->where('is_active', true)
+                    ->inRandomOrder()
+                    ->limit(8)
+                    ->get()
+                    ->map(fn ($x) => $this->decorate($x));
+            }
+        }
+
         // Per-warehouse inventory rows for the warehouse selector.
         $warehouseStocks = collect();
         $closestWarehouseId = null;
@@ -215,6 +240,7 @@ class StoreController extends Controller
         return view("gazu.product.$variant", [
             'p' => $product,
             'related' => $related,
+            'analogs' => $analogs,
             'warehouseStocks' => $warehouseStocks,
             'closestWarehouseId' => $closestWarehouseId,
             'activeNav' => 'catalog',
@@ -228,11 +254,37 @@ class StoreController extends Controller
             return view('gazu.cart.empty', ['activeNav' => null]);
         }
 
+        $cartProductIds = collect($cart)->pluck('product_id')->filter()->map(fn ($v) => (int) $v)->all();
+        $recommended = $this->fetchRecommended($cartProductIds, 4);
+
         return view('gazu.cart.index', [
             'cart' => $cart,
             'cartTotal' => \App\Helpers\Cart\Cart::getCartTotal(),
+            'recommended' => $recommended,
             'activeNav' => null,
         ]);
+    }
+
+    private function fetchRecommended(array $excludeIds, int $limit = 4): \Illuminate\Support\Collection
+    {
+        $store = \Cache::store();
+        $cache = method_exists($store->getStore(), 'tags') ? $store->tags(['catalog']) : $store;
+        $key = 'cart:recommended:exclude='.md5(implode(',', $excludeIds)).":limit=$limit";
+
+        $items = $cache->remember($key, 300, function () use ($excludeIds, $limit) {
+            $q = Product::query()
+                ->with(['category:id,title,slug', 'inventory:id,product_id,quantity,reserved_quantity'])
+                ->where('is_active', true);
+            if (\Schema::hasColumn('products', 'brand_id')) {
+                $q->with('brand:id,name,slug');
+            }
+            if (! empty($excludeIds)) {
+                $q->whereNotIn('id', $excludeIds);
+            }
+            return $q->orderByDesc('rating')->orderByDesc('reviews_count')->limit($limit)->get();
+        });
+
+        return $items->map(fn ($p) => $this->decorate($p));
     }
 
     public function emptyCart()

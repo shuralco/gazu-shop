@@ -34,6 +34,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
         Route::post('/cart/update', [$cart, 'update'])->name('cart.update');
         Route::post('/cart/remove', [$cart, 'remove'])->name('cart.remove');
         Route::post('/cart/clear',  [$cart, 'clear'])->name('cart.clear');
+        Route::post('/cart/coupon/apply', [$cart, 'applyCoupon'])->name('cart.coupon.apply');
+        Route::post('/cart/coupon/remove', [$cart, 'removeCoupon'])->name('cart.coupon.remove');
     });
 
     $checkout = \App\Http\Controllers\Gazu\CheckoutController::class;

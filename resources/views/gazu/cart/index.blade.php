@@ -250,12 +250,94 @@
                 </div>
             @endif
 
+            {{-- Free-shipping progress bar (threshold 1000 ₴) --}}
+            @php $freeShipThreshold = 1000; @endphp
+            <div class="my-3 pt-3 border-t border-[var(--gazu-line)]"
+                 x-data="{ threshold: {{ $freeShipThreshold }}, get pct(){ return Math.min(100, Math.round(total / this.threshold * 100)) }, get remaining(){ return Math.max(0, this.threshold - total) } }">
+                <template x-if="remaining > 0">
+                    <div>
+                        <div class="text-[11px] text-[var(--gazu-graphite)] mb-1.5">
+                            До безкоштовної доставки ще <span class="font-semibold text-[var(--gazu-ink)] gazu-mono" x-text="fmt(remaining) + ' ₴'"></span>
+                        </div>
+                        <div class="w-full h-2 bg-[var(--gazu-mist)] rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-[var(--gazu-blue)] to-[var(--gazu-success)] transition-all duration-500 ease-out" :style="`width: ${pct}%`"></div>
+                        </div>
+                    </div>
+                </template>
+                <template x-if="remaining === 0">
+                    <div class="text-[11px] text-[var(--gazu-success)] font-medium inline-flex items-center gap-1">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                        Безкоштовна доставка
+                    </div>
+                </template>
+            </div>
+
+            {{-- Promo code input --}}
+            <div class="my-3 pt-3 border-t border-[var(--gazu-line)]"
+                 x-data="{
+                    open: false, code: '', busy: false, applied: null,
+                    apply() {
+                        if (!this.code.trim() || this.busy) return;
+                        this.busy = true;
+                        fetch('{{ route('gazu.cart.coupon.apply') }}', {
+                            method: 'POST',
+                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            body: new URLSearchParams({ code: this.code.trim() })
+                        }).then(r => r.json()).then(d => {
+                            if (d.ok) {
+                                this.applied = { code: this.code, discount: d.discount };
+                                window.gazuToast && window.gazuToast(d.message || 'Промокод застосовано', 'success');
+                                window.dispatchEvent(new CustomEvent('cart-updated', { detail: d }));
+                            } else {
+                                window.gazuToast && window.gazuToast(d.message || 'Промокод не знайдено', 'error');
+                            }
+                        }).catch(() => window.gazuToast && window.gazuToast('Помилка', 'error'))
+                          .finally(() => { this.busy = false; });
+                    }
+                 }">
+                <button type="button" @click="open = !open" class="w-full flex items-center justify-between text-sm text-[var(--gazu-ink)] bg-transparent border-0 cursor-pointer p-0" :aria-expanded="open">
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                        Промокод
+                    </span>
+                    <svg :class="open ? 'rotate-180' : ''" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <div x-show="open" x-cloak x-collapse class="mt-3">
+                    <div class="flex gap-2">
+                        <input type="text" x-model="code" @keydown.enter.prevent="apply()" placeholder="Введіть код" class="flex-1 px-3 py-2 border border-[var(--gazu-line)] rounded-md text-sm focus:border-[var(--gazu-ink)] outline-none">
+                        <button type="button" @click="apply()" :disabled="busy || !code.trim()" class="px-4 py-2 bg-[var(--gazu-ink)] text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--gazu-ink-2)] transition-colors">
+                            <span x-show="!busy">Застосувати</span>
+                            <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                        </button>
+                    </div>
+                    <template x-if="applied">
+                        <div class="mt-2 text-[12px] text-[var(--gazu-success)] inline-flex items-center gap-1">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                            <span x-text="'Знижка −' + fmt(applied.discount) + ' ₴'"></span>
+                        </div>
+                    </template>
+                </div>
+            </div>
+
             <div class="flex justify-between items-baseline mb-4 pt-3 border-t border-[var(--gazu-line)]">
                 <span class="text-[var(--gazu-ink)] font-medium">До сплати</span>
                 <span x-ref="grandEl" x-text="fmt(total + ({{ (int) $shipping['shipping_total'] }})) + ' ₴'" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up">{{ number_format($shipping['grand_total'], 0, '.', ' ') }} ₴</span>
             </div>
             <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
         </div>
+    </div>
+
+    {{-- Recommended products (Ukrainian shop signature feature) --}}
+    @if(! empty($recommended ?? []) && count($recommended) > 0)
+        <section class="mt-10">
+            <h2 class="gazu-display text-2xl font-semibold mb-4">Часто купують разом</h2>
+            <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 gazu-stagger">
+                @foreach($recommended as $p)
+                    <x-gazu.product-card :p="$p" :compact="true"/>
+                @endforeach
+            </div>
+        </section>
+    @endif
     </div>
 </div>
 @endsection

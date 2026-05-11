@@ -4,7 +4,29 @@
 @section('content')
 <div class="gazu-container">
     <x-gazu.breadcrumbs :items="[['Головна', route('gazu.home')], ['Кошик', route('gazu.cart')], 'Оформлення']"/>
-    <h1 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-7">Оформлення замовлення</h1>
+    <h1 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-5">Оформлення замовлення</h1>
+
+    {{-- Multi-step progress indicator (UA shop convention) --}}
+    <nav aria-label="Прогрес замовлення" class="mb-7">
+        <ol class="flex items-center gap-2 sm:gap-4 text-sm overflow-x-auto">
+            <li class="flex items-center gap-2 shrink-0">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-success)] text-white flex items-center justify-center font-bold">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                </span>
+                <a wire:navigate href="{{ route('gazu.cart') }}" class="text-[var(--gazu-graphite)] hover:text-[var(--gazu-ink)] no-underline">Кошик</a>
+            </li>
+            <li class="flex-1 h-0.5 bg-[var(--gazu-ink)] min-w-[24px]"></li>
+            <li class="flex items-center gap-2 shrink-0">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-ink)] text-white flex items-center justify-center font-bold">2</span>
+                <span class="text-[var(--gazu-ink)] font-medium">Оформлення</span>
+            </li>
+            <li class="flex-1 h-0.5 bg-[var(--gazu-line-2)] min-w-[24px]"></li>
+            <li class="flex items-center gap-2 shrink-0 opacity-60">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] flex items-center justify-center font-bold">3</span>
+                <span class="text-[var(--gazu-graphite)]">Готово</span>
+            </li>
+        </ol>
+    </nav>
 
     @if($errors->any())
         <div class="bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] px-4 py-3 rounded-md mb-4 text-sm">

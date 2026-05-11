@@ -12,7 +12,32 @@
 @endphp
 
 @section('content')
-<div class="gazu-container py-12">
+<div class="gazu-container pt-6">
+    {{-- Multi-step progress indicator — final step --}}
+    <nav aria-label="Прогрес замовлення" class="mb-7 max-w-3xl mx-auto">
+        <ol class="flex items-center gap-2 sm:gap-4 text-sm overflow-x-auto">
+            <li class="flex items-center gap-2 shrink-0">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-success)] text-white flex items-center justify-center font-bold">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                </span>
+                <span class="text-[var(--gazu-graphite)]">Кошик</span>
+            </li>
+            <li class="flex-1 h-0.5 bg-[var(--gazu-success)] min-w-[24px]"></li>
+            <li class="flex items-center gap-2 shrink-0">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-success)] text-white flex items-center justify-center font-bold">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
+                </span>
+                <span class="text-[var(--gazu-graphite)]">Оформлення</span>
+            </li>
+            <li class="flex-1 h-0.5 bg-[var(--gazu-success)] min-w-[24px]"></li>
+            <li class="flex items-center gap-2 shrink-0">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-ink)] text-white flex items-center justify-center font-bold">3</span>
+                <span class="text-[var(--gazu-ink)] font-medium">Готово</span>
+            </li>
+        </ol>
+    </nav>
+</div>
+<div class="gazu-container pb-12">
     <div class="max-w-3xl mx-auto bg-white border border-[var(--gazu-line)] rounded-xl p-8">
         <div class="text-center mb-6">
             <div class="inline-flex w-20 h-20 bg-[var(--gazu-success-bg)] rounded-full items-center justify-center mb-5">
