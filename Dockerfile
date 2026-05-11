@@ -81,6 +81,11 @@ RUN mkdir -p /run/nginx
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
 
+# PHP-FPM tuning: defaults are pm.max_children=5 which deadlocks under
+# Filament's heavy boot (~3s cold). Bump to 20 dynamic workers + slowlog
+# + 60s request timeout so a hanging request doesn't take down the pool.
+COPY docker/php-fpm-overrides.conf /usr/local/etc/php-fpm.d/zz-overrides.conf
+
 # Copy entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
