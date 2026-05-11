@@ -163,7 +163,7 @@
                 </div>
             </div>
 
-            <div class="lg:sticky lg:top-4 lg:self-start">
+            <div class="lg:sticky lg:top-4 lg:self-start" id="buy-panel-anchor">
                 <x-gazu.buy-panel
                     :price="$price"
                     :oldPrice="$oldPrice"
@@ -178,4 +178,52 @@
 
         <x-gazu.featured-row title="Часто купують разом" :items="$related"/>
     </div>
+
+    {{-- Mobile sticky add-to-cart bar — shows only when buy-panel scrolled off-screen --}}
+    @php
+        $productId = is_object($p) ? ($p->id ?? null) : null;
+        $stocks = ($warehouseStocks ?? collect());
+        $defaultStock = $closestWarehouseId
+            ? $stocks->first(fn ($s) => $s->warehouse_id === $closestWarehouseId && $s->quantity > 0)
+            : null;
+        $defaultStock ??= $stocks->firstWhere(fn ($s) => $s->quantity > 0);
+        $defaultWh = $defaultStock?->warehouse_id;
+        $defaultPrice = $defaultStock && $defaultStock->price !== null ? (float) $defaultStock->price : (float) $price;
+    @endphp
+    @if($productId)
+        <div x-data="{
+                show: false,
+                init() {
+                    const anchor = document.getElementById('buy-panel-anchor');
+                    if (!anchor || !('IntersectionObserver' in window)) return;
+                    const io = new IntersectionObserver(
+                        ([entry]) => { this.show = !entry.isIntersecting; },
+                        { rootMargin: '-80px 0px 0px 0px', threshold: 0 }
+                    );
+                    io.observe(anchor);
+                }
+             }"
+             x-show="show" x-cloak x-transition.opacity.duration.200ms
+             class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[var(--gazu-line)] shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.08)] px-4 py-3"
+             role="region" aria-label="Швидкий кошик">
+            <form action="{{ route('gazu.cart.add') }}" method="POST" class="flex items-center gap-3">
+                @csrf
+                <input type="hidden" name="product_id" value="{{ $productId }}">
+                <input type="hidden" name="quantity" value="1">
+                <input type="hidden" name="warehouse_id" value="{{ $defaultWh }}">
+                <div class="flex-1 min-w-0">
+                    <div class="text-[11px] text-[var(--gazu-graphite)] truncate">{{ is_object($p) ? ($p->name ?? '') : '' }}</div>
+                    <div class="gazu-display font-bold text-[var(--gazu-ink)] gazu-mono">
+                        {{ number_format($defaultPrice, 0, '.', ' ') }} ₴
+                    </div>
+                </div>
+                <button type="submit"
+                    class="h-12 px-5 bg-[var(--gazu-ink)] text-white border-0 rounded-lg text-[14px] font-semibold cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-ink-2)] whitespace-nowrap"
+                    aria-label="Додати в кошик за {{ number_format($defaultPrice, 0, '.', ' ') }} грн">
+                    <x-gazu.icon name="cart" size="18"/>
+                    <span>У кошик</span>
+                </button>
+            </form>
+        </div>
+    @endif
 @endsection
