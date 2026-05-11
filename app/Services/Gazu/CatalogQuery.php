@@ -75,6 +75,24 @@ class CatalogQuery
     {
         $key = $this->aggregateCacheKey('brands', $cat);
         return $this->cacheStore()->remember($key, 600, function () use ($cat) {
+            // Prefer brand relation (brand_id FK) when available — AutoPartsSeeder
+            // stores brand_id, not manufacturer. Fall back to manufacturer column
+            // for legacy products that only have the string field.
+            $useBrandFk = \Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands');
+            if ($useBrandFk) {
+                $base = $this->scope(Product::query(), $cat);
+                $rows = $base->reorder()
+                    ->join('brands', 'products.brand_id', '=', 'brands.id')
+                    ->selectRaw('brands.name as manufacturer, COUNT(*) as count')
+                    ->whereNotNull('products.brand_id')
+                    ->groupBy('brands.name')
+                    ->orderByDesc('count')
+                    ->limit(20)
+                    ->get();
+                if ($rows->isNotEmpty()) {
+                    return $rows;
+                }
+            }
             $base = $this->scope(Product::query(), $cat);
             return $base->reorder()
                 ->selectRaw('manufacturer, COUNT(*) as count')
@@ -193,6 +211,15 @@ class CatalogQuery
     {
         $brands = $this->selectedBrands();
         if (empty($brands)) return $q;
+
+        // Prefer brand_id FK when available — matches the same source as
+        // availableBrands() which prefers the brand relation.
+        if (\Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands')) {
+            return $q->where(function ($w) use ($brands) {
+                $w->whereHas('brand', fn ($b) => $b->whereIn('name', $brands))
+                  ->orWhereIn('manufacturer', $brands);
+            });
+        }
         return $q->whereIn('manufacturer', $brands);
     }
 
