@@ -34,13 +34,19 @@ php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations faile
 # Auto-seed demo catalog on FIRST deploy only (when products table is empty).
 # Triggered by MODULE_AUTO_PARTS_SEED=true. Idempotent: skips if rows exist.
 if [ "$MODULE_AUTO_PARTS_SEED" = "true" ]; then
-    COUNT=$(php artisan tinker --execute='echo \App\Models\Product::count();' 2>/dev/null | tr -dc '0-9')
-    if [ "${COUNT:-0}" -eq 0 ]; then
-        echo "[entrypoint] Empty products table — seeding AutoPartsSeeder..."
-        php artisan db:seed --class=AutoPartsSeeder --force 2>&1 \
-            || echo "[entrypoint] WARNING: AutoPartsSeeder failed, continuing..."
+    # Marker file lives on storage volume so it persists across container
+    # restarts but stays absent across image rebuilds with fresh volumes.
+    SEED_MARKER=/var/www/html/storage/app/.auto-parts-seeded
+    if [ ! -f "$SEED_MARKER" ]; then
+        echo "[entrypoint] Marker absent — running AutoPartsSeeder..."
+        if php artisan db:seed --class=AutoPartsSeeder --force 2>&1; then
+            touch "$SEED_MARKER"
+            echo "[entrypoint] AutoPartsSeeder finished. Marker written."
+        else
+            echo "[entrypoint] WARNING: AutoPartsSeeder failed, continuing..."
+        fi
     else
-        echo "[entrypoint] Products table has $COUNT rows — skipping auto-seed."
+        echo "[entrypoint] Auto-seed marker present — skipping."
     fi
 fi
 
