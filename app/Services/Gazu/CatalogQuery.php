@@ -217,12 +217,20 @@ class CatalogQuery
         $brands = $this->selectedBrands();
         if (empty($brands)) return $q;
 
-        // Prefer brand_id FK when available — matches the same source as
-        // availableBrands() which prefers the brand relation.
         if (\Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands')) {
-            return $q->where(function ($w) use ($brands) {
-                $w->whereHas('brand', fn ($b) => $b->whereIn('name', $brands))
-                  ->orWhereIn('manufacturer', $brands);
+            // Resolve names → ids once, then filter by FK. Cheaper than
+            // whereHas (no correlated subquery) and avoids NULL OR semantics
+            // when manufacturer column is NULL on seeded products.
+            $brandIds = \App\Models\Brand::query()
+                ->whereIn('name', $brands)
+                ->pluck('id')
+                ->all();
+
+            return $q->where(function ($w) use ($brands, $brandIds) {
+                if (! empty($brandIds)) {
+                    $w->whereIn('brand_id', $brandIds);
+                }
+                $w->orWhereIn('manufacturer', $brands);
             });
         }
         return $q->whereIn('manufacturer', $brands);
