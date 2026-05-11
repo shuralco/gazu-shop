@@ -31,8 +31,19 @@ php artisan filament:assets --ansi 2>&1 || echo "[entrypoint] WARNING: filament:
 echo "[entrypoint] Running migrations..."
 php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations failed, continuing..."
 
-# Cache configuration
+# Debug: show effective env (first chars of secrets, full values of toggles)
+echo "[entrypoint] ENV check:"
+echo "  APP_ENV=$APP_ENV  APP_DEBUG=$APP_DEBUG  APP_URL=$APP_URL"
+echo "  DB_HOST=$DB_HOST  DB_DATABASE=$DB_DATABASE  DB_USERNAME=$DB_USERNAME"
+echo "  REDIS_HOST=$REDIS_HOST  REDIS_PORT=$REDIS_PORT"
+echo "  CACHE_DRIVER=$CACHE_DRIVER  SESSION_DRIVER=$SESSION_DRIVER  QUEUE_CONNECTION=$QUEUE_CONNECTION"
+echo "  TRUSTED_PROXIES=$TRUSTED_PROXIES"
+
+# Cache configuration — clear first so re-reads .env, then cache
 echo "[entrypoint] Caching configuration..."
+php artisan config:clear || true
+php artisan view:clear || true
+php artisan route:clear || true
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
