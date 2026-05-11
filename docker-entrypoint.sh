@@ -55,4 +55,16 @@ if [ "$SCOUT_DRIVER" = "meilisearch" ]; then
 fi
 
 echo "[entrypoint] Starting supervisord..."
+
+# Background tail of laravel.log so Coolify "logs" tab streams exceptions
+# even when APP_DEBUG=false hides them from the user-facing page.
+( while true; do
+    if [ -s /var/www/html/storage/logs/laravel.log ]; then
+      tail -F /var/www/html/storage/logs/laravel.log 2>/dev/null | sed 's/^/[laravel] /'
+      break
+    fi
+    sleep 2
+  done
+) &
+
 exec /usr/bin/supervisord -c /etc/supervisord.conf
