@@ -86,6 +86,11 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 # + 60s request timeout so a hanging request doesn't take down the pool.
 COPY docker/php-fpm-overrides.conf /usr/local/etc/php-fpm.d/zz-overrides.conf
 
+# Production OPcache + memory_limit + realpath cache.
+# validate_timestamps=0 means PHP never re-stats files — biggest single
+# perf win for Laravel under prod traffic (3s cold → ~150ms warm).
+COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
+
 # Copy entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
