@@ -83,6 +83,52 @@
     </template>
 </div>
 
+{{-- Mini-cart drawer — slides in from right on cart-updated event --}}
+<div x-data="{
+        open: false,
+        count: 0, qtyTotal: 0, total: 0,
+        init() {
+            window.addEventListener('cart-updated', (e) => {
+                if (e.detail) {
+                    this.count = e.detail.count || 0;
+                    this.qtyTotal = e.detail.qtyTotal || 0;
+                    this.total = e.detail.total || 0;
+                }
+                this.open = true;
+                clearTimeout(this._t);
+                this._t = setTimeout(() => this.open = false, 4500);
+            });
+        },
+        money(v){ return new Intl.NumberFormat('uk-UA').format(v) + ' ₴'; }
+     }"
+     x-show="open" x-cloak
+     @click.outside="open = false"
+     @keydown.escape.window="open = false"
+     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[380px] bg-white border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
+     :data-open="open ? '1' : '0'"
+     role="dialog" aria-label="Кошик">
+    <div class="flex items-center justify-between p-4 border-b border-[var(--gazu-line)]">
+        <div class="flex items-center gap-2">
+            <x-gazu.icon name="cart" size="20"/>
+            <span class="font-semibold">Додано в кошик</span>
+        </div>
+        <button type="button" @click="open = false" class="w-8 h-8 rounded-md hover:bg-[var(--gazu-mist)] flex items-center justify-center" aria-label="Закрити">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+        </button>
+    </div>
+    <div class="flex-1 p-4">
+        <div class="bg-[var(--gazu-mist)] rounded-lg p-4 text-center">
+            <div class="text-sm text-[var(--gazu-graphite)]">Усього в кошику</div>
+            <div class="gazu-display text-3xl font-semibold mt-1" x-text="qtyTotal + ' шт.'"></div>
+            <div class="gazu-mono text-lg mt-1" x-text="money(total)"></div>
+        </div>
+    </div>
+    <div class="p-4 border-t border-[var(--gazu-line)] flex gap-2">
+        <button type="button" @click="open = false" class="flex-1 py-2.5 border border-[var(--gazu-line-2)] rounded-md text-sm font-medium hover:bg-[var(--gazu-mist)]">Продовжити</button>
+        <a wire:navigate href="{{ route('gazu.cart') }}" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
+    </div>
+</div>
+
 {{-- Flash messages → toast after DOM ready --}}
 @if(session('cart_message') || session('flash_message') || session('order_message'))
     @php $msg = session('cart_message') ?? session('flash_message') ?? session('order_message'); @endphp

@@ -265,24 +265,26 @@ html.gazu, body.gazu {
     100% { transform: scale(1); }
 }
 
-/* === Product-card grid: stagger fade-in === */
-.gazu-card-anim {
-    opacity: 0;
-    transform: translateY(8px);
-    animation: gazu-card-in .35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+/* Note: per-card stagger is already provided by .gazu-stagger > * above.
+   .gazu-card-anim is intentionally a tailwind-only hover hook now —
+   no entry animation here to avoid double-firing. */
+
+/* === Sticky filters sidebar on desktop === */
+@media (min-width: 1024px) {
+    .gazu-grid-sidebar > aside,
+    .gazu-grid-sidebar > .gazu-filter-panel {
+        position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow-y: auto;
+    }
 }
-.gazu-card-anim:nth-child(1)  { animation-delay: .02s }
-.gazu-card-anim:nth-child(2)  { animation-delay: .05s }
-.gazu-card-anim:nth-child(3)  { animation-delay: .08s }
-.gazu-card-anim:nth-child(4)  { animation-delay: .11s }
-.gazu-card-anim:nth-child(5)  { animation-delay: .14s }
-.gazu-card-anim:nth-child(6)  { animation-delay: .17s }
-.gazu-card-anim:nth-child(7)  { animation-delay: .20s }
-.gazu-card-anim:nth-child(8)  { animation-delay: .23s }
-.gazu-card-anim:nth-child(n+9){ animation-delay: .26s }
-@keyframes gazu-card-in {
-    to { opacity: 1; transform: translateY(0); }
+
+/* === Toast progress-bar countdown === */
+.gazu-toast { position: relative; overflow: hidden; }
+.gazu-toast::after {
+    content: ''; position: absolute; left: 0; bottom: 0; height: 2px; width: 100%;
+    background: currentColor; opacity: 0.35; transform-origin: left center;
+    animation: gazu-toast-progress 3.5s linear forwards;
 }
+@keyframes gazu-toast-progress { from { transform: scaleX(1) } to { transform: scaleX(0) } }
 
 /* === Heart burst (wishlist active toggle) === */
 .gazu-heart-burst { animation: gazu-heart-burst-kf 0.55s cubic-bezier(0.16, 1, 0.3, 1); }
@@ -299,8 +301,7 @@ html.gazu, body.gazu {
 
 /* === Reduce motion === */
 @media (prefers-reduced-motion: reduce) {
-    .gazu-card-anim,
     .gazu-heart-burst,
-    .gazu-drawer { animation: none !important; transition: none !important; }
-    .gazu-card-anim { opacity: 1; transform: none; }
+    .gazu-drawer,
+    .gazu-toast::after { animation: none !important; transition: none !important; }
 }
