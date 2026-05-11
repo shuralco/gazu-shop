@@ -75,22 +75,27 @@ class CatalogQuery
     {
         $key = $this->aggregateCacheKey('brands', $cat);
         return $this->cacheStore()->remember($key, 600, function () use ($cat) {
-            // Prefer brand relation (brand_id FK) when available — AutoPartsSeeder
-            // stores brand_id, not manufacturer. Fall back to manufacturer column
-            // for legacy products that only have the string field.
+            // Try brand_id FK first via subquery (avoids JOIN ambiguity on
+            // is_active columns shared by both tables). AutoPartsSeeder
+            // populates brand_id only; legacy data populates manufacturer.
             $useBrandFk = \Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands');
             if ($useBrandFk) {
                 $base = $this->scope(Product::query(), $cat);
-                $rows = $base->reorder()
-                    ->join('brands', 'products.brand_id', '=', 'brands.id')
-                    ->selectRaw('brands.name as manufacturer, COUNT(*) as count')
-                    ->whereNotNull('products.brand_id')
-                    ->groupBy('brands.name')
+                $brandIdCounts = $base->reorder()
+                    ->whereNotNull('brand_id')
+                    ->selectRaw('brand_id, COUNT(*) as count')
+                    ->groupBy('brand_id')
                     ->orderByDesc('count')
                     ->limit(20)
-                    ->get();
-                if ($rows->isNotEmpty()) {
-                    return $rows;
+                    ->pluck('count', 'brand_id');
+                if ($brandIdCounts->isNotEmpty()) {
+                    $brands = \App\Models\Brand::query()
+                        ->whereIn('id', $brandIdCounts->keys())
+                        ->get(['id', 'name']);
+                    return $brands->map(fn ($b) => (object) [
+                        'manufacturer' => $b->name,
+                        'count' => $brandIdCounts[$b->id] ?? 0,
+                    ])->sortByDesc('count')->values();
                 }
             }
             $base = $this->scope(Product::query(), $cat);
