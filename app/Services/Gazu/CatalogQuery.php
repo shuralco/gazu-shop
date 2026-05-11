@@ -50,11 +50,15 @@ class CatalogQuery
      */
     public function priceRange(?Category $cat): array
     {
-        $base = $this->scope(Product::query(), $cat);
-        $row = $base->reorder()->selectRaw('MIN(price) as mn, MAX(price) as mx')->first();
-        $absMin = (int) floor((float) ($row?->mn ?? 0));
-        $absMax = (int) ceil((float) ($row?->mx ?? 1));
-        if ($absMax <= $absMin) $absMax = $absMin + 1;
+        $key = $this->aggregateCacheKey('price-range', $cat);
+        [$absMin, $absMax] = \Cache::remember($key, 60, function () use ($cat) {
+            $base = $this->scope(Product::query(), $cat);
+            $row = $base->reorder()->selectRaw('MIN(price) as mn, MAX(price) as mx')->first();
+            $mn = (int) floor((float) ($row?->mn ?? 0));
+            $mx = (int) ceil((float) ($row?->mx ?? 1));
+            if ($mx <= $mn) $mx = $mn + 1;
+            return [$mn, $mx];
+        });
 
         return [
             'min' => $absMin,
@@ -69,15 +73,26 @@ class CatalogQuery
      */
     public function availableBrands(?Category $cat): Collection
     {
-        $base = $this->scope(Product::query(), $cat);
-        return $base->reorder()
-            ->selectRaw('manufacturer, COUNT(*) as count')
-            ->whereNotNull('manufacturer')
-            ->where('manufacturer', '!=', '')
-            ->groupBy('manufacturer')
-            ->orderByDesc('count')
-            ->limit(20)
-            ->get();
+        $key = $this->aggregateCacheKey('brands', $cat);
+        return \Cache::remember($key, 60, function () use ($cat) {
+            $base = $this->scope(Product::query(), $cat);
+            return $base->reorder()
+                ->selectRaw('manufacturer, COUNT(*) as count')
+                ->whereNotNull('manufacturer')
+                ->where('manufacturer', '!=', '')
+                ->groupBy('manufacturer')
+                ->orderByDesc('count')
+                ->limit(20)
+                ->get();
+        });
+    }
+
+    private function aggregateCacheKey(string $kind, ?Category $cat): string
+    {
+        $catId = $cat?->id ?? 0;
+        $search = trim((string) $this->request->query('q', ''));
+        $stock = $this->request->query('stock') === 'in' ? 1 : 0;
+        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock";
     }
 
     public function selectedBrands(): array
@@ -189,14 +204,17 @@ class CatalogQuery
         if (! self::hasConditionColumn()) {
             return collect();
         }
-        $base = $this->scope(Product::query(), $cat);
-        return $base->reorder()
-            ->selectRaw('`condition`, COUNT(*) as count')
-            ->whereNotNull('condition')
-            ->where('condition', '!=', '')
-            ->groupBy('condition')
-            ->orderByDesc('count')
-            ->get();
+        $key = $this->aggregateCacheKey('conditions', $cat);
+        return \Cache::remember($key, 60, function () use ($cat) {
+            $base = $this->scope(Product::query(), $cat);
+            return $base->reorder()
+                ->selectRaw('`condition`, COUNT(*) as count')
+                ->whereNotNull('condition')
+                ->where('condition', '!=', '')
+                ->groupBy('condition')
+                ->orderByDesc('count')
+                ->get();
+        });
     }
 
     private function applyConditions(Builder $q): Builder
