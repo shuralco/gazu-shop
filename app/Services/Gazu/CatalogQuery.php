@@ -117,7 +117,13 @@ class CatalogQuery
 
     public function paginate(?Category $cat = null): LengthAwarePaginator
     {
-        $q = Product::query()->where('is_active', true);
+        $q = Product::query()
+            ->where('is_active', true)
+            ->with(['category:id,title,slug', 'inventory:id,product_id,quantity,reserved_quantity']);
+
+        if (\Schema::hasColumn('products', 'brand_id')) {
+            $q->with('brand:id,name,slug');
+        }
 
         $q = $this->applyCategory($q, $cat);
         $q = $this->applySearch($q);

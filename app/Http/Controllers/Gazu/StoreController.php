@@ -46,11 +46,18 @@ class StoreController extends Controller
 
     private function fetchProducts(int $limit = 8): \Illuminate\Support\Collection
     {
-        $q = Product::query()->with(['category'])->where('is_active', true);
-        if (\Schema::hasColumn('products', 'brand_id')) {
-            $q->with('brand');
-        }
-        $items = $q->orderByDesc('rating')->limit($limit)->get();
+        $store = \Cache::store();
+        $cache = method_exists($store->getStore(), 'tags') ? $store->tags(['catalog']) : $store;
+
+        $items = $cache->remember("home:featured:limit=$limit", 300, function () use ($limit) {
+            $q = Product::query()
+                ->with(['category:id,title,slug', 'inventory:id,product_id,quantity,reserved_quantity'])
+                ->where('is_active', true);
+            if (\Schema::hasColumn('products', 'brand_id')) {
+                $q->with('brand:id,name,slug');
+            }
+            return $q->orderByDesc('rating')->limit($limit)->get();
+        });
 
         if ($items->isEmpty()) {
             return $this->mockProducts($limit);
@@ -84,11 +91,21 @@ class StoreController extends Controller
         if (! class_exists(Category::class)) {
             return collect();
         }
-        try {
-            return Category::query()->where('is_active', true)->where('parent_id', null)->orderBy('sort_order')->limit(8)->get();
-        } catch (\Throwable $e) {
-            return collect();
-        }
+        $store = \Cache::store();
+        $cache = method_exists($store->getStore(), 'tags') ? $store->tags(['catalog']) : $store;
+
+        return $cache->remember('home:root-categories:limit=8', 900, function () {
+            try {
+                return Category::query()
+                    ->where('is_active', true)
+                    ->whereNull('parent_id')
+                    ->orderBy('sort_order')
+                    ->limit(8)
+                    ->get();
+            } catch (\Throwable $e) {
+                return collect();
+            }
+        });
     }
 
     public function home(string $variant = 'v1')

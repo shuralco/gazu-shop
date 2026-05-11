@@ -58,14 +58,18 @@ class CacheHeaders
             return $response;
         }
 
-        // Product and category pages: 1 hour, must-revalidate
+        // Product and category pages: 1 hour, browser-cache only.
+        // MUST be `private` (not public) — every storefront page embeds
+        // a session-bound CSRF token in inline JS handlers. With `public`,
+        // Traefik/CDN caches one user's HTML+token and serves it to other
+        // users → CSRF mismatch on cart/checkout POST (HTTP 419).
         if ($this->isProductOrCategory($request)) {
-            $response->headers->set('Cache-Control', 'public, max-age=3600, must-revalidate');
+            $response->headers->set('Cache-Control', 'private, max-age=3600, must-revalidate');
             return $response;
         }
 
-        // Default: 10 minutes for other public pages
-        $response->headers->set('Cache-Control', 'public, max-age=600, must-revalidate');
+        // Default: 10 minutes browser cache, private only.
+        $response->headers->set('Cache-Control', 'private, max-age=600, must-revalidate');
 
         return $response;
     }
