@@ -35,6 +35,9 @@ RUN apk add --no-cache autoconf g++ make \
     && docker-php-ext-enable redis \
     && apk del autoconf g++ make
 
+# Install Node.js + npm for Vite frontend build
+RUN apk add --no-cache nodejs npm
+
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
@@ -67,6 +70,11 @@ RUN mkdir -p storage/logs \
 # Run post-install scripts (package:discover, etc.) and publish Filament assets
 RUN composer run-script post-autoload-dump --no-interaction \
     && php artisan filament:assets --ansi
+
+# Build Vite assets (creates public/build/manifest.json that @vite() needs)
+RUN npm ci --no-audit --no-fund \
+    && npm run build \
+    && rm -rf node_modules
 
 # Copy nginx and supervisor configs
 RUN mkdir -p /run/nginx
