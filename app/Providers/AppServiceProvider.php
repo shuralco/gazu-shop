@@ -53,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Order::observe(\App\Observers\OrderNotificationObserver::class);
         \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
         \App\Models\Brand::observe(\App\Observers\BrandObserver::class);
+        \App\Models\Product::observe(\App\Observers\ProductObserver::class);
 
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\NpShipmentStatusChanged::class,

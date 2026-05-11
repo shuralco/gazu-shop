@@ -51,7 +51,7 @@ class CatalogQuery
     public function priceRange(?Category $cat): array
     {
         $key = $this->aggregateCacheKey('price-range', $cat);
-        [$absMin, $absMax] = \Cache::remember($key, 60, function () use ($cat) {
+        [$absMin, $absMax] = $this->cacheStore()->remember($key, 600, function () use ($cat) {
             $base = $this->scope(Product::query(), $cat);
             $row = $base->reorder()->selectRaw('MIN(price) as mn, MAX(price) as mx')->first();
             $mn = (int) floor((float) ($row?->mn ?? 0));
@@ -74,7 +74,7 @@ class CatalogQuery
     public function availableBrands(?Category $cat): Collection
     {
         $key = $this->aggregateCacheKey('brands', $cat);
-        return \Cache::remember($key, 60, function () use ($cat) {
+        return $this->cacheStore()->remember($key, 600, function () use ($cat) {
             $base = $this->scope(Product::query(), $cat);
             return $base->reorder()
                 ->selectRaw('manufacturer, COUNT(*) as count')
@@ -85,6 +85,20 @@ class CatalogQuery
                 ->limit(20)
                 ->get();
         });
+    }
+
+    /**
+     * Catalog-scoped cache store. Uses tags when supported (Redis/Memcached)
+     * so ProductObserver/CategoryObserver can flush all entries with one call
+     * on data change. Falls back to global cache on file/database drivers.
+     */
+    private function cacheStore(): \Illuminate\Contracts\Cache\Repository
+    {
+        $store = \Cache::store();
+        if (method_exists($store->getStore(), 'tags')) {
+            return $store->tags(['catalog']);
+        }
+        return $store;
     }
 
     private function aggregateCacheKey(string $kind, ?Category $cat): string
@@ -205,7 +219,7 @@ class CatalogQuery
             return collect();
         }
         $key = $this->aggregateCacheKey('conditions', $cat);
-        return \Cache::remember($key, 60, function () use ($cat) {
+        return $this->cacheStore()->remember($key, 600, function () use ($cat) {
             $base = $this->scope(Product::query(), $cat);
             return $base->reorder()
                 ->selectRaw('`condition`, COUNT(*) as count')
