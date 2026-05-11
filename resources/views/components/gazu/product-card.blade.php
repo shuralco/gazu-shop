@@ -16,7 +16,7 @@
     $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
     $productId = is_object($p) ? ($p->id ?? null) : ($p['id'] ?? null);
 @endphp
-<div class="bg-white border border-[var(--gazu-line)] rounded-lg flex flex-col overflow-hidden font-text relative transition-colors hover:border-[var(--gazu-line-2)]">
+<div class="gazu-card-anim bg-white border border-[var(--gazu-line)] rounded-lg flex flex-col overflow-hidden font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5">
     @if($discount)
         <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-white text-[11px] font-semibold rounded gazu-mono z-10">−{{ $discount }}%</div>
     @endif
@@ -25,7 +25,7 @@
             $inWishlist = auth()->check() && \DB::table('wishlists')->where('user_id', auth()->id())->where('product_id', $productId)->exists();
         @endphp
         <button type="button"
-                x-data="{ active: {{ $inWishlist ? 'true' : 'false' }}, busy: false }"
+                x-data="{ active: {{ $inWishlist ? 'true' : 'false' }}, busy: false, burst: false }"
                 @click.prevent="
                     if (busy) return;
                     busy = true;
@@ -36,6 +36,7 @@
                     }).then(r => r.json()).then(d => {
                         if (d.ok) {
                             active = d.in_wishlist;
+                            if (active) { burst = true; setTimeout(() => burst = false, 600); }
                             window.gazuToast && window.gazuToast(active ? 'Додано в обране ❤' : 'Видалено з обраного', active ? 'success' : 'info');
                         } else if (d.redirect) { window.location = d.redirect; }
                     }).catch(() => { window.location = '{{ route('gazu.auth') }}'; })
@@ -43,8 +44,8 @@
                 "
                 :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
                 :class="active ? 'text-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] hover:text-[var(--gazu-danger)]'"
-                class="absolute top-2 right-2 w-8 h-8 rounded-md border-0 bg-white/85 cursor-pointer flex items-center justify-center z-10">
-            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
+                class="absolute top-2 right-2 w-8 h-8 rounded-md border-0 bg-white/85 cursor-pointer flex items-center justify-center z-10 transition-colors">
+            <svg :class="burst ? 'gazu-heart-burst' : ''" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
             </svg>
         </button>
@@ -118,12 +119,20 @@
                             }).catch(() => window.gazuToast && window.gazuToast('Помилка з\'єднання', 'error'))
                               .finally(() => { busy = false; });
                         "
-                        :class="added ? 'bg-[var(--gazu-success)]' : 'bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)]'"
-                        class="flex-1 min-w-0 py-2.5 text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors">
-                    <span x-show="!added">
-                        <span class="inline-flex items-center gap-1.5"><x-gazu.icon name="cart" size="14"/> У кошик</span>
+                        :class="added ? 'bg-[var(--gazu-success)] scale-[0.97]' : (busy ? 'bg-[var(--gazu-ink)] opacity-80' : 'bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] active:scale-[0.97]')"
+                        :disabled="busy"
+                        class="flex-1 min-w-0 py-2.5 text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200">
+                    <span x-show="!busy && !added" class="inline-flex items-center gap-1.5">
+                        <x-gazu.icon name="cart" size="14"/> У кошик
                     </span>
-                    <span x-show="added" x-cloak>✓ Додано</span>
+                    <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+                    </svg>
+                    <span x-show="added" x-cloak x-transition.duration.150ms class="inline-flex items-center gap-1.5">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        Додано
+                    </span>
                 </button>
             @elseif($qty <= 0)
                 <button type="button" disabled class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] border-0 rounded-md text-[13px] font-medium cursor-not-allowed inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
