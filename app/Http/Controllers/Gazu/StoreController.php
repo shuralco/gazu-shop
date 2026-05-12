@@ -26,8 +26,20 @@ class StoreController extends Controller
             ? (json_decode($rawTitle, true)['uk'] ?? null)
             : $rawTitle;
         $p->name = $localizedTitle ?: ($p->name ?? '');
-        $brand = $p->brand?->name ?? $p->manufacturer ?? 'GAZU';
-        $p->brand = $brand;
+        // Brand.name is HasTranslations (JSON column). Reading $brand->name
+        // through the accessor returns null when the stored value is a
+        // plain string (seeded data inserts 'Bosch' not '{"uk":"Bosch"}').
+        // Fall back through raw original → JSON decode → manufacturer.
+        $brandName = null;
+        if ($brandModel = $p->brand) {
+            $brandName = $brandModel->name
+                ?: $brandModel->getRawOriginal('name');
+            if (is_string($brandName) && str_starts_with($brandName, '{')) {
+                $decoded = json_decode($brandName, true);
+                $brandName = $decoded['uk'] ?? $decoded['en'] ?? null;
+            }
+        }
+        $p->brand = (string) ($brandName ?: $p->manufacturer ?: 'GAZU');
         $p->image_kind = $this->imageKinds[($p->id ?? 0) % count($this->imageKinds)];
         $p->qty = method_exists($p, 'totalAvailableQuantity') ? (int) $p->totalAvailableQuantity() : (int) ($p->quantity ?? 0);
         if (! $p->qty) {
