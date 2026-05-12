@@ -69,12 +69,7 @@
 
 @section('content')
     <div class="gazu-container">
-        <x-gazu.breadcrumbs :items="[
-            ['Головна', route('gazu.home')],
-            ['Каталог', route('gazu.catalog')],
-            'Двигун', 'Фільтри',
-            $brand . ' ' . $oem,
-        ]"/>
+        @include('gazu.partials.product-breadcrumbs', compact('p', 'brand', 'oem', 'name'))
 
         <div class="gazu-grid-buy-left">
             <div>

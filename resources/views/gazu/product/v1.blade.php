@@ -83,13 +83,7 @@
 
 @section('content')
     <div class="gazu-container">
-        <x-gazu.breadcrumbs :items="[
-            ['Головна', route('gazu.home')],
-            ['Каталог', route('gazu.catalog')],
-            'Двигун',
-            'Фільтри',
-            $brand . ' ' . $oem,
-        ]"/>
+        @include('gazu.partials.product-breadcrumbs', compact('p', 'brand', 'oem', 'name'))
 
         <div class="gazu-grid-buy">
             <div>
@@ -163,33 +157,156 @@
                     </div>
                 </div>
 
-                @include('gazu.partials.product-tabs', ['active' => 'compat'])
-
-                <div class="mt-6">
-                    <div class="gazu-display text-lg font-semibold mb-3">Сумісність з автомобілями</div>
-                    <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
-                        <table class="w-full text-left font-text text-[13px]">
-                            <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
-                                <tr>
-                                    <th class="px-3.5 py-3 font-medium">Марка</th>
-                                    <th class="px-3.5 py-3 font-medium">Модель</th>
-                                    <th class="px-3.5 py-3 font-medium">Роки</th>
-                                    <th class="px-3.5 py-3 font-medium">Двигун</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($compat as $r)
-                                    <tr class="border-t border-[var(--gazu-line)]">
-                                        <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">{{ $r[0] }}</td>
-                                        <td class="px-3.5 py-3 text-[var(--gazu-ink)]">{{ $r[1] }}</td>
-                                        <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[2] }}</td>
-                                        <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[3] }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
+                @php
+                    $analogList = ($analogs ?? null) instanceof \Illuminate\Support\Collection
+                        ? $analogs : collect();
+                    $tabCounts = [
+                        'spec'     => count($specs),
+                        'compat'   => count($compat),
+                        'analogs'  => $analogList->count(),
+                        'reviews'  => $reviews,
+                        'delivery' => null,
+                    ];
+                    $deliveryText = $gazuSettings['gazu_product_delivery_text']
+                        ?? 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.';
+                    $paymentText = $gazuSettings['gazu_product_payment_text']
+                        ?? 'Visa / Mastercard, Apple Pay, Google Pay, готівка при отриманні (накладений платіж), безпечна оплата через LiqPay.';
+                @endphp
+                <div x-data="{ tab: 'spec' }" class="mt-2">
+                    <div role="tablist" aria-label="Інформація про товар"
+                         class="border-b border-[var(--gazu-line)] flex gap-1 font-text mt-3 overflow-x-auto whitespace-nowrap">
+                        @foreach([
+                            ['spec', 'Характеристики'],
+                            ['compat', 'Сумісність'],
+                            ['analogs', 'Аналоги'],
+                            ['reviews', 'Відгуки'],
+                            ['delivery', 'Доставка та оплата'],
+                        ] as [$k, $l])
+                            <button type="button" role="tab"
+                                    :aria-selected="tab === '{{ $k }}'"
+                                    :tabindex="tab === '{{ $k }}' ? 0 : -1"
+                                    @click="tab = '{{ $k }}'"
+                                    :class="tab === '{{ $k }}'
+                                        ? 'text-[var(--gazu-ink)] font-semibold border-b-2 border-[var(--gazu-ink)]'
+                                        : 'text-[var(--gazu-graphite)] border-b-2 border-transparent hover:text-[var(--gazu-ink)]'"
+                                    class="px-4.5 py-3.5 -mb-px bg-transparent cursor-pointer inline-flex items-center gap-1.5 text-sm transition-colors">
+                                {{ $l }}
+                                @if($tabCounts[$k] !== null)
+                                    <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono">{{ $tabCounts[$k] }}</span>
+                                @endif
+                            </button>
+                        @endforeach
                     </div>
-                    <button type="button" class="mt-3 bg-transparent border-0 text-[var(--gazu-blue)] text-[13px] cursor-pointer">Показати ще 24 моделі →</button>
+
+                    {{-- spec --}}
+                    <div role="tabpanel" x-show="tab === 'spec'" x-cloak class="mt-6">
+                        <div class="gazu-display text-lg font-semibold mb-3">Характеристики</div>
+                        <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden">
+                            @foreach($specs as [$k, $v, $mono])
+                                <div class="grid grid-cols-2 px-4 py-2.5 text-[13px] @if(!$loop->last) border-b border-[var(--gazu-line)] @endif">
+                                    <span class="text-[var(--gazu-graphite)]">{{ $k }}</span>
+                                    <span class="text-[var(--gazu-ink)] {{ $mono ? 'gazu-mono font-medium' : '' }}">{{ $v }}</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- compat --}}
+                    <div role="tabpanel" x-show="tab === 'compat'" x-cloak class="mt-6">
+                        <div class="gazu-display text-lg font-semibold mb-3">Сумісність з автомобілями</div>
+                        <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
+                            <table class="w-full text-left font-text text-[13px]">
+                                <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
+                                    <tr>
+                                        <th class="px-3.5 py-3 font-medium">Марка</th>
+                                        <th class="px-3.5 py-3 font-medium">Модель</th>
+                                        <th class="px-3.5 py-3 font-medium">Роки</th>
+                                        <th class="px-3.5 py-3 font-medium">Двигун</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($compat as $r)
+                                        <tr class="border-t border-[var(--gazu-line)]">
+                                            <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">{{ $r[0] }}</td>
+                                            <td class="px-3.5 py-3 text-[var(--gazu-ink)]">{{ $r[1] }}</td>
+                                            <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[2] }}</td>
+                                            <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[3] }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    {{-- analogs --}}
+                    <div role="tabpanel" x-show="tab === 'analogs'" x-cloak class="mt-6">
+                        <div class="gazu-display text-lg font-semibold mb-3">Аналоги</div>
+                        @if($analogList->isNotEmpty())
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                                @foreach($analogList as $r)
+                                    <x-gazu.product-card :p="$r"/>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-[13px] text-[var(--gazu-graphite)]">Поки що немає підібраних аналогів для цього товару.</p>
+                        @endif
+                    </div>
+
+                    {{-- reviews --}}
+                    <div role="tabpanel" x-show="tab === 'reviews'" x-cloak class="mt-6">
+                        <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
+                            <div class="gazu-display text-lg font-semibold">Відгуки покупців</div>
+                            <button type="button"
+                                    class="text-[13px] font-medium text-[var(--gazu-ink)] border border-[var(--gazu-ink)] rounded-md px-3 py-1.5 hover:bg-[var(--gazu-mist)] transition-colors bg-transparent cursor-pointer">
+                                Залишити відгук
+                            </button>
+                        </div>
+                        @if(is_object($p) && method_exists($p, 'approvedReviews') && ($reviewList = $p->approvedReviews()->latest()->take(3)->get())->isNotEmpty())
+                            <div class="flex flex-col gap-3">
+                                @foreach($reviewList as $rev)
+                                    <article class="bg-white border border-[var(--gazu-line)] rounded-lg p-4">
+                                        <header class="flex items-center justify-between gap-3 mb-2">
+                                            <div class="flex items-center gap-2">
+                                                <span class="font-semibold text-[var(--gazu-ink)] text-[14px]">{{ $rev->author_name ?? $rev->user?->name ?? 'Анонім' }}</span>
+                                                <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono">{{ optional($rev->created_at)->format('d.m.Y') }}</span>
+                                            </div>
+                                            <div class="flex gap-px text-[var(--gazu-warn)]">
+                                                @for($i = 1; $i <= 5; $i++)
+                                                    <x-gazu.icon name="star" size="12" fill="{{ $i <= (int) ($rev->rating ?? 0) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
+                                                @endfor
+                                            </div>
+                                        </header>
+                                        @if(!empty($rev->title))
+                                            <div class="text-[14px] font-semibold text-[var(--gazu-ink)] mb-1">{{ $rev->title }}</div>
+                                        @endif
+                                        <p class="text-[13px] text-[var(--gazu-graphite)] leading-relaxed m-0">{{ $rev->body ?? $rev->comment ?? '' }}</p>
+                                    </article>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-[13px] text-[var(--gazu-graphite)]">Будьте першим, хто залишить відгук на цей товар.</p>
+                        @endif
+                    </div>
+
+                    {{-- delivery --}}
+                    <div role="tabpanel" x-show="tab === 'delivery'" x-cloak class="mt-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 flex gap-3 items-start">
+                                <x-gazu.icon name="truck" size="22" stroke="var(--gazu-blue)" class="shrink-0"/>
+                                <div>
+                                    <div class="gazu-display font-semibold text-[var(--gazu-ink)] mb-1">Доставка</div>
+                                    <div class="text-[13px] text-[var(--gazu-graphite)] leading-relaxed">{{ $deliveryText }}</div>
+                                </div>
+                            </div>
+                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 flex gap-3 items-start">
+                                <x-gazu.icon name="shield" size="22" stroke="var(--gazu-blue)" class="shrink-0"/>
+                                <div>
+                                    <div class="gazu-display font-semibold text-[var(--gazu-ink)] mb-1">Оплата</div>
+                                    <div class="text-[13px] text-[var(--gazu-graphite)] leading-relaxed">{{ $paymentText }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 

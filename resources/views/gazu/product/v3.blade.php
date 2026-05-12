@@ -32,11 +32,7 @@
 
 @section('content')
     <div style="max-width: 1100px; margin-inline: auto; padding-inline: 24px; padding-bottom: 80px;">
-        <x-gazu.breadcrumbs :items="[
-            ['Каталог', route('gazu.catalog')],
-            'Фільтри',
-            $brand . ' ' . $oem,
-        ]"/>
+        @include('gazu.partials.product-breadcrumbs', ['p' => $p, 'brand' => $brand, 'oem' => $oem, 'name' => $name, 'skipHome' => true])
 
         <div class="grid lg:grid-cols-2 gap-10">
             <div class="grid grid-cols-[60px_1fr] gap-3">

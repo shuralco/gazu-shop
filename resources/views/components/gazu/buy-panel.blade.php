@@ -38,9 +38,9 @@
         get available() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].qty : {{ (int) $qty }}; },
         fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); }
      }">
-    <div class="flex items-baseline gap-3 mb-1">
-        <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none" style="font-size: 40px;">
-            <span x-text="fmt(price * q)">{{ $priceFmt }}</span> <span class="text-2xl font-medium text-[var(--gazu-graphite)]">₴</span>
+    <div class="flex items-baseline gap-3 mb-1 min-h-[44px]">
+        <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none gazu-mono" style="font-size: 40px; font-variant-numeric: tabular-nums; min-width: 7ch; display: inline-flex; align-items: baseline; gap: .25em;">
+            <span x-text="fmt(price * q)" style="display:inline-block;text-align:left">{{ $priceFmt }}</span><span class="text-2xl font-medium text-[var(--gazu-graphite)]">₴</span>
         </span>
         <div class="flex flex-col gap-0.5">
             <template x-if="compareAt && compareAt > price">
@@ -54,7 +54,7 @@
             @endif
         </div>
     </div>
-    <div class="text-[11px] text-[var(--gazu-graphite)] mb-2" x-show="q > 1" x-cloak>
+    <div class="text-[11px] text-[var(--gazu-graphite)] mb-2 gazu-mono" style="font-variant-numeric: tabular-nums;" x-show="q > 1" x-cloak>
         <span x-text="fmt(price)"></span> ₴ × <span x-text="q"></span> шт.
     </div>
     <div class="mt-1">
@@ -272,7 +272,7 @@
     <div class="mt-4 p-3 border border-dashed border-[var(--gazu-line-2)] rounded-lg flex gap-2.5 items-center">
         <x-gazu.icon name="chat" size="20" stroke="var(--gazu-blue)" class="shrink-0"/>
         <div class="text-xs text-[var(--gazu-graphite)] leading-relaxed">
-            Не впевнені в підборі? <span class="text-[var(--gazu-blue)] font-medium">Запитайте менеджера</span> — відповість за 5 хв.
+            Не впевнені в підборі? <a href="tel:0800751024" class="text-[var(--gazu-blue)] font-medium hover:underline no-underline">Запитайте менеджера</a> — відповість за 5 хв.
         </div>
     </div>
 </div>
