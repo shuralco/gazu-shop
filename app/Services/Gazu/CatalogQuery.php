@@ -163,6 +163,7 @@ class CatalogQuery
         $q = $this->applyConditions($q);
         $q = $this->applyPrice($q);
         $q = $this->applyStock($q);
+        $q = $this->applyFlags($q);
         $q = $this->applySort($q);
 
         return $q->paginate(self::PER_PAGE)->withQueryString();
@@ -258,6 +259,24 @@ class CatalogQuery
     {
         if ($this->request->query('stock') === 'in') {
             $q->where('quantity', '>', 0);
+        }
+        return $q;
+    }
+
+    /**
+     * Header nav shortcuts: ?promo=1 (discounted), ?hits=1 (is_hit),
+     * ?new=1 (is_new). Each filter applied independently.
+     */
+    private function applyFlags(Builder $q): Builder
+    {
+        if ($this->request->boolean('promo')) {
+            $q->whereNotNull('old_price')->whereColumn('old_price', '>', 'price');
+        }
+        if ($this->request->boolean('hits') && \Schema::hasColumn('products', 'is_hit')) {
+            $q->where('is_hit', true);
+        }
+        if ($this->request->boolean('new') && \Schema::hasColumn('products', 'is_new')) {
+            $q->where('is_new', true);
         }
         return $q;
     }
