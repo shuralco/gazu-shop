@@ -9,6 +9,27 @@
         ['title' => 'Клієнтам', 'items' => ['Доставка та оплата', 'Гарантія та повернення', 'Питання та відповіді', 'Бонусна програма', 'Гуртовим клієнтам']],
         ['title' => 'Компанія', 'items' => ['Про нас', 'Контакти', 'Вакансії', 'Сертифікати', 'Публічна оферта']],
     ];
+
+    // Map common footer labels to actual routes — kills the 'href="#"' dead-link cluster.
+    $linkMap = [
+        'Двигун'                => route('gazu.catalog'),
+        'Гальмівна система'     => route('gazu.catalog'),
+        'Підвіска'              => route('gazu.catalog'),
+        'Електрика'             => route('gazu.catalog'),
+        'Кузов'                 => route('gazu.catalog'),
+        'Салон'                 => route('gazu.catalog'),
+        'Доставка та оплата'    => route('gazu.delivery'),
+        'Гарантія та повернення'=> route('gazu.warranty'),
+        'Питання та відповіді'  => route('gazu.delivery'),
+        'Бонусна програма'      => route('gazu.delivery'),
+        'Гуртовим клієнтам'     => route('gazu.wholesale'),
+        'Про нас'               => route('gazu.about'),
+        'Контакти'              => route('gazu.contacts'),
+        'Вакансії'              => route('gazu.about'),
+        'Сертифікати'           => route('gazu.about'),
+        'Публічна оферта'       => route('gazu.terms'),
+    ];
+@endphp
     $payments = $s['gazu_footer_payments'] ?? 'Visa, Mastercard, Apple Pay, Google Pay, Нова Пошта';
     $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
@@ -39,7 +60,8 @@
                 <div class="gazu-display text-sm font-semibold text-white mb-3.5">{{ $col['title'] ?? '' }}</div>
                 <ul class="list-none p-0 m-0 flex flex-col gap-2.5">
                     @foreach((array) ($col['items'] ?? []) as $i)
-                        <li><a href="#" class="text-[13px] text-[#9DA5B2] no-underline hover:text-white">{{ $i }}</a></li>
+                        @php $href = $linkMap[$i] ?? route('gazu.catalog'); @endphp
+                        <li><a wire:navigate href="{{ $href }}" class="text-[13px] text-[#9DA5B2] no-underline hover:text-white">{{ $i }}</a></li>
                     @endforeach
                 </ul>
             </div>

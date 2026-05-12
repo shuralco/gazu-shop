@@ -2,7 +2,12 @@
     $s = $gazuSettings ?? [];
     $cities = $s['gazu_topbar_cities'] ?? ($shopStats['cities_with_count'] ?? 'Україна');
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
-    $links = $s['gazu_topbar_links'] ?? [];
+    $links = $s['gazu_topbar_links'] ?? [
+        ['label' => 'Гуртом', 'url' => route('gazu.wholesale')],
+        ['label' => 'Доставка та оплата', 'url' => route('gazu.delivery')],
+        ['label' => 'Гарантія', 'url' => route('gazu.warranty')],
+        ['label' => 'Контакти', 'url' => route('gazu.contacts')],
+    ];
 @endphp
 {{-- GAZU top bar — тонка темна смуга з адресами/посиланнями. Редагується у /admin/gazu-visual --}}
 <div class="bg-[var(--gazu-ink)] text-[#CDD3DC] text-xs">

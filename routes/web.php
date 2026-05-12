@@ -91,6 +91,14 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/404', [$c, 'notFound'])->name('404');
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');
 
+    // Static info pages (about, delivery, warranty, privacy, terms, wholesale)
+    Route::get('/about',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'about')->name('about');
+    Route::get('/delivery',  [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'delivery')->name('delivery');
+    Route::get('/warranty',  [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'warranty')->name('warranty');
+    Route::get('/privacy',   [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'privacy')->name('privacy');
+    Route::get('/terms',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'terms')->name('terms');
+    Route::get('/wholesale', [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'wholesale')->name('wholesale');
+
     // Root-level product URLs (Rozetka-style). Must be LAST in the group so
     // every specific route above wins. Regex requires a numeric suffix like
     // '-13' to avoid catching reserved single-word paths (auth, vin, sto, …).
