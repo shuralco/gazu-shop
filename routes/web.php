@@ -21,9 +21,13 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/catalog/v2', [$c, 'catalog'])->defaults('variant', 'v2')->name('catalog.v2');
     Route::get('/catalog/v3', [$c, 'catalog'])->defaults('variant', 'v3')->name('catalog.v3');
 
-    Route::get('/product/{slug}', [$c, 'product'])->name('product.show');
-    Route::get('/product/{slug}/v2', [$c, 'product'])->defaults('variant', 'v2')->name('product.v2');
-    Route::get('/product/{slug}/v3', [$c, 'product'])->defaults('variant', 'v3')->name('product.v3');
+    // Backward compat: 301 to clean URL.
+    Route::get('/product/{slug}', fn (string $slug) => redirect('/'.$slug, 301))
+        ->where('slug', '[a-z0-9][a-z0-9-]*');
+    Route::get('/product/{slug}/v2', fn (string $slug) => redirect('/'.$slug.'?v=2', 301))
+        ->where('slug', '[a-z0-9][a-z0-9-]*');
+    Route::get('/product/{slug}/v3', fn (string $slug) => redirect('/'.$slug.'?v=3', 301))
+        ->where('slug', '[a-z0-9][a-z0-9-]*');
 
     Route::get('/cart', [$c, 'cart'])->name('cart');
     Route::get('/cart/empty', [$c, 'emptyCart'])->name('cart.empty');
@@ -86,6 +90,13 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
 
     Route::get('/404', [$c, 'notFound'])->name('404');
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');
+
+    // Root-level product URLs (Rozetka-style). Must be LAST in the group so
+    // every specific route above wins. Regex requires a numeric suffix like
+    // '-13' to avoid catching reserved single-word paths (auth, vin, sto, …).
+    Route::get('/{slug}', [$c, 'product'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*-\d+')
+        ->name('product.show');
 });
 
 // Product feeds (no locale prefix)
