@@ -51,22 +51,45 @@ class AutoPartsSeeder extends Seeder
             ['title' => 'Аксесуари', 'slug' => 'auto-accessories'],
         ];
 
+        // After the translatable migration both `slug` and `title` are
+        // JSON columns ({"uk":"..."}). Eloquent's firstOrCreate(['slug' =>
+        // 'auto-batteries']) doesn't match the JSON-wrapped value, so
+        // every re-seed creates a new duplicate. Match by JSON-unwrapped
+        // title via in-memory dedup instead.
+        $existingCats = Category::query()->select(['id', 'title', 'slug'])->get();
+        $catByTitle = [];
+        foreach ($existingCats as $row) {
+            $key = mb_strtolower(trim($this->unwrapJson((string) $row->title)));
+            $catByTitle[$key] = $row;
+        }
+
         $map = [];
         foreach ($defs as $i => $def) {
-            $cat = Category::firstOrCreate(
-                ['slug' => $def['slug']],
-                [
+            $key = mb_strtolower(trim($def['title']));
+            $cat = $catByTitle[$key] ?? null;
+            if (! $cat) {
+                $cat = Category::create([
+                    'slug' => $def['slug'],
                     'title' => $def['title'],
                     'is_active' => true,
                     'sort_order' => $i + 1,
                     'parent_id' => null,
-                ],
-            );
+                ]);
+                $catByTitle[$key] = $cat;
+            }
             $map[$def['slug']] = $cat->id;
             $this->command->line("  ✓ Category: {$def['title']}");
         }
 
         return $map;
+    }
+
+    private function unwrapJson(string $val): string
+    {
+        if ($val === '' || $val[0] !== '{') return $val;
+        $decoded = json_decode($val, true);
+        if (! is_array($decoded)) return $val;
+        return (string) ($decoded['uk'] ?? $decoded['en'] ?? reset($decoded) ?? '');
     }
 
     private function seedBrands(): array
@@ -83,16 +106,27 @@ class AutoPartsSeeder extends Seeder
             ['name' => 'Varta', 'slug' => 'varta'],
         ];
 
+        // Same JSON-aware lookup as categories.
+        $existingBrands = Brand::query()->select(['id', 'name', 'slug'])->get();
+        $brandByName = [];
+        foreach ($existingBrands as $row) {
+            $key = mb_strtolower(trim($this->unwrapJson((string) $row->name)));
+            $brandByName[$key] = $row;
+        }
+
         $map = [];
         foreach ($defs as $i => $def) {
-            $b = Brand::firstOrCreate(
-                ['slug' => $def['slug']],
-                [
+            $key = mb_strtolower(trim($def['name']));
+            $b = $brandByName[$key] ?? null;
+            if (! $b) {
+                $b = Brand::create([
+                    'slug' => $def['slug'],
                     'name' => $def['name'],
                     'is_active' => true,
                     'sort_order' => $i + 1,
-                ],
-            );
+                ]);
+                $brandByName[$key] = $b;
+            }
             $map[$def['slug']] = $b->id;
             $this->command->line("  ✓ Brand: {$def['name']}");
         }
@@ -135,12 +169,22 @@ class AutoPartsSeeder extends Seeder
             ['title' => 'Свічки запалювання Bosch FR7DPP30T (4 шт.)', 'cat' => 'spark-plugs', 'brand' => 'bosch', 'price' => 980, 'qty' => 55, 'is_new' => true],
         ];
 
+        // Build lookup of existing products by JSON-unwrapped title.
+        // Same translatable-JSON workaround as categories+brands above.
+        $existingProducts = Product::query()->select(['id', 'title'])->get();
+        $productByTitle = [];
+        foreach ($existingProducts as $row) {
+            $key = mb_strtolower(trim($this->unwrapJson((string) $row->title)));
+            $productByTitle[$key] = $row;
+        }
+
         foreach ($defs as $def) {
-            $slug = Str::slug($def['title']);
-            if (Product::query()->where('slug', $slug)->exists()) {
+            $titleKey = mb_strtolower(trim($def['title']));
+            if (isset($productByTitle[$titleKey])) {
                 continue;
             }
 
+            $slug = Str::slug($def['title']);
             $product = Product::create([
                 'title' => $def['title'],
                 'slug' => $slug,
@@ -155,9 +199,9 @@ class AutoPartsSeeder extends Seeder
                 'is_hit' => $def['is_hit'] ?? false,
                 'is_new' => $def['is_new'] ?? false,
                 'is_active' => true,
-                'excerpt' => 'Якісна автозапчастина від офіційного дилера. Гарантія від виробника.',
                 'content' => '<p>Оригінальна автозапчастина <strong>'.$def['title'].'</strong>. Висока якість, тривалий ресурс роботи, підходить для більшості сучасних авто. Доставка по всій Україні Новою Поштою або УкрПоштою.</p>',
             ]);
+            $productByTitle[$titleKey] = $product;
 
             // Mirror to multi-warehouse inventory
             Inventory::create([
