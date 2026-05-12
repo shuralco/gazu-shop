@@ -26,19 +26,27 @@ class StoreController extends Controller
             ? (json_decode($rawTitle, true)['uk'] ?? null)
             : $rawTitle;
         $p->name = $localizedTitle ?: ($p->name ?? '');
-        // Brand.name is HasTranslations (JSON column). Reading $brand->name
-        // through the accessor returns null when the stored value is a
-        // plain string (seeded data inserts 'Bosch' not '{"uk":"Bosch"}').
-        // Fall back through raw original → JSON decode → manufacturer.
+        // Products table has BOTH a legacy 'brand' string column AND a
+        // brand_id FK with belongsTo Brand. $p->brand reads the attribute
+        // (the string column, usually null on seeded data) BEFORE the
+        // relation. Use getRelation('brand') to bypass that and read the
+        // eager-loaded Brand model directly. Then fall through to
+        // legacy brand string → manufacturer → 'GAZU'.
         $brandName = null;
-        if ($brandModel = $p->brand) {
-            $brandName = $brandModel->name
-                ?: $brandModel->getRawOriginal('name');
-            if (is_string($brandName) && str_starts_with($brandName, '{')) {
-                $decoded = json_decode($brandName, true);
-                $brandName = $decoded['uk'] ?? $decoded['en'] ?? null;
+        if ($p->relationLoaded('brand') && ($brandModel = $p->getRelation('brand'))) {
+            $brandName = $brandModel->name;
+            if (! $brandName) {
+                $raw = $brandModel->getRawOriginal('name');
+                if (is_string($raw) && str_starts_with($raw, '{')) {
+                    $decoded = json_decode($raw, true);
+                    $brandName = $decoded['uk'] ?? $decoded['en'] ?? null;
+                } else {
+                    $brandName = $raw;
+                }
             }
         }
+        // Use the original 'brand' string column as fallback (legacy data).
+        $brandName = $brandName ?: $p->getRawOriginal('brand');
         $p->brand = (string) ($brandName ?: $p->manufacturer ?: 'GAZU');
         $p->image_kind = $this->imageKinds[($p->id ?? 0) % count($this->imageKinds)];
         $p->qty = method_exists($p, 'totalAvailableQuantity') ? (int) $p->totalAvailableQuantity() : (int) ($p->quantity ?? 0);
@@ -137,24 +145,6 @@ class StoreController extends Controller
     public function catalog(Request $request, string $variant = 'v1')
     {
         $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
-
-        // TEMP DEBUG: ?debug=brand returns JSON dump of first product brand state
-        if ($request->query('debug') === 'brand') {
-            $p = Product::with('brand')->where('is_active', true)->first();
-            return response()->json([
-                'product_id' => $p?->id,
-                'product_brand_id' => $p?->brand_id,
-                'product_manufacturer' => $p?->manufacturer,
-                'relation_loaded' => $p?->relationLoaded('brand'),
-                'brand_via_accessor' => $p?->brand?->name,
-                'brand_via_getRelation' => $p?->getRelation('brand')?->name ?? null,
-                'brand_raw' => $p?->brand?->getRawOriginal('name'),
-                'brand_id_field_after_decorate' => optional($p?->getRelation('brand'))->id,
-                'brand_count' => Brand::count(),
-                'sample_brand' => Brand::first()?->only(['id', 'name', 'slug']),
-                'sample_brand_raw_name' => Brand::first()?->getRawOriginal('name'),
-            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
-        }
 
         $query = new \App\Services\Gazu\CatalogQuery($request);
         $category = $query->category();
