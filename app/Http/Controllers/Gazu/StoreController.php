@@ -138,6 +138,24 @@ class StoreController extends Controller
     {
         $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
 
+        // TEMP DEBUG: ?debug=brand returns JSON dump of first product brand state
+        if ($request->query('debug') === 'brand') {
+            $p = Product::with('brand')->where('is_active', true)->first();
+            return response()->json([
+                'product_id' => $p?->id,
+                'product_brand_id' => $p?->brand_id,
+                'product_manufacturer' => $p?->manufacturer,
+                'relation_loaded' => $p?->relationLoaded('brand'),
+                'brand_via_accessor' => $p?->brand?->name,
+                'brand_via_getRelation' => $p?->getRelation('brand')?->name ?? null,
+                'brand_raw' => $p?->brand?->getRawOriginal('name'),
+                'brand_id_field_after_decorate' => optional($p?->getRelation('brand'))->id,
+                'brand_count' => Brand::count(),
+                'sample_brand' => Brand::first()?->only(['id', 'name', 'slug']),
+                'sample_brand_raw_name' => Brand::first()?->getRawOriginal('name'),
+            ], 200, [], JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        }
+
         $query = new \App\Services\Gazu\CatalogQuery($request);
         $category = $query->category();
         $paginator = $query->paginate($category);
