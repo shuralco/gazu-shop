@@ -39,4 +39,18 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
             return $request->is('api/*') || $request->expectsJson();
         });
+
+        // Render 404 through GAZU layout instead of Symfony's default
+        // "Not Found" HTML — keeps brand consistency on broken / mistyped
+        // URLs. Skips admin paths (Filament has its own error template)
+        // and API/JSON requests (handled above).
+        $exceptions->render(function (
+            \Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e,
+            \Illuminate\Http\Request $request
+        ) {
+            if ($request->is('admin/*') || $request->is('livewire/*') || $request->is('api/*')) {
+                return null;
+            }
+            return response()->view('gazu.404', ['activeNav' => null], 404);
+        });
     })->create();
