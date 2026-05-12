@@ -146,12 +146,15 @@ class CatalogQuery
 
     public function paginate(?Category $cat = null): LengthAwarePaginator
     {
+        // Load relations fully — column restriction breaks HasTranslations
+        // on Brand.name (the translatable accessor needs all attribute
+        // bookkeeping the trait sets up via casts/observers).
         $q = Product::query()
             ->where('is_active', true)
-            ->with(['category:id,title,slug', 'inventory:id,product_id,quantity,reserved_quantity']);
+            ->with(['category', 'inventory']);
 
         if (\Schema::hasColumn('products', 'brand_id')) {
-            $q->with('brand:id,name,slug');
+            $q->with('brand');
         }
 
         $q = $this->applyCategory($q, $cat);

@@ -61,12 +61,12 @@ class StoreController extends Controller
         $store = \Cache::store();
         $cache = method_exists($store->getStore(), 'tags') ? $store->tags(['catalog']) : $store;
 
-        $items = $cache->remember("home:featured:limit=$limit", 300, function () use ($limit) {
+        $items = $cache->remember("home:featured:v2:limit=$limit", 300, function () use ($limit) {
             $q = Product::query()
-                ->with(['category:id,title,slug', 'inventory:id,product_id,quantity,reserved_quantity'])
+                ->with(['category', 'inventory'])
                 ->where('is_active', true);
             if (\Schema::hasColumn('products', 'brand_id')) {
-                $q->with('brand:id,name,slug');
+                $q->with('brand');
             }
             return $q->orderByDesc('rating')->limit($limit)->get();
         });
@@ -281,14 +281,14 @@ class StoreController extends Controller
     {
         $store = \Cache::store();
         $cache = method_exists($store->getStore(), 'tags') ? $store->tags(['catalog']) : $store;
-        $key = 'cart:recommended:exclude='.md5(implode(',', $excludeIds)).":limit=$limit";
+        $key = 'cart:recommended:v2:exclude='.md5(implode(',', $excludeIds)).":limit=$limit";
 
         $items = $cache->remember($key, 300, function () use ($excludeIds, $limit) {
             $q = Product::query()
-                ->with(['category:id,title,slug', 'inventory:id,product_id,quantity,reserved_quantity'])
+                ->with(['category', 'inventory'])
                 ->where('is_active', true);
             if (\Schema::hasColumn('products', 'brand_id')) {
-                $q->with('brand:id,name,slug');
+                $q->with('brand');
             }
             if (! empty($excludeIds)) {
                 $q->whereNotIn('id', $excludeIds);
