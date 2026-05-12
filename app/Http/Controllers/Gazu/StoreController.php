@@ -181,12 +181,13 @@ class StoreController extends Controller
         // 1) Спробуємо чисельний id (якщо переданий sample-1 → 1)
         $product = null;
         if (is_numeric($slug)) {
-            $product = Product::query()->find((int) $slug);
+            $product = Product::query()->with(['brand', 'category', 'inventory'])->find((int) $slug);
         }
 
         // 2) JSON-slug — Spatie translatable зберігає як {"uk": "...", "en": "..."}
         if (! $product) {
             $product = Product::query()
+                ->with(['brand', 'category', 'inventory'])
                 ->where('slug->uk', $slug)
                 ->orWhere('slug->en', $slug)
                 ->first();
@@ -194,12 +195,15 @@ class StoreController extends Controller
 
         // 3) Якщо slug закінчується на "-{id}" (наша конвенція з seed) — витягнемо id
         if (! $product && preg_match('/-(\d+)$/', $slug, $m)) {
-            $product = Product::query()->find((int) $m[1]);
+            $product = Product::query()->with(['brand', 'category', 'inventory'])->find((int) $m[1]);
         }
 
         // 4) Plain-string slug (для legacy)
         if (! $product) {
-            $product = Product::query()->where('slug', $slug)->first();
+            $product = Product::query()
+                ->with(['brand', 'category', 'inventory'])
+                ->where('slug', $slug)
+                ->first();
         }
 
         if ($product) {
