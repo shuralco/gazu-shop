@@ -54,7 +54,11 @@ class StoreController extends Controller
             $p->qty = (int) ($p->quantity ?? 0);
         }
         $p->reviews = (int) ($p->reviews_count ?? 0);
-        $p->fits = $p->excerpt ?? null;
+        // Skip generic boilerplate excerpt from seeded data — show real
+        // fitment info only (or hide the section).
+        $excerpt = $p->excerpt ?? null;
+        $isBoilerplate = is_string($excerpt) && str_contains($excerpt, 'Якісна автозапчастина від офіційного дилера');
+        $p->fits = $isBoilerplate ? null : $excerpt;
         $p->condition = $p->is_new ? 'Новий' : 'Новий';
         $p->discount = ($p->old_price && $p->price && $p->old_price > $p->price)
             ? (int) round((($p->old_price - $p->price) / $p->old_price) * 100)

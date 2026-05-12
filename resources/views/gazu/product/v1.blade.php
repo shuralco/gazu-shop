@@ -202,10 +202,47 @@
                     <div role="tabpanel" x-show="tab === 'spec'" x-cloak class="mt-6">
                         <div class="gazu-display text-lg font-semibold mb-3">Характеристики</div>
                         <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden">
+                            @php
+                                // Clickable spec rows → catalog filter:
+                                //   "Виробник" → brand slug (lower-cased name with hyphens)
+                                //   "Категорія" → cat slug (if Product has a category relation)
+                                $brandSlug = null;
+                                if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
+                                    $brandSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
+                                }
+                                if (! $brandSlug && is_object($p) && $p->manufacturer) {
+                                    $brandSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
+                                }
+                                $catSlug = null;
+                                if (is_object($p) && $p->relationLoaded('category') && ($cat = $p->getRelation('category'))) {
+                                    $raw = $cat->getRawOriginal('slug');
+                                    if (is_string($raw) && str_starts_with($raw, '{')) {
+                                        $decoded = json_decode($raw, true);
+                                        $catSlug = $decoded['uk'] ?? $decoded['en'] ?? null;
+                                    } else {
+                                        $catSlug = $raw ?: ($cat->slug ?? null);
+                                    }
+                                }
+                            @endphp
                             @foreach($specs as [$k, $v, $mono])
+                                @php
+                                    $href = null;
+                                    if ($k === 'Виробник' && $brandSlug && $v !== '—') {
+                                        $href = route('gazu.catalog', ['brand' => [$brandSlug]]);
+                                    } elseif ($k === 'Категорія' && $catSlug) {
+                                        $href = route('gazu.catalog', ['cat' => $catSlug]);
+                                    }
+                                @endphp
                                 <div class="grid grid-cols-2 px-4 py-2.5 text-[13px] @if(!$loop->last) border-b border-[var(--gazu-line)] @endif">
                                     <span class="text-[var(--gazu-graphite)]">{{ $k }}</span>
-                                    <span class="text-[var(--gazu-ink)] {{ $mono ? 'gazu-mono font-medium' : '' }}">{{ $v }}</span>
+                                    @if($href)
+                                        <a wire:navigate href="{{ $href }}" class="text-[var(--gazu-blue)] {{ $mono ? 'gazu-mono font-medium' : '' }} no-underline hover:underline inline-flex items-center gap-1">
+                                            {{ $v }}
+                                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-70"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>
+                                        </a>
+                                    @else
+                                        <span class="text-[var(--gazu-ink)] {{ $mono ? 'gazu-mono font-medium' : '' }}">{{ $v }}</span>
+                                    @endif
                                 </div>
                             @endforeach
                         </div>
@@ -256,10 +293,18 @@
                     <div role="tabpanel" x-show="tab === 'reviews'" x-cloak class="mt-6">
                         <div class="flex items-center justify-between mb-3 gap-3 flex-wrap">
                             <div class="gazu-display text-lg font-semibold">Відгуки покупців</div>
-                            <button type="button"
-                                    class="text-[13px] font-medium text-[var(--gazu-ink)] border border-[var(--gazu-ink)] rounded-md px-3 py-1.5 hover:bg-[var(--gazu-mist)] transition-colors bg-transparent cursor-pointer">
-                                Залишити відгук
-                            </button>
+                            @auth
+                                <a href="#review-form"
+                                   @click.prevent="document.getElementById('review-form')?.scrollIntoView({ behavior: 'smooth', block: 'center' })"
+                                   class="text-[13px] font-medium text-[var(--gazu-ink)] border border-[var(--gazu-ink)] rounded-md px-3 py-1.5 hover:bg-[var(--gazu-mist)] transition-colors no-underline inline-block">
+                                    Залишити відгук
+                                </a>
+                            @else
+                                <a wire:navigate href="{{ route('gazu.auth') }}"
+                                   class="text-[13px] font-medium text-[var(--gazu-ink)] border border-[var(--gazu-ink)] rounded-md px-3 py-1.5 hover:bg-[var(--gazu-mist)] transition-colors no-underline inline-block">
+                                    Увійти, щоб залишити відгук
+                                </a>
+                            @endauth
                         </div>
                         @if(is_object($p) && method_exists($p, 'approvedReviews') && ($reviewList = $p->approvedReviews()->latest()->take(3)->get())->isNotEmpty())
                             <div class="flex flex-col gap-3">

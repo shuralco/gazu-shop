@@ -173,9 +173,13 @@
                                 <x-gazu.icon name="plus" size="14"/>
                             </button>
                         </div>
-                        <div class="text-right">
-                            <div class="gazu-display text-lg font-bold text-[var(--gazu-ink)] gazu-count-up" x-text="fmt(lineTotal) + ' ₴'">{{ number_format($price * $qty, 0, '.', ' ') }} ₴</div>
-                            <div class="text-[11px] text-[var(--gazu-graphite)]"><span x-text="fmt(price)">{{ number_format($price, 0, '.', ' ') }}</span> ₴ × <span x-text="qty">{{ $qty }}</span></div>
+                        {{-- Desktop: breakdown right of lineTotal (no height jump on qty change).
+                             Mobile: stacked (line break is OK, narrow column). --}}
+                        <div class="text-right md:flex md:items-baseline md:justify-end md:gap-2.5">
+                            <div class="text-[11px] text-[var(--gazu-graphite)] md:order-1 whitespace-nowrap">
+                                <span x-text="fmt(price)">{{ number_format($price, 0, '.', ' ') }}</span> ₴ × <span x-text="qty">{{ $qty }}</span> шт.
+                            </div>
+                            <div class="gazu-display text-lg font-bold text-[var(--gazu-ink)] gazu-count-up md:order-2 whitespace-nowrap" x-text="fmt(lineTotal) + ' ₴'">{{ number_format($price * $qty, 0, '.', ' ') }} ₴</div>
                         </div>
                         <button type="button" @click="remove()" :disabled="busy"
                                 aria-label="Видалити з кошика"
