@@ -75,12 +75,21 @@ class MegaMenuBuilder
                       }]);
                 }])
                 ->orderBy('sort_order')
-                ->limit(12)
+                ->limit(40)
                 ->get();
 
             if ($roots->isEmpty()) return [];
 
-            return $roots->map(fn (Category $root) => $this->mapRoot($root))->all();
+            // Dedup by title — AutoPartsSeeder ran multiple times and the
+            // 'slug' column got JSON-wrapped by the translatable migration,
+            // so firstOrCreate(['slug' => 'auto-batteries']) never matched
+            // existing rows and created N duplicates per category.
+            $unique = $roots
+                ->unique(fn (Category $r) => mb_strtolower(trim((string) ($r->title ?? $r->name ?? ''))))
+                ->take(12)
+                ->values();
+
+            return $unique->map(fn (Category $root) => $this->mapRoot($root))->all();
         } catch (\Throwable $e) {
             report($e);
             return [];
