@@ -36,44 +36,32 @@ class SitemapController extends Controller
 
     public function main(): Response
     {
-        $cacheKey = 'sitemap_main_v2';
-        $cacheDuration = config('seo.sitemap.cache_duration', 1440);
-
-        $sitemap = Cache::remember($cacheKey, $cacheDuration, function () {
-            return $this->generateMainSitemap();
-        });
-
-        return response($sitemap, 200, [
-            'Content-Type' => 'application/xml',
-        ]);
+        return $this->cachedXml('sitemap_main_v3', fn () => $this->generateMainSitemap());
     }
 
     public function categories(): Response
     {
-        $cacheKey = 'sitemap_categories_v2';
-        $cacheDuration = config('seo.sitemap.cache_duration', 1440);
-
-        $sitemap = Cache::remember($cacheKey, $cacheDuration, function () {
-            return $this->generateCategoriesSitemap();
-        });
-
-        return response($sitemap, 200, [
-            'Content-Type' => 'application/xml',
-        ]);
+        return $this->cachedXml('sitemap_categories_v3', fn () => $this->generateCategoriesSitemap());
     }
 
     public function products(): Response
     {
-        $cacheKey = 'sitemap_products_v2';
-        $cacheDuration = config('seo.sitemap.cache_duration', 1440);
+        return $this->cachedXml('sitemap_products_v3', fn () => $this->generateProductsSitemap());
+    }
 
-        $sitemap = Cache::remember($cacheKey, $cacheDuration, function () {
-            return $this->generateProductsSitemap();
-        });
+    private function cachedXml(string $key, \Closure $generator): Response
+    {
+        try {
+            $sitemap = Cache::remember($key, config('seo.sitemap.cache_duration', 1440), $generator);
+        } catch (\Throwable $e) {
+            \Log::error('[sitemap '.$key.'] '.$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            $sitemap = '<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></urlset>';
+        }
 
-        return response($sitemap, 200, [
-            'Content-Type' => 'application/xml',
-        ]);
+        return response($sitemap)->header('Content-Type', 'application/xml; charset=utf-8');
     }
 
     private function generateSitemapIndex(): string
@@ -107,94 +95,76 @@ class SitemapController extends Controller
 
     private function generateMainSitemap(): string
     {
-        $urls = [];
-
-        $urls[] = [
-            'loc' => URL::to('/'),
-            'lastmod' => now()->toISOString(),
-            'changefreq' => config('seo.sitemap.changefreq.home', 'daily'),
-            'priority' => config('seo.sitemap.priorities.home', 1.0),
+        $now = now()->toISOString();
+        $urls = [
+            ['loc' => URL::to('/'),          'lastmod' => $now, 'changefreq' => 'daily',   'priority' => 1.0],
+            ['loc' => URL::to('/catalog'),   'lastmod' => $now, 'changefreq' => 'daily',   'priority' => 0.9],
+            ['loc' => URL::to('/vin'),       'lastmod' => $now, 'changefreq' => 'weekly',  'priority' => 0.8],
+            ['loc' => URL::to('/brand'),     'lastmod' => $now, 'changefreq' => 'weekly',  'priority' => 0.7],
+            ['loc' => URL::to('/blog'),      'lastmod' => $now, 'changefreq' => 'weekly',  'priority' => 0.6],
+            ['loc' => URL::to('/sto'),       'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => 0.5],
+            ['loc' => URL::to('/contacts'),  'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => 0.5],
         ];
-
-        $staticPages = [
-            '/about' => ['changefreq' => 'monthly', 'priority' => 0.7],
-            '/contacts' => ['changefreq' => 'monthly', 'priority' => 0.8],
-            '/delivery' => ['changefreq' => 'monthly', 'priority' => 0.6],
-            '/privacy' => ['changefreq' => 'yearly', 'priority' => 0.3],
-            '/terms' => ['changefreq' => 'yearly', 'priority' => 0.3],
-        ];
-
-        foreach ($staticPages as $url => $options) {
-            $urls[] = [
-                'loc' => URL::to($url),
-                'lastmod' => now()->toISOString(),
-                'changefreq' => $options['changefreq'],
-                'priority' => $options['priority'],
-            ];
-        }
-
-        return view('sitemap.urlset', compact('urls'))->render();
+        return $this->buildUrlset($urls);
     }
 
     private function generateCategoriesSitemap(): string
     {
         $urls = [];
-
-        $categories = Category::query()
-            ->whereHas('seoMeta', function ($query) {
-                $query->where('is_active', true)
-                    ->where('robots_index', true)
-                    ->where('priority', '>', 0);
-            })
-            ->orWhereDoesntHave('seoMeta')
-            ->where('is_active', true)
-            ->get();
-
-        foreach ($categories as $category) {
-            if (! $category->shouldIncludeInSitemap()) {
-                continue;
+        Category::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(500, function ($rows) use (&$urls) {
+            foreach ($rows as $cat) {
+                $slug = $cat->getRawOriginal('slug');
+                if (is_string($slug) && str_starts_with($slug, '{')) {
+                    $decoded = json_decode($slug, true);
+                    $slug = $decoded['uk'] ?? $decoded['en'] ?? null;
+                }
+                if (! $slug) continue;
+                $urls[] = [
+                    'loc' => URL::to('/catalog?cat='.urlencode((string) $slug)),
+                    'lastmod' => optional($cat->updated_at)->toISOString() ?? now()->toISOString(),
+                    'changefreq' => 'weekly',
+                    'priority' => 0.7,
+                ];
             }
-
-            $urls[] = [
-                'loc' => $category->getCanonicalUrl(),
-                'lastmod' => $category->updated_at->toISOString(),
-                'changefreq' => $category->getSitemapChangefreq(),
-                'priority' => $category->getSitemapPriority(),
-            ];
-        }
-
-        return view('sitemap.urlset', compact('urls'))->render();
+        });
+        return $this->buildUrlset($urls);
     }
 
     private function generateProductsSitemap(): string
     {
         $urls = [];
+        Product::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(1000, function ($rows) use (&$urls) {
+            foreach ($rows as $product) {
+                $slug = $product->getRawOriginal('slug') ?: ($product->slug ?: (string) $product->id);
+                $urls[] = [
+                    'loc' => URL::to('/product/'.$slug),
+                    'lastmod' => optional($product->updated_at)->toISOString() ?? now()->toISOString(),
+                    'changefreq' => 'weekly',
+                    'priority' => 0.8,
+                ];
+            }
+        });
+        return $this->buildUrlset($urls);
+    }
 
-        Product::query()
-            ->with(['seoMeta'])
-            ->where('is_active', true)
-            ->whereHas('seoMeta', function ($query) {
-                $query->where('is_active', true)
-                    ->where('robots_index', true)
-                    ->where('priority', '>', 0);
-            })
-            ->orWhereDoesntHave('seoMeta')
-            ->chunk(1000, function ($products) use (&$urls) {
-                foreach ($products as $product) {
-                    if (! $product->shouldIncludeInSitemap()) {
-                        continue;
-                    }
-
-                    $urls[] = [
-                        'loc' => $product->getCanonicalUrl(),
-                        'lastmod' => $product->updated_at->toISOString(),
-                        'changefreq' => $product->getSitemapChangefreq(),
-                        'priority' => $product->getSitemapPriority(),
-                    ];
-                }
-            });
-
-        return view('sitemap.urlset', compact('urls'))->render();
+    /**
+     * Render <urlset> from a plain array — no view, no model methods,
+     * no risk of HasTranslations/SeoMeta accessor throwing.
+     */
+    private function buildUrlset(array $urls): string
+    {
+        $xml = '<?xml version="1.0" encoding="UTF-8"?>'.
+               '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';
+        foreach ($urls as $u) {
+            $xml .= '<url>'.
+                '<loc>'.htmlspecialchars((string) $u['loc'], ENT_XML1).'</loc>'.
+                '<lastmod>'.htmlspecialchars((string) ($u['lastmod'] ?? now()->toISOString()), ENT_XML1).'</lastmod>'.
+                '<changefreq>'.($u['changefreq'] ?? 'weekly').'</changefreq>'.
+                '<priority>'.number_format((float) ($u['priority'] ?? 0.5), 1).'</priority>'.
+                '</url>';
+        }
+        $xml .= '</urlset>';
+        return $xml;
     }
 
     public function clearCache(): Response
