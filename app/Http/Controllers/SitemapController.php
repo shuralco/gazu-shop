@@ -12,23 +12,26 @@ class SitemapController extends Controller
 {
     public function index(): Response
     {
-        try {
-            $cacheKey = 'sitemap_index_v2';
-            $cacheDuration = config('seo.sitemap.cache_duration', 1440); // minutes
+        $cacheKey = 'sitemap_index_v3';
+        $cacheDuration = config('seo.sitemap.cache_duration', 1440);
 
+        try {
             $sitemap = Cache::remember($cacheKey, $cacheDuration, function () {
                 return $this->generateSitemapIndex();
             });
-
-            return response($sitemap)
-                ->header('Content-Type', 'application/xml; charset=utf-8');
-        } catch (\Exception $e) {
-            // Fallback sitemap у випадку помилки
-            $sitemap = '<?xml version="1.0" encoding="UTF-8"?><sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"></sitemapindex>';
-
-            return response($sitemap)
-                ->header('Content-Type', 'application/xml; charset=utf-8');
+        } catch (\Throwable $e) {
+            \Log::error('[sitemap.index] '.$e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            // Plain inline fallback — no view, no model, no DB.
+            $sitemap = '<?xml version="1.0" encoding="UTF-8"?>'.
+                '<sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'.
+                '<sitemap><loc>'.URL::to('/sitemap-main.xml').'</loc><lastmod>'.now()->toISOString().'</lastmod></sitemap>'.
+                '</sitemapindex>';
         }
+
+        return response($sitemap)->header('Content-Type', 'application/xml; charset=utf-8');
     }
 
     public function main(): Response
