@@ -29,7 +29,6 @@
         'Сертифікати'           => route('gazu.about'),
         'Публічна оферта'       => route('gazu.terms'),
     ];
-@endphp
     $payments = $s['gazu_footer_payments'] ?? 'Visa, Mastercard, Apple Pay, Google Pay, Нова Пошта';
     $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
