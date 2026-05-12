@@ -87,9 +87,24 @@
 
         <div class="gazu-grid-buy">
             <div>
+                @php
+                    // Brand badge link → catalog filter (same logic as spec rows below).
+                    $brandHeaderSlug = null;
+                    if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
+                        $brandHeaderSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
+                    }
+                    if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
+                        $brandHeaderSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
+                    }
+                @endphp
                 <div class="flex items-center gap-2.5 mb-2 flex-wrap">
                     <x-gazu.condition-badge value="Новий"/>
-                    <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
+                    @if($brandHeaderSlug)
+                        <a wire:navigate href="{{ route('gazu.catalog', ['brand' => [$brandHeaderSlug]]) }}"
+                           class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
+                    @else
+                        <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
+                    @endif
                     <span class="text-[11px] text-[var(--gazu-line-2)]">·</span>
                     <div class="flex items-center gap-1 whitespace-nowrap">
                         <div class="flex gap-px text-[var(--gazu-warn)]">
