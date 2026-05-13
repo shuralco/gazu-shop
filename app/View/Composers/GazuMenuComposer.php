@@ -51,6 +51,26 @@ class GazuMenuComposer
 
         // GAZU visual settings (з DisplaySetting або defaults).
         $view->with('gazuSettings', $this->loadVisualSettings());
+
+        // Demo: показуємо популярні китайські авто у правій колонці мегаменю,
+        // щоб одразу видно профіль магазину. У майбутньому — з settings.
+        if (! array_key_exists('cars', $view->getData())) {
+            $view->with('cars', $this->popularChineseCars());
+        }
+    }
+
+    /** @return array<int, array{0:string,1:string,2:string}> [brand, model, years] */
+    private function popularChineseCars(): array
+    {
+        return [
+            ['Chery', 'Tiggo 4 Pro', '2020–2024'],
+            ['Geely', 'Atlas Pro', '2021–2024'],
+            ['BYD', 'Atto 3', '2022–2024'],
+            ['Haval', 'Jolion', '2021–2024'],
+            ['Great Wall', 'Wingle 5', '2010–2018'],
+            ['MG', 'ZS', '2017–2024'],
+            ['Changan', 'CS75', '2014–2024'],
+        ];
     }
 
     private function loadShopStats(): array

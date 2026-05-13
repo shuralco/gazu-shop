@@ -178,9 +178,13 @@ class MegaMenuBuilder
             }
         }
 
+        $slug = (string) ($root->slug ?? '');
         return [
-            'id'    => $this->iconKey($slugKey, $titleStr),
-            'slug'  => (string) ($root->slug ?? ''),
+            // `id` must be unique per root — use slug, not iconKey (which can
+            // collide when two roots fall through to the same fallback icon).
+            'id'    => $slug ?: 'cat-'.$root->id,
+            'icon'  => $this->iconKey($slugKey, $titleStr),
+            'slug'  => $slug,
             'label' => $titleStr,
             'count' => $count,
             'groups'=> $groups,

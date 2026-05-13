@@ -45,7 +45,7 @@
                    :class="activeMega === '{{ $c['id'] }}' ? 'bg-white text-[var(--gazu-ink)] font-semibold' : 'text-[var(--gazu-graphite)]'"
                    :style="activeMega === '{{ $c['id'] }}' ? 'border-left:3px solid var(--gazu-blue)' : 'border-left:3px solid transparent'"
                    class="flex items-center gap-3 py-2.5 pr-3.5 pl-5 text-sm no-underline cursor-pointer relative">
-                    <x-gazu.cat-icon kind="{{ $c['id'] }}" size="20"/>
+                    <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="20"/>
                     <span class="flex-1 leading-tight">{{ $c['label'] }}</span>
                     <span class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-wider">{{ number_format($c['count'], 0, '.', ' ') }}</span>
                     <x-gazu.icon name="chevron" size="12" class="-rotate-90"/>
@@ -58,7 +58,7 @@
             @foreach($megaTree as $c)
                 <div x-show="activeMega === '{{ $c['id'] }}'" x-cloak class="px-7 pt-5 pb-6 h-full">
                     <div class="flex items-center gap-3 mb-4 pb-3.5 border-b border-[var(--gazu-line)]">
-                        <x-gazu.cat-icon kind="{{ $c['id'] }}" size="28"/>
+                        <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="28"/>
                         <h3 class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] m-0">{{ $c['label'] }}</h3>
                         <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format($c['count'], 0, '.', ' ') }} товарів</span>
                         <a wire:navigate href="{{ ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
@@ -109,7 +109,9 @@
 
             @if(! empty($cars))
                 <div>
-                    <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-2">Популярні авто</div>
+                    <div class="flex items-center gap-1.5 mb-2">
+                        <span class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold">🇨🇳 Китайські авто</span>
+                    </div>
                     <div class="flex flex-col gap-0.5">
                         @foreach($cars as [$brand, $model, $years])
                             <a wire:navigate href="{{ route('gazu.catalog', ['q' => $brand.' '.$model]) }}"
