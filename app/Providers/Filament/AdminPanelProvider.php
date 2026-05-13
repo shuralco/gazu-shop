@@ -25,8 +25,8 @@ class AdminPanelProvider extends PanelProvider
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
-            ->brandName('LiteShop | Адміністрування')
+            ->login(\App\Filament\Pages\Auth\Login::class)
+            ->brandName('GAZU · Адміністрування')
             ->favicon(asset('admin-favicon.ico'))
             ->colors([
                 'primary' => Color::Blue,
