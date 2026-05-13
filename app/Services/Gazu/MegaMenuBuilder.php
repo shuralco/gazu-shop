@@ -96,35 +96,70 @@ class MegaMenuBuilder
         }
     }
 
+    /** Cached counts: category_id => direct product count. */
+    private ?array $directCounts = null;
+    /** Cached counts including descendants: category_id => total product count. */
+    private ?array $treeCounts = null;
+
+    private function loadCounts(): void
+    {
+        if ($this->directCounts !== null) return;
+        try {
+            $this->directCounts = \App\Models\Product::query()
+                ->when(\Schema::hasColumn('products', 'is_active'), fn ($q) => $q->where('is_active', true))
+                ->selectRaw('category_id, COUNT(*) as c')
+                ->whereNotNull('category_id')
+                ->groupBy('category_id')
+                ->pluck('c', 'category_id')
+                ->map(fn ($v) => (int) $v)
+                ->all();
+
+            $parents = Category::query()->pluck('parent_id', 'id')->all();
+
+            $this->treeCounts = $this->directCounts;
+            foreach ($this->directCounts as $catId => $count) {
+                $parent = $parents[$catId] ?? null;
+                while ($parent) {
+                    $this->treeCounts[$parent] = ($this->treeCounts[$parent] ?? 0) + $count;
+                    $parent = $parents[$parent] ?? null;
+                }
+            }
+        } catch (\Throwable) {
+            $this->directCounts = [];
+            $this->treeCounts = [];
+        }
+    }
+
+    private function totalCount(Category $c): int
+    {
+        $this->loadCounts();
+        return (int) ($this->treeCounts[$c->id] ?? 0);
+    }
+
     private function mapRoot(Category $root): array
     {
         $titleStr = (string) ($root->title ?? $root->name ?? 'Категорія');
         $slugKey = $this->slugify($root->slug ?: $titleStr);
-        $count = method_exists($root, 'products')
-            ? ($root->products()->count() ?: $root->children->sum(fn ($c) => $c->products()->count()))
-            : 0;
+        $count = $this->totalCount($root);
 
         $hasL3 = $root->children->contains(fn (Category $g) => $g->children->isNotEmpty());
 
         if ($root->children->isEmpty()) {
-            // 1-рівнева ієрархія: тільки root, нічого не показуємо у L2/L3.
             $groups = [['title' => $titleStr, 'items' => [[$titleStr, $count]]]];
         } elseif ($hasL3) {
-            // 3-рівнева: L1 → L2 (групи) → L3 (листя).
             $groups = $root->children->map(fn (Category $g) => [
                 'title' => (string) ($g->title ?? $g->name ?? '—'),
                 'items' => $g->children->isNotEmpty()
                     ? $g->children->map(fn (Category $leaf) => [
                         (string) ($leaf->title ?? $leaf->name ?? '—'),
-                        $this->safeProductCount($leaf),
+                        $this->totalCount($leaf),
                     ])->take(8)->values()->all()
-                    : [[(string) ($g->title ?? '—'), $this->safeProductCount($g)]],
+                    : [[(string) ($g->title ?? '—'), $this->totalCount($g)]],
             ])->take(4)->values()->all();
         } else {
-            // 2-рівнева: L1 → L2. Розкидаємо L2 по 2-3 колонках для приємного вигляду.
             $items = $root->children->map(fn (Category $g) => [
                 (string) ($g->title ?? $g->name ?? '—'),
-                $this->safeProductCount($g),
+                $this->totalCount($g),
             ])->values()->all();
 
             $cols = max(2, min(4, (int) ceil(count($items) / 6)));
@@ -152,11 +187,7 @@ class MegaMenuBuilder
 
     private function safeProductCount(Category $c): int
     {
-        try {
-            return method_exists($c, 'products') ? (int) $c->products()->count() : 0;
-        } catch (\Throwable) {
-            return 0;
-        }
+        return $this->totalCount($c);
     }
 
     private function iconKey(string $slug, string $title): string

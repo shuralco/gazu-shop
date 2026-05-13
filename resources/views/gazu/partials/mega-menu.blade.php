@@ -115,11 +115,21 @@
                 </div>
             @endif
 
-            <div class="bg-[var(--gazu-ink)] text-white rounded-lg p-4 flex flex-col gap-2 mt-auto">
-                <div class="gazu-mono text-[9px] text-[var(--gazu-blue)] tracking-widest uppercase">Акція тижня</div>
-                <div class="gazu-display text-lg font-bold">−20% оливи Castrol</div>
-                <a wire:navigate href="{{ route('gazu.catalog', ['promo' => 1]) }}" class="self-start px-2.5 py-1.5 bg-[var(--gazu-blue)] text-white rounded text-xs font-medium no-underline mt-0.5">До акції →</a>
-            </div>
+            @php
+                $promoKicker = \App\Models\DisplaySetting::get('gazu_megamenu_promo_kicker', '');
+                $promoTitle = \App\Models\DisplaySetting::get('gazu_megamenu_promo_title', '');
+            @endphp
+            @if($promoKicker || $promoTitle)
+                <div class="bg-[var(--gazu-ink)] text-white rounded-lg p-4 flex flex-col gap-2 mt-auto">
+                    @if($promoKicker)
+                        <div class="gazu-mono text-[9px] text-[var(--gazu-blue)] tracking-widest uppercase">{{ $promoKicker }}</div>
+                    @endif
+                    @if($promoTitle)
+                        <div class="gazu-display text-lg font-bold">{{ $promoTitle }}</div>
+                    @endif
+                    <a wire:navigate href="{{ route('gazu.catalog', ['promo' => 1]) }}" class="self-start px-2.5 py-1.5 bg-[var(--gazu-blue)] text-white rounded text-xs font-medium no-underline mt-0.5">До акції →</a>
+                </div>
+            @endif
         </div>
     </div>
 </div>
