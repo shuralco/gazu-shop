@@ -34,21 +34,16 @@
         ];
     }
 
-    // Compatibility: array of [make, model, years, engine] objects from БД
+    // Compatibility: array of [make, model, years, engine] objects from БД.
+    // No fallback demo data — empty array means tab shows "not available" hint.
     $rawCompat = is_object($p) ? ($p->compatibility ?? null) : ($p['compatibility'] ?? null);
+    $compat = [];
     if (is_array($rawCompat) && ! empty($rawCompat)) {
-        $compat = [];
         foreach ($rawCompat as $row) {
             if (is_array($row)) {
                 $compat[] = [$row['make'] ?? '—', $row['model'] ?? '—', $row['years'] ?? '—', $row['engine'] ?? '—'];
             }
         }
-    } else {
-        $compat = [
-            ['Volkswagen', 'Passat (B7, B8)', '2010–2024', '1.6 TDI · 2.0 TDI'],
-            ['Volkswagen', 'Golf (VI, VII)', '2008–2020', '1.6 TDI · 2.0 TDI'],
-            ['Audi', 'A4 (B8, B9)', '2007–2024', '2.0 TDI'],
-        ];
     }
 @endphp
 
@@ -112,14 +107,31 @@
                                 <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
                             @endfor
                         </div>
-                        <span class="text-xs text-[var(--gazu-graphite)]">{{ number_format($rating, 1) }} · {{ $reviews }} відгуки · 312 продано</span>
+                        @php
+                            $reviewsLabel = $reviews > 0 ? "{$reviews} ".\plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') : 'без відгуків';
+                            $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
+                        @endphp
+                        <span class="text-xs text-[var(--gazu-graphite)]">
+                            {{ number_format($rating, 1) }} · {{ $reviewsLabel }}
+                            @if($soldCount > 0) · {{ $soldCount }} продано @endif
+                        </span>
                     </div>
                 </div>
                 <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-2 leading-tight">{{ $name }}</h1>
-                <div class="flex gap-4.5 text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-7 flex-wrap">
-                    <span class="whitespace-nowrap">Артикул: <span class="text-[var(--gazu-ink)]">{{ $oem ?: 'F 026 407 023' }}</span></span>
-                    <span class="whitespace-nowrap">OEM: <span class="text-[var(--gazu-ink)]">06A 115 561 B</span></span>
-                </div>
+                @php
+                    $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
+                    $barcode = is_object($p) ? ($p->barcode ?? null) : null;
+                @endphp
+                @if($oemReal || $barcode)
+                    <div class="flex gap-4.5 text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-7 flex-wrap">
+                        @if($oemReal)
+                            <span class="whitespace-nowrap">Артикул: <span class="text-[var(--gazu-ink)]">{{ $oemReal }}</span></span>
+                        @endif
+                        @if($barcode && $barcode !== $oemReal)
+                            <span class="whitespace-nowrap">OEM: <span class="text-[var(--gazu-ink)]">{{ $barcode }}</span></span>
+                        @endif
+                    </div>
+                @endif
 
                 <div class="gazu-grid-product-tabs">
                     {{-- Gallery --}}
@@ -266,28 +278,38 @@
                     {{-- compat --}}
                     <div role="tabpanel" x-show="tab === 'compat'" x-cloak class="mt-6">
                         <div class="gazu-display text-lg font-semibold mb-3">Сумісність з автомобілями</div>
-                        <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
-                            <table class="w-full text-left font-text text-[13px]">
-                                <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
-                                    <tr>
-                                        <th class="px-3.5 py-3 font-medium">Марка</th>
-                                        <th class="px-3.5 py-3 font-medium">Модель</th>
-                                        <th class="px-3.5 py-3 font-medium">Роки</th>
-                                        <th class="px-3.5 py-3 font-medium">Двигун</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach($compat as $r)
-                                        <tr class="border-t border-[var(--gazu-line)]">
-                                            <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">{{ $r[0] }}</td>
-                                            <td class="px-3.5 py-3 text-[var(--gazu-ink)]">{{ $r[1] }}</td>
-                                            <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[2] }}</td>
-                                            <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[3] }}</td>
+                        @if(! empty($compat))
+                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
+                                <table class="w-full text-left font-text text-[13px]">
+                                    <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
+                                        <tr>
+                                            <th class="px-3.5 py-3 font-medium">Марка</th>
+                                            <th class="px-3.5 py-3 font-medium">Модель</th>
+                                            <th class="px-3.5 py-3 font-medium">Роки</th>
+                                            <th class="px-3.5 py-3 font-medium">Двигун</th>
                                         </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($compat as $r)
+                                            <tr class="border-t border-[var(--gazu-line)]">
+                                                <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">{{ $r[0] }}</td>
+                                                <td class="px-3.5 py-3 text-[var(--gazu-ink)]">{{ $r[1] }}</td>
+                                                <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[2] }}</td>
+                                                <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[3] }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6 text-center">
+                                <p class="text-[13px] text-[var(--gazu-graphite)] mb-3">Список сумісних авто для цієї деталі поки не заповнено.</p>
+                                <a wire:navigate href="{{ route('gazu.vin') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline hover:underline inline-flex items-center gap-1">
+                                    Перевірити сумісність за VIN
+                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                                </a>
+                            </div>
+                        @endif
                     </div>
 
                     {{-- analogs --}}
