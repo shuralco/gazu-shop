@@ -46,15 +46,25 @@
                 </div>
             </div>
 
-            {{-- Visual --}}
+            {{-- Visual: top product from $featured (or admin override). --}}
             @php
-                $vKind = $gazuSettings['gazu_hero_visual_image_kind'] ?? 'bearing';
-                $vOem = $gazuSettings['gazu_hero_visual_oem_code'] ?? 'OEM 8V0·498·625·A';
-                $vTitle = $gazuSettings['gazu_hero_visual_title'] ?? 'Підшипник маточини передньої FAG';
-                $vSubtitle = $gazuSettings['gazu_hero_visual_subtitle'] ?? '713 6107 70';
-                $vPrice = $gazuSettings['gazu_hero_visual_price'] ?? '1 620 ₴';
+                $topProd = isset($featured) ? collect($featured)->first() : null;
+                $vKind = $gazuSettings['gazu_hero_visual_image_kind']
+                    ?? (is_object($topProd) ? ($topProd->image_kind ?? 'bearing') : 'bearing');
+                $vOem = $gazuSettings['gazu_hero_visual_oem_code']
+                    ?? (is_object($topProd) && $topProd->oem ? 'OEM ' . $topProd->oem : null);
+                $vTitle = $gazuSettings['gazu_hero_visual_title']
+                    ?? (is_object($topProd) ? ($topProd->name ?? null) : null);
+                $vSubtitle = $gazuSettings['gazu_hero_visual_subtitle']
+                    ?? (is_object($topProd) ? ($topProd->oem ?? '') : '');
+                $vPrice = $gazuSettings['gazu_hero_visual_price']
+                    ?? (is_object($topProd) && $topProd->price ? number_format($topProd->price, 0, '.', ' ') . ' ₴' : null);
+                $vUrl = is_object($topProd) ? ($topProd->url ?? null) : null;
             @endphp
-            <div class="bg-white rounded-xl border border-[var(--gazu-line)] relative overflow-hidden" style="aspect-ratio: 4/3;">
+            @php $heroTag = $vUrl ? 'a' : 'div'; @endphp
+            <{{ $heroTag }} @if($vUrl) wire:navigate href="{{ $vUrl }}" @endif
+               class="bg-white rounded-xl border border-[var(--gazu-line)] relative overflow-hidden no-underline {{ $vUrl ? 'cursor-pointer transition-all hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)]' : '' }} block"
+               style="aspect-ratio: 4/3;">
                 <div class="absolute inset-0 gazu-grid-pattern"></div>
                 <div class="absolute inset-0 flex items-center justify-center">
                     <x-gazu.part-image kind="{{ $vKind }}" size="280"/>
@@ -64,16 +74,16 @@
                 @endif
                 @if($vTitle || $vSubtitle || $vPrice)
                     <div class="absolute bottom-4 left-4 right-4 p-3 bg-white/95 rounded-lg border border-[var(--gazu-line)] text-xs">
-                        @if($vTitle)<div class="text-[var(--gazu-graphite)]">{{ $vTitle }}</div>@endif
+                        @if($vTitle)<div class="text-[var(--gazu-graphite)] line-clamp-1">{{ $vTitle }}</div>@endif
                         @if($vSubtitle || $vPrice)
-                            <div class="flex justify-between mt-1">
+                            <div class="flex justify-between items-baseline mt-1">
                                 <span class="gazu-mono text-[var(--gazu-muted)]">{{ $vSubtitle }}</span>
                                 <span class="gazu-display font-bold text-[var(--gazu-ink)]">{{ $vPrice }}</span>
                             </div>
                         @endif
                     </div>
                 @endif
-            </div>
+            </{{ $heroTag }}>
         </div>
     </section>
 
