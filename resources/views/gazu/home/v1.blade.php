@@ -79,7 +79,12 @@
 
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
-    <x-gazu.featured-row title="Акції тижня" badge="−20%" :items="$featured"/>
-    <x-gazu.featured-row title="Хіти продажів" :items="$popular"/>
+    @php
+        $promoItems = (isset($featured) ? collect($featured) : collect())->filter(fn ($p) => is_object($p) && ! empty($p->old_price) && $p->old_price > ($p->price ?? 0))->values();
+    @endphp
+    @if($promoItems->isNotEmpty())
+        <x-gazu.featured-row title="Акції тижня" :items="$promoItems" :viewAll="route('gazu.catalog', ['promo' => 1])"/>
+    @endif
+    <x-gazu.featured-row title="Хіти продажів" :items="$popular" :viewAll="route('gazu.catalog', ['hits' => 1])"/>
     <x-gazu.brand-strip/>
 @endsection
