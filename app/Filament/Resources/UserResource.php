@@ -26,6 +26,23 @@ class UserResource extends Resource
 
     protected static ?int $navigationSort = 3;
 
+    public static function getNavigationBadge(): ?string
+    {
+        $new7d = static::getModel()::where('created_at', '>=', now()->subDays(7))->count();
+        return $new7d > 0 ? '+'.$new7d : (string) static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $new7d = static::getModel()::where('created_at', '>=', now()->subDays(7))->count();
+        return $new7d > 0 ? 'success' : 'gray';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        return 'Нові за 7 днів / усього '.static::getModel()::count();
+    }
+
     public static function form(Form $form): Form
     {
         return $form

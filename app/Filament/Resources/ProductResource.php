@@ -30,6 +30,30 @@ class ProductResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    public static function getNavigationBadge(): ?string
+    {
+        return (string) static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): ?string
+    {
+        $low = static::getModel()::where('is_active', true)
+            ->whereBetween('quantity', [1, 5])
+            ->count();
+        return $low > 0 ? 'warning' : 'primary';
+    }
+
+    public static function getNavigationBadgeTooltip(): ?string
+    {
+        $low = static::getModel()::where('is_active', true)
+            ->whereBetween('quantity', [1, 5])
+            ->count();
+        $out = static::getModel()::where('is_active', true)
+            ->where('quantity', '=', 0)
+            ->count();
+        return "Низький залишок: {$low} · Немає: {$out}";
+    }
+
     public static function form(Form $form): Form
     {
         return $form
