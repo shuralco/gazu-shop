@@ -28,25 +28,20 @@
         ];
     }
 
+    // No demo fallback — empty arrays mean compat/analogs sections hide.
+    $compat = [];
     $rawCompat = is_object($p) ? ($p->compatibility ?? null) : ($p['compatibility'] ?? null);
-    if (is_array($rawCompat) && ! empty($rawCompat)) {
-        $compat = [];
+    if (is_array($rawCompat)) {
         foreach ($rawCompat as $row) {
             if (is_array($row)) {
                 $compat[] = [$row['make'] ?? '—', $row['model'] ?? '—', $row['years'] ?? '—', $row['engine'] ?? '—'];
             }
         }
-    } else {
-        $compat = [
-            ['Volkswagen', 'Passat (B7, B8)', '2010–2024', '1.6 TDI · 2.0 TDI'],
-            ['Audi', 'A4 (B8, B9)', '2007–2024', '2.0 TDI'],
-            ['Skoda', 'Octavia (II, III, IV)', '2004–2024', '1.6 TDI · 2.0 TDI'],
-        ];
     }
 
+    $analogs = [];
     $rawAnalogs = is_object($p) ? ($p->analogs ?? null) : ($p['analogs'] ?? null);
-    if (is_array($rawAnalogs) && ! empty($rawAnalogs)) {
-        $analogs = [];
+    if (is_array($rawAnalogs)) {
         foreach ($rawAnalogs as $row) {
             if (is_array($row)) {
                 $analogs[] = [
@@ -58,12 +53,6 @@
                 ];
             }
         }
-    } else {
-        $analogs = [
-            ['Mahle', 'OC 90', 162, 8, 4.6],
-            ['Mann-Filter', 'W 712/52', 178, 24, 4.8],
-            ['Hengst', 'H14W30', 154, 0, 4.5],
-        ];
     }
 @endphp
 
@@ -111,9 +100,9 @@
                     <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
                 </div>
                 <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-1.5 leading-tight">{{ $name }}</h1>
-                <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-4.5">
-                    06A·115·561·B · F·026·407·023
-                </div>
+                @if($oem)
+                    <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-4.5">OEM {{ $oem }}</div>
+                @endif
 
                 <x-gazu.buy-panel :price="$price" :oldPrice="$oldPrice" :qty="$qty" :discount="$discount" :productId="is_object($p) ? ($p->id ?? null) : null"/>
 

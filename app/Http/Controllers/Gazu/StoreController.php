@@ -873,6 +873,7 @@ class StoreController extends Controller
             $data['paginator'] = $paginator;
             $data['category'] = $category;
             $data['totalCount'] = $paginator->total();
+            $data['availableBrands'] = $query->availableBrands($category);
         } elseif ($page === 'cart') {
             $cart = \App\Helpers\Cart\Cart::getCart();
             $data['cart'] = $cart;
