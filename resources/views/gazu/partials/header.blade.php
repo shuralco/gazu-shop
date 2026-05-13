@@ -140,8 +140,6 @@
     <div class="border-t border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
         <div class="gazu-container px-6 flex items-center gap-0.5 text-[13px] whitespace-nowrap overflow-x-auto">
             @foreach([
-                ['vin', 'Пошук за VIN', route('gazu.vin')],
-                ['compat', 'Підбір за авто', route('gazu.vin')],
                 ['promo', 'Акції', route('gazu.catalog', ['promo' => 1])],
                 ['hits', 'Хіти', route('gazu.catalog', ['hits' => 1])],
                 ['new', 'Новинки', route('gazu.catalog', ['new' => 1])],

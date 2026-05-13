@@ -14,7 +14,6 @@
                     $desc = $s['gazu_hero_v2_description'] ?? 'Оберіть марку, модель та рік випуску — побачите тільки сумісні деталі. Без помилок і повернень.';
                     $brands = $s['gazu_hero_v2_brands'] ?? ['VW', 'Audi', 'BMW', 'Skoda', 'Toyota', 'Renault', 'Ford', 'Hyundai'];
                     $brandsTotal = $s['gazu_hero_v2_brands_total'] ?? 240;
-                    $vinHint = $s['gazu_hero_v2_vin_hint'] ?? 'Або введіть VIN-код для миттєвого підбору';
                 @endphp
                 <div>
                     <div class="gazu-mono text-[11px] text-[var(--gazu-azure)] tracking-widest uppercase mb-3.5">{{ $kicker }}</div>
@@ -55,7 +54,6 @@
 
                     <div class="flex gap-3 mt-4 px-3.5 py-3 bg-[var(--gazu-mist)] rounded-lg text-xs text-[var(--gazu-graphite)]">
                         <x-gazu.icon name="shield" size="16" stroke="var(--gazu-blue)"/>
-                        <span>{{ $vinHint }}</span>
                     </div>
                 </div>
             </div>

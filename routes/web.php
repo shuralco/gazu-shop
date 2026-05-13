@@ -78,7 +78,6 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/blog', [$c, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
     Route::get('/contacts', [$c, 'contacts'])->name('contacts');
-    Route::get('/vin', [$c, 'vin'])->name('vin');
     Route::get('/search', [$c, 'search'])->name('search');
     Route::get('/api/search/suggest', [$c, 'searchSuggest'])->name('search.suggest');
     Route::get('/api/np/cities', [$c, 'npCities'])->name('api.np.cities');

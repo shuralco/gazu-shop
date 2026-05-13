@@ -1,9 +1,9 @@
 @extends('gazu.layout')
 
-@section('title', 'GAZU — пошук автозапчастин за OEM-кодом і VIN')
+@section('title', 'GAZU — пошук автозапчастин за OEM-кодом')
 
 @section('content')
-    {{-- Hero — VIN/OEM-first --}}
+    {{-- Hero — OEM-first --}}
     <section class="py-12" style="background: linear-gradient(180deg, var(--gazu-mist) 0%, var(--gazu-paper) 100%);">
         <div class="gazu-container gazu-grid-hero-vin">
             <div>
@@ -11,7 +11,7 @@
                     $s = $gazuSettings ?? [];
                     $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Магазин автозапчастин'.(isset($shopStats['products_label']) ? ' · '.$shopStats['products_label'] : '');
                     $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Знайди потрібну деталь';
-                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">OEM-кодом</span> або <span style="color:var(--gazu-blue)">VIN</span>.';
+                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">OEM-кодом</span> або назвою.';
                     $heroDescription = $s['gazu_hero_description'] ?? sprintf(
                         'Точний підбір з оригінальних каталогів. %s в Україні, доставка 1–3 дні, гарантія на кожну позицію.',
                         $shopStats['warehouses_label'] ?? 'власні склади'
@@ -23,18 +23,11 @@
                 </h1>
                 <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mt-4 max-w-lg">{{ $heroDescription }}</p>
 
-                {{-- Tabbed search --}}
+                {{-- Search --}}
                 <div class="mt-7 bg-white rounded-[10px] border border-[var(--gazu-line)] overflow-hidden" style="box-shadow: var(--gazu-shadow-2);">
-                    <div class="flex border-b border-[var(--gazu-line)]">
-                        @foreach(['Артикул / OEM', 'За VIN-кодом', 'За авто'] as $i => $t)
-                            <button type="button"
-                                    class="px-4.5 py-3.5 text-[13px] cursor-pointer {{ $i === 0 ? 'bg-white text-[var(--gazu-ink)] font-semibold' : 'bg-[var(--gazu-paper)] text-[var(--gazu-graphite)]' }}"
-                                    style="border-bottom: 2px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'transparent' }};">{{ $t }}</button>
-                        @endforeach
-                    </div>
                     <div class="p-4">
                         <form action="{{ route('gazu.search') }}" method="GET" class="flex gap-2">
-                            <input name="q" placeholder="Введіть OEM-код деталі"
+                            <input name="q" placeholder="Введіть OEM-код або назву деталі"
                                    class="flex-1 px-4 py-3.5 gazu-mono text-[15px] border border-[var(--gazu-line)] rounded-md outline-none">
                             <button type="submit" class="px-6 bg-[var(--gazu-ink)] text-white border-0 rounded-md font-medium text-sm cursor-pointer inline-flex items-center gap-2">
                                 <x-gazu.icon name="search" size="16"/> Пошук
@@ -87,7 +80,6 @@
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
     <x-gazu.featured-row title="Акції тижня" badge="−20%" :items="$featured"/>
-    <x-gazu.vin-block/>
     <x-gazu.featured-row title="Хіти продажів" :items="$popular"/>
     <x-gazu.brand-strip/>
 @endsection

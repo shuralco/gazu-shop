@@ -11,7 +11,6 @@
             'Прямий доступ до %s. Аналоги і замінники в один клік.',
             $shopStats['products_label'] ?? 'каталогу'
         ),
-        'perks' => $s['gazu_hero_v3_left_perks'] ?? ['VIN-декодер', 'Пакетний пошук', 'Гуртові ціни'],
     ];
     $right = [
         'kicker' => $s['gazu_hero_v3_right_kicker'] ?? 'Для водіїв',
@@ -66,6 +65,5 @@
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
     <x-gazu.featured-row :title="$gazuSettings['gazu_section_specials'] ?? 'Новинки каталогу'" :items="$featured"/>
-    <x-gazu.vin-block/>
     <x-gazu.brand-strip/>
 @endsection

@@ -303,11 +303,7 @@
                             </div>
                         @else
                             <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6 text-center">
-                                <p class="text-[13px] text-[var(--gazu-graphite)] mb-3">Список сумісних авто для цієї деталі поки не заповнено.</p>
-                                <a wire:navigate href="{{ route('gazu.vin') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline hover:underline inline-flex items-center gap-1">
-                                    Перевірити сумісність за VIN
-                                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-                                </a>
+                                <p class="text-[13px] text-[var(--gazu-graphite)]">Список сумісних авто для цієї деталі поки не заповнено. Зв'яжіться з менеджером для уточнення.</p>
                             </div>
                         @endif
                     </div>

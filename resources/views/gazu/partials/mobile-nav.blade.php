@@ -3,7 +3,6 @@
     @foreach([
         ['home', 'Головна', 'home', route('gazu.home')],
         ['catalog', 'Каталог', 'grid', route('gazu.catalog')],
-        ['vin', 'VIN', 'shield', route('gazu.vin')],
         ['cart', 'Кошик', 'cart', route('gazu.cart')],
         ['account', 'Профіль', 'user', route('gazu.account')],
     ] as [$k, $l, $ic, $url])

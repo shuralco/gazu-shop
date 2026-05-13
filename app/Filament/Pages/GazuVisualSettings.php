@@ -184,6 +184,10 @@ class GazuVisualSettings extends Page implements HasForms
         'gazu_oneclick_label' => 'Купити в один клік',
         'gazu_oneclick_message' => 'Менеджер передзвонить за 5 хвилин для уточнення доставки',
 
+        // Product page — tab "Доставка та оплата"
+        'gazu_product_delivery_text' => 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.',
+        'gazu_product_payment_text'  => 'Visa / Mastercard, Apple Pay, Google Pay, готівка при отриманні (накладений платіж), безпечна оплата через LiqPay.',
+
         // Footer
         'gazu_footer_about' => null, // composed from shopStats.products_label
         'gazu_footer_columns' => [
@@ -547,6 +551,15 @@ class GazuVisualSettings extends Page implements HasForms
                         Forms\Components\Textarea::make('gazu_oneclick_message')
                             ->label('Підпис у модалці після кліку (без email/адреси)')
                             ->rows(2),
+                        Forms\Components\Section::make('Сторінка товару — таб «Доставка та оплата»')
+                            ->schema([
+                                Forms\Components\Textarea::make('gazu_product_delivery_text')
+                                    ->label('Текст про доставку')
+                                    ->rows(3),
+                                Forms\Components\Textarea::make('gazu_product_payment_text')
+                                    ->label('Текст про оплату')
+                                    ->rows(3),
+                            ]),
                     ]),
 
                 // ── Empty / 404 / cart-empty ──
