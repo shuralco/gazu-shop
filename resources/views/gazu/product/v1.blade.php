@@ -102,22 +102,26 @@
                     @else
                         <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
                     @endif
-                    <span class="text-[11px] text-[var(--gazu-line-2)]">·</span>
-                    <div class="flex items-center gap-1 whitespace-nowrap">
-                        <div class="flex gap-px text-[var(--gazu-warn)]">
-                            @for($i = 1; $i <= 5; $i++)
-                                <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
-                            @endfor
+                    @php
+                        $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
+                    @endphp
+                    @if($rating > 0 || $reviews > 0 || $soldCount > 0)
+                        <span class="text-[11px] text-[var(--gazu-line-2)]">·</span>
+                        <div class="flex items-center gap-1 whitespace-nowrap">
+                            @if($rating > 0)
+                                <div class="flex gap-px text-[var(--gazu-warn)]">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
+                                    @endfor
+                                </div>
+                            @endif
+                            <span class="text-xs text-[var(--gazu-graphite)]">
+                                @if($rating > 0){{ number_format($rating, 1) }}@endif
+                                @if($reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
+                                @if($soldCount > 0) · {{ $soldCount }} продано @endif
+                            </span>
                         </div>
-                        @php
-                            $reviewsLabel = $reviews > 0 ? "{$reviews} ".\plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') : 'без відгуків';
-                            $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
-                        @endphp
-                        <span class="text-xs text-[var(--gazu-graphite)]">
-                            {{ number_format($rating, 1) }} · {{ $reviewsLabel }}
-                            @if($soldCount > 0) · {{ $soldCount }} продано @endif
-                        </span>
-                    </div>
+                    @endif
                 </div>
                 <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-2 leading-tight">{{ $name }}</h1>
                 @php
@@ -220,7 +224,7 @@
                                         : 'text-[var(--gazu-graphite)] border-b-2 border-transparent hover:text-[var(--gazu-ink)]'"
                                     class="px-4.5 py-3.5 -mb-px bg-transparent cursor-pointer inline-flex items-center gap-1.5 text-sm transition-colors">
                                 {{ $l }}
-                                @if($tabCounts[$k] !== null)
+                                @if($tabCounts[$k] !== null && $tabCounts[$k] > 0)
                                     <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono">{{ $tabCounts[$k] }}</span>
                                 @endif
                             </button>

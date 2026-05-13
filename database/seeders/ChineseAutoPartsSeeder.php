@@ -301,7 +301,10 @@ class ChineseAutoPartsSeeder extends Seeder
 
                 $oemCode = $item['oem'] ?? $this->randomOem();
                 $qty = $item['qty'] ?? random_int(0, 80);
-                $rating = $item['rating'] ?? round(3.8 + (mt_rand(0, 11) / 10), 1);
+                // rating + reviews_count start at 0 — populated later by
+                // seedReviews() via Product::updateRatingFromReviews() so the
+                // numbers reflect real Review rows (no hardcoded counters).
+                $rating = 0;
                 $price = $item['price'];
                 $oldPrice = $item['old'] ?? ($price > 800 && random_int(0, 3) === 0 ? (int) round($price * 1.15) : 0);
 
@@ -315,7 +318,9 @@ class ChineseAutoPartsSeeder extends Seeder
 
                 $specs = $item['specs'] ?? $tmpl['specs'] ?? [];
 
-                // 1–3 analog brands (other than current)
+                // 1–3 analog brands (other than current). Без фейкового
+                // rating — поки немає реальних відгуків про аналог, не
+                // вигадуємо їх.
                 $analogBrands = array_filter($brandSlugs, fn ($s) => $s !== $brandSlug);
                 shuffle($analogBrands);
                 $analogs = [];
@@ -325,7 +330,6 @@ class ChineseAutoPartsSeeder extends Seeder
                         'oem' => $this->randomOem(),
                         'price' => max(80, $price + random_int(-200, 400)),
                         'qty' => random_int(0, 40),
-                        'rating' => round(3.8 + (mt_rand(0, 11) / 10), 1),
                     ];
                 }
 
@@ -344,8 +348,8 @@ class ChineseAutoPartsSeeder extends Seeder
                     'qty' => $qty,
                     'is_hit' => $isHit,
                     'is_new' => $isNew,
-                    'rating' => $rating,
-                    'reviews' => random_int(0, 400),
+                    'rating' => 0,
+                    'reviews' => 0,
                     'excerpt' => $item['excerpt'] ?? $tmpl['excerpt'] ?? '',
                     'content' => '<p><strong>'.$item['name'].'</strong>. '.($tmpl['descr'] ?? '').'</p>',
                     'specifications' => $specs,
