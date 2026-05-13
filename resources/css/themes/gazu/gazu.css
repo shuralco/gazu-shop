@@ -218,6 +218,14 @@ html.gazu, body.gazu {
     position: fixed; top: 16px; right: 16px; z-index: 70;
     display: flex; flex-direction: column; gap: 10px;
     pointer-events: none;
+    transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* When mini-cart drawer is open, push toasts left of it so they don't overlap. */
+@media (min-width: 640px) {
+    .gazu-drawer[data-open="1"] ~ .gazu-toast-container,
+    body:has(.gazu-drawer[data-open="1"]) .gazu-toast-container {
+        right: 396px; /* 380px drawer + 16px gutter */
+    }
 }
 .gazu-toast {
     pointer-events: auto;

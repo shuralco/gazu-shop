@@ -55,6 +55,23 @@
 
 @include('gazu.partials.footer')
 
+{{-- Critical CSS for drawer + toast positioning. Inline because the prod
+     Vite bundle doesn't include the arbitrary `w-[380px]` / `inset-y-0`
+     Tailwind utilities, so the drawer would otherwise stretch full-width. --}}
+<style>
+.gazu-drawer {
+    position: fixed; top: 0; bottom: 0; right: 0; z-index: 65;
+    width: 100%; max-width: 380px;
+    background: #fff; border-left: 1px solid var(--gazu-line);
+    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+    display: flex; flex-direction: column;
+}
+@media (min-width: 640px) {
+    body:has(.gazu-drawer[data-open="1"]) .gazu-toast-container { right: 396px; }
+}
+.gazu-toast-container { transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+</style>
+
 {{-- Глобальний Toast UI (window.gazuToast або CustomEvent('gazu:toast')) --}}
 <div class="gazu-toast-container" x-data="{
         queue: [],

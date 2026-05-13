@@ -72,10 +72,17 @@
                                     <div class="mb-2.5" style="height: 21px;"></div>
                                 @endif
                                 <div class="flex flex-col gap-1.5">
-                                    @foreach($g['items'] as [$name, $n])
-                                        <a wire:navigate href="{{ route('gazu.catalog') }}" class="flex items-baseline gap-2 text-[13px] text-[var(--gazu-graphite)] no-underline hover:text-[var(--gazu-ink)]">
-                                            <span class="flex-1">{{ $name }}</span>
-                                            <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $n }}</span>
+                                    @foreach($g['items'] as $itm)
+                                        @php
+                                            // items: [name, count] (2-tuple, legacy) or [name, count, slug] (3-tuple, new).
+                                            $itmName = $itm[0] ?? '—';
+                                            $itmCount = $itm[1] ?? 0;
+                                            $itmSlug = $itm[2] ?? '';
+                                            $itmHref = $itmSlug ? route('gazu.catalog', ['cat' => $itmSlug]) : route('gazu.catalog');
+                                        @endphp
+                                        <a wire:navigate href="{{ $itmHref }}" class="flex items-baseline gap-2 text-[13px] text-[var(--gazu-graphite)] no-underline hover:text-[var(--gazu-ink)]">
+                                            <span class="flex-1">{{ $itmName }}</span>
+                                            <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $itmCount }}</span>
                                         </a>
                                     @endforeach
                                 </div>

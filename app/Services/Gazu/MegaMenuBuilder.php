@@ -153,13 +153,15 @@ class MegaMenuBuilder
                     ? $g->children->map(fn (Category $leaf) => [
                         (string) ($leaf->title ?? $leaf->name ?? '—'),
                         $this->totalCount($leaf),
+                        (string) ($leaf->slug ?? ''),
                     ])->take(8)->values()->all()
-                    : [[(string) ($g->title ?? '—'), $this->totalCount($g)]],
+                    : [[(string) ($g->title ?? '—'), $this->totalCount($g), (string) ($g->slug ?? '')]],
             ])->take(4)->values()->all();
         } else {
             $items = $root->children->map(fn (Category $g) => [
                 (string) ($g->title ?? $g->name ?? '—'),
                 $this->totalCount($g),
+                (string) ($g->slug ?? ''),
             ])->values()->all();
 
             $cols = max(2, min(4, (int) ceil(count($items) / 6)));
