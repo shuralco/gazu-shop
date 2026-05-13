@@ -11,6 +11,7 @@
             'Прямий доступ до %s. Аналоги і замінники в один клік.',
             $shopStats['products_label'] ?? 'каталогу'
         ),
+        'perks' => $s['gazu_hero_v3_left_perks'] ?? ['Пакетний пошук', 'Гуртові ціни', 'Швидка доставка'],
     ];
     $right = [
         'kicker' => $s['gazu_hero_v3_right_kicker'] ?? 'Для водіїв',
