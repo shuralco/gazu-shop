@@ -99,7 +99,6 @@ class SitemapController extends Controller
         $urls = [
             ['loc' => URL::to('/'),          'lastmod' => $now, 'changefreq' => 'daily',   'priority' => 1.0],
             ['loc' => URL::to('/catalog'),   'lastmod' => $now, 'changefreq' => 'daily',   'priority' => 0.9],
-            ['loc' => URL::to('/vin'),       'lastmod' => $now, 'changefreq' => 'weekly',  'priority' => 0.8],
             ['loc' => URL::to('/brand'),     'lastmod' => $now, 'changefreq' => 'weekly',  'priority' => 0.7],
             ['loc' => URL::to('/blog'),      'lastmod' => $now, 'changefreq' => 'weekly',  'priority' => 0.6],
             ['loc' => URL::to('/sto'),       'lastmod' => $now, 'changefreq' => 'monthly', 'priority' => 0.5],
@@ -120,7 +119,8 @@ class SitemapController extends Controller
                 }
                 if (! $slug) continue;
                 $urls[] = [
-                    'loc' => URL::to('/catalog?cat='.urlencode((string) $slug)),
+                    // SEO URL: `/category-slug` (resolveSlug dispatches to catalog).
+                    'loc' => URL::to('/'.$slug),
                     'lastmod' => optional($cat->updated_at)->toISOString() ?? now()->toISOString(),
                     'changefreq' => 'weekly',
                     'priority' => 0.7,
@@ -135,9 +135,16 @@ class SitemapController extends Controller
         $urls = [];
         Product::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(1000, function ($rows) use (&$urls) {
             foreach ($rows as $product) {
-                $slug = $product->getRawOriginal('slug') ?: ($product->slug ?: (string) $product->id);
+                $rawSlug = $product->getRawOriginal('slug');
+                // Unwrap translatable JSON column → plain slug.
+                if (is_string($rawSlug) && str_starts_with($rawSlug, '{')) {
+                    $decoded = json_decode($rawSlug, true);
+                    $rawSlug = $decoded['uk'] ?? $decoded['en'] ?? null;
+                }
+                $slug = $rawSlug ?: (string) $product->id;
                 $urls[] = [
-                    'loc' => URL::to('/product/'.$slug),
+                    // Root-level Rozetka-style URL: `/<slug>` (no /product/ prefix).
+                    'loc' => URL::to('/'.$slug),
                     'lastmod' => optional($product->updated_at)->toISOString() ?? now()->toISOString(),
                     'changefreq' => 'weekly',
                     'priority' => 0.8,
