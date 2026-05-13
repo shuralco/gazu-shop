@@ -18,9 +18,11 @@
     </div>
 
     <div class="p-4">
-        <div class="flex items-center gap-2 mb-2"><x-gazu.condition-badge value="Новий"/> <span class="gazu-display font-semibold text-sm">{{ $p->brand ?? 'Bosch' }}</span></div>
+        <div class="flex items-center gap-2 mb-2"><x-gazu.condition-badge value="Новий"/> <span class="gazu-display font-semibold text-sm">{{ $p->brand ?? '' }}</span></div>
         <h1 class="gazu-display text-lg font-semibold m-0 mb-1">{{ $name }}</h1>
-        <div class="text-xs text-[var(--gazu-graphite)] gazu-mono mb-3">OEM {{ $p->oem ?? '06A 115 561 B' }}</div>
+        @if($p->oem ?? null)
+            <div class="text-xs text-[var(--gazu-graphite)] gazu-mono mb-3">OEM {{ $p->oem }}</div>
+        @endif
         @if($description)
             <p class="text-sm text-[var(--gazu-graphite)] mt-2 mb-3 leading-relaxed">{{ $description }}</p>
         @endif

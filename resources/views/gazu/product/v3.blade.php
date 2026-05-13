@@ -56,9 +56,14 @@
                     <span class="gazu-display font-semibold text-[var(--gazu-ink)]">{{ $brand }}</span>
                 </div>
                 <h1 class="gazu-display text-[28px] font-semibold text-[var(--gazu-ink)] m-0 mb-1.5 leading-tight">{{ $name }}</h1>
-                <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-3.5">
-                    OEM {{ $oem ?: '06A 115 561 B' }} · 312 продано
-                </div>
+                @php $soldV3 = is_object($p) ? (int) ($p->sold_count ?? 0) : 0; @endphp
+                @if($oem || $soldV3 > 0)
+                    <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-3.5">
+                        @if($oem)OEM {{ $oem }}@endif
+                        @if($oem && $soldV3 > 0) · @endif
+                        @if($soldV3 > 0){{ $soldV3 }} продано@endif
+                    </div>
+                @endif
                 <div class="flex items-baseline gap-3 mb-3.5">
                     <span class="gazu-display font-bold text-[var(--gazu-ink)]" style="font-size: 36px; letter-spacing: -0.03em;">{{ number_format($price, 0, '.', ' ') }} ₴</span>
                     @if($oldPrice)
