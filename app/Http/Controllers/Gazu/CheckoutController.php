@@ -260,6 +260,7 @@ class CheckoutController extends Controller
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
             'phone'      => 'required|string|max:30',
+            'name'       => 'nullable|string|max:80',
             'quantity'   => 'integer|min:1',
         ]);
 
@@ -268,11 +269,17 @@ class CheckoutController extends Controller
         $price = (float) $product->price;
         $total = $price * $qty;
 
+        // Build a synthetic guest email when the user is not logged in.
+        // orders.email is NOT NULL in the schema; manager reaches the
+        // customer via phone anyway.
+        $phoneDigits = preg_replace('/\D+/', '', (string) $data['phone']);
+        $guestEmail = '1click+'.($phoneDigits ?: 'noid').'@gazu.local';
+
         $orderData = [
             'user_id'    => auth()->id(),
-            'first_name' => auth()->user()?->name ?: 'Гість 1-клік',
+            'first_name' => auth()->user()?->name ?: ($data['name'] ?? 'Гість 1-клік'),
             'phone'      => $data['phone'],
-            'email'      => auth()->user()?->email,
+            'email'      => auth()->user()?->email ?: $guestEmail,
             'locale'     => app()->getLocale() ?: 'uk',
             'status'     => 'pending',
             'total'      => $total,
@@ -300,9 +307,13 @@ class CheckoutController extends Controller
             return $o;
         });
 
-        $this->sendOrderEmails($order);
+        try { $this->sendOrderEmails($order); } catch (\Throwable $e) { report($e); }
 
+        $msg = 'Замовлення №'.$order->id.' прийнято. Передзвонимо за '.$data['phone'];
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'order_id' => $order->id, 'message' => $msg]);
+        }
         return redirect()->route('gazu.checkout.success', ['order' => $order->id])
-            ->with('order_message', 'Замовлення №'.$order->id.' прийнято. Менеджер передзвонить за '.$data['phone']);
+            ->with('order_message', $msg);
     }
 }
