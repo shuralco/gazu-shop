@@ -161,10 +161,16 @@ class StoreController extends Controller
             $products = $this->mockProducts(12);
         }
 
+        // Підкатегорії та ancestor-ланцюг для drilldown UI + крошок.
+        $subcategories = $this->loadSubcategories($category);
+        $ancestors = $this->loadAncestors($category);
+
         return view("gazu.catalog.$variant", [
             'products'            => $products,
             'paginator'           => $paginator,
             'category'            => $category,
+            'subcategories'       => $subcategories,
+            'ancestors'           => $ancestors,
             'priceRange'          => $query->priceRange($category),
             'availableBrands'     => $query->availableBrands($category),
             'selectedBrands'      => $query->selectedBrands(),
@@ -176,6 +182,58 @@ class StoreController extends Controller
             'totalCount'          => $paginator->total(),
             'activeNav'           => 'catalog',
         ]);
+    }
+
+    /** Returns child categories with aggregate product count (for drilldown). */
+    private function loadSubcategories(?\App\Models\Category $cat): \Illuminate\Support\Collection
+    {
+        if (! $cat) return collect();
+        $store = \Cache::store();
+        $cache = method_exists($store->getStore(), 'tags') ? $store->tags(['catalog']) : $store;
+        return $cache->remember('cat-children:'.$cat->id, 600, function () use ($cat) {
+            $children = \App\Models\Category::query()
+                ->where('parent_id', $cat->id)
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'title', 'slug']);
+
+            // Aggregate descendant product counts (so L1→L2 plitka shows total).
+            $parents = \App\Models\Category::query()->pluck('parent_id', 'id')->all();
+            $direct = \App\Models\Product::query()
+                ->where('is_active', true)
+                ->whereNotNull('category_id')
+                ->selectRaw('category_id, COUNT(*) as c')
+                ->groupBy('category_id')
+                ->pluck('c', 'category_id')
+                ->map(fn ($v) => (int) $v)
+                ->all();
+            $tree = $direct;
+            foreach ($direct as $cid => $c) {
+                $p = $parents[$cid] ?? null;
+                while ($p) {
+                    $tree[$p] = ($tree[$p] ?? 0) + $c;
+                    $p = $parents[$p] ?? null;
+                }
+            }
+
+            return $children->map(function ($child) use ($tree) {
+                $child->products_count = (int) ($tree[$child->id] ?? 0);
+                return $child;
+            });
+        });
+    }
+
+    /** Returns ancestors chain (closest first) for breadcrumb building. */
+    private function loadAncestors(?\App\Models\Category $cat): \Illuminate\Support\Collection
+    {
+        if (! $cat || ! $cat->parent_id) return collect();
+        $chain = collect();
+        $parent = \App\Models\Category::find($cat->parent_id);
+        while ($parent) {
+            $chain->prepend($parent);
+            $parent = $parent->parent_id ? \App\Models\Category::find($parent->parent_id) : null;
+        }
+        return $chain;
     }
 
     public function product(string $slug, string $variant = 'v1')

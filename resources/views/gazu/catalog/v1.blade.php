@@ -5,6 +5,10 @@
     $crumbs = [['Головна', route('gazu.home')]];
     if ($category) {
         $crumbs[] = ['Каталог', route('gazu.catalog')];
+        // Ancestor chain: показуємо повний drill-down до поточної категорії.
+        foreach (($ancestors ?? collect()) as $anc) {
+            $crumbs[] = [(string) ($anc->title ?? '—'), route('gazu.catalog', ['cat' => $anc->slug])];
+        }
         $crumbs[] = (string) ($category->title ?? 'Категорія');
     } else {
         $crumbs[] = 'Каталог';
@@ -27,6 +31,22 @@
                 @endif
             </div>
         </div>
+
+        {{-- Subcategories drilldown — клікабельні плитки L2/L3 під поточною категорією --}}
+        @if(! empty($subcategories) && $subcategories->isNotEmpty())
+            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 mb-5">
+                <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-3">Підкатегорії</div>
+                <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
+                    @foreach($subcategories as $sub)
+                        <a wire:navigate href="{{ route('gazu.catalog', ['cat' => $sub->slug]) }}"
+                           class="flex items-center justify-between gap-2 px-3 py-2.5 bg-[var(--gazu-paper)] hover:bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-md no-underline text-[var(--gazu-ink)] transition-colors">
+                            <span class="text-[13px] font-medium truncate">{{ $sub->title }}</span>
+                            <span class="gazu-mono text-[10px] text-[var(--gazu-muted)] whitespace-nowrap">{{ $sub->products_count ?? 0 }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
 
         @include('gazu.partials.active-filters', ['category' => $category])
 
