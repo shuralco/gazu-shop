@@ -96,12 +96,12 @@
             <div>
                 <div class="flex items-center gap-2.5 mb-2.5">
                     <x-gazu.condition-badge value="Новий"/>
-                    <span class="gazu-mono text-[11px] px-2 py-0.5 bg-[var(--gazu-mist)] text-[var(--gazu-blue)] rounded">OEM</span>
+                    <span class="gazu-mono text-[11px] px-2 py-0.5 bg-[var(--gazu-mist)] text-[var(--gazu-blue)] rounded">Артикул</span>
                     <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
                 </div>
                 <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-1.5 leading-tight">{{ $name }}</h1>
                 @if($oem)
-                    <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-4.5">OEM {{ $oem }}</div>
+                    <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-4.5">Артикул {{ $oem }}</div>
                 @endif
 
                 <x-gazu.buy-panel :price="$price" :oldPrice="$oldPrice" :qty="$qty" :discount="$discount" :productId="is_object($p) ? ($p->id ?? null) : null"/>

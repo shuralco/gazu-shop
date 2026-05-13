@@ -59,7 +59,7 @@
                 @php $soldV3 = is_object($p) ? (int) ($p->sold_count ?? 0) : 0; @endphp
                 @if($oem || $soldV3 > 0)
                     <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-3.5">
-                        @if($oem)OEM {{ $oem }}@endif
+                        @if($oem)Артикул {{ $oem }}@endif
                         @if($oem && $soldV3 > 0) · @endif
                         @if($soldV3 > 0){{ $soldV3 }} продано@endif
                     </div>

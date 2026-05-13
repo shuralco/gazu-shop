@@ -33,7 +33,7 @@
                         <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
                             <tr class="border-b border-[var(--gazu-line)]">
                                 <th class="py-2.5 px-2 font-medium"></th>
-                                <th class="py-2.5 px-2 font-medium">Назва · OEM</th>
+                                <th class="py-2.5 px-2 font-medium">Назва · Артикул</th>
                                 <th class="py-2.5 px-2 font-medium">Бренд</th>
                                 <th class="py-2.5 px-2 font-medium">Стан</th>
                                 <th class="py-2.5 px-2 font-medium">Сумісність</th>

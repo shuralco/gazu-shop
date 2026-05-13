@@ -21,7 +21,7 @@
             <x-gazu.icon name="menu" size="18"/> Каталог
         </button>
 
-        {{-- Search bar — OEM/VIN з live autocomplete --}}
+        {{-- Search bar — артикул / категорія / бренд з live autocomplete --}}
         <div class="flex-1 min-w-0 relative"
              x-data="{
                 q: @js(request('q', '')),
@@ -50,13 +50,12 @@
              @click.outside="open = false">
             <form action="{{ route('gazu.search') }}" method="GET" class="flex border-[1.5px] border-[var(--gazu-ink)] rounded-lg overflow-hidden bg-white">
                 <div class="flex items-center gap-1.5 px-3.5 border-r border-[var(--gazu-line)] text-[var(--gazu-graphite)] text-[13px] cursor-pointer shrink-0 select-none">
-                    <span>OEM</span>
+                    <span>Каталог</span>
                     <x-gazu.icon name="chevron" size="14"/>
                 </div>
-                <input name="q" placeholder="Введіть OEM-код, наприклад 06A 115 561 B"
+                <input name="q" placeholder="Назва категорії, бренд або деталь (напр. оливний фільтр, Bosch, амортизатор)"
                        x-model="q" @input="onInput" @focus="if (items.length) open = true"
                        class="flex-1 min-w-0 border-0 outline-none px-3.5 py-2.5 text-sm text-[var(--gazu-ink)]"
-                       style="font-family: var(--gazu-font-mono);"
                        autocomplete="off">
                 <button type="submit" class="border-0 bg-[var(--gazu-ink)] text-white px-4 cursor-pointer inline-flex items-center gap-1.5 text-sm shrink-0">
                     <x-gazu.icon name="search" size="16"/> <span class="hidden sm:inline">Знайти</span>

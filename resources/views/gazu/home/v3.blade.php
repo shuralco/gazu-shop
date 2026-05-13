@@ -6,7 +6,7 @@
     $s = $gazuSettings ?? [];
     $left = [
         'kicker' => $s['gazu_hero_v3_left_kicker'] ?? 'Для майстрів СТО',
-        'title' => $s['gazu_hero_v3_left_title'] ?? "Швидкий пошук\nза OEM-кодом",
+        'title' => $s['gazu_hero_v3_left_title'] ?? "Швидкий пошук\nза артикулом",
         'desc'  => $s['gazu_hero_v3_left_description'] ?? sprintf(
             'Прямий доступ до %s. Аналоги і замінники в один клік.',
             $shopStats['products_label'] ?? 'каталогу'

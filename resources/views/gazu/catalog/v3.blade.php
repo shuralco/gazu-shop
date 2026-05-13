@@ -64,7 +64,7 @@
                                 </div>
                                 <a wire:navigate href="{{ $url }}" class="gazu-display text-[17px] font-semibold text-[var(--gazu-ink)] no-underline">{{ $name }}</a>
                                 <div class="flex gap-3.5 text-xs text-[var(--gazu-graphite)] flex-wrap">
-                                    <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">OEM:</span> <span class="gazu-mono text-[var(--gazu-ink)]">{{ $oem }}</span></span>
+                                    <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Артикул:</span> <span class="gazu-mono text-[var(--gazu-ink)]">{{ $oem }}</span></span>
                                     <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Гарантія:</span> 12 міс</span>
                                     <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Країна:</span> Німеччина</span>
                                 </div>

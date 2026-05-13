@@ -130,7 +130,7 @@
                             <span class="whitespace-nowrap">Артикул: <span class="text-[var(--gazu-ink)]">{{ $oemReal }}</span></span>
                         @endif
                         @if($barcode && $barcode !== $oemReal)
-                            <span class="whitespace-nowrap">OEM: <span class="text-[var(--gazu-ink)]">{{ $barcode }}</span></span>
+                            <span class="whitespace-nowrap">Артикул: <span class="text-[var(--gazu-ink)]">{{ $barcode }}</span></span>
                         @endif
                     </div>
                 @endif

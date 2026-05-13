@@ -46,7 +46,7 @@ class GazuVisualSettings extends Page implements HasForms
 
         // Hero V3 (Split — для майстрів + водіїв)
         'gazu_hero_v3_left_kicker' => 'Для майстрів СТО',
-        'gazu_hero_v3_left_title' => "Швидкий пошук\nза OEM-кодом",
+        'gazu_hero_v3_left_title' => "Швидкий пошук\nза артикулом",
         'gazu_hero_v3_left_description' => null, // composed dynamically from shopStats.products_label
         'gazu_hero_v3_left_perks' => ['VIN-декодер', 'Пакетний пошук', 'Гуртові ціни'],
         'gazu_hero_v3_right_kicker' => 'Для водіїв',
@@ -55,7 +55,7 @@ class GazuVisualSettings extends Page implements HasForms
 
         // Mobile
         'gazu_mobile_hero_kicker' => null, // composed from shopStats.products_label
-        'gazu_mobile_hero_title_html' => 'Знайди деталь за <span style="color:var(--gazu-blue)">OEM</span>',
+        'gazu_mobile_hero_title_html' => 'Знайди деталь за <span style="color:var(--gazu-blue)">артикулом</span>',
         'gazu_mobile_categories_title' => 'Категорії',
         'gazu_mobile_hits_title' => 'Хіти',
         'gazu_mobile_filter_pills' => ['Усі', 'Bosch', 'Mahle', 'Mann', 'TRW', 'KYB'],
@@ -154,11 +154,11 @@ class GazuVisualSettings extends Page implements HasForms
         // Hero
         'gazu_hero_subtitle' => null, // composed from shopStats.products_label
         'gazu_hero_title_1' => 'Знайди потрібну деталь',
-        'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">OEM-кодом</span> або назвою.',
+        'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">артикулом</span> або назвою.',
         'gazu_hero_description' => null, // composed from shopStats.warehouses_label
 
         // Hero V1 — visual картка справа (демо-товар у hero)
-        'gazu_hero_visual_oem_code' => 'OEM 8V0·498·625·A',
+        'gazu_hero_visual_oem_code' => 'Артикул 8V0·498·625·A',
         'gazu_hero_visual_image_kind' => 'bearing',
         'gazu_hero_visual_title' => 'Підшипник маточини передньої FAG',
         'gazu_hero_visual_subtitle' => '713 6107 70',
@@ -270,7 +270,7 @@ class GazuVisualSettings extends Page implements HasForms
                             ->description('Демо-товар, що показується у візуальному блоці hero. Використовується для атмосфери.')
                             ->schema([
                                 Forms\Components\Grid::make(2)->schema([
-                                    Forms\Components\TextInput::make('gazu_hero_visual_oem_code')->label('OEM-плашка (зверху)'),
+                                    Forms\Components\TextInput::make('gazu_hero_visual_oem_code')->label('Артикул-плашка (зверху)'),
                                     Forms\Components\Select::make('gazu_hero_visual_image_kind')->label('Тип ілюстрації')->options([
                                         'bearing' => 'Підшипник', 'filter' => 'Фільтр', 'pad' => 'Колодки', 'shock' => 'Амортизатор',
                                         'bulb' => 'Лампа', 'oil' => 'Олива', 'spark' => 'Свічка', 'wiper' => 'Щітка',
