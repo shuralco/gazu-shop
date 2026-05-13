@@ -17,7 +17,7 @@
     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
     $fits = is_object($p) ? ($p->fits ?? null) : ($p['fits'] ?? null);
 
-    // Specifications: з БД (Product->specifications: associative array). Fallback — демо.
+    // Specifications: з БД (Product->specifications). Fallback — лише базові поля товару.
     $rawSpecs = is_object($p) ? ($p->specifications ?? null) : ($p['specifications'] ?? null);
     if (is_array($rawSpecs) && ! empty($rawSpecs)) {
         $specs = [];
@@ -53,7 +53,6 @@
         '@type' => 'Product',
         'name' => $name,
         'sku' => $oem,
-        'brand' => ['@type' => 'Brand', 'name' => $brand ?: 'GAZU'],
         'description' => $fits ?: $name,
         'offers' => [
             '@type' => 'Offer',
@@ -63,6 +62,9 @@
             'url' => url()->current(),
         ],
     ];
+    if (! empty($brand)) {
+        $jsonldProduct['brand'] = ['@type' => 'Brand', 'name' => $brand];
+    }
     if ($rating > 0 && $reviews > 0) {
         $jsonldProduct['aggregateRating'] = [
             '@type' => 'AggregateRating',
