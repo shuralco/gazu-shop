@@ -16,6 +16,60 @@ class StoreController extends Controller
 {
     private array $imageKinds = ['filter', 'pad', 'shock', 'bulb', 'oil', 'spark', 'bearing', 'wiper'];
 
+    /** Category-slug or keyword → part-image kind. First match wins. */
+    private array $categoryImageKinds = [
+        'oil-filter' => 'filter', 'air-filter' => 'filter', 'fuel-filter' => 'filter', 'cabin-filter' => 'filter',
+        'spark-plug' => 'spark', 'glow-plug' => 'spark', 'ignition-coil' => 'spark', 'high-voltage' => 'spark',
+        'water-pump' => 'belt', 'thermostat' => 'sensor', 'radiator' => 'filter', 'cooling-fan' => 'alternator',
+        'timing-belt' => 'belt', 'timing-kit' => 'belt', 'timing-chain' => 'belt',
+        'oxygen-sensor' => 'sensor', 'maf-sensor' => 'sensor', 'knock-sensor' => 'sensor', 'crank-sensor' => 'sensor',
+        'abs-sensor' => 'sensor', 'tpms' => 'sensor', 'rain-sensor' => 'sensor',
+        'brake-pads-front' => 'pad', 'brake-pads-rear' => 'pad', 'brake-pad' => 'pad',
+        'brake-discs' => 'brake-disc', 'brake-disc' => 'brake-disc',
+        'brake-caliper' => 'cv-joint', 'brake-cylinder' => 'cv-joint', 'brake-hose' => 'wiper',
+        'brake-fluid' => 'oil',
+        'shocks' => 'shock', 'shock' => 'shock',
+        'spring' => 'spring',
+        'ball-joint' => 'cv-joint', 'tie-rod' => 'cv-joint', 'stabilizer' => 'cv-joint', 'silentblock' => 'bearing',
+        'hub-bearing' => 'bearing',
+        'batter' => 'battery', 'starter' => 'alternator', 'alternator' => 'alternator', 'voltage' => 'sensor',
+        'bulbs-h4' => 'bulb', 'bulbs-h7' => 'bulb', 'bulbs-led' => 'bulb', 'bulbs-fog' => 'bulb', 'led-strip' => 'bulb', 'xenon' => 'bulb',
+        'fuse' => 'sensor', 'relay' => 'sensor', 'wiring' => 'belt', 'connector' => 'sensor',
+        'horn' => 'horn', 'speaker' => 'horn', 'alarm' => 'sensor', 'parking-sensor' => 'sensor',
+        'ignition-switch' => 'sensor', 'window-switch' => 'sensor', 'wiper-switch' => 'sensor',
+        'clutch' => 'clutch', 'release-bearing' => 'bearing', 'clutch-cable' => 'belt',
+        'cv-outer' => 'cv-joint', 'cv-inner' => 'cv-joint', 'cv-boot' => 'wiper', 'drive-shaft' => 'cv-joint',
+        'transmission-mount' => 'bearing', 'gearbox' => 'cv-joint', 'shifter' => 'cv-joint',
+        'cardan' => 'cv-joint', 'center-bearing' => 'bearing',
+        'oils-' => 'oil', 'transmission-oil' => 'oil',
+        'coolant' => 'coolant',
+        'windshield-fluid' => 'oil',
+        'headlight' => 'headlight', 'taillight' => 'taillight', 'fog-light' => 'headlight', 'side-mirror' => 'mirror', 'mirror-glass' => 'mirror',
+        'fender' => 'taillight', 'bumper' => 'taillight', 'grille' => 'filter', 'hood' => 'taillight', 'door' => 'taillight',
+        'windshield' => 'mirror', 'side-window' => 'mirror',
+        'wiper' => 'wiper', 'wiper-motor' => 'wiper', 'washer-nozzle' => 'wiper',
+        'molding' => 'belt', 'clip' => 'bearing', 'badge' => 'taillight',
+        'mat' => 'mat', 'seat-cover' => 'mat', 'organizer' => 'mat', 'sun-shade' => 'mat', 'air-freshener' => 'oil',
+        'dashcam' => 'sensor', 'phone-holder' => 'sensor', 'charger' => 'sensor', 'gps-tracker' => 'sensor', 'multimedia' => 'sensor',
+        'tool' => 'tool', 'jack' => 'tool', 'compressor' => 'tool', 'jumper-cable' => 'belt',
+        'fire-extinguisher' => 'tool', 'first-aid' => 'tool', 'warning-triangle' => 'taillight',
+        'cleaner' => 'oil', 'polish' => 'oil', 'tire-care' => 'tire', 'tire' => 'tire',
+    ];
+
+    private function imageKindFor(?Product $p): string
+    {
+        if (! $p) return 'filter';
+        // Try category slug first
+        if ($p->relationLoaded('category') && ($cat = $p->getRelation('category'))) {
+            $slug = (string) ($cat->slug ?? '');
+            foreach ($this->categoryImageKinds as $needle => $kind) {
+                if ($slug !== '' && str_contains($slug, $needle)) return $kind;
+            }
+        }
+        // Fallback to legacy id-modulo distribution
+        return $this->imageKinds[($p->id ?? 0) % count($this->imageKinds)];
+    }
+
     private function decorate(Product $p): Product
     {
         // Накладаємо UI-поля поверх живої моделі, не торкаючись БД.
@@ -48,7 +102,7 @@ class StoreController extends Controller
         // Use the original 'brand' string column as fallback (legacy data).
         $brandName = $brandName ?: $p->getRawOriginal('brand');
         $p->brand = (string) ($brandName ?: $p->manufacturer ?: 'GAZU');
-        $p->image_kind = $this->imageKinds[($p->id ?? 0) % count($this->imageKinds)];
+        $p->image_kind = $this->imageKindFor($p);
         $p->qty = method_exists($p, 'totalAvailableQuantity') ? (int) $p->totalAvailableQuantity() : (int) ($p->quantity ?? 0);
         if (! $p->qty) {
             $p->qty = (int) ($p->quantity ?? 0);

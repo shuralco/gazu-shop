@@ -87,7 +87,43 @@ class DemoCatalogGenerator extends Page implements HasForms
                 ->modalDescription('Якщо ввімкнено «Видалити існуючі» — поточні категорії, бренди, товари та inventory будуть видалені. Замовлення (orders) залишаться. Продовжити?')
                 ->modalSubmitActionLabel('Так, згенерувати')
                 ->action(fn () => $this->generate()),
+
+            Actions\Action::make('generate_seo')
+                ->label('Згенерувати SEO meta')
+                ->icon('heroicon-o-magnifying-glass')
+                ->color('warning')
+                ->requiresConfirmation()
+                ->modalHeading('Згенерувати SEO meta для всіх категорій і товарів')
+                ->modalDescription('Перезапише title/description/keywords у seo_metas згідно з шаблонами. Дві мови (uk/en).')
+                ->action(fn () => $this->generateSeo()),
         ];
+    }
+
+    public function generateSeo(): void
+    {
+        try {
+            $gen = new \App\Services\SeoMetaGenerator;
+            $catsUk = $gen->generateBulkForCategories('uk');
+            $catsEn = $gen->generateBulkForCategories('en');
+            $prodUk = $gen->generateBulkForProducts('uk');
+            $prodEn = $gen->generateBulkForProducts('en');
+            $brandsUk = $gen->generateBulkForBrands('uk');
+            $brandsEn = $gen->generateBulkForBrands('en');
+
+            Notification::make()
+                ->title('SEO згенеровано')
+                ->body(sprintf(
+                    'Категорії: %d UK + %d EN · Товари: %d UK + %d EN · Бренди: %d UK + %d EN',
+                    $catsUk, $catsEn, $prodUk, $prodEn, $brandsUk, $brandsEn
+                ))
+                ->success()->send();
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Помилка SEO генерації')
+                ->body($e->getMessage())
+                ->danger()->send();
+            report($e);
+        }
     }
 
     public function generate(): void
