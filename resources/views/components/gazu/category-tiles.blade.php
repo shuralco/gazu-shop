@@ -21,7 +21,7 @@
                 'count'  => $node['count'] ?? 0,
                 'kind'   => $kinds[$i % count($kinds)],
                 'accent' => $accents[$i % count($accents)],
-                'url'    => $slug ? route('gazu.catalog', ['cat' => $slug]) : route('gazu.catalog'),
+                'url'    => $slug ? url('/'.$slug) : route('gazu.catalog'),
             ];
         }
     }

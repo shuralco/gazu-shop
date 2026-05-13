@@ -16,7 +16,7 @@
         $mobCats[] = [
             'name' => $node['label'] ?? '—',
             'kind' => $kinds[$i % count($kinds)],
-            'url'  => ! empty($node['slug']) ? route('gazu.catalog', ['cat' => $node['slug']]) : route('gazu.catalog'),
+            'url'  => ! empty($node['slug']) ? url('/'.$node['slug']) : route('gazu.catalog'),
         ];
     }
 @endphp

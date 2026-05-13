@@ -19,7 +19,7 @@
                     ?: ($c->getTranslation('title', 'uk', false) ?: ($c->name ?? '')))
                 : ($c->title ?? $c->name ?? '');
             $slug = method_exists($c, 'getLocalizedSlug') ? $c->getLocalizedSlug() : ($c->slug ?? $c->id);
-            $crumbs[] = [(string) $title, route('gazu.catalog', ['cat' => $slug ?: $c->id])];
+            $crumbs[] = [(string) $title, url('/'.($slug ?: $c->id))];
         }
     }
     $crumbs[] = trim(($brand ?? '') . ' ' . ($oem ?? '')) ?: ($name ?? 'Товар');

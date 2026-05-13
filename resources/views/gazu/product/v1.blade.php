@@ -263,7 +263,7 @@
                                     if ($k === 'Виробник' && $brandSlug && $v !== '—') {
                                         $href = route('gazu.catalog', ['brand' => [$brandSlug]]);
                                     } elseif ($k === 'Категорія' && $catSlug) {
-                                        $href = route('gazu.catalog', ['cat' => $catSlug]);
+                                        $href = url('/'.$catSlug);
                                     }
                                 @endphp
                                 <div class="grid grid-cols-2 px-4 py-2.5 text-[13px] @if(!$loop->last) border-b border-[var(--gazu-line)] @endif">

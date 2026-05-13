@@ -98,11 +98,12 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/terms',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'terms')->name('terms');
     Route::get('/wholesale', [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'wholesale')->name('wholesale');
 
-    // Root-level product URLs (Rozetka-style). Must be LAST in the group so
-    // every specific route above wins. Regex requires a numeric suffix like
-    // '-13' to avoid catching reserved single-word paths (auth, vin, sto, …).
-    Route::get('/{slug}', [$c, 'product'])
-        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*-\d+')
+    // Root-level catch-all: resolveSlug dispatches to product (slug ends in
+    // -\d+, Rozetka-style) or category (no numeric suffix). Must be LAST in
+    // the group so every specific path above wins. Same URL pattern serves
+    // both — the named alias is just for URL generation.
+    Route::get('/{slug}', [$c, 'resolveSlug'])
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
         ->name('product.show');
 });
 

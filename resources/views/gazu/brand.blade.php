@@ -43,7 +43,7 @@
                     $catSlug = $cat->slug ?: $cat->id;
                     $catName = $cat->title ?? $cat->name ?? 'Категорія';
                 @endphp
-                <a wire:navigate href="{{ route('gazu.catalog', ['cat' => $catSlug, 'brand' => [$brand->name]]) }}"
+                <a wire:navigate href="{{ url('/'.$catSlug).'?brand[]='.urlencode($brand->name) }}"
                    class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)]">
                     <div class="font-medium">{{ $catName }}</div>
                 </a>

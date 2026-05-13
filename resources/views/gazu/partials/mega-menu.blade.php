@@ -39,7 +39,7 @@
         {{-- L1 — root --}}
         <nav class="border-r border-[var(--gazu-line)] py-3.5 bg-[var(--gazu-paper)]">
             @foreach($megaTree as $c)
-                @php $catLink = ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog'); @endphp
+                @php $catLink = ! empty($c['slug']) ? url('/'.$c['slug']) : route('gazu.catalog'); @endphp
                 <a wire:navigate href="{{ $catLink }}"
                    @mouseenter="activeMega = '{{ $c['id'] }}'"
                    :class="activeMega === '{{ $c['id'] }}' ? 'bg-white text-[var(--gazu-ink)] font-semibold' : 'text-[var(--gazu-graphite)]'"
@@ -61,7 +61,7 @@
                         <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="28"/>
                         <h3 class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] m-0">{{ $c['label'] }}</h3>
                         <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format($c['count'], 0, '.', ' ') }} товарів</span>
-                        <a wire:navigate href="{{ ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
+                        <a wire:navigate href="{{ ! empty($c['slug']) ? url('/'.$c['slug']) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
                     </div>
                     <div class="grid gap-x-6 gap-y-5" style="grid-template-columns: repeat({{ min(max(count($c['groups']), 1), 5) }}, 1fr);">
                         @foreach($c['groups'] as $g)
@@ -78,7 +78,7 @@
                                             $itmName = $itm[0] ?? '—';
                                             $itmCount = $itm[1] ?? 0;
                                             $itmSlug = $itm[2] ?? '';
-                                            $itmHref = $itmSlug ? route('gazu.catalog', ['cat' => $itmSlug]) : route('gazu.catalog');
+                                            $itmHref = $itmSlug ? url('/'.$itmSlug) : route('gazu.catalog');
                                         @endphp
                                         <a wire:navigate href="{{ $itmHref }}" class="flex items-baseline gap-2 text-[13px] text-[var(--gazu-graphite)] no-underline hover:text-[var(--gazu-ink)]">
                                             <span class="flex-1">{{ $itmName }}</span>

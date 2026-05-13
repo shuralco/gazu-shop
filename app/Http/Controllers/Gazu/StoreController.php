@@ -200,8 +200,48 @@ class StoreController extends Controller
         ]);
     }
 
+    /**
+     * Root-level URL dispatcher. Slugs ending in -\d+ (e.g. "filtr-xxx-13")
+     * resolve to a product page; everything else is treated as a category
+     * (SEO-friendly URL like `/audio-alarm`).
+     */
+    public function resolveSlug(Request $request, string $slug)
+    {
+        if (preg_match('/-\d+$/', $slug)) {
+            return $this->product($slug);
+        }
+
+        $category = \App\Models\Category::query()
+            ->where('slug', $slug)
+            ->orWhere('slug->uk', $slug)
+            ->orWhere('slug->en', $slug)
+            ->first();
+
+        if (! $category) {
+            return $this->notFound();
+        }
+
+        $request->merge(['cat' => $slug]);
+        return $this->catalog($request);
+    }
+
     public function catalog(Request $request, string $variant = 'v1')
     {
+        // SEO redirect: `/catalog?cat=foo` → `/foo` (no other filters).
+        // Only triggered for the legacy `gazu.catalog` route; the new
+        // `gazu.category` resolver calls this method internally with the
+        // same `cat` query, so we'd loop without this guard.
+        $routeName = optional($request->route())->getName();
+        if (
+            $request->isMethod('get')
+            && $request->filled('cat')
+            && ! $request->hasAny(['q', 'brand', 'min', 'max', 'stock', 'sort', 'page', 'condition', 'promo', 'hits', 'new'])
+            && $variant === 'v1'
+            && $routeName === 'gazu.catalog'
+        ) {
+            return redirect('/'.$request->query('cat'), 301);
+        }
+
         $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
 
         $query = new \App\Services\Gazu\CatalogQuery($request);
