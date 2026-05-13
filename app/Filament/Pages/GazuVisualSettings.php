@@ -124,9 +124,9 @@ class GazuVisualSettings extends Page implements HasForms
 
         // 404 / cart empty
         'gazu_404_title' => 'Запчастину не знайдено',
-        'gazu_404_desc' => 'Можливо, сторінку перенесли або URL застарів. Спробуйте знайти потрібну деталь через каталог чи VIN-пошук.',
+        'gazu_404_desc' => 'Можливо, сторінку перенесли або URL застарів. Спробуйте знайти потрібну деталь через каталог.',
         'gazu_cart_empty_title' => 'Кошик порожній',
-        'gazu_cart_empty_desc' => 'Додайте товари з каталогу або скористайтесь VIN-пошуком, щоб знайти точні запчастини для свого авто.',
+        'gazu_cart_empty_desc' => 'Додайте товари з каталогу — підберемо точні запчастини для вашого авто.',
 
         // Top bar
         'gazu_topbar_cities' => null, // composed from shopStats.cities_with_count
