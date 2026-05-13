@@ -16,6 +16,11 @@
 @endphp
 
 @section('title', $title . ' — GAZU')
+@section('description', $category && $category->meta_description
+    ? $category->meta_description
+    : ($category
+        ? 'Купити '.$category->title.' для китайських авто (BYD, Chery, Geely, Haval). У наявності '.\plural_uk_count($totalCount, 'товар', 'товари', 'товарів').'. Доставка Новою Поштою, гарантія.'
+        : 'Каталог автозапчастин · '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').' · доставка по Україні'))
 
 @section('content')
     <div class="gazu-container">

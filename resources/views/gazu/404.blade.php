@@ -5,6 +5,7 @@
 @php
     $s = $gazuSettings ?? [];
     $title = $s['gazu_404_title'] ?? 'Запчастину не знайдено';
+    $desc = $s['gazu_404_desc'] ?? 'Можливо, сторінку перенесли або URL застарів. Спробуйте знайти потрібну деталь через каталог.';
 @endphp
 <div class="gazu-container py-20 text-center">
     <div class="gazu-display font-bold text-[var(--gazu-ink)] m-0" style="font-size: 120px; letter-spacing: -0.05em; line-height: 1;">404</div>

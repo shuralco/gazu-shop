@@ -1,6 +1,9 @@
 @extends('gazu.layout')
 
 @section('title', ($p->name ?? 'Товар') . ' — GAZU')
+@section('description', 'Купити '.($p->name ?? 'товар').' за '.number_format((float)($p->price ?? 0), 0, '.', ' ').' ₴. '
+    .(is_object($p) && $p->brand ? 'Бренд: '.$p->brand.'. ' : '')
+    .'Артикул: '.($p->sku ?? '—').'. Доставка Новою Поштою, гарантія, повернення 14 днів.')
 @section('og_type', 'product')
 
 @php

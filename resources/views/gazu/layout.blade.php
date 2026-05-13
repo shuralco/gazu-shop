@@ -24,7 +24,18 @@
     @hasSection('og_image')
         <meta property="og:image" content="@yield('og_image')">
         <meta name="twitter:image" content="@yield('og_image')">
+    @else
+        <meta property="og:image" content="{{ url('/og-default.svg') }}">
+        <meta name="twitter:image" content="{{ url('/og-default.svg') }}">
     @endif
+
+    <style>
+        /* Mobile safety: ніколи не дозволяти горизонтальний overflow */
+        html, body.gazu { max-width: 100vw; overflow-x: hidden; }
+        @media (max-width: 640px) {
+            .gazu-container { padding-left: 16px; padding-right: 16px; }
+        }
+    </style>
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="{{ $pageTitle }}">
     <meta name="twitter:description" content="{{ $pageDescription }}">

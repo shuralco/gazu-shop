@@ -368,7 +368,11 @@ class StoreController extends Controller
         if ($product) {
             $product = $this->decorate($product);
         } else {
-            // Лише якщо БД порожня — показуємо mock
+            // Якщо БД має товари — slug просто невалідний → 404.
+            // Mock-фолбек тільки коли каталог взагалі порожній.
+            if (Product::query()->where('is_active', true)->exists()) {
+                return $this->notFound();
+            }
             $product = $this->mockProducts(1)->first();
         }
 
@@ -387,7 +391,7 @@ class StoreController extends Controller
                 ->get();
             if ($pivotAnalogs->isNotEmpty()) {
                 $analogs = $pivotAnalogs->map(fn ($x) => $this->decorate($x));
-            } elseif ($product->category_id) {
+            } elseif (($product instanceof Product) && $product->category_id) {
                 $analogs = \App\Models\Product::query()
                     ->where('category_id', $product->category_id)
                     ->where('id', '!=', $product->id)
