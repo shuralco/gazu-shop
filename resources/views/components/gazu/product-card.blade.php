@@ -51,8 +51,11 @@
         </button>
     @endif
 
-    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline">
+    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline relative">
         <x-gazu.part-image kind="{{ $image }}" size="{{ $compact ? 130 : 170 }}"/>
+        @if($oem)
+            <span class="absolute top-2 left-2 px-2 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
+        @endif
     </a>
 
     <div class="{{ $compact ? 'p-3' : 'p-3.5' }} flex flex-col gap-2">
@@ -65,10 +68,6 @@
             {{ $name }}
         </a>
 
-        <div class="gazu-mono text-[11px] text-[var(--gazu-muted)]">
-            OEM: <span class="text-[var(--gazu-graphite)]">{{ $oem }}</span>
-        </div>
-
         @if($fits)
             <div class="text-[11px] text-[var(--gazu-graphite)] leading-snug px-2 py-1.5 bg-[var(--gazu-mist)] rounded flex gap-1.5 items-start">
                 <x-gazu.icon name="check" size="12" stroke="var(--gazu-blue)" class="shrink-0 mt-0.5"/>
@@ -76,14 +75,16 @@
             </div>
         @endif
 
-        <div class="flex items-center gap-1.5 mt-0.5">
-            <div class="flex gap-px text-[var(--gazu-warn)] shrink-0">
-                @for($i = 1; $i <= 5; $i++)
-                    <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
-                @endfor
+        @if($rating > 0 && $reviews > 0)
+            <div class="flex items-center gap-1.5 mt-0.5">
+                <div class="flex gap-px text-[var(--gazu-warn)] shrink-0">
+                    @for($i = 1; $i <= 5; $i++)
+                        <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
+                    @endfor
+                </div>
+                <span class="text-[11px] text-[var(--gazu-graphite)] whitespace-nowrap">{{ number_format($rating, 1) }} ({{ $reviews }})</span>
             </div>
-            <span class="text-[11px] text-[var(--gazu-graphite)] whitespace-nowrap">{{ number_format($rating, 1) }} ({{ $reviews }})</span>
-        </div>
+        @endif
 
         <x-gazu.stock qty="{{ $qty }}"/>
 
@@ -143,9 +144,38 @@
                     <x-gazu.icon name="cart" size="14"/> Деталі
                 </a>
             @endif
-            <button type="button" class="w-9 shrink-0 bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-md cursor-pointer inline-flex items-center justify-center">
-                <x-gazu.icon name="chat" size="16"/>
-            </button>
+            @if($productId && $qty > 0)
+                <button type="button"
+                        title="Купити в 1 клік"
+                        x-data="{ busy: false, ok: false }"
+                        @click.prevent="
+                            if (busy) return;
+                            busy = true;
+                            const phone = prompt('Введіть номер телефону для зворотного дзвінка:');
+                            if (! phone) { busy = false; return; }
+                            fetch('{{ route('gazu.checkout.one-click') }}', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                                body: new URLSearchParams({ product_id: '{{ $productId }}', phone: phone })
+                            }).then(r => r.json()).then(d => {
+                                if (d.ok) {
+                                    ok = true;
+                                    window.gazuToast && window.gazuToast(d.message || 'Замовлення прийнято · передзвонимо', 'success');
+                                    setTimeout(() => ok = false, 2000);
+                                } else {
+                                    window.gazuToast && window.gazuToast(d.message || 'Не вдалося оформити', 'error');
+                                }
+                            }).catch(() => window.gazuToast && window.gazuToast('Помилка з\'єднання', 'error'))
+                              .finally(() => { busy = false; });
+                        "
+                        :disabled="busy"
+                        :class="ok ? 'bg-[var(--gazu-success)] text-white border-transparent' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)] hover:border-[var(--gazu-ink)]'"
+                        class="w-9 shrink-0 border rounded-md cursor-pointer inline-flex items-center justify-center transition-colors">
+                    <svg x-show="!busy && !ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+                    <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                    <svg x-show="ok" x-cloak width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                </button>
+            @endif
         </div>
     </div>
 </div>

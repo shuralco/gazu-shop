@@ -66,7 +66,8 @@
                 :searchQuery="$searchQuery"
                 :category="$category"/>
             <div class="min-w-0">
-                @include('gazu.partials.sort-bar', ['count' => $totalCount, 'view' => 'grid', 'currentSort' => $currentSort])
+                @php $currentView = request('view') === 'list' ? 'list' : 'grid'; @endphp
+                @include('gazu.partials.sort-bar', ['count' => $totalCount, 'view' => $currentView, 'currentSort' => $currentSort])
 
                 @if($products->isEmpty())
                     <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center mt-4">
@@ -74,6 +75,13 @@
                         <p class="text-sm text-[var(--gazu-graphite)] mb-4">Спробуйте змінити фільтри або скинути всі.</p>
                         <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Скинути фільтри</a>
                     </div>
+                @elseif($currentView === 'list')
+                    <div class="flex flex-col gap-2 mt-4">
+                        @foreach($products as $p)
+                            <x-gazu.product-row :p="$p"/>
+                        @endforeach
+                    </div>
+                    <x-gazu.pagination :paginator="$paginator"/>
                 @else
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 mt-4 gazu-stagger">
                         @foreach($products as $p)
