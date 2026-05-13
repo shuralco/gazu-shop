@@ -62,7 +62,7 @@
 
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
-    <x-gazu.featured-row title="Хіти для VW Passat B8" :items="$featured"/>
-    <x-gazu.featured-row title="Сезонне: підготовка до зими" :items="$popular"/>
+    <x-gazu.featured-row title="Популярні товари" :items="$featured"/>
+    <x-gazu.featured-row title="Хіти продажів" :items="$popular"/>
     <x-gazu.brand-strip/>
 @endsection
