@@ -49,7 +49,7 @@ class ChineseAutoPartsSeeder extends Seeder
         $this->truncateDemo();
 
         $this->command->info('→ Seeding category tree…');
-        [$leafIds, $rootByLeaf] = $this->seedCategoryTree();
+        [$leafIds, $rootByLeaf, $leafTitles] = $this->seedCategoryTree();
         $this->command->info('  ✓ Created '.Category::count().' categories ('.count($leafIds).' leaves)');
 
         $this->command->info('→ Seeding brands…');
@@ -57,7 +57,7 @@ class ChineseAutoPartsSeeder extends Seeder
         $this->command->info('  ✓ Created '.count($brandIds).' brands');
 
         $this->command->info('→ Generating products with Chinese-car compatibility…');
-        $count = $this->seedProducts($leafIds, $rootByLeaf, $brandIds, $warehouse);
+        $count = $this->seedProducts($leafIds, $rootByLeaf, $brandIds, $warehouse, $leafTitles);
         $this->command->info('  ✓ Generated '.$count.' products');
 
         $this->command->info('Done. Total products: '.Product::count());
@@ -80,15 +80,17 @@ class ChineseAutoPartsSeeder extends Seeder
     }
 
     /**
-     * @return array{0: array<string,int>, 1: array<string,string>}
+     * @return array{0: array<string,int>, 1: array<string,string>, 2: array<string,string>}
      *               leafIds: slug → id for every L3 (or L2 if no children)
      *               rootByLeaf: leaf-slug → root-slug for compatibility/icon
+     *               leafTitles: leaf-slug → title (for fallback product generation)
      */
     private function seedCategoryTree(): array
     {
         $tree = $this->categoryTree();
         $leafIds = [];
         $rootByLeaf = [];
+        $leafTitles = [];
 
         $sortL1 = 0;
         foreach ($tree as $l1Slug => $l1) {
@@ -117,6 +119,7 @@ class ChineseAutoPartsSeeder extends Seeder
                     // L2 is a leaf itself
                     $leafIds[$l2Slug] = $l2Row->id;
                     $rootByLeaf[$l2Slug] = $l1Slug;
+                    $leafTitles[$l2Slug] = is_array($l2) ? $l2['title'] : $l2;
                     continue;
                 }
 
@@ -132,11 +135,12 @@ class ChineseAutoPartsSeeder extends Seeder
                     ]);
                     $leafIds[$l3Slug] = $l3Row->id;
                     $rootByLeaf[$l3Slug] = $l1Slug;
+                    $leafTitles[$l3Slug] = $l3Title;
                 }
             }
         }
 
-        return [$leafIds, $rootByLeaf];
+        return [$leafIds, $rootByLeaf, $leafTitles];
     }
 
     private function seedBrands(): array
@@ -200,9 +204,9 @@ class ChineseAutoPartsSeeder extends Seeder
         return $map;
     }
 
-    private function seedProducts(array $leafIds, array $rootByLeaf, array $brandIds, MerchantWarehouse $warehouse): int
+    private function seedProducts(array $leafIds, array $rootByLeaf, array $brandIds, MerchantWarehouse $warehouse, array $leafTitles = []): int
     {
-        $generator = $this->productGenerator($leafIds, $rootByLeaf, $brandIds);
+        $generator = $this->productGenerator($leafIds, $rootByLeaf, $brandIds, $leafTitles);
         $count = 0;
         DB::transaction(function () use ($generator, $warehouse, &$count) {
             foreach ($generator as $def) {
@@ -245,7 +249,7 @@ class ChineseAutoPartsSeeder extends Seeder
     }
 
     /** Lazy product generator — yields 500+ products without RAM blow-up. */
-    private function productGenerator(array $leafIds, array $rootByLeaf, array $brandIds): \Generator
+    private function productGenerator(array $leafIds, array $rootByLeaf, array $brandIds, array $leafTitles = []): \Generator
     {
         $templates = $this->productTemplates();
         $cars = $this->chineseCars();
@@ -254,6 +258,14 @@ class ChineseAutoPartsSeeder extends Seeder
             '', ' — посилений', ' (комплект 4 шт.)', ' EU спец.', ' UA версія',
             ' — посилена якість', ' (premium)', ' — для умов України', ' Sport', ' Eco',
         ];
+
+        // Synthesize templates for leaves that don't have curated data — keeps
+        // newly-added subcategories from appearing empty.
+        foreach ($leafIds as $leafSlug => $catId) {
+            if (isset($templates[$leafSlug])) continue;
+            $title = $leafTitles[$leafSlug] ?? Str::title(str_replace('-', ' ', $leafSlug));
+            $templates[$leafSlug] = $this->genericTemplate($title, $leafSlug, $brandSlugs);
+        }
 
         // Expand each template item into N car-specific SKUs so we hit 500+ total.
         // Each expansion gets a new compat focus, suffix, sku, and brand variation.
@@ -342,6 +354,32 @@ class ChineseAutoPartsSeeder extends Seeder
                 ];
             }
         }
+    }
+
+    /**
+     * Fallback template for a leaf without curated items.
+     * Generates 4 generic SKU rows so the catalog leaf is never empty.
+     */
+    private function genericTemplate(string $title, string $slug, array $brandSlugs): array
+    {
+        $items = [];
+        $priceBase = 200 + (crc32($slug) % 1500);
+        $sampleBrands = array_slice($brandSlugs, 0, 6);
+        foreach ($sampleBrands as $idx => $brand) {
+            $items[] = [
+                'name' => $title.' '.$this->prettyBrand($brand).' '.strtoupper(Str::random(5)),
+                'brand' => $brand,
+                'price' => $priceBase + $idx * 120 + random_int(-50, 250),
+                'qty' => random_int(0, 40),
+                'oem' => $this->randomOem(),
+            ];
+            if (count($items) >= 4) break;
+        }
+        return [
+            'descr' => 'Якісний компонент для китайських авто. Гарантія, повернення 14 днів.',
+            'specs' => ['Категорія' => $title],
+            'items' => $items,
+        ];
     }
 
     private function randomOem(): string
@@ -548,9 +586,15 @@ class ChineseAutoPartsSeeder extends Seeder
             'electrics' => [
                 'title' => 'Електрика',
                 'children' => [
-                    'batteries' => 'Акумулятори',
-                    'starters' => 'Стартери',
-                    'alternators' => 'Генератори',
+                    'power-source' => [
+                        'title' => 'Джерела живлення',
+                        'children' => [
+                            'batteries' => 'Акумулятори',
+                            'starters' => 'Стартери',
+                            'alternators' => 'Генератори',
+                            'voltage-regulators' => 'Реле-регулятори',
+                        ],
+                    ],
                     'lighting' => [
                         'title' => 'Освітлення',
                         'children' => [
@@ -558,6 +602,42 @@ class ChineseAutoPartsSeeder extends Seeder
                             'bulbs-h7' => 'Лампи H7',
                             'bulbs-led' => 'LED-лампи',
                             'bulbs-fog' => 'Лампи протитуманні',
+                            'led-strips' => 'LED-стрічки / DRL',
+                            'xenon-kits' => 'Ксенон комплекти',
+                        ],
+                    ],
+                    'wiring' => [
+                        'title' => 'Проводка',
+                        'children' => [
+                            'fuses' => 'Запобіжники',
+                            'relays' => 'Реле',
+                            'wiring-harnesses' => 'Жгути проводів',
+                            'connectors' => 'Розʼєми',
+                        ],
+                    ],
+                    'audio-alarm' => [
+                        'title' => 'Звук та сигналізація',
+                        'children' => [
+                            'car-horns' => 'Сигнали',
+                            'speakers' => 'Динаміки',
+                            'alarms' => 'Сигналізації',
+                            'parking-sensors' => 'Парктроніки',
+                        ],
+                    ],
+                    'electric-sensors' => [
+                        'title' => 'Датчики',
+                        'children' => [
+                            'abs-sensors' => 'Датчики ABS',
+                            'tpms-sensors' => 'Датчики тиску шин',
+                            'rain-sensors' => 'Датчики дощу',
+                        ],
+                    ],
+                    'switches' => [
+                        'title' => 'Перемикачі та кнопки',
+                        'children' => [
+                            'ignition-switches' => 'Замки запалювання',
+                            'window-switches' => 'Кнопки склопідіймачів',
+                            'wiper-switches' => 'Підрульові перемикачі',
                         ],
                     ],
                 ],
@@ -568,19 +648,39 @@ class ChineseAutoPartsSeeder extends Seeder
                     'clutch' => [
                         'title' => 'Зчеплення',
                         'children' => [
-                            'clutch-kits' => 'Комплекти',
-                            'clutch-discs' => 'Диски',
+                            'clutch-kits' => 'Комплекти зчеплення',
+                            'clutch-discs' => 'Диски зчеплення',
+                            'pressure-plates' => 'Кошики зчеплення',
                             'release-bearings' => 'Вижимні підшипники',
+                            'clutch-cables' => 'Тросики зчеплення',
                         ],
                     ],
                     'cv-joints' => [
-                        'title' => 'ШРУСи',
+                        'title' => 'ШРУСи та піввісі',
                         'children' => [
-                            'cv-outer' => 'Зовнішні',
-                            'cv-inner' => 'Внутрішні',
+                            'cv-outer' => 'ШРУСи зовнішні',
+                            'cv-inner' => 'ШРУСи внутрішні',
+                            'cv-boots' => 'Пильовики ШРУСів',
+                            'drive-shafts' => 'Піввісі',
                         ],
                     ],
-                    'transmission-mounts' => 'Опори КПП',
+                    'gearbox' => [
+                        'title' => 'Коробка передач',
+                        'children' => [
+                            'transmission-mounts' => 'Опори КПП',
+                            'gearbox-cables' => 'Тяги перемикання',
+                            'gearbox-oil-seals' => 'Сальники КПП',
+                            'shifter-knobs' => 'Ручки КПП',
+                        ],
+                    ],
+                    'driveline' => [
+                        'title' => 'Привідна лінія',
+                        'children' => [
+                            'cardan-shafts' => 'Карданні вали',
+                            'cardan-crosses' => 'Хрестовини',
+                            'center-bearings' => 'Підвісні підшипники',
+                        ],
+                    ],
                 ],
             ],
             'fluids' => [
@@ -611,6 +711,7 @@ class ChineseAutoPartsSeeder extends Seeder
                             'taillights' => 'Задні ліхтарі',
                             'fog-lights' => 'Протитуманки',
                             'side-mirrors' => 'Дзеркала бічні',
+                            'mirror-glass' => 'Скло дзеркал',
                         ],
                     ],
                     'body-panels' => [
@@ -619,9 +720,34 @@ class ChineseAutoPartsSeeder extends Seeder
                             'fenders' => 'Крила',
                             'bumpers' => 'Бампери',
                             'grilles' => 'Решітки',
+                            'hoods' => 'Капоти',
+                            'doors' => 'Двері',
                         ],
                     ],
-                    'wipers' => 'Склоочисники',
+                    'glass' => [
+                        'title' => 'Скло',
+                        'children' => [
+                            'windshields' => 'Лобове скло',
+                            'side-windows' => 'Бокові скла',
+                            'rear-windshields' => 'Задні скла',
+                        ],
+                    ],
+                    'wipers-cat' => [
+                        'title' => 'Склоочисники',
+                        'children' => [
+                            'wipers' => 'Двірники',
+                            'wiper-motors' => 'Моторчики двірників',
+                            'washer-nozzles' => 'Форсунки омивача',
+                        ],
+                    ],
+                    'body-attach' => [
+                        'title' => 'Кріплення кузова',
+                        'children' => [
+                            'moldings' => 'Молдинги',
+                            'clips' => 'Кліпси',
+                            'badges' => 'Емблеми',
+                        ],
+                    ],
                 ],
             ],
             'accessories' => [
@@ -633,6 +759,8 @@ class ChineseAutoPartsSeeder extends Seeder
                             'mats' => 'Килимки',
                             'seat-covers' => 'Чохли',
                             'organizers' => 'Органайзери',
+                            'sun-shades' => 'Сонцезахисні шторки',
+                            'air-fresheners' => 'Ароматизатори',
                         ],
                     ],
                     'electronics' => [
@@ -641,9 +769,35 @@ class ChineseAutoPartsSeeder extends Seeder
                             'dashcams' => 'Відеореєстратори',
                             'phone-holders' => 'Тримачі телефону',
                             'chargers' => 'Зарядки',
+                            'gps-trackers' => 'GPS-трекери',
+                            'multimedia' => 'Мультимедіа 2DIN',
                         ],
                     ],
-                    'tools' => 'Інструменти',
+                    'tools-cat' => [
+                        'title' => 'Інструменти',
+                        'children' => [
+                            'tools' => 'Набори інструментів',
+                            'jacks' => 'Домкрати',
+                            'compressors' => 'Компресори',
+                            'jumper-cables' => 'Пускові дроти',
+                        ],
+                    ],
+                    'safety' => [
+                        'title' => 'Безпека',
+                        'children' => [
+                            'fire-extinguishers' => 'Вогнегасники',
+                            'first-aid-kits' => 'Аптечки',
+                            'warning-triangles' => 'Знаки аварійної зупинки',
+                        ],
+                    ],
+                    'car-care' => [
+                        'title' => 'Догляд за авто',
+                        'children' => [
+                            'cleaners' => 'Очисники',
+                            'polishes' => 'Поліролі',
+                            'tire-care' => 'Засоби для шин',
+                        ],
+                    ],
                 ],
             ],
         ];

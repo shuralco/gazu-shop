@@ -63,7 +63,7 @@
                         <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format($c['count'], 0, '.', ' ') }} товарів</span>
                         <a wire:navigate href="{{ ! empty($c['slug']) ? route('gazu.catalog', ['cat' => $c['slug']]) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
                     </div>
-                    <div class="grid gap-x-7 gap-y-5" style="grid-template-columns: repeat({{ min(max(count($c['groups']), 1), 4) }}, 1fr);">
+                    <div class="grid gap-x-6 gap-y-5" style="grid-template-columns: repeat({{ min(max(count($c['groups']), 1), 5) }}, 1fr);">
                         @foreach($c['groups'] as $g)
                             <div>
                                 @if(!empty($g['title']))

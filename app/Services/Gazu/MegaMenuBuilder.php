@@ -154,9 +154,9 @@ class MegaMenuBuilder
                         (string) ($leaf->title ?? $leaf->name ?? '—'),
                         $this->totalCount($leaf),
                         (string) ($leaf->slug ?? ''),
-                    ])->take(8)->values()->all()
+                    ])->take(10)->values()->all()
                     : [[(string) ($g->title ?? '—'), $this->totalCount($g), (string) ($g->slug ?? '')]],
-            ])->take(4)->values()->all();
+            ])->take(6)->values()->all();
         } else {
             $items = $root->children->map(fn (Category $g) => [
                 (string) ($g->title ?? $g->name ?? '—'),
