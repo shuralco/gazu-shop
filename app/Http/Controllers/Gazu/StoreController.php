@@ -207,22 +207,25 @@ class StoreController extends Controller
      */
     public function resolveSlug(Request $request, string $slug)
     {
-        if (preg_match('/-\d+$/', $slug)) {
-            return $this->product($slug);
-        }
-
+        // Category first — slugs like `brake-fluids-2` are categories even
+        // though they end in `-\d+`. Falling back to product if no category
+        // matches keeps Rozetka-style `…-123` product URLs working.
         $category = \App\Models\Category::query()
             ->where('slug', $slug)
             ->orWhere('slug->uk', $slug)
             ->orWhere('slug->en', $slug)
             ->first();
 
-        if (! $category) {
-            return $this->notFound();
+        if ($category) {
+            $request->merge(['cat' => $slug]);
+            return $this->catalog($request);
         }
 
-        $request->merge(['cat' => $slug]);
-        return $this->catalog($request);
+        if (preg_match('/-\d+$/', $slug)) {
+            return $this->product($slug);
+        }
+
+        return $this->notFound();
     }
 
     public function catalog(Request $request, string $variant = 'v1')

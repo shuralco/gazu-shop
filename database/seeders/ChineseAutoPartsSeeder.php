@@ -701,7 +701,7 @@ class ChineseAutoPartsSeeder extends Seeder
                     ],
                     'transmission-oils' => 'Трансмісійні масла',
                     'coolants' => 'Антифризи',
-                    'brake-fluids-2' => 'Гальмівні рідини',
+                    'brake-fluids-fluids' => 'Гальмівні рідини (для долива)',
                     'windshield-fluids' => 'Омивачі',
                 ],
             ],
@@ -1357,7 +1357,7 @@ class ChineseAutoPartsSeeder extends Seeder
                     ['name' => 'Liqui Moly Antifreeze G13 5 л', 'brand' => 'liqui-moly', 'price' => 1180, 'qty' => 28, 'oem' => '21135'],
                 ],
             ],
-            'brake-fluids-2' => [
+            'brake-fluids-fluids' => [
                 'descr' => 'Гальмівна рідина DOT 4+, низька гігроскопічність.',
                 'specs' => ['Стандарт' => 'DOT 4+'],
                 'items' => [

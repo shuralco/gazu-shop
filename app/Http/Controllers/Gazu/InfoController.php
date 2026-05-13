@@ -9,6 +9,21 @@ class InfoController extends Controller
 {
     public function show(string $slug)
     {
+        // Prefer DB-backed page (Filament-managed). Fall back to hardcoded
+        // defaults so a fresh DB without the seeder still renders something.
+        $row = \App\Models\InfoPage::query()->where('slug', $slug)->active()->first();
+        if ($row) {
+            return view('gazu.info.page', [
+                'title' => $row->title,
+                'intro' => $row->intro,
+                'content_html' => $row->content_html,
+                'sections' => $row->sections ?? [],
+                'meta_title' => $row->meta_title ?: ($row->title.' — GAZU'),
+                'meta_description' => $row->meta_description,
+                'activeNav' => null,
+            ]);
+        }
+
         $page = $this->pages()[$slug] ?? null;
         if (! $page) {
             throw new NotFoundHttpException();
