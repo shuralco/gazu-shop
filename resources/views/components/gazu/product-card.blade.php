@@ -147,33 +147,9 @@
             @if($productId && $qty > 0)
                 <button type="button"
                         title="Купити в 1 клік"
-                        x-data="{ busy: false, ok: false }"
-                        @click.prevent="
-                            if (busy) return;
-                            busy = true;
-                            const phone = prompt('Введіть номер телефону для зворотного дзвінка:');
-                            if (! phone) { busy = false; return; }
-                            fetch('{{ route('gazu.checkout.one-click') }}', {
-                                method: 'POST',
-                                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                                body: new URLSearchParams({ product_id: '{{ $productId }}', phone: phone })
-                            }).then(r => r.json()).then(d => {
-                                if (d.ok) {
-                                    ok = true;
-                                    window.gazuToast && window.gazuToast(d.message || 'Замовлення прийнято · передзвонимо', 'success');
-                                    setTimeout(() => ok = false, 2000);
-                                } else {
-                                    window.gazuToast && window.gazuToast(d.message || 'Не вдалося оформити', 'error');
-                                }
-                            }).catch(() => window.gazuToast && window.gazuToast('Помилка з\'єднання', 'error'))
-                              .finally(() => { busy = false; });
-                        "
-                        :disabled="busy"
-                        :class="ok ? 'bg-[var(--gazu-success)] text-white border-transparent' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)] hover:border-[var(--gazu-ink)]'"
-                        class="w-9 shrink-0 border rounded-md cursor-pointer inline-flex items-center justify-center transition-colors">
-                    <svg x-show="!busy && !ok" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
-                    <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
-                    <svg x-show="ok" x-cloak width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        @click.prevent="window.dispatchEvent(new CustomEvent('gazu:one-click', { detail: { productId: '{{ $productId }}', productName: @js($name), productPrice: {{ (float) $price }} } }))"
+                        class="w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 </button>
             @endif
         </div>
