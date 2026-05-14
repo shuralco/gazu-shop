@@ -4,6 +4,7 @@
     'qty' => 12,
     'discount' => null,
     'productId' => null,
+    'name' => '', // product name — for the 1-click modal summary
     'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
     'closestWarehouseId' => null, // geo-detected warehouse ID (Phase 6)
 ])
@@ -36,7 +37,32 @@
         get price() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].price : {{ (float) $defaultPrice }}; },
         get compareAt() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].compare : null; },
         get available() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].qty : {{ (int) $qty }}; },
-        fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); }
+        fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); },
+        adding: false,
+        async addToCart() {
+            if (this.adding || this.available <= 0) return;
+            this.adding = true;
+            try {
+                const r = await fetch('{{ route('gazu.cart.add') }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: new URLSearchParams({
+                        product_id: '{{ $productId }}',
+                        quantity: this.q,
+                        warehouse_id: this.warehouseId || '',
+                    })
+                });
+                const d = await r.json();
+                if (d.ok) {
+                    window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: d.count, qtyTotal: d.qtyTotal, total: d.total } }));
+                    window.gazuToast && window.gazuToast('Додано до кошика', 'success');
+                } else {
+                    window.gazuToast && window.gazuToast(d.message || 'Не вдалося додати', 'error');
+                }
+            } catch(e) {
+                window.gazuToast && window.gazuToast('Помилка з\'єднання', 'error');
+            } finally { this.adding = false; }
+        }
      }">
     <div class="flex items-baseline gap-3 mb-1 min-h-[44px]">
         <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none gazu-mono" style="font-size: 40px; font-variant-numeric: tabular-nums; min-width: 7ch; display: inline-flex; align-items: baseline; gap: .25em;">
@@ -142,7 +168,7 @@
 
     <div class="h-px bg-[var(--gazu-line)] my-5"></div>
 
-    <form action="{{ route('gazu.cart.add') }}" method="POST">
+    <form action="{{ route('gazu.cart.add') }}" method="POST" @submit.prevent="addToCart">
         @csrf
         <input type="hidden" name="product_id" value="{{ $productId }}">
         <input type="hidden" name="quantity" :value="q">
@@ -202,7 +228,7 @@
                 </button>
 
                 @if($oneClickEnabled)
-                    <button type="button" @click.prevent="$dispatch('open-oneclick', { productId: {{ $productId }}, qty: q })"
+                    <button type="button" @click.prevent="$dispatch('gazu:one-click', { productId: '{{ $productId }}', productName: @js($name ?? ''), productPrice: price * q })"
                             class="w-full h-12 bg-white text-[var(--gazu-ink)] border-[1.5px] border-[var(--gazu-ink)] rounded-lg text-[14px] font-medium cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-mist)] transition-colors">
                         <x-gazu.icon name="phone" size="16"/>
                         {{ $oneClickLabel }}
@@ -212,38 +238,9 @@
         @endif
     </form>
 
-    {{-- 1-клік модалка (Alpine listens for 'open-oneclick' event) --}}
-    @if($oneClickEnabled && $productId)
-        <div x-data="{ open: false, productId: null, qty: 1 }"
-             x-on:open-oneclick.window="open = true; productId = $event.detail.productId; qty = $event.detail.qty || 1"
-             x-show="open" x-cloak x-transition.opacity
-             class="fixed inset-0 bg-black/45 z-[60] flex items-center justify-center p-4"
-             @click.self="open = false">
-            <div class="bg-white rounded-xl max-w-md w-full p-6" @click.stop>
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="gazu-display text-xl font-semibold m-0">{{ $oneClickLabel }}</h3>
-                    <button type="button" @click="open = false" class="bg-transparent border-0 cursor-pointer text-[var(--gazu-graphite)]">
-                        <x-gazu.icon name="close" size="20"/>
-                    </button>
-                </div>
-                <p class="text-sm text-[var(--gazu-graphite)] mb-4">{{ $oneClickMessage }}</p>
-                <form action="{{ route('gazu.checkout.one-click') }}" method="POST">
-                    @csrf
-                    <input type="hidden" name="product_id" :value="productId">
-                    <input type="hidden" name="quantity" :value="qty">
-                    <label class="block mb-3">
-                        <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">Ваш телефон <span class="text-[var(--gazu-danger)]">*</span></span>
-                        <input type="tel" name="phone" required value="{{ auth()->user()?->phone }}" placeholder="+380 67 123 45 67"
-                               class="w-full px-3 py-3 border border-[var(--gazu-line)] rounded-md outline-none focus:border-[var(--gazu-ink)] gazu-mono">
-                    </label>
-                    <div class="flex gap-2">
-                        <button type="submit" class="gazu-btn-primary flex-1">Замовити дзвінок</button>
-                        <button type="button" @click="open = false" class="gazu-btn-outline">Скасувати</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    @endif
+    {{-- 1-клік: глобальна brutal-модалка (<x-gazu.one-click-modal> у layout)
+         слухає подію `gazu:one-click` — окремий inline-модал більше не
+         потрібен. --}}
 
     <div class="mt-4 p-3.5 bg-[var(--gazu-mist)] rounded-lg flex flex-col gap-2.5">
         <div class="flex gap-2.5 items-start">

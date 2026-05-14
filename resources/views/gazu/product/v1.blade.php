@@ -404,6 +404,7 @@
                     :qty="$qty"
                     :discount="$discount"
                     :productId="is_object($p) ? ($p->id ?? null) : null"
+                    :name="$name"
                     :warehouseStocks="$warehouseStocks ?? collect()"
                     :closestWarehouseId="$closestWarehouseId ?? null"
                 />

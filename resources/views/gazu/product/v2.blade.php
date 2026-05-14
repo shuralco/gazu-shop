@@ -104,7 +104,7 @@
                     <div class="text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-4.5">Артикул {{ $oem }}</div>
                 @endif
 
-                <x-gazu.buy-panel :price="$price" :oldPrice="$oldPrice" :qty="$qty" :discount="$discount" :productId="is_object($p) ? ($p->id ?? null) : null"/>
+                <x-gazu.buy-panel :price="$price" :oldPrice="$oldPrice" :qty="$qty" :discount="$discount" :productId="is_object($p) ? ($p->id ?? null) : null" :name="$name"/>
 
                 <div class="mt-7 gazu-display text-lg font-semibold mb-3">Повні характеристики</div>
                 <div class="bg-white border border-[var(--gazu-line)] rounded-lg px-4">
