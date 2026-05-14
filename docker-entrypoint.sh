@@ -36,14 +36,16 @@ php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations faile
 if [ "$MODULE_AUTO_PARTS_SEED" = "true" ]; then
     # Marker file lives on storage volume so it persists across container
     # restarts but stays absent across image rebuilds with fresh volumes.
-    SEED_MARKER=/var/www/html/storage/app/.auto-parts-seeded
+    # NOTE: marker bumped to `-v2` so the switch from the legacy flat
+    # AutoPartsSeeder to the 3-level ChineseAutoPartsSeeder re-seeds once.
+    SEED_MARKER=/var/www/html/storage/app/.catalog-seeded-v2
     if [ ! -f "$SEED_MARKER" ]; then
-        echo "[entrypoint] Marker absent — running AutoPartsSeeder..."
-        if php artisan db:seed --class=AutoPartsSeeder --force 2>&1; then
+        echo "[entrypoint] Marker absent — running ChineseAutoPartsSeeder..."
+        if SEED_FORCE=1 php artisan db:seed --class=ChineseAutoPartsSeeder --force 2>&1; then
             touch "$SEED_MARKER"
-            echo "[entrypoint] AutoPartsSeeder finished. Marker written."
+            echo "[entrypoint] ChineseAutoPartsSeeder finished. Marker written."
         else
-            echo "[entrypoint] WARNING: AutoPartsSeeder failed, continuing..."
+            echo "[entrypoint] WARNING: ChineseAutoPartsSeeder failed, continuing..."
         fi
     else
         echo "[entrypoint] Auto-seed marker present — skipping."
