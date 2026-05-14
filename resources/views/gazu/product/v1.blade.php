@@ -104,10 +104,11 @@
         <div class="gazu-grid-product-main mt-1">
             {{-- Gallery: big main image, thumbnails row below it --}}
             <div class="flex flex-col gap-3">
+                @php $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0; @endphp
                 <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
                     <div class="absolute inset-0">
-                        <x-gazu.part-image kind="{{ $kind }}" fit/>
+                        <x-gazu.part-image kind="{{ $kind }}" :seed="$gallerySeed" fit/>
                     </div>
                     <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
                         1 / 8
@@ -120,7 +121,8 @@
                 <div class="flex gap-2">
                     @for($i = 0; $i < 4; $i++)
                         <div class="flex-1 aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
-                            <x-gazu.part-image kind="{{ $kind }}" fit/>
+                            {{-- each thumb offsets the seed → 4 different pool photos --}}
+                            <x-gazu.part-image kind="{{ $kind }}" :seed="$gallerySeed + $i" fit/>
                         </div>
                     @endfor
                     <div class="flex-1 aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">

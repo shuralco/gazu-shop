@@ -17,7 +17,7 @@
 @endphp
 <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-3 flex gap-3 hover:border-[var(--gazu-line-2)] transition-colors">
     <a wire:navigate href="{{ $url }}" class="shrink-0 w-24 h-24 sm:w-32 sm:h-32 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center relative no-underline overflow-hidden p-1.5">
-        <x-gazu.part-image kind="{{ $image }}" fit/>
+        <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
         @if($oem)
             <span class="absolute top-1 left-1 px-1.5 py-0.5 gazu-mono text-[9px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
         @endif

@@ -1,11 +1,25 @@
-@props(['kind' => 'filter', 'size' => 160, 'fit' => false])
+@props(['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null])
 @php
-    // Real demo photo (Pexels, public/img/parts/<kind>.webp) takes priority
-    // over the vector illustration. Falls back to the SVG when no photo exists
-    // for this kind (e.g. clutch, cv-joint) — keeps the catalog complete.
-    $partPhoto = is_file(public_path("img/parts/{$kind}.webp"))
-        ? asset("img/parts/{$kind}.webp")
-        : null;
+    // Real demo photos (Pexels) take priority over the vector illustration.
+    // Priority: per-kind pool (public/img/parts/<kind>/NN.webp) → single file
+    // (public/img/parts/<kind>.webp) → SVG. The pool entry is picked by `seed`
+    // (the product id) so adjacent products of the same kind show DIFFERENT
+    // photos. The pool listing is cached per request (one glob per kind).
+    static $partPoolCache = [];
+    if (! array_key_exists($kind, $partPoolCache)) {
+        $dir = public_path("img/parts/{$kind}");
+        $files = is_dir($dir) ? glob($dir.'/*.webp') : [];
+        sort($files);
+        $partPoolCache[$kind] = array_map('basename', $files);
+    }
+    $pool = $partPoolCache[$kind];
+    $partPhoto = null;
+    if (! empty($pool)) {
+        $idx = $seed !== null ? abs((int) $seed) % count($pool) : 0;
+        $partPhoto = asset("img/parts/{$kind}/".$pool[$idx]);
+    } elseif (is_file(public_path("img/parts/{$kind}.webp"))) {
+        $partPhoto = asset("img/parts/{$kind}.webp");
+    }
 @endphp
 @if($partPhoto)
     @if($fit)

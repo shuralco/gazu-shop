@@ -53,7 +53,7 @@
     @endif
 
     <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline relative overflow-hidden p-2 sm:p-3">
-        <x-gazu.part-image kind="{{ $image }}" fit/>
+        <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
         @if($oem)
             {{-- bottom-left so it never collides with the discount badge (top-left) or wishlist heart (top-right) --}}
             <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
