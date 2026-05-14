@@ -191,21 +191,63 @@
                         'reviews'  => $reviews,
                         'delivery' => null,
                     ];
+                    $tabDefs = [
+                        'spec'     => 'Характеристики',
+                        'compat'   => 'Сумісність',
+                        'analogs'  => 'Аналоги',
+                        'reviews'  => 'Відгуки',
+                        'delivery' => 'Доставка та оплата',
+                    ];
+                    $tabCountsJs = array_map(fn ($v) => (int) $v, $tabCounts);
                     $deliveryText = $gazuSettings['gazu_product_delivery_text']
                         ?? 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.';
                     $paymentText = $gazuSettings['gazu_product_payment_text']
                         ?? 'Visa / Mastercard, Apple Pay, Google Pay, готівка при отриманні (накладений платіж), безпечна оплата через LiqPay.';
                 @endphp
-                <div x-data="{ tab: 'spec' }" class="mt-2">
+                <div class="mt-2"
+                     x-data="{
+                        tab: 'spec',
+                        tabs: @js(array_keys($tabDefs)),
+                        labels: @js($tabDefs),
+                        counts: @js($tabCountsJs),
+                        tick: 0,
+                        step(dir) {
+                            const i = this.tabs.indexOf(this.tab);
+                            this.tab = this.tabs[(i + dir + this.tabs.length) % this.tabs.length];
+                            this.tick++;
+                        }
+                     }">
+                    {{-- Mobile — floating arrow tab-stepper: ← current tab → with a
+                         crisp "mechanical-watch" tick animation on each step. --}}
+                    <div class="md:hidden sticky top-2 z-30 mt-3 mb-5">
+                        <div class="flex items-center gap-2 bg-white border border-[var(--gazu-line)] rounded-full p-1.5 shadow-[0_6px_20px_-6px_rgba(14,27,44,0.28)]">
+                            <button type="button" @click="step(-1)" aria-label="Попередня вкладка"
+                                    class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] text-[var(--gazu-ink)] border-0 cursor-pointer inline-flex items-center justify-center shrink-0 active:scale-90 transition-transform duration-100">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                            </button>
+                            <div class="flex-1 min-w-0 text-center overflow-hidden">
+                                <div :class="'gazu-tab-tick-' + (tick % 2)" class="inline-flex items-center gap-1.5 justify-center max-w-full">
+                                    <span class="font-semibold text-[var(--gazu-ink)] text-[14px] truncate" x-text="labels[tab]"></span>
+                                    <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono shrink-0" x-show="counts[tab] > 0" x-text="counts[tab]"></span>
+                                </div>
+                                <div class="flex items-center justify-center gap-1 mt-1">
+                                    <template x-for="t in tabs" :key="t">
+                                        <span class="rounded-full transition-all duration-150"
+                                              :class="t === tab ? 'w-3.5 h-1 bg-[var(--gazu-ink)]' : 'w-1 h-1 bg-[var(--gazu-line-2)]'"></span>
+                                    </template>
+                                </div>
+                            </div>
+                            <button type="button" @click="step(1)" aria-label="Наступна вкладка"
+                                    class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] text-[var(--gazu-ink)] border-0 cursor-pointer inline-flex items-center justify-center shrink-0 active:scale-90 transition-transform duration-100">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- Desktop — classic horizontal tablist --}}
                     <div role="tablist" aria-label="Інформація про товар"
-                         class="border-b border-[var(--gazu-line)] flex gap-1 font-text mt-3 overflow-x-auto whitespace-nowrap">
-                        @foreach([
-                            ['spec', 'Характеристики'],
-                            ['compat', 'Сумісність'],
-                            ['analogs', 'Аналоги'],
-                            ['reviews', 'Відгуки'],
-                            ['delivery', 'Доставка та оплата'],
-                        ] as [$k, $l])
+                         class="border-b border-[var(--gazu-line)] hidden md:flex gap-1 font-text mt-3 overflow-x-auto whitespace-nowrap">
+                        @foreach($tabDefs as $k => $l)
                             <button type="button" role="tab"
                                     :aria-selected="tab === '{{ $k }}'"
                                     :tabindex="tab === '{{ $k }}' ? 0 : -1"

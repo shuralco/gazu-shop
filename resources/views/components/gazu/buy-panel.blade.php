@@ -65,64 +65,61 @@
         }
      }"
      @warehouse-selected.window="warehouseId = $event.detail.id">
-    <div class="flex items-baseline gap-3 mb-1 min-h-[44px]">
-        <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none gazu-mono" style="font-size: 40px; font-variant-numeric: tabular-nums; min-width: 7ch; display: inline-flex; align-items: baseline; gap: .25em;">
-            <span x-text="fmt(price * q)" style="display:inline-block;text-align:left">{{ $priceFmt }}</span><span class="text-2xl font-medium text-[var(--gazu-graphite)]">₴</span>
-        </span>
-        <div class="flex flex-col gap-0.5">
-            <template x-if="compareAt && compareAt > price">
-                <span class="text-sm text-[var(--gazu-muted)] line-through" x-text="fmt(compareAt) + ' ₴'"></span>
-            </template>
-            @if($oldPrice && !$stocks->isNotEmpty())
-                <span class="text-sm text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</span>
-                @if($discount)
-                    <span class="text-[11px] gazu-mono px-1.5 py-0.5 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] rounded">−{{ $discount }}%</span>
+    {{-- Price + quantity stepper on a single row — compact, so it sits neatly
+         under the warehouse selector on mobile and reads as one "pick qty → see
+         price" unit. Quantity lives in the buy-panel x-data scope, so it can sit
+         here outside the <form>; the form keeps a hidden quantity input. --}}
+    <div class="flex items-end justify-between gap-3 mb-4">
+        <div class="min-w-0">
+            <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none gazu-mono" style="font-size: 36px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: .2em;">
+                <span x-text="fmt(price * q)" style="display:inline-block;text-align:left">{{ $priceFmt }}</span><span class="text-xl font-medium text-[var(--gazu-graphite)]">₴</span>
+            </span>
+            <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
+                <template x-if="compareAt && compareAt > price">
+                    <span class="text-sm text-[var(--gazu-muted)] line-through" x-text="fmt(compareAt) + ' ₴'"></span>
+                </template>
+                @if($oldPrice && !$stocks->isNotEmpty())
+                    <span class="text-sm text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</span>
+                    @if($discount)
+                        <span class="text-[11px] gazu-mono px-1.5 py-0.5 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] rounded">−{{ $discount }}%</span>
+                    @endif
                 @endif
-            @endif
-            {{-- per-unit × qty breakdown — to the right of the price, shown when q > 1 --}}
-            <div class="text-[11px] text-[var(--gazu-graphite)] gazu-mono" style="font-variant-numeric: tabular-nums;" x-show="q > 1" x-cloak>
-                <span x-text="fmt(price)"></span> ₴ × <span x-text="q"></span> шт.
+                {{-- per-unit × qty breakdown — shown when q > 1 --}}
+                <span class="text-[11px] text-[var(--gazu-graphite)] gazu-mono" style="font-variant-numeric: tabular-nums;" x-show="q > 1" x-cloak>
+                    <span x-text="fmt(price)"></span> ₴ × <span x-text="q"></span> шт.
+                </span>
+            </div>
+        </div>
+        {{-- Quantity stepper --}}
+        <div class="shrink-0">
+            <div class="text-[10px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)] mb-1.5 text-center">Кількість</div>
+            <div class="flex items-center bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
+                <button type="button" @click="q = Math.max(1, q-1)"
+                    aria-label="Зменшити кількість"
+                    class="w-10 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    :disabled="q <= 1">
+                    <x-gazu.icon name="minus" size="16"/>
+                </button>
+                <input x-model.number="q" type="number" min="1" :max="available || 99"
+                    aria-label="Кількість"
+                    class="w-12 h-11 text-center border-0 bg-white text-base gazu-mono font-semibold text-[var(--gazu-ink)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                <button type="button" @click="q = Math.min((available || 99), q+1)"
+                    aria-label="Збільшити кількість"
+                    class="w-10 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    :disabled="available > 0 && q >= available">
+                    <x-gazu.icon name="plus" size="16"/>
+                </button>
             </div>
         </div>
     </div>
 
-    {{-- Availability + warehouse picker both live in <x-gazu.warehouse-selector>
-         (middle column of the product page). It syncs back here via the
-         `warehouse-selected`
-         window event — see the @warehouse-selected.window listener on the root. --}}
-
-    <div class="h-px bg-[var(--gazu-line)] my-5"></div>
+    <div class="h-px bg-[var(--gazu-line)] mb-4"></div>
 
     <form action="{{ route('gazu.cart.add') }}" method="POST" @submit.prevent="addToCart">
         @csrf
         <input type="hidden" name="product_id" value="{{ $productId }}">
         <input type="hidden" name="quantity" :value="q">
         <input type="hidden" name="warehouse_id" :value="warehouseId">
-
-        {{-- Quantity selector — bigger, centered, easier to tap --}}
-        <div class="flex items-center justify-between gap-3 mb-4">
-            <span class="text-[13px] font-medium text-[var(--gazu-graphite)]">Кількість</span>
-            <div class="flex items-center bg-[var(--gazu-mist)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
-                <button type="button" @click="q = Math.max(1, q-1)"
-                    aria-label="Зменшити кількість"
-                    class="w-11 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    :disabled="q <= 1">
-                    <x-gazu.icon name="minus" size="16"/>
-                </button>
-                <input x-model.number="q" type="number" min="1" :max="available || 99"
-                    aria-label="Кількість"
-                    class="w-14 h-11 text-center border-0 bg-white text-base gazu-mono font-semibold text-[var(--gazu-ink)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
-                <button type="button" @click="q = Math.min((available || 99), q+1)"
-                    aria-label="Збільшити кількість"
-                    class="w-11 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    :disabled="available > 0 && q >= available">
-                    <x-gazu.icon name="plus" size="16"/>
-                </button>
-            </div>
-            <span x-show="available > 0" class="text-[11px] text-[var(--gazu-muted)] gazu-mono">
-                макс. <span x-text="available"></span>
-            </span>
-        </div>
 
         @php
             $oneClickEnabled = ($gazuSettings['gazu_oneclick_enabled'] ?? true);
