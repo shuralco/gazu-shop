@@ -285,6 +285,24 @@ html.gazu, body.gazu {
     }
 }
 
+/* === Filter panel: off-canvas drawer on mobile/tablet === */
+@media (max-width: 1023px) {
+    .gazu-grid-sidebar > .gazu-filter-panel {
+        position: fixed; top: 0; bottom: 0; left: 0; z-index: 70;
+        width: 88%; max-width: 340px;
+        background: #fff;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+        padding: 16px;
+        overflow-y: auto;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .gazu-grid-sidebar > .gazu-filter-panel[data-open="1"] { transform: translateX(0); }
+    @media (prefers-reduced-motion: reduce) {
+        .gazu-grid-sidebar > .gazu-filter-panel { transition: none; }
+    }
+}
+
 /* === Toast progress-bar countdown === */
 .gazu-toast { position: relative; overflow: hidden; }
 .gazu-toast::after {

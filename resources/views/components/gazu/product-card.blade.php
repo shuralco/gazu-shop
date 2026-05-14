@@ -52,18 +52,18 @@
         </button>
     @endif
 
-    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline relative">
-        <x-gazu.part-image kind="{{ $image }}" size="{{ $compact ? 130 : 170 }}"/>
+    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline relative overflow-hidden p-2 sm:p-3">
+        <x-gazu.part-image kind="{{ $image }}" fit/>
         @if($oem)
             {{-- bottom-left so it never collides with the discount badge (top-left) or wishlist heart (top-right) --}}
-            <span class="absolute bottom-2 left-2 px-2 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
+            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
         @endif
     </a>
 
-    <div class="{{ $compact ? 'p-3' : 'p-3.5' }} flex flex-col gap-2">
-        <div class="flex items-center gap-1.5">
+    <div class="{{ $compact ? 'p-2.5 sm:p-3.5' : 'p-3.5' }} flex flex-col gap-1.5 sm:gap-2">
+        <div class="flex items-center gap-1.5 min-w-0">
             <x-gazu.condition-badge value="{{ $condition }}"/>
-            <span class="gazu-mono text-[11px] text-[var(--gazu-graphite)]">{{ $brand }}</span>
+            <span class="gazu-mono text-[11px] text-[var(--gazu-graphite)] truncate">{{ $brand }}</span>
         </div>
 
         <a wire:navigate href="{{ $url }}" class="text-[13px] text-[var(--gazu-ink)] leading-snug font-medium no-underline line-clamp-2" style="min-height: 36px;">
@@ -90,11 +90,11 @@
 
         <x-gazu.stock qty="{{ $qty }}"/>
 
-        <div class="flex items-end gap-2 mt-1">
+        <div class="flex items-end gap-2 mt-1 flex-wrap">
             @if($oldPrice)
                 <span class="text-xs text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</span>
             @endif
-            <span class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] leading-none">
+            <span class="gazu-display text-[19px] sm:text-[22px] font-bold text-[var(--gazu-ink)] leading-none">
                 {{ number_format($price, 0, '.', ' ') }} <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span>
             </span>
         </div>
@@ -151,7 +151,7 @@
                         title="Купити в 1 клік"
                         x-data
                         @click.prevent="$dispatch('gazu:one-click', { productId: '{{ $productId }}', productName: @js($name), productPrice: {{ (float) $price }} })"
-                        class="w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
+                        class="w-8 sm:w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 </button>
             @endif

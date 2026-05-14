@@ -55,18 +55,50 @@
 
         @include('gazu.partials.active-filters', ['category' => $category])
 
-        <div class="gazu-grid-sidebar mt-3">
-            <x-gazu.filter-panel
-                :priceRange="$priceRange"
-                :availableBrands="$availableBrands"
-                :selectedBrands="$selectedBrands"
-                :availableConditions="$availableConditions ?? null"
-                :selectedConditions="$selectedConditions ?? []"
-                :inStockOnly="$inStockOnly"
-                :searchQuery="$searchQuery"
-                :category="$category"/>
+        <div class="gazu-grid-sidebar mt-3" x-data="{ filtersOpen: false }"
+             @keydown.escape.window="filtersOpen = false"
+             :class="filtersOpen ? 'gazu-filters-active' : ''">
+            {{-- Backdrop (mobile only) --}}
+            <div x-show="filtersOpen" x-cloak x-transition.opacity
+                 class="lg:hidden fixed inset-0 z-[69]" style="background: rgba(14,27,44,0.5);"
+                 @click="filtersOpen = false"></div>
+
+            {{-- Filter panel: static sidebar on desktop, off-canvas drawer on mobile --}}
+            <div class="gazu-filter-panel" :data-open="filtersOpen ? '1' : '0'">
+                <div class="lg:hidden flex items-center justify-between mb-3 pb-3 border-b border-[var(--gazu-line)]">
+                    <span class="gazu-display text-lg font-semibold text-[var(--gazu-ink)]">Фільтри</span>
+                    <button type="button" @click="filtersOpen = false"
+                            class="w-8 h-8 rounded-md hover:bg-[var(--gazu-mist)] flex items-center justify-center text-[var(--gazu-graphite)] cursor-pointer" aria-label="Закрити">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                </div>
+                <x-gazu.filter-panel
+                    :priceRange="$priceRange"
+                    :availableBrands="$availableBrands"
+                    :selectedBrands="$selectedBrands"
+                    :availableConditions="$availableConditions ?? null"
+                    :selectedConditions="$selectedConditions ?? []"
+                    :inStockOnly="$inStockOnly"
+                    :searchQuery="$searchQuery"
+                    :category="$category"/>
+            </div>
             <div class="min-w-0">
-                @php $currentView = request('view') === 'list' ? 'list' : 'grid'; @endphp
+                @php
+                    $currentView = request('view') === 'list' ? 'list' : 'grid';
+                    $activeFilterCount = (is_array(request('brand')) ? count(request('brand')) : 0)
+                        + (is_array(request('condition')) ? count(request('condition')) : 0)
+                        + (request()->filled('min') || request()->filled('max') ? 1 : 0)
+                        + (request('stock') === 'in' ? 1 : 0);
+                @endphp
+                {{-- Mobile filter trigger --}}
+                <button type="button" @click="filtersOpen = true"
+                        class="lg:hidden w-full mb-3 px-4 py-2.5 bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gap-2 text-[13px] font-medium text-[var(--gazu-ink)] cursor-pointer">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+                    Фільтри
+                    @if($activeFilterCount > 0)
+                        <span class="ml-1 px-1.5 py-0.5 bg-[var(--gazu-ink)] text-white text-[11px] rounded-full gazu-mono leading-none">{{ $activeFilterCount }}</span>
+                    @endif
+                </button>
                 @include('gazu.partials.sort-bar', ['count' => $totalCount, 'view' => $currentView, 'currentSort' => $currentSort])
 
                 @if($products->isEmpty())

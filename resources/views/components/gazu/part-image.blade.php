@@ -1,4 +1,4 @@
-@props(['kind' => 'filter', 'size' => 160])
+@props(['kind' => 'filter', 'size' => 160, 'fit' => false])
 @php
     $T = (object)[
         'ink' => '#0E1B2C', 'bone' => '#F5F2EC', 'paper' => '#FBFAF7',
@@ -65,7 +65,13 @@
     }
     $svg = $ill[$kind] ?? $ill['filter'];
 @endphp
+@if($fit)
+{{-- fit: SVG fills its container; tighter viewBox crops the paper margin so
+     the part illustration reads larger on catalog cards / list rows. --}}
+<svg width="100%" height="100%" viewBox="22 18 116 124" preserveAspectRatio="xMidYMid meet" {{ $attributes->merge(['class' => 'block max-w-full max-h-full']) }}>
+@else
 <svg width="{{ $size }}" height="{{ $size }}" viewBox="0 0 160 160" {{ $attributes->merge(['class' => 'block']) }}>
+@endif
     <rect width="160" height="160" fill="{{ $T->paper }}"/>
     {!! $svg !!}
 </svg>

@@ -60,18 +60,14 @@ class CacheHeaders
             return $response;
         }
 
-        // Product and category pages: 1 hour, browser-cache only.
-        // MUST be `private` (not public) — every storefront page embeds
-        // a session-bound CSRF token in inline JS handlers. With `public`,
-        // Traefik/CDN caches one user's HTML+token and serves it to other
-        // users → CSRF mismatch on cart/checkout POST (HTTP 419).
-        if ($this->isProductOrCategory($request)) {
-            $response->headers->set('Cache-Control', 'private, max-age=3600, must-revalidate');
-            return $response;
-        }
-
-        // Default: 10 minutes browser cache, private only.
-        $response->headers->set('Cache-Control', 'private, max-age=600, must-revalidate');
+        // All other HTML pages (home, product, category, blog, info…):
+        // revalidate every time — NEVER cache HTML with a TTL. Every page
+        // embeds (a) a session-bound CSRF token and (b) Vite build-hashed
+        // asset URLs. A TTL-cached copy survives a deploy and then points at
+        // a pruned `*.css`/`*.js` hash → unstyled / broken page until the TTL
+        // expires. `no-cache` still allows bfcache but forces revalidation;
+        // the server-side `Cache::tags(['catalog'])` layer keeps it fast.
+        $response->headers->set('Cache-Control', 'private, no-cache, must-revalidate');
 
         return $response;
     }
@@ -94,12 +90,5 @@ class CacheHeaders
     private function isUserArea(string $path): bool
     {
         return (bool) preg_match('/(cabinet|account|profile|orders)/i', $path);
-    }
-
-    private function isProductOrCategory(Request $request): bool
-    {
-        $routeName = $request->route()?->getName() ?? '';
-
-        return in_array($routeName, ['product', 'category', 'home', 'brands', 'hits', 'new', 'specials']);
     }
 }
