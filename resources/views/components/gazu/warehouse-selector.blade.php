@@ -52,7 +52,20 @@
             @if($article)
                 <div class="flex items-baseline gap-2">
                     <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Артикул</span>
-                    <span class="text-[13px] gazu-mono text-[var(--gazu-ink)]">{{ $article }}</span>
+                    {{-- click to copy the article number to the clipboard --}}
+                    <button type="button"
+                            x-data="{ copied: false }"
+                            @click="navigator.clipboard.writeText(@js($article)).then(() => {
+                                copied = true;
+                                window.gazuToast && window.gazuToast('Артикул скопійовано', 'success');
+                                setTimeout(() => copied = false, 1500);
+                            }).catch(() => window.gazuToast && window.gazuToast('Не вдалося скопіювати', 'error'))"
+                            title="Скопіювати артикул"
+                            class="text-[13px] gazu-mono text-[var(--gazu-ink)] inline-flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0 hover:text-[var(--gazu-blue)] transition-colors">
+                        <span>{{ $article }}</span>
+                        <svg x-show="!copied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-55 shrink-0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <svg x-show="copied" x-cloak width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gazu-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
+                    </button>
                 </div>
             @endif
             <span x-text="available > 0 ? ('У наявності · ' + available + ' шт') : 'Немає в наявності'"
