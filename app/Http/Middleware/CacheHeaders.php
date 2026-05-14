@@ -45,8 +45,10 @@ class CacheHeaders
             return $response;
         }
 
-        // Cart & checkout: never cache
-        if ($this->isCartOrCheckout($path)) {
+        // Cart, checkout & auth: never cache. These pages embed a
+        // session-bound CSRF token; a cached copy serves a stale token
+        // and every POST fails with HTTP 419 "Page Expired".
+        if ($this->isCartOrCheckout($path) || $this->isAuthPath($path)) {
             $response->headers->set('Cache-Control', 'no-cache, no-store, must-revalidate');
             $response->headers->set('Pragma', 'no-cache');
             return $response;
@@ -82,6 +84,11 @@ class CacheHeaders
     private function isCartOrCheckout(string $path): bool
     {
         return (bool) preg_match('/(cart|checkout|payment)/i', $path);
+    }
+
+    private function isAuthPath(string $path): bool
+    {
+        return (bool) preg_match('#^(auth|login|register|wishlist|garage)#i', $path);
     }
 
     private function isUserArea(string $path): bool
