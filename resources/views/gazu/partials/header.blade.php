@@ -8,7 +8,9 @@
         @keydown.escape.window="megaOpen = false">
     @include('gazu.partials.topbar')
 
-    <div class="gazu-container py-4 flex items-center gap-2 sm:gap-5">
+    {{-- flex-wrap so the search box drops to its own full-width row below `lg`
+         instead of being crushed to ~30px between the logo and action icons. --}}
+    <div class="gazu-container py-3 sm:py-4 flex flex-wrap items-center gap-x-2 gap-y-3 lg:flex-nowrap lg:gap-5">
         <a wire:navigate href="{{ route('gazu.home') }}" class="no-underline shrink-0">
             <x-gazu.logo size="26"/>
         </a>
@@ -21,8 +23,9 @@
             <x-gazu.icon name="menu" size="18"/> <span class="hidden sm:inline">Каталог</span>
         </button>
 
-        {{-- Search bar — артикул / категорія / бренд з live autocomplete --}}
-        <div class="flex-1 min-w-0 relative"
+        {{-- Search bar — артикул / категорія / бренд з live autocomplete.
+             Own full-width row below `lg`; inline flex-1 from `lg` up. --}}
+        <div class="order-last w-full lg:order-none lg:w-auto lg:flex-1 min-w-0 relative"
              x-data="{
                 q: @js(request('q', '')),
                 items: [],
@@ -103,8 +106,9 @@
             </a>
         @endif
 
-        {{-- Actions — compact on mobile (9×9), full from sm: up (11×11) --}}
-        <div class="flex items-center gap-1 shrink-0">
+        {{-- Actions — compact on mobile (9×9), full from sm: up (11×11).
+             ml-auto pushes them to the right edge of row 1 on mobile. --}}
+        <div class="flex items-center gap-1 shrink-0 ml-auto lg:ml-0">
             <a wire:navigate href="{{ route('gazu.wishlist') }}" title="Обране" class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="heart" size="20"/>
                 @auth
@@ -164,8 +168,12 @@
             {{-- Dim overlay covers ENTIRE page (positioned fixed under body) --}}
             <div class="fixed inset-0 bg-black/45 z-[55] cursor-pointer"
                  @click="megaOpen = false"></div>
-            {{-- Popover positioned just under the header --}}
-            <div class="fixed top-[105px] left-1/2 -translate-x-1/2 z-[56] w-[min(1280px,calc(100vw-48px))]"
+            {{-- Popover: near-fullscreen sheet on mobile, centred 1280px popover on desktop.
+                 The mobile shell pins top/bottom so the mega-menu body scrolls inside it
+                 instead of overflowing the viewport. --}}
+            <div class="fixed z-[56] left-2 right-2 top-2 bottom-2
+                        lg:left-1/2 lg:right-auto lg:top-[105px] lg:bottom-auto
+                        lg:-translate-x-1/2 lg:w-[min(1280px,calc(100vw-48px))]"
                  @click.outside="megaOpen = false">
                 @include('gazu.partials.mega-menu', ['activeMega' => 'engine'])
             </div>

@@ -15,18 +15,19 @@
     <div></div>
 @else
 
-{{-- Popover container (positioned by parent in header.blade.php) --}}
-<div class="bg-white rounded-xl overflow-hidden border border-[var(--gazu-line)] relative"
-     x-data="{ activeMega: '{{ $megaTree[0]['id'] ?? 'engine' }}' }"
+{{-- Popover container (positioned by parent in header.blade.php).
+     flex-col + max-h-full so the body scrolls inside the fixed shell on mobile. --}}
+<div class="bg-white rounded-xl overflow-hidden border border-[var(--gazu-line)] relative flex flex-col max-h-full"
+     x-data="{ activeMega: '{{ $megaTree[0]['id'] ?? 'engine' }}', mobileOpen: null }"
      style="box-shadow: 0 28px 60px -10px rgba(14,27,44,0.35), 0 8px 16px rgba(14,27,44,0.12);">
 
-    {{-- Pointer arrow that visually connects popover to "Каталог" button --}}
-    <div class="absolute -top-2 w-4 h-4 bg-white border-l border-t border-[var(--gazu-line)] rotate-45 z-10" style="left: 156px;"></div>
+    {{-- Pointer arrow that visually connects popover to "Каталог" button — desktop only --}}
+    <div class="hidden lg:block absolute -top-2 w-4 h-4 bg-white border-l border-t border-[var(--gazu-line)] rotate-45 z-10" style="left: 156px;"></div>
 
     {{-- Top strip --}}
-    <div class="flex items-center gap-3 px-5 py-2.5 border-b border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
-        <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">Повний каталог</span>
-        <span class="gazu-mono text-[11px] text-[var(--gazu-muted)]">· {{ number_format($totalCount, 0, '.', ' ') }} товарів у {{ count($megaTree) }} категоріях</span>
+    <div class="flex items-center gap-3 px-4 sm:px-5 py-2.5 border-b border-[var(--gazu-line)] bg-[var(--gazu-paper)] shrink-0">
+        <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">Каталог</span>
+        <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] hidden sm:inline">· {{ number_format($totalCount, 0, '.', ' ') }} товарів у {{ count($megaTree) }} категоріях</span>
         <span class="flex-1"></span>
         <button type="button" @click="megaOpen = false"
                 class="w-7 h-7 border border-[var(--gazu-line)] bg-white rounded inline-flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)]">
@@ -34,7 +35,86 @@
         </button>
     </div>
 
-    <div class="grid min-h-[540px]" style="grid-template-columns: 264px 1fr 260px;">
+    {{-- ============ MOBILE / TABLET: single-column accordion (< lg) ============ --}}
+    <div class="lg:hidden overflow-y-auto">
+        @foreach($megaTree as $c)
+            @php $catLink = ! empty($c['slug']) ? url('/'.$c['slug']) : route('gazu.catalog'); @endphp
+            <div class="border-b border-[var(--gazu-line)] last:border-b-0">
+                <button type="button"
+                        @click="mobileOpen = (mobileOpen === '{{ $c['id'] }}' ? null : '{{ $c['id'] }}')"
+                        :class="mobileOpen === '{{ $c['id'] }}' ? 'bg-[var(--gazu-paper)]' : 'bg-white'"
+                        class="w-full flex items-center gap-3 px-4 py-3.5 border-0 cursor-pointer text-left">
+                    <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="22"/>
+                    <span class="flex-1 text-[15px] font-semibold text-[var(--gazu-ink)]">{{ $c['label'] }}</span>
+                    <span class="gazu-mono text-[11px] text-[var(--gazu-muted)]">{{ number_format($c['count'], 0, '.', ' ') }}</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         class="text-[var(--gazu-graphite)] transition-transform duration-200"
+                         :class="mobileOpen === '{{ $c['id'] }}' ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
+                </button>
+                <div x-show="mobileOpen === '{{ $c['id'] }}'" x-cloak x-transition.opacity.duration.150ms
+                     class="px-4 pb-4 bg-[var(--gazu-paper)]">
+                    <a wire:navigate href="{{ $catLink }}"
+                       class="flex items-center justify-center gap-1.5 w-full py-2.5 mb-3 bg-[var(--gazu-ink)] text-white rounded-md text-[13px] font-medium no-underline">
+                        Усі товари категорії →
+                    </a>
+                    @foreach($c['groups'] as $g)
+                        <div class="mb-3.5 last:mb-0">
+                            @if(!empty($g['title']))
+                                <div class="gazu-display text-[13px] font-bold text-[var(--gazu-ink)] mb-1.5">{{ $g['title'] }}</div>
+                            @endif
+                            <div class="flex flex-col">
+                                @foreach($g['items'] as $itm)
+                                    @php
+                                        $itmName = $itm[0] ?? '—';
+                                        $itmCount = $itm[1] ?? 0;
+                                        $itmSlug = $itm[2] ?? '';
+                                        $itmHref = $itmSlug ? url('/'.$itmSlug) : route('gazu.catalog');
+                                    @endphp
+                                    <a wire:navigate href="{{ $itmHref }}"
+                                       class="flex items-baseline gap-2 py-1.5 text-[13px] text-[var(--gazu-graphite)] no-underline">
+                                        <span class="flex-1">{{ $itmName }}</span>
+                                        <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $itmCount }}</span>
+                                    </a>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endforeach
+
+        {{-- Brands + cars below the accordion on mobile --}}
+        @php
+            $menuBrands = is_array($brands) ? $brands : ($brands instanceof \Illuminate\Support\Enumerable ? $brands->pluck('name')->all() : []);
+        @endphp
+        @if(! empty($menuBrands))
+            <div class="px-4 py-4 border-t border-[var(--gazu-line)]">
+                <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-2.5">Топ бренди</div>
+                <div class="grid grid-cols-3 gap-1.5">
+                    @foreach(array_slice($menuBrands, 0, 9) as $b)
+                        <div class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white">{{ $b }}</div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+        @if(! empty($cars))
+            <div class="px-4 py-4 border-t border-[var(--gazu-line)]">
+                <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold mb-2">🇨🇳 Китайські авто</div>
+                <div class="flex flex-col gap-0.5">
+                    @foreach($cars as [$brand, $model, $years])
+                        <a wire:navigate href="{{ route('gazu.catalog', ['q' => $brand.' '.$model]) }}"
+                           class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs">
+                            <span class="flex-1">{{ $brand }} {{ $model }}</span>
+                            <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $years }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+    </div>
+
+    {{-- ============ DESKTOP: 3-column hover layout (lg+) ============ --}}
+    <div class="hidden lg:grid min-h-[540px]" style="grid-template-columns: 264px 1fr 260px;">
 
         {{-- L1 — root --}}
         <nav class="border-r border-[var(--gazu-line)] py-3.5 bg-[var(--gazu-paper)]">
