@@ -34,46 +34,59 @@
          }"
          role="radiogroup" aria-label="Вибір складу для доставки">
 
-        {{-- Product meta — condition · brand · article · availability of the selected warehouse --}}
-        <div class="pb-4 mb-4 border-b border-[var(--gazu-line)] flex flex-col gap-2">
+        {{-- Product meta — one consistent label/value style across the whole block.
+             Labels: 11px uppercase semibold graphite, fixed width so values align.
+             Values: 13px medium ink. --}}
+        <div class="pb-4 mb-4 border-b border-[var(--gazu-line)]">
             @if($condition)
-                <div><x-gazu.condition-badge value="{{ $condition }}"/></div>
+                <div class="mb-3"><x-gazu.condition-badge value="{{ $condition }}"/></div>
             @endif
-            @if($brand)
-                <div class="flex items-baseline gap-2">
-                    <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Бренд</span>
-                    @if($brandUrl)
-                        <a wire:navigate href="{{ $brandUrl }}" class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
-                    @else
-                        <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
-                    @endif
+            <dl class="flex flex-col gap-2 m-0">
+                @if($brand)
+                    <div class="flex items-baseline gap-3">
+                        <dt class="w-20 shrink-0 text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)]">Бренд</dt>
+                        <dd class="m-0 text-[13px] font-medium text-[var(--gazu-ink)]">
+                            @if($brandUrl)
+                                <a wire:navigate href="{{ $brandUrl }}" class="text-[var(--gazu-ink)] no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
+                            @else
+                                {{ $brand }}
+                            @endif
+                        </dd>
+                    </div>
+                @endif
+                @if($article)
+                    <div class="flex items-baseline gap-3">
+                        <dt class="w-20 shrink-0 text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)]">Артикул</dt>
+                        <dd class="m-0">
+                            {{-- click to copy the article number to the clipboard --}}
+                            <button type="button"
+                                    x-data="{ copied: false }"
+                                    @click="navigator.clipboard.writeText(@js($article)).then(() => {
+                                        copied = true;
+                                        window.gazuToast && window.gazuToast('Артикул скопійовано', 'success');
+                                        setTimeout(() => copied = false, 1500);
+                                    }).catch(() => window.gazuToast && window.gazuToast('Не вдалося скопіювати', 'error'))"
+                                    title="Скопіювати артикул"
+                                    class="text-[13px] font-medium gazu-mono text-[var(--gazu-ink)] inline-flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0 hover:text-[var(--gazu-blue)] transition-colors">
+                                <span>{{ $article }}</span>
+                                <svg x-show="!copied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-55 shrink-0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <svg x-show="copied" x-cloak width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gazu-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
+                            </button>
+                        </dd>
+                    </div>
+                @endif
+                <div class="flex items-baseline gap-3">
+                    <dt class="w-20 shrink-0 text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)]">Наявність</dt>
+                    <dd class="m-0">
+                        <span x-text="available > 0 ? (available + ' шт') : 'Немає'"
+                              :class="available > 0 ? 'text-[var(--gazu-success)]' : 'text-[var(--gazu-danger)]'"
+                              class="text-[13px] font-medium">—</span>
+                    </dd>
                 </div>
-            @endif
-            @if($article)
-                <div class="flex items-baseline gap-2">
-                    <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Артикул</span>
-                    {{-- click to copy the article number to the clipboard --}}
-                    <button type="button"
-                            x-data="{ copied: false }"
-                            @click="navigator.clipboard.writeText(@js($article)).then(() => {
-                                copied = true;
-                                window.gazuToast && window.gazuToast('Артикул скопійовано', 'success');
-                                setTimeout(() => copied = false, 1500);
-                            }).catch(() => window.gazuToast && window.gazuToast('Не вдалося скопіювати', 'error'))"
-                            title="Скопіювати артикул"
-                            class="text-[13px] gazu-mono text-[var(--gazu-ink)] inline-flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0 hover:text-[var(--gazu-blue)] transition-colors">
-                        <span>{{ $article }}</span>
-                        <svg x-show="!copied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-55 shrink-0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-                        <svg x-show="copied" x-cloak width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gazu-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
-                    </button>
-                </div>
-            @endif
-            <span x-text="available > 0 ? ('У наявності · ' + available + ' шт') : 'Немає в наявності'"
-                  :class="available > 0 ? 'text-[var(--gazu-success)]' : 'text-[var(--gazu-danger)]'"
-                  class="text-[13px] font-medium">У наявності</span>
+            </dl>
         </div>
 
-        <div class="text-[11px] uppercase tracking-wide font-bold text-[var(--gazu-graphite)] mb-3">Доставка зі складу</div>
+        <div class="text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)] mb-3">Доставка зі складу</div>
         <div class="flex flex-col gap-1.5">
             @foreach($stocks as $idx => $s)
                 @php
