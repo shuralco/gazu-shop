@@ -128,6 +128,17 @@ html.gazu, body.gazu {
 
 .gazu-grid-product-tabs { display: grid; gap: 28px; grid-template-columns: 1.1fr 1fr; }
 
+/* Product top section: gallery · warehouse selector · buy-panel.
+   Single column on mobile/tablet, three columns from lg up. */
+.gazu-grid-product-3col { display: grid; gap: 24px; grid-template-columns: 1fr; }
+.gazu-grid-product-3col > * { min-width: 0; }
+@media (min-width: 1024px) {
+    .gazu-grid-product-3col {
+        grid-template-columns: minmax(300px, 440px) minmax(220px, 1fr) 340px;
+        align-items: start;
+    }
+}
+
 .gazu-grid-cart-row {
     display: grid;
     grid-template-columns: 80px 1fr 40px;

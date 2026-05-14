@@ -85,9 +85,7 @@
     <div class="gazu-container">
         @include('gazu.partials.product-breadcrumbs', compact('p', 'brand', 'oem', 'name'))
 
-        <div class="gazu-grid-buy">
-            <div>
-                @php
+        @php
                     // Brand badge link → catalog filter (same logic as spec rows below).
                     $brandHeaderSlug = null;
                     if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
@@ -142,37 +140,58 @@
                     </div>
                 @endif
 
-                {{-- Gallery — full width. The "Ключові характеристики" summary
-                     block used to sit to the right of the gallery; the full
-                     spec list still lives in the "Характеристики" tab below,
-                     so dropping the summary loses nothing and lets the main
-                     product photo fill the whole column. --}}
-                <div class="grid grid-cols-[60px_1fr] gap-3">
-                    <div class="flex flex-col gap-2">
-                        @for($i = 0; $i < 4; $i++)
-                            <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
-                                <x-gazu.part-image kind="{{ $kind }}" fit/>
-                            </div>
-                        @endfor
-                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
-                            +6
+        {{-- Product top section — 3 columns: gallery · warehouse selector · buy-panel --}}
+        <div class="gazu-grid-product-3col mt-1">
+            {{-- Column 1 — gallery (constrained size, fits its column) --}}
+            <div class="grid grid-cols-[60px_1fr] gap-3 items-start">
+                <div class="flex flex-col gap-2">
+                    @for($i = 0; $i < 4; $i++)
+                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
+                            <x-gazu.part-image kind="{{ $kind }}" size="42"/>
                         </div>
-                    </div>
-                    <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
-                        <div class="absolute inset-0 gazu-grid-pattern"></div>
-                        <div class="absolute inset-0">
-                            <x-gazu.part-image kind="{{ $kind }}" fit/>
-                        </div>
-                        <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
-                            1 / 8
-                        </div>
-                        <button type="button" class="absolute top-3.5 right-3.5 w-9 h-9 border border-[var(--gazu-line)] bg-white rounded-lg cursor-pointer inline-flex items-center justify-center text-[var(--gazu-graphite)]">
-                            <x-gazu.icon name="heart" size="18"/>
-                        </button>
+                    @endfor
+                    <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
+                        +6
                     </div>
                 </div>
+                <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
+                    <div class="absolute inset-0 gazu-grid-pattern"></div>
+                    <div class="absolute inset-0 flex items-center justify-center">
+                        <x-gazu.part-image kind="{{ $kind }}" size="400"/>
+                    </div>
+                    <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
+                        1 / 8
+                    </div>
+                    <button type="button" class="absolute top-3.5 right-3.5 w-9 h-9 border border-[var(--gazu-line)] bg-white rounded-lg cursor-pointer inline-flex items-center justify-center text-[var(--gazu-graphite)]">
+                        <x-gazu.icon name="heart" size="18"/>
+                    </button>
+                </div>
+            </div>{{-- /column 1 — gallery --}}
 
-                @php
+            {{-- Column 2 — warehouse selector (moved out of buy-panel; syncs via the
+                 `warehouse-selected` window event the buy-panel listens for) --}}
+            <div>
+                <x-gazu.warehouse-selector
+                    :warehouseStocks="$warehouseStocks ?? collect()"
+                    :closestWarehouseId="$closestWarehouseId ?? null"
+                    :price="$price"/>
+            </div>
+
+            {{-- Column 3 — buy-panel --}}
+            <div class="lg:sticky lg:top-4 lg:self-start" id="buy-panel-anchor">
+                <x-gazu.buy-panel
+                    :price="$price"
+                    :oldPrice="$oldPrice"
+                    :qty="$qty"
+                    :discount="$discount"
+                    :productId="is_object($p) ? ($p->id ?? null) : null"
+                    :name="$name"
+                    :warehouseStocks="$warehouseStocks ?? collect()"
+                    :closestWarehouseId="$closestWarehouseId ?? null"/>
+            </div>
+        </div>{{-- /gazu-grid-product-3col --}}
+
+        @php
                     $analogList = ($analogs ?? null) instanceof \Illuminate\Support\Collection
                         ? $analogs : collect();
                     $tabCounts = [
@@ -373,22 +392,7 @@
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="lg:sticky lg:top-4 lg:self-start" id="buy-panel-anchor">
-                <x-gazu.buy-panel
-                    :price="$price"
-                    :oldPrice="$oldPrice"
-                    :qty="$qty"
-                    :discount="$discount"
-                    :productId="is_object($p) ? ($p->id ?? null) : null"
-                    :name="$name"
-                    :warehouseStocks="$warehouseStocks ?? collect()"
-                    :closestWarehouseId="$closestWarehouseId ?? null"
-                />
-            </div>
-        </div>
+                </div>{{-- /tabs --}}
 
         <x-gazu.featured-row title="Часто купують разом" :items="$related"/>
     </div>
