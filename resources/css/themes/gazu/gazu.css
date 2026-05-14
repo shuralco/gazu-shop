@@ -128,13 +128,22 @@ html.gazu, body.gazu {
 
 .gazu-grid-product-tabs { display: grid; gap: 28px; grid-template-columns: 1.1fr 1fr; }
 
-/* Product top section: gallery · warehouse selector · buy-panel.
-   Single column on mobile/tablet, three columns from lg up. */
-.gazu-grid-product-3col { display: grid; gap: 24px; grid-template-columns: 1fr; }
-.gazu-grid-product-3col > * { min-width: 0; }
+/* Product top section. Outer grid: gallery | right-hand side.
+   The right-hand side stacks the product title over a nested grid of
+   [ central info+warehouse column | buy-panel ]. Single column < lg. */
+.gazu-grid-product-main { display: grid; gap: 24px; grid-template-columns: 1fr; }
+.gazu-grid-product-main > * { min-width: 0; }
 @media (min-width: 1024px) {
-    .gazu-grid-product-3col {
-        grid-template-columns: minmax(300px, 440px) minmax(220px, 1fr) 340px;
+    .gazu-grid-product-main {
+        grid-template-columns: minmax(300px, 440px) 1fr;
+        align-items: start;
+    }
+}
+.gazu-grid-product-rhs { display: grid; gap: 24px; grid-template-columns: 1fr; }
+.gazu-grid-product-rhs > * { min-width: 0; }
+@media (min-width: 1024px) {
+    .gazu-grid-product-rhs {
+        grid-template-columns: minmax(220px, 1fr) 340px;
         align-items: start;
     }
 }

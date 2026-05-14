@@ -99,30 +99,10 @@
             $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
             $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
         @endphp
-        <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-            <x-gazu.condition-badge value="Новий"/>
-            @if($rating > 0 || $reviews > 0 || $soldCount > 0)
-                <div class="flex items-center gap-1 whitespace-nowrap">
-                    @if($rating > 0)
-                        <div class="flex gap-px text-[var(--gazu-warn)]">
-                            @for($i = 1; $i <= 5; $i++)
-                                <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
-                            @endfor
-                        </div>
-                    @endif
-                    <span class="text-xs text-[var(--gazu-graphite)]">
-                        @if($rating > 0){{ number_format($rating, 1) }}@endif
-                        @if($reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
-                        @if($soldCount > 0) · {{ $soldCount }} продано @endif
-                    </span>
-                </div>
-            @endif
-        </div>
-        <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-5 leading-tight">{{ $name }}</h1>
-
-        {{-- Product top section — 3 columns: gallery · info+warehouse · buy-panel --}}
-        <div class="gazu-grid-product-3col mt-1">
-            {{-- Column 1 — gallery: big main image, thumbnails row below it --}}
+        {{-- Product top — outer grid: gallery | right-hand side.
+             RHS = title (over) + nested grid [ info+warehouse | buy-panel ]. --}}
+        <div class="gazu-grid-product-main mt-1">
+            {{-- Gallery: big main image, thumbnails row below it --}}
             <div class="flex flex-col gap-3">
                 <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
@@ -147,33 +127,57 @@
                         +6
                     </div>
                 </div>
-            </div>{{-- /column 1 — gallery --}}
+            </div>{{-- /gallery --}}
 
-            {{-- Column 2 — product meta (brand · article · availability) + warehouse
-                 selector. Syncs the buy-panel via the `warehouse-selected` event. --}}
+            {{-- Right-hand side: product title spanning the two columns below it --}}
             <div>
-                <x-gazu.warehouse-selector
-                    :warehouseStocks="$warehouseStocks ?? collect()"
-                    :closestWarehouseId="$closestWarehouseId ?? null"
-                    :price="$price"
-                    :brand="$brand"
-                    :brandUrl="$brandUrl"
-                    :article="$oemReal"/>
-            </div>
+                <h1 class="gazu-display text-[28px] sm:text-[32px] font-semibold text-[var(--gazu-ink)] m-0 leading-tight">{{ $name }}</h1>
+                @if($rating > 0 || $reviews > 0 || $soldCount > 0)
+                    <div class="flex items-center gap-1 whitespace-nowrap mt-2">
+                        @if($rating > 0)
+                            <div class="flex gap-px text-[var(--gazu-warn)]">
+                                @for($i = 1; $i <= 5; $i++)
+                                    <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
+                                @endfor
+                            </div>
+                        @endif
+                        <span class="text-xs text-[var(--gazu-graphite)]">
+                            @if($rating > 0){{ number_format($rating, 1) }}@endif
+                            @if($reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
+                            @if($soldCount > 0) · {{ $soldCount }} продано @endif
+                        </span>
+                    </div>
+                @endif
 
-            {{-- Column 3 — buy-panel --}}
-            <div class="lg:sticky lg:top-4 lg:self-start" id="buy-panel-anchor">
-                <x-gazu.buy-panel
-                    :price="$price"
-                    :oldPrice="$oldPrice"
-                    :qty="$qty"
-                    :discount="$discount"
-                    :productId="is_object($p) ? ($p->id ?? null) : null"
-                    :name="$name"
-                    :warehouseStocks="$warehouseStocks ?? collect()"
-                    :closestWarehouseId="$closestWarehouseId ?? null"/>
+                {{-- Nested grid: central info+warehouse column · buy-panel --}}
+                <div class="gazu-grid-product-rhs mt-4">
+                    {{-- Central column — condition · brand · article · availability
+                         + warehouse picker. Syncs the buy-panel via `warehouse-selected`. --}}
+                    <div>
+                        <x-gazu.warehouse-selector
+                            :warehouseStocks="$warehouseStocks ?? collect()"
+                            :closestWarehouseId="$closestWarehouseId ?? null"
+                            :price="$price"
+                            :brand="$brand"
+                            :brandUrl="$brandUrl"
+                            :article="$oemReal"/>
+                    </div>
+
+                    {{-- buy-panel --}}
+                    <div class="lg:sticky lg:top-4 lg:self-start" id="buy-panel-anchor">
+                        <x-gazu.buy-panel
+                            :price="$price"
+                            :oldPrice="$oldPrice"
+                            :qty="$qty"
+                            :discount="$discount"
+                            :productId="is_object($p) ? ($p->id ?? null) : null"
+                            :name="$name"
+                            :warehouseStocks="$warehouseStocks ?? collect()"
+                            :closestWarehouseId="$closestWarehouseId ?? null"/>
+                    </div>
+                </div>
             </div>
-        </div>{{-- /gazu-grid-product-3col --}}
+        </div>{{-- /gazu-grid-product-main --}}
 
         @php
                     $analogList = ($analogs ?? null) instanceof \Illuminate\Support\Collection

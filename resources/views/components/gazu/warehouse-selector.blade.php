@@ -5,6 +5,7 @@
     'brand' => null,              // brand name — shown at the top of this column
     'brandUrl' => null,           // optional catalog-filter link for the brand
     'article' => null,            // SKU / OEM article number
+    'condition' => 'Новий',       // condition badge — shown at the top of this column
 ])
 @php
     $stocks = $warehouseStocks instanceof \Illuminate\Support\Collection ? $warehouseStocks : collect();
@@ -33,28 +34,27 @@
          }"
          role="radiogroup" aria-label="Вибір складу для доставки">
 
-        {{-- Product meta — brand · article · availability of the selected warehouse --}}
-        @if($brand || $article)
-            <div class="pb-4 mb-4 border-b border-[var(--gazu-line)] flex flex-col gap-1.5">
-                @if($brand)
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Бренд</span>
-                        @if($brandUrl)
-                            <a wire:navigate href="{{ $brandUrl }}" class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
-                        @else
-                            <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
-                        @endif
-                    </div>
-                @endif
-                @if($article)
-                    <div class="flex items-baseline gap-2">
-                        <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Артикул</span>
-                        <span class="text-[13px] gazu-mono text-[var(--gazu-ink)]">{{ $article }}</span>
-                    </div>
-                @endif
-            </div>
-        @endif
-        <div class="mb-3">
+        {{-- Product meta — condition · brand · article · availability of the selected warehouse --}}
+        <div class="pb-4 mb-4 border-b border-[var(--gazu-line)] flex flex-col gap-2">
+            @if($condition)
+                <div><x-gazu.condition-badge value="{{ $condition }}"/></div>
+            @endif
+            @if($brand)
+                <div class="flex items-baseline gap-2">
+                    <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Бренд</span>
+                    @if($brandUrl)
+                        <a wire:navigate href="{{ $brandUrl }}" class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
+                    @else
+                        <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
+                    @endif
+                </div>
+            @endif
+            @if($article)
+                <div class="flex items-baseline gap-2">
+                    <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Артикул</span>
+                    <span class="text-[13px] gazu-mono text-[var(--gazu-ink)]">{{ $article }}</span>
+                </div>
+            @endif
             <span x-text="available > 0 ? ('У наявності · ' + available + ' шт') : 'Немає в наявності'"
                   :class="available > 0 ? 'text-[var(--gazu-success)]' : 'text-[var(--gazu-danger)]'"
                   class="text-[13px] font-medium">У наявності</span>
