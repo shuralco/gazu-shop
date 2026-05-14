@@ -212,13 +212,26 @@ class CatalogQuery
         $term = trim((string) $this->request->query('q', ''));
         if ($term === '') return $q;
 
-        return $q->where(function ($w) use ($term) {
-            $like = '%'.$term.'%';
-            $w->where('sku', 'like', $like)
-              ->orWhere('barcode', 'like', $like)
-              ->orWhere('manufacturer', 'like', $like)
-              ->orWhere('title', 'like', $like)
-              ->orWhere('search_tags', 'like', $like);
+        // Case-insensitive across Cyrillic + Latin on any driver:
+        // MySQL's utf8mb4 LIKE is CI, but SQLite's is only CI for ASCII —
+        // so we LIKE against several case variants of the term. Cheap
+        // (3-4 OR branches), driver-agnostic, no LOWER() on JSON columns.
+        $variants = array_values(array_unique(array_filter([
+            $term,
+            mb_strtolower($term),
+            mb_strtoupper($term),
+            mb_convert_case($term, MB_CASE_TITLE),
+        ])));
+
+        return $q->where(function ($w) use ($variants) {
+            foreach ($variants as $v) {
+                $like = '%'.$v.'%';
+                $w->orWhere('sku', 'like', $like)
+                  ->orWhere('barcode', 'like', $like)
+                  ->orWhere('manufacturer', 'like', $like)
+                  ->orWhere('title', 'like', $like)
+                  ->orWhere('search_tags', 'like', $like);
+            }
         });
     }
 

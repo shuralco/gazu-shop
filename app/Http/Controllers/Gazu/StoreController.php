@@ -966,15 +966,27 @@ class StoreController extends Controller
             return response()->json(['items' => [], 'total' => 0]);
         }
 
-        $like = '%'.$q.'%';
-        $items = Product::query()
-            ->where('is_active', true)
-            ->where(function ($w) use ($like) {
-                $w->where('sku', 'like', $like)
+        // Case-insensitive on any driver (SQLite LIKE is ASCII-only CI) —
+        // LIKE against several case variants of the query.
+        $variants = array_values(array_unique(array_filter([
+            $q,
+            mb_strtolower($q),
+            mb_strtoupper($q),
+            mb_convert_case($q, MB_CASE_TITLE),
+        ])));
+        $searchClosure = function ($w) use ($variants) {
+            foreach ($variants as $v) {
+                $like = '%'.$v.'%';
+                $w->orWhere('sku', 'like', $like)
                   ->orWhere('barcode', 'like', $like)
                   ->orWhere('manufacturer', 'like', $like)
                   ->orWhere('title', 'like', $like);
-            })
+            }
+        };
+
+        $items = Product::query()
+            ->where('is_active', true)
+            ->where($searchClosure)
             ->orderByDesc('rating')
             ->limit(8)
             ->get(['id', 'title', 'slug', 'sku', 'manufacturer', 'price', 'image']);
@@ -999,11 +1011,8 @@ class StoreController extends Controller
             'items' => $payload,
             'total' => Product::query()
                 ->where('is_active', true)
-                ->where(function ($w) use ($like) {
-                    $w->where('sku', 'like', $like)
-                      ->orWhere('manufacturer', 'like', $like)
-                      ->orWhere('title', 'like', $like);
-                })->count(),
+                ->where($searchClosure)
+                ->count(),
             'q' => $q,
         ]);
     }
