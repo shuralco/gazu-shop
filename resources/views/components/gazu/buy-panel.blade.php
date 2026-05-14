@@ -79,19 +79,16 @@
                     <span class="text-[11px] gazu-mono px-1.5 py-0.5 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] rounded">−{{ $discount }}%</span>
                 @endif
             @endif
+            {{-- per-unit × qty breakdown — to the right of the price, shown when q > 1 --}}
+            <div class="text-[11px] text-[var(--gazu-graphite)] gazu-mono" style="font-variant-numeric: tabular-nums;" x-show="q > 1" x-cloak>
+                <span x-text="fmt(price)"></span> ₴ × <span x-text="q"></span> шт.
+            </div>
         </div>
     </div>
-    <div class="text-[11px] text-[var(--gazu-graphite)] mb-2 gazu-mono" style="font-variant-numeric: tabular-nums;" x-show="q > 1" x-cloak>
-        <span x-text="fmt(price)"></span> ₴ × <span x-text="q"></span> шт.
-    </div>
-    <div class="mt-1">
-        <span x-text="available > 0 ? ('У наявності · ' + available + ' шт') : 'Немає в наявності'"
-              :class="available > 0 ? 'text-[var(--gazu-success)] font-medium' : 'text-[var(--gazu-danger)] font-medium'"
-              class="text-[13px]">У наявності</span>
-    </div>
 
-    {{-- Warehouse picker moved out to <x-gazu.warehouse-selector> (middle column
-         of the product page). It syncs back here via the `warehouse-selected`
+    {{-- Availability + warehouse picker both live in <x-gazu.warehouse-selector>
+         (middle column of the product page). It syncs back here via the
+         `warehouse-selected`
          window event — see the @warehouse-selected.window listener on the root. --}}
 
     <div class="h-px bg-[var(--gazu-line)] my-5"></div>

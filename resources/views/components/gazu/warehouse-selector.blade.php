@@ -2,6 +2,9 @@
     'warehouseStocks' => null,    // Collection of Inventory rows with .warehouse loaded
     'closestWarehouseId' => null, // geo-detected warehouse ID
     'price' => 0,                 // base product price (fallback when a row has no own price)
+    'brand' => null,              // brand name — shown at the top of this column
+    'brandUrl' => null,           // optional catalog-filter link for the brand
+    'article' => null,            // SKU / OEM article number
 ])
 @php
     $stocks = $warehouseStocks instanceof \Illuminate\Support\Collection ? $warehouseStocks : collect();
@@ -12,14 +15,51 @@
     $defaultWh = $defaultStock?->warehouse_id;
     $visible = 4;
     $hasMore = $stocks->count() > $visible;
+    // warehouse_id => available qty — lets the availability line react to `sel`.
+    $stocksJs = $stocks->mapWithKeys(fn ($s) => [
+        $s->warehouse_id => max(0, $s->quantity - $s->reserved_quantity),
+    ])->all();
 @endphp
 @if($stocks->isNotEmpty())
-    {{-- Standalone warehouse picker. Owns only its visual `sel` state; the
-         buy-panel listens for the `warehouse-selected` window event to sync
-         price / availability / the hidden warehouse_id input. --}}
+    {{-- Central column: product meta (brand · article · availability) + the
+         warehouse picker. Owns its `sel` state; the buy-panel listens for the
+         `warehouse-selected` window event to sync price / qty / warehouse_id. --}}
     <div class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-5 font-text"
-         x-data="{ sel: {{ $defaultWh ? (int) $defaultWh : 'null' }}, expanded: false }"
+         x-data="{
+            sel: {{ $defaultWh ? (int) $defaultWh : 'null' }},
+            expanded: false,
+            stocks: {{ \Illuminate\Support\Js::from($stocksJs) }},
+            get available() { return this.sel != null && this.stocks[this.sel] != null ? this.stocks[this.sel] : 0; }
+         }"
          role="radiogroup" aria-label="Вибір складу для доставки">
+
+        {{-- Product meta — brand · article · availability of the selected warehouse --}}
+        @if($brand || $article)
+            <div class="pb-4 mb-4 border-b border-[var(--gazu-line)] flex flex-col gap-1.5">
+                @if($brand)
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Бренд</span>
+                        @if($brandUrl)
+                            <a wire:navigate href="{{ $brandUrl }}" class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
+                        @else
+                            <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
+                        @endif
+                    </div>
+                @endif
+                @if($article)
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-[10px] uppercase tracking-widest text-[var(--gazu-muted)] gazu-mono shrink-0">Артикул</span>
+                        <span class="text-[13px] gazu-mono text-[var(--gazu-ink)]">{{ $article }}</span>
+                    </div>
+                @endif
+            </div>
+        @endif
+        <div class="mb-3">
+            <span x-text="available > 0 ? ('У наявності · ' + available + ' шт') : 'Немає в наявності'"
+                  :class="available > 0 ? 'text-[var(--gazu-success)]' : 'text-[var(--gazu-danger)]'"
+                  class="text-[13px] font-medium">У наявності</span>
+        </div>
+
         <div class="text-[11px] uppercase tracking-wide font-bold text-[var(--gazu-graphite)] mb-3">Доставка зі складу</div>
         <div class="flex flex-col gap-1.5">
             @foreach($stocks as $idx => $s)

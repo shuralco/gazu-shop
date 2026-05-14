@@ -86,78 +86,48 @@
         @include('gazu.partials.product-breadcrumbs', compact('p', 'brand', 'oem', 'name'))
 
         @php
-                    // Brand badge link → catalog filter (same logic as spec rows below).
-                    $brandHeaderSlug = null;
-                    if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
-                        $brandHeaderSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
-                    }
-                    if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
-                        $brandHeaderSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
-                    }
-                @endphp
-                <div class="flex items-center gap-2.5 mb-2 flex-wrap">
-                    <x-gazu.condition-badge value="Новий"/>
-                    @if($brandHeaderSlug)
-                        <a wire:navigate href="{{ route('gazu.catalog', ['brand' => [$brandHeaderSlug]]) }}"
-                           class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
-                    @else
-                        <span class="gazu-display font-semibold text-[var(--gazu-ink)] text-sm">{{ $brand }}</span>
-                    @endif
-                    @php
-                        $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
-                    @endphp
-                    @if($rating > 0 || $reviews > 0 || $soldCount > 0)
-                        <span class="text-[11px] text-[var(--gazu-line-2)]">·</span>
-                        <div class="flex items-center gap-1 whitespace-nowrap">
-                            @if($rating > 0)
-                                <div class="flex gap-px text-[var(--gazu-warn)]">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
-                                    @endfor
-                                </div>
-                            @endif
-                            <span class="text-xs text-[var(--gazu-graphite)]">
-                                @if($rating > 0){{ number_format($rating, 1) }}@endif
-                                @if($reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
-                                @if($soldCount > 0) · {{ $soldCount }} продано @endif
-                            </span>
+            // Brand link + article are passed down to the central column's
+            // <x-gazu.warehouse-selector> — no longer rendered in this header.
+            $brandHeaderSlug = null;
+            if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
+                $brandHeaderSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
+            }
+            if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
+                $brandHeaderSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
+            }
+            $brandUrl = $brandHeaderSlug ? route('gazu.catalog', ['brand' => [$brandHeaderSlug]]) : null;
+            $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
+            $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
+        @endphp
+        <div class="flex items-center gap-2.5 mb-2 flex-wrap">
+            <x-gazu.condition-badge value="Новий"/>
+            @if($rating > 0 || $reviews > 0 || $soldCount > 0)
+                <div class="flex items-center gap-1 whitespace-nowrap">
+                    @if($rating > 0)
+                        <div class="flex gap-px text-[var(--gazu-warn)]">
+                            @for($i = 1; $i <= 5; $i++)
+                                <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
+                            @endfor
                         </div>
                     @endif
+                    <span class="text-xs text-[var(--gazu-graphite)]">
+                        @if($rating > 0){{ number_format($rating, 1) }}@endif
+                        @if($reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
+                        @if($soldCount > 0) · {{ $soldCount }} продано @endif
+                    </span>
                 </div>
-                <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-2 leading-tight">{{ $name }}</h1>
-                @php
-                    $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
-                    $barcode = is_object($p) ? ($p->barcode ?? null) : null;
-                @endphp
-                @if($oemReal || $barcode)
-                    <div class="flex gap-4.5 text-[13px] text-[var(--gazu-graphite)] gazu-mono mb-7 flex-wrap">
-                        @if($oemReal)
-                            <span class="whitespace-nowrap">Артикул: <span class="text-[var(--gazu-ink)]">{{ $oemReal }}</span></span>
-                        @endif
-                        @if($barcode && $barcode !== $oemReal)
-                            <span class="whitespace-nowrap">Артикул: <span class="text-[var(--gazu-ink)]">{{ $barcode }}</span></span>
-                        @endif
-                    </div>
-                @endif
+            @endif
+        </div>
+        <h1 class="gazu-display text-[32px] font-semibold text-[var(--gazu-ink)] m-0 mb-5 leading-tight">{{ $name }}</h1>
 
-        {{-- Product top section — 3 columns: gallery · warehouse selector · buy-panel --}}
+        {{-- Product top section — 3 columns: gallery · info+warehouse · buy-panel --}}
         <div class="gazu-grid-product-3col mt-1">
-            {{-- Column 1 — gallery (constrained size, fits its column) --}}
-            <div class="grid grid-cols-[60px_1fr] gap-3 items-start">
-                <div class="flex flex-col gap-2">
-                    @for($i = 0; $i < 4; $i++)
-                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
-                            <x-gazu.part-image kind="{{ $kind }}" size="42"/>
-                        </div>
-                    @endfor
-                    <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
-                        +6
-                    </div>
-                </div>
+            {{-- Column 1 — gallery: big main image, thumbnails row below it --}}
+            <div class="flex flex-col gap-3">
                 <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <x-gazu.part-image kind="{{ $kind }}" size="400"/>
+                    <div class="absolute inset-0">
+                        <x-gazu.part-image kind="{{ $kind }}" fit/>
                     </div>
                     <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
                         1 / 8
@@ -166,15 +136,29 @@
                         <x-gazu.icon name="heart" size="18"/>
                     </button>
                 </div>
+                {{-- Thumbnails — horizontal row beneath the main image --}}
+                <div class="flex gap-2">
+                    @for($i = 0; $i < 4; $i++)
+                        <div class="flex-1 aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
+                            <x-gazu.part-image kind="{{ $kind }}" fit/>
+                        </div>
+                    @endfor
+                    <div class="flex-1 aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
+                        +6
+                    </div>
+                </div>
             </div>{{-- /column 1 — gallery --}}
 
-            {{-- Column 2 — warehouse selector (moved out of buy-panel; syncs via the
-                 `warehouse-selected` window event the buy-panel listens for) --}}
+            {{-- Column 2 — product meta (brand · article · availability) + warehouse
+                 selector. Syncs the buy-panel via the `warehouse-selected` event. --}}
             <div>
                 <x-gazu.warehouse-selector
                     :warehouseStocks="$warehouseStocks ?? collect()"
                     :closestWarehouseId="$closestWarehouseId ?? null"
-                    :price="$price"/>
+                    :price="$price"
+                    :brand="$brand"
+                    :brandUrl="$brandUrl"
+                    :article="$oemReal"/>
             </div>
 
             {{-- Column 3 — buy-panel --}}
