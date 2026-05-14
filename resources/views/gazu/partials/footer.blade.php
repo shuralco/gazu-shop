@@ -40,7 +40,7 @@
     ];
 @endphp
 <footer class="bg-[var(--gazu-ink)] text-[#CDD3DC] mt-16">
-    <div class="gazu-container py-14 grid gap-10" style="grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr;">
+    <div class="gazu-container py-14 grid gap-8 sm:gap-10 gazu-footer-grid">
         <div>
             <x-gazu.logo size="28" color="#fff"/>
             <p class="text-sm leading-relaxed mt-4 text-[#9DA5B2]">{{ $about }}</p>

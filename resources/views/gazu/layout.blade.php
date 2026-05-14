@@ -84,6 +84,21 @@
     body:has(.gazu-drawer[data-open="1"]) .gazu-toast-container { right: 396px; }
 }
 .gazu-toast-container { transition: right 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Grid/flex children must be allowed to shrink below their content width,
+   otherwise a long word in the hero h1 forces horizontal overflow on phones. */
+.gazu-grid-hero-vin > *,
+.gazu-grid-buy > *,
+.gazu-grid-buy-left > *,
+.gazu-grid-sidebar > * { min-width: 0; }
+.gazu-grid-hero-vin h1 { overflow-wrap: anywhere; }
+
+/* Footer: 2 cols on phones, 5 on desktop (was a fixed 5-col grid that
+   overflowed narrow viewports). */
+.gazu-footer-grid { grid-template-columns: 1fr 1fr; }
+@media (min-width: 768px) {
+    .gazu-footer-grid { grid-template-columns: 1.4fr 1fr 1fr 1fr 1.2fr; }
+}
 </style>
 
 {{-- Глобальний Toast UI (window.gazuToast або CustomEvent('gazu:toast')) --}}

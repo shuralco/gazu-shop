@@ -18,7 +18,7 @@
                     );
                 @endphp
                 <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5">{{ $heroSubtitle }}</div>
-                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(34px, 8vw, 56px); line-height: 1.05; letter-spacing: -0.035em; word-break: break-word;">
+                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(26px, 6.4vw, 56px); line-height: 1.08; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">
                     {{ $heroTitle1 }}<br>{!! $heroTitle2Html !!}
                 </h1>
                 <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mt-4 max-w-lg">{{ $heroDescription }}</p>
