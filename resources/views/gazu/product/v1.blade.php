@@ -198,48 +198,54 @@
                         'reviews'  => 'Відгуки',
                         'delivery' => 'Доставка та оплата',
                     ];
-                    $tabCountsJs = array_map(fn ($v) => (int) $v, $tabCounts);
                     $deliveryText = $gazuSettings['gazu_product_delivery_text']
                         ?? 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.';
                     $paymentText = $gazuSettings['gazu_product_payment_text']
                         ?? 'Visa / Mastercard, Apple Pay, Google Pay, готівка при отриманні (накладений платіж), безпечна оплата через LiqPay.';
                 @endphp
-                <div class="mt-2"
-                     x-data="{
-                        tab: 'spec',
-                        tabs: @js(array_keys($tabDefs)),
-                        labels: @js($tabDefs),
-                        counts: @js($tabCountsJs),
-                        tick: 0,
-                        step(dir) {
-                            const i = this.tabs.indexOf(this.tab);
-                            this.tab = this.tabs[(i + dir + this.tabs.length) % this.tabs.length];
-                            this.tick++;
-                        }
-                     }">
-                    {{-- Mobile — floating arrow tab-stepper: ← current tab → with a
-                         crisp "mechanical-watch" tick animation on each step. --}}
-                    <div class="md:hidden sticky top-2 z-30 mt-3 mb-5">
-                        <div class="flex items-center gap-2 bg-white border border-[var(--gazu-line)] rounded-full p-1.5 shadow-[0_6px_20px_-6px_rgba(14,27,44,0.28)]">
-                            <button type="button" @click="step(-1)" aria-label="Попередня вкладка"
-                                    class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] text-[var(--gazu-ink)] border-0 cursor-pointer inline-flex items-center justify-center shrink-0 active:scale-90 transition-transform duration-100">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                <div class="mt-2" x-data="{ tab: 'spec' }">
+                    {{-- Mobile — sticky tab strip: every tab sits in a row; the
+                         ← / → buttons appear only when the row overflows and
+                         nudge it sideways (the row itself is also swipe-scrollable). --}}
+                    <div class="md:hidden sticky top-2 z-30 mt-3 mb-5"
+                         x-data="{
+                            canL: false, canR: false,
+                            upd() {
+                                const e = this.$refs.strip;
+                                this.canL = e.scrollLeft > 4;
+                                this.canR = e.scrollLeft + e.clientWidth < e.scrollWidth - 4;
+                            },
+                            nudge(d) { this.$refs.strip.scrollBy({ left: d * 150, behavior: 'smooth' }); }
+                         }"
+                         x-init="$nextTick(() => upd())"
+                         @resize.window.debounce.150ms="upd()">
+                        <div class="flex items-stretch bg-white border border-[var(--gazu-line)] rounded-xl overflow-hidden shadow-[0_6px_20px_-6px_rgba(14,27,44,0.22)]">
+                            <button type="button" @click="nudge(-1)" x-show="canL" x-cloak x-transition.opacity
+                                    aria-label="Прокрутити вкладки вліво"
+                                    class="w-9 shrink-0 bg-white border-r border-[var(--gazu-line)] text-[var(--gazu-ink)] inline-flex items-center justify-center cursor-pointer active:scale-90 transition-transform">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                             </button>
-                            <div class="flex-1 min-w-0 text-center overflow-hidden">
-                                <div :class="'gazu-tab-tick-' + (tick % 2)" class="inline-flex items-center gap-1.5 justify-center max-w-full">
-                                    <span class="font-semibold text-[var(--gazu-ink)] text-[14px] truncate" x-text="labels[tab]"></span>
-                                    <span class="text-[11px] text-[var(--gazu-muted)] gazu-mono shrink-0" x-show="counts[tab] > 0" x-text="counts[tab]"></span>
-                                </div>
-                                <div class="flex items-center justify-center gap-1 mt-1">
-                                    <template x-for="t in tabs" :key="t">
-                                        <span class="rounded-full transition-all duration-150"
-                                              :class="t === tab ? 'w-3.5 h-1 bg-[var(--gazu-ink)]' : 'w-1 h-1 bg-[var(--gazu-line-2)]'"></span>
-                                    </template>
-                                </div>
+                            <div x-ref="strip" @scroll.passive="upd()" role="tablist" aria-label="Інформація про товар"
+                                 class="flex gap-1 gazu-scroll-x flex-1 px-1">
+                                @foreach($tabDefs as $k => $l)
+                                    <button type="button" role="tab"
+                                            :aria-selected="tab === '{{ $k }}'"
+                                            @click="tab = '{{ $k }}'; $el.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })"
+                                            :class="tab === '{{ $k }}'
+                                                ? 'text-[var(--gazu-ink)] font-semibold border-b-2 border-[var(--gazu-ink)]'
+                                                : 'text-[var(--gazu-graphite)] border-b-2 border-transparent'"
+                                            class="px-3.5 py-3 -mb-px bg-transparent cursor-pointer inline-flex items-center gap-1.5 text-[13px] shrink-0 whitespace-nowrap transition-colors">
+                                        {{ $l }}
+                                        @if($tabCounts[$k] !== null && $tabCounts[$k] > 0)
+                                            <span class="text-[10px] text-[var(--gazu-muted)] gazu-mono">{{ $tabCounts[$k] }}</span>
+                                        @endif
+                                    </button>
+                                @endforeach
                             </div>
-                            <button type="button" @click="step(1)" aria-label="Наступна вкладка"
-                                    class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] text-[var(--gazu-ink)] border-0 cursor-pointer inline-flex items-center justify-center shrink-0 active:scale-90 transition-transform duration-100">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                            <button type="button" @click="nudge(1)" x-show="canR" x-cloak x-transition.opacity
+                                    aria-label="Прокрутити вкладки вправо"
+                                    class="w-9 shrink-0 bg-white border-l border-[var(--gazu-line)] text-[var(--gazu-ink)] inline-flex items-center justify-center cursor-pointer active:scale-90 transition-transform">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                             </button>
                         </div>
                     </div>
