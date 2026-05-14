@@ -1,5 +1,23 @@
 @props(['kind' => 'filter', 'size' => 160, 'fit' => false])
 @php
+    // Real demo photo (Pexels, public/img/parts/<kind>.webp) takes priority
+    // over the vector illustration. Falls back to the SVG when no photo exists
+    // for this kind (e.g. clutch, cv-joint) — keeps the catalog complete.
+    $partPhoto = is_file(public_path("img/parts/{$kind}.webp"))
+        ? asset("img/parts/{$kind}.webp")
+        : null;
+@endphp
+@if($partPhoto)
+    @if($fit)
+        <img src="{{ $partPhoto }}" alt="{{ $kind }}" loading="lazy" decoding="async"
+             {{ $attributes->merge(['class' => 'block w-full h-full object-cover']) }}>
+    @else
+        <img src="{{ $partPhoto }}" alt="{{ $kind }}" loading="lazy" decoding="async"
+             width="{{ $size }}" height="{{ $size }}"
+             {{ $attributes->merge(['class' => 'block object-cover']) }}>
+    @endif
+@else
+@php
     $T = (object)[
         'ink' => '#0E1B2C', 'bone' => '#F5F2EC', 'paper' => '#FBFAF7',
         'blue' => '#2453A6', 'red' => '#B83232', 'green' => '#3A8C5C',
@@ -75,3 +93,4 @@
     <rect width="160" height="160" fill="{{ $T->paper }}"/>
     {!! $svg !!}
 </svg>
+@endif
