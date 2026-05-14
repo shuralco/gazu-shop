@@ -32,23 +32,25 @@ echo "[entrypoint] Running migrations..."
 php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations failed, continuing..."
 
 # Auto-seed demo catalog on FIRST deploy only (when products table is empty).
-# Triggered by MODULE_AUTO_PARTS_SEED=true. Idempotent: skips if rows exist.
+# Triggered by MODULE_AUTO_PARTS_SEED=true. Runs ONLY when the products table
+# is genuinely empty — we check the DB directly, not a marker file. The
+# storage/ marker did NOT survive image rebuilds, so the old marker-based
+# check re-ran ChineseAutoPartsSeeder on EVERY deploy — and that seeder calls
+# truncateDemo(), which wipes the whole catalog (+ any manually-created data)
+# and re-creates it with fresh ids. DB-count is the only robust signal.
 if [ "$MODULE_AUTO_PARTS_SEED" = "true" ]; then
-    # Marker file lives on storage volume so it persists across container
-    # restarts but stays absent across image rebuilds with fresh volumes.
-    # NOTE: marker bumped to `-v2` so the switch from the legacy flat
-    # AutoPartsSeeder to the 3-level ChineseAutoPartsSeeder re-seeds once.
-    SEED_MARKER=/var/www/html/storage/app/.catalog-seeded-v2
-    if [ ! -f "$SEED_MARKER" ]; then
-        echo "[entrypoint] Marker absent — running ChineseAutoPartsSeeder..."
+    PRODUCT_COUNT=$(php artisan tinker --execute='echo \App\Models\Product::count();' 2>/dev/null | tr -cd '0-9')
+    if [ "$PRODUCT_COUNT" = "0" ]; then
+        echo "[entrypoint] Products table empty — running ChineseAutoPartsSeeder..."
         if SEED_FORCE=1 php artisan db:seed --class=ChineseAutoPartsSeeder --force 2>&1; then
-            touch "$SEED_MARKER"
-            echo "[entrypoint] ChineseAutoPartsSeeder finished. Marker written."
+            echo "[entrypoint] ChineseAutoPartsSeeder finished."
         else
             echo "[entrypoint] WARNING: ChineseAutoPartsSeeder failed, continuing..."
         fi
+    elif [ -z "$PRODUCT_COUNT" ]; then
+        echo "[entrypoint] WARNING: could not read product count — skipping seed (safe default)."
     else
-        echo "[entrypoint] Auto-seed marker present — skipping."
+        echo "[entrypoint] Catalog already has $PRODUCT_COUNT products — skipping seed."
     fi
 fi
 
