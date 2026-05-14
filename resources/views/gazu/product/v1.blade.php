@@ -142,54 +142,33 @@
                     </div>
                 @endif
 
-                <div class="gazu-grid-product-tabs">
-                    {{-- Gallery --}}
-                    <div class="grid grid-cols-[60px_1fr] gap-3">
-                        <div class="flex flex-col gap-2">
-                            @for($i = 0; $i < 4; $i++)
-                                <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
-                                    <x-gazu.part-image kind="{{ $kind }}" size="42"/>
-                                </div>
-                            @endfor
-                            <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
-                                +6
+                {{-- Gallery — full width. The "Ключові характеристики" summary
+                     block used to sit to the right of the gallery; the full
+                     spec list still lives in the "Характеристики" tab below,
+                     so dropping the summary loses nothing and lets the main
+                     product photo fill the whole column. --}}
+                <div class="grid grid-cols-[60px_1fr] gap-3">
+                    <div class="flex flex-col gap-2">
+                        @for($i = 0; $i < 4; $i++)
+                            <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
+                                <x-gazu.part-image kind="{{ $kind }}" fit/>
                             </div>
-                        </div>
-                        <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
-                            <div class="absolute inset-0 gazu-grid-pattern"></div>
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <x-gazu.part-image kind="{{ $kind }}" size="400"/>
-                            </div>
-                            <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
-                                1 / 8
-                            </div>
-                            <button type="button" class="absolute top-3.5 right-3.5 w-9 h-9 border border-[var(--gazu-line)] bg-white rounded-lg cursor-pointer inline-flex items-center justify-center text-[var(--gazu-graphite)]">
-                                <x-gazu.icon name="heart" size="18"/>
-                            </button>
+                        @endfor
+                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
+                            +6
                         </div>
                     </div>
-
-                    <div>
-                        <div class="gazu-display text-base font-semibold mb-3.5">Ключові характеристики</div>
-                        <div>
-                            @foreach(array_slice($specs, 0, 7) as [$k, $v, $mono])
-                                <div class="grid grid-cols-2 py-2.5 border-b border-[var(--gazu-line)] text-[13px]">
-                                    <span class="text-[var(--gazu-graphite)]">{{ $k }}</span>
-                                    <span class="text-[var(--gazu-ink)] {{ $mono ? 'gazu-mono font-medium' : '' }}">{{ $v }}</span>
-                                </div>
-                            @endforeach
+                    <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
+                        <div class="absolute inset-0 gazu-grid-pattern"></div>
+                        <div class="absolute inset-0">
+                            <x-gazu.part-image kind="{{ $kind }}" fit/>
                         </div>
-                        @if(module('gazu_garage')->enabled())
-                            @php $primaryCar = auth()->check() ? auth()->user()->primaryCar : null; @endphp
-                            @if($primaryCar)
-                                <div class="mt-4.5 p-3.5 bg-[var(--gazu-success-bg)] rounded-lg flex gap-2.5">
-                                    <x-gazu.icon name="check" size="18" stroke="var(--gazu-success)" class="shrink-0"/>
-                                    <div class="text-[13px] text-[var(--gazu-ink)] leading-relaxed">
-                                        Підходить для вашого <span class="font-semibold">{{ $primaryCar->display_name }}@if($primaryCar->engine), {{ $primaryCar->engine }}@endif</span>
-                                    </div>
-                                </div>
-                            @endif
-                        @endif
+                        <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
+                            1 / 8
+                        </div>
+                        <button type="button" class="absolute top-3.5 right-3.5 w-9 h-9 border border-[var(--gazu-line)] bg-white rounded-lg cursor-pointer inline-flex items-center justify-center text-[var(--gazu-graphite)]">
+                            <x-gazu.icon name="heart" size="18"/>
+                        </button>
                     </div>
                 </div>
 

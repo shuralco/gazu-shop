@@ -23,3 +23,5 @@ taillight: pexels.com/photo/9754665 — A sleek car's illuminated tail light wit
 tire: pexels.com/photo/34357281 — Car tires stacked with an alloy wheel on top in a garage setting. Perf
 tool: pexels.com/photo/220639 — A collection of steel wrenches displayed against a white backdrop, per
 wiper: pexels.com/photo/7409799 — A detailed view of a vintage car's windshield and wipers, capturing a 
+clutch: pexels.com/photo/7568427 — Detailed close-up of metal gears inside a machine showcasing
+cv-joint: pexels.com/photo/33024451 — Detailed view of a blue custom car suspension part in an aut
