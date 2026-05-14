@@ -23,10 +23,11 @@
         }
         $navItems = array_merge($navItems, [
             ['favs', 'Обране', 'heart', route('gazu.wishlist')],
-            ['addresses', 'Адреси доставки', 'location', '#'],
-            ['loyalty', 'Бонусна програма', 'shield', '#'],
-            ['settings', 'Налаштування', 'edit', '#'],
         ]);
+        // Loyalty tab only when the module is on (otherwise it's a dead link).
+        if (function_exists('module') && module('loyalty')->enabled()) {
+            $navItems[] = ['loyalty', 'Бонусна програма', 'shield', route('gazu.account')];
+        }
     @endphp
     <nav class="flex flex-col gap-0.5">
         @foreach($navItems as [$k, $l, $ic, $url])

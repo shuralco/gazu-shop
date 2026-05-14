@@ -6,6 +6,7 @@
     $image = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');
     $price = is_object($p) ? (float) ($p->price ?? 0) : (float) ($p['price'] ?? 0);
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
+    $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $qty = is_object($p) ? (int) ($p->qty ?? $p->quantity ?? 0) : (int) ($p['qty'] ?? 0);
     $rating = is_object($p) ? (float) ($p->rating ?? 0) : 0;
     $reviews = is_object($p) ? (int) ($p->reviews ?? $p->reviews_count ?? 0) : 0;

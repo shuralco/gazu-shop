@@ -53,22 +53,36 @@ class WishlistController extends Controller
         $items = $user
             ? Product::query()
                 ->where('is_active', true)
+                ->with(['brand', 'category'])
                 ->whereHas('wishlistedBy', fn ($q) => $q->where('user_id', $user->id))
                 ->limit(48)
                 ->get()
                 ->map(function (Product $p) {
                     $imageKinds = ['filter', 'pad', 'shock', 'bulb', 'oil', 'spark', 'bearing', 'wiper'];
+                    // name: prefer translatable title (JSON {"uk":...}) → name col.
+                    $rawTitle = $p->getRawOriginal('title');
+                    $localized = is_string($rawTitle) && str_starts_with($rawTitle, '{')
+                        ? (json_decode($rawTitle, true)['uk'] ?? null)
+                        : $rawTitle;
+                    $p->name = $localized ?: ($p->name ?? '');
                     $p->oem = $p->sku ?: '';
-                    $p->brand = $p->brand?->name ?? $p->manufacturer ?? '';
+                    // Brand string: getRelation bypasses the legacy `brand` attribute.
+                    $brandModel = $p->relationLoaded('brand') ? $p->getRelation('brand') : null;
+                    $brandName = $brandModel?->name;
+                    if (is_string($brandName) && str_starts_with($brandName, '{')) {
+                        $brandName = json_decode($brandName, true)['uk'] ?? null;
+                    }
+                    $p->brand = (string) ($brandName ?: $p->getRawOriginal('brand') ?: $p->manufacturer ?: '');
                     $p->image_kind = $imageKinds[($p->id ?? 0) % count($imageKinds)];
                     $p->qty = (int) ($p->quantity ?? 0);
                     $p->reviews = (int) ($p->reviews_count ?? 0);
-                    $p->fits = $p->excerpt ?? null;
+                    $p->fits = null;
                     $p->condition = 'Новий';
                     $p->discount = ($p->old_price && $p->price && $p->old_price > $p->price)
                         ? (int) round((($p->old_price - $p->price) / $p->old_price) * 100)
                         : null;
-                    $p->url = route('gazu.product.show', ['slug' => $p->slug ?? $p->id]);
+                    $slug = $p->getLocalizedSlug('uk') ?: $p->id;
+                    $p->url = url('/'.$slug);
                     return $p;
                 })
             : collect();
