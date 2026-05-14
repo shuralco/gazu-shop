@@ -54,7 +54,8 @@
     <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline relative">
         <x-gazu.part-image kind="{{ $image }}" size="{{ $compact ? 130 : 170 }}"/>
         @if($oem)
-            <span class="absolute top-2 left-2 px-2 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
+            {{-- bottom-left so it never collides with the discount badge (top-left) or wishlist heart (top-right) --}}
+            <span class="absolute bottom-2 left-2 px-2 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
         @endif
     </a>
 
