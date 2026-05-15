@@ -1,8 +1,8 @@
 @php
+    // Note: the category itself is NOT shown as an "active filter" chip — on a
+    // category page (/{slug}) the category is the URL, not a removable filter,
+    // so the chip duplicated the H1/breadcrumbs and its × had no useful target.
     $chips = [];
-    if ($category ?? null) {
-        $chips[] = ['label' => $category->title ?? $category->name, 'remove' => 'cat'];
-    }
     if (request()->filled('q')) {
         $chips[] = ['label' => 'Пошук: ' . request('q'), 'remove' => 'q'];
     }
