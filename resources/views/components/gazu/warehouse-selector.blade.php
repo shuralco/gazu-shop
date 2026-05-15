@@ -113,9 +113,11 @@
                     class="w-full flex items-center justify-between gap-3 px-3 py-2.5 border rounded-md transition-colors text-left min-h-[44px]
                         @if($available <= 0) opacity-50 cursor-not-allowed @endif">
                     <div class="flex items-center gap-2.5 min-w-0">
-                        <div class="w-3.5 h-3.5 rounded-full border-2 flex-shrink-0"
-                             :class="sel === {{ (int) $s->warehouse_id }} ? 'border-white bg-white' : 'border-[var(--gazu-graphite)]'">
-                            <div x-show="sel === {{ (int) $s->warehouse_id }}" class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-ink)] m-auto mt-[3px]"></div>
+                        {{-- Warehouse icon: коробка (склад) — змінюється на check при виборі --}}
+                        <div class="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
+                             :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-white text-[var(--gazu-ink)]' : 'bg-[var(--gazu-mist)] text-[var(--gazu-blue)]'">
+                            <svg x-show="sel !== {{ (int) $s->warehouse_id }}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                            <svg x-show="sel === {{ (int) $s->warehouse_id }}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                         </div>
                         <div class="min-w-0">
                             <div class="font-medium text-[13px] truncate inline-flex items-center gap-1.5">
