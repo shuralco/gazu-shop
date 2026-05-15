@@ -3,24 +3,33 @@
 namespace App\Filament\Pages;
 
 use Filament\Actions\Action;
+use Filament\Actions\ActionGroup;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Redis;
+use Spatie\ResponseCache\Facades\ResponseCache;
 
+/**
+ * Cache control panel. Three tiers:
+ *
+ *   1. NUCLEAR — Clear All (response + app + config + view + route + OPcache).
+ *   2. PER-DRIVER — окремо: response cache / app cache / config / view / route /
+ *      OPcache / sessions / filament assets.
+ *   3. PER-DOMAIN — granular tag flush (products, categories, brands, blog,
+ *      cars, settings, warehouses).
+ *
+ * Plus: Redis stats, Octane reload, warm-up critical pages.
+ */
 class CacheManagement extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-server';
-
-    protected static ?string $navigationLabel = '🧹 Керування кешами';
-
-    protected static ?string $title = 'Керування всіма кешами системи';
-
+    protected static ?string $navigationLabel = 'Керування кешами';
+    protected static ?string $title = 'Cache Control Panel';
     protected static ?string $navigationGroup = 'Система';
-
     protected static ?int $navigationSort = 4;
-
     protected static string $view = 'filament.pages.cache-management';
 
     public function getCacheStats(): array
@@ -30,6 +39,19 @@ class CacheManagement extends Page
         $configCacheFile = bootstrap_path('cache/config.php');
         $routeCacheFile = bootstrap_path('cache/routes-v7.php');
 
+        // Redis stats (gracefully handle missing connection)
+        $redisInfo = null;
+        try {
+            $info = Redis::connection()->info('memory');
+            $keys = count(Redis::connection()->keys('*'));
+            $redisInfo = [
+                'used_memory_human' => $info['Memory']['used_memory_human'] ?? $info['used_memory_human'] ?? 'n/a',
+                'total_keys' => $keys,
+            ];
+        } catch (\Throwable $e) {
+            $redisInfo = ['error' => $e->getMessage()];
+        }
+
         return [
             'cache_files' => File::exists($cacheDir) ? count(File::files($cacheDir)) : 0,
             'cache_size' => File::exists($cacheDir) ? $this->formatBytes($this->getDirectorySize($cacheDir)) : '0 B',
@@ -37,315 +59,269 @@ class CacheManagement extends Page
             'view_cache_size' => File::exists($viewCacheDir) ? $this->formatBytes($this->getDirectorySize($viewCacheDir)) : '0 B',
             'config_cached' => File::exists($configCacheFile),
             'routes_cached' => File::exists($routeCacheFile),
+            'opcache_enabled' => function_exists('opcache_get_status') && opcache_get_status(false) !== false,
+            'octane_active' => extension_loaded('swoole') || extension_loaded('openswoole'),
+            'cache_driver' => config('cache.default'),
+            'response_cache_driver' => config('responsecache.cache_store'),
+            'redis' => $redisInfo,
         ];
-    }
-
-    private function getDirectorySize(string $directory): int
-    {
-        $size = 0;
-        if (File::exists($directory)) {
-            foreach (File::allFiles($directory) as $file) {
-                $size += $file->getSize();
-            }
-        }
-
-        return $size;
-    }
-
-    private function formatBytes(int $bytes): string
-    {
-        $units = ['B', 'KB', 'MB', 'GB'];
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
-            $bytes /= 1024;
-        }
-
-        return round($bytes, 2).' '.$units[$i];
     }
 
     protected function getHeaderActions(): array
     {
         return [
-            Action::make('clear_all_cache')
-                ->label('🔥 ОЧИСТИТИ ВСЬ КЕШ')
+            // ── NUCLEAR — clear everything ──────────────────────────────────────
+            Action::make('clear_all')
+                ->label('Очистити ВЕСЬ кеш')
                 ->color('danger')
                 ->icon('heroicon-o-fire')
                 ->requiresConfirmation()
                 ->modalHeading('Очистити абсолютно весь кеш?')
-                ->modalDescription('Це видалить ВСІ кеші системи: application, config, routes, views, compiled, OPcache')
-                ->modalSubmitActionLabel('ТАК, ОЧИСТИТИ ВСЕ!')
+                ->modalDescription('Response cache + application + config + routes + views + OPcache + sessions.')
+                ->modalSubmitActionLabel('ТАК, ОЧИСТИТИ')
                 ->action(function () {
-                    try {
-                        // Очистити всі Laravel кеші
+                    $this->safely(function () {
+                        ResponseCache::clear();
                         Artisan::call('cache:clear');
                         Artisan::call('config:clear');
                         Artisan::call('route:clear');
                         Artisan::call('view:clear');
                         Artisan::call('optimize:clear');
+                        if (function_exists('opcache_reset')) opcache_reset();
+                    }, '✅ Весь кеш очищено', 'Response + Application + Config + Routes + Views + OPcache');
+                }),
 
-                        // Очистити OPcache якщо доступний
+            // ── PER-DRIVER actions grouped ──────────────────────────────────────
+            ActionGroup::make([
+                Action::make('clear_response_cache')
+                    ->label('Response cache (HTML)')
+                    ->icon('heroicon-o-document-text')
+                    ->action(fn () => $this->safely(
+                        fn () => ResponseCache::clear(),
+                        'Response cache очищено',
+                        'Spatie ResponseCache (Redis tag «gazu-response») спорожнено'
+                    )),
+                Action::make('clear_app_cache')
+                    ->label('Application cache (Cache::*)')
+                    ->icon('heroicon-o-cube')
+                    ->action(fn () => $this->safely(
+                        fn () => Artisan::call('cache:clear'),
+                        'Application cache очищено',
+                        'Cache::store(default)->flush() виконано'
+                    )),
+                Action::make('clear_config')
+                    ->label('Config cache')
+                    ->icon('heroicon-o-cog-6-tooth')
+                    ->action(fn () => $this->safely(
+                        fn () => Artisan::call('config:clear'),
+                        'Config cache очищено',
+                        'bootstrap/cache/config.php видалено'
+                    )),
+                Action::make('clear_view')
+                    ->label('View cache (Blade)')
+                    ->icon('heroicon-o-eye')
+                    ->action(fn () => $this->safely(
+                        fn () => Artisan::call('view:clear'),
+                        'View cache очищено',
+                        'Compiled Blade views видалено'
+                    )),
+                Action::make('clear_route')
+                    ->label('Route cache')
+                    ->icon('heroicon-o-map')
+                    ->action(fn () => $this->safely(
+                        fn () => Artisan::call('route:clear'),
+                        'Route cache очищено',
+                        'bootstrap/cache/routes-v7.php видалено'
+                    )),
+                Action::make('clear_opcache')
+                    ->label('OPcache')
+                    ->icon('heroicon-o-bolt')
+                    ->action(fn () => $this->safely(function () {
                         if (function_exists('opcache_reset')) {
                             opcache_reset();
+                        } else {
+                            throw new \RuntimeException('OPcache не доступний на сервері');
                         }
-
-                        // Видалити всі файли кешу вручну
-                        $this->clearAllCacheFiles();
-
-                        Notification::make()
-                            ->title('✅ ВСЬ КЕШ ОЧИЩЕНО!')
-                            ->body('Абсолютно всі кеші системи видалено успішно')
-                            ->success()
-                            ->send();
-
-                    } catch (\Exception $e) {
-                        Notification::make()
-                            ->title('❌ Помилка очищення кешу')
-                            ->body('Деталі: '.$e->getMessage())
-                            ->danger()
-                            ->send();
-                    }
-                }),
-
-            Action::make('clear_app_cache')
-                ->label('📦 Application Cache')
+                    }, 'OPcache reset', 'Compiled bytecode скинуто')),
+                Action::make('clear_filament')
+                    ->label('Filament assets')
+                    ->icon('heroicon-o-paint-brush')
+                    ->action(fn () => $this->safely(
+                        fn () => Artisan::call('filament:cache'),
+                        'Filament cache оновлено',
+                        'Components / assets discovered'
+                    )),
+                Action::make('clear_sessions')
+                    ->label('Sessions')
+                    ->icon('heroicon-o-user-group')
+                    ->requiresConfirmation()
+                    ->modalDescription('Усі юзери будуть логаут.')
+                    ->action(fn () => $this->safely(
+                        fn () => $this->clearSessions(),
+                        'Sessions очищено',
+                        'Усіх юзерів вилогінено'
+                    )),
+            ])
+                ->label('По типу cache')
+                ->icon('heroicon-o-squares-2x2')
                 ->color('warning')
-                ->icon('heroicon-o-cube')
-                ->action(function () {
-                    Artisan::call('cache:clear');
+                ->button(),
 
-                    Notification::make()
-                        ->title('Application cache очищено')
-                        ->success()
-                        ->send();
-                }),
-
-            Action::make('clear_config_cache')
-                ->label('⚙️ Config Cache')
+            // ── PER-DOMAIN tags ────────────────────────────────────────────────
+            ActionGroup::make([
+                Action::make('tag_products')
+                    ->label('Товари')
+                    ->icon('heroicon-o-cube')
+                    ->action(fn () => $this->flushDomain('products', 'Товари')),
+                Action::make('tag_categories')
+                    ->label('Категорії')
+                    ->icon('heroicon-o-folder')
+                    ->action(fn () => $this->flushDomain('categories', 'Категорії')),
+                Action::make('tag_brands')
+                    ->label('Бренди')
+                    ->icon('heroicon-o-bookmark')
+                    ->action(fn () => $this->flushDomain('brands', 'Бренди')),
+                Action::make('tag_blog')
+                    ->label('Блог + статті')
+                    ->icon('heroicon-o-document')
+                    ->action(fn () => $this->flushDomain('blog', 'Блог')),
+                Action::make('tag_cars')
+                    ->label('Авто (марки/моделі/двигуни)')
+                    ->icon('heroicon-o-truck')
+                    ->action(fn () => $this->flushDomain('cars', 'Авто-сумісність')),
+                Action::make('tag_settings')
+                    ->label('Налаштування магазину')
+                    ->icon('heroicon-o-adjustments-horizontal')
+                    ->action(fn () => $this->flushDomain('settings', 'Налаштування')),
+                Action::make('tag_warehouses')
+                    ->label('Склади + інвентар')
+                    ->icon('heroicon-o-building-storefront')
+                    ->action(fn () => $this->flushDomain('warehouses', 'Склади')),
+            ])
+                ->label('По домену')
+                ->icon('heroicon-o-tag')
                 ->color('info')
-                ->icon('heroicon-o-cog-6-tooth')
-                ->action(function () {
-                    Artisan::call('config:clear');
+                ->button(),
 
-                    Notification::make()
-                        ->title('Config cache очищено')
-                        ->success()
-                        ->send();
-                }),
-
-            Action::make('clear_view_cache')
-                ->label('👁️ View Cache')
-                ->color('success')
-                ->icon('heroicon-o-eye')
-                ->action(function () {
-                    Artisan::call('view:clear');
-
-                    Notification::make()
-                        ->title('View cache очищено')
-                        ->success()
-                        ->send();
-                }),
-
-            Action::make('warm_cache')
-                ->label('🔥 Прогріти кеш')
+            // ── OPS actions ────────────────────────────────────────────────────
+            ActionGroup::make([
+                Action::make('warm_up')
+                    ->label('Прогріти кеш')
+                    ->icon('heroicon-o-arrow-trending-up')
+                    ->action(fn () => $this->safely(
+                        fn () => $this->warmCriticalCache(),
+                        'Кеш прогрітий',
+                        'Запитано критичні сторінки + категорії'
+                    )),
+                Action::make('octane_reload')
+                    ->label('Octane reload')
+                    ->icon('heroicon-o-arrow-path')
+                    ->action(fn () => $this->safely(
+                        fn () => Artisan::call('octane:reload'),
+                        'Octane workers reload',
+                        'Workers перезавантажено (zero-downtime)'
+                    )),
+                Action::make('optimize_prod')
+                    ->label('Оптимізувати для production')
+                    ->icon('heroicon-o-rocket-launch')
+                    ->requiresConfirmation()
+                    ->modalDescription('config:cache + route:cache + view:cache + event:cache. Дає швидкий cold-boot.')
+                    ->action(fn () => $this->safely(function () {
+                        Artisan::call('config:cache');
+                        Artisan::call('route:cache');
+                        Artisan::call('view:cache');
+                        Artisan::call('event:cache');
+                    }, 'Оптимізовано', 'Config + routes + views + events закешовано')),
+            ])
+                ->label('Операції')
+                ->icon('heroicon-o-wrench-screwdriver')
                 ->color('gray')
-                ->icon('heroicon-o-fire')
-                ->action(function () {
-                    $this->warmCriticalCache();
-
-                    Notification::make()
-                        ->title('🔥 Кеш прогрітий!')
-                        ->body('Критичні дані завантажені в кеш')
-                        ->success()
-                        ->send();
-                }),
+                ->button(),
         ];
     }
 
-    private function clearAllCacheFiles(): void
+    /** Flush a single Cache::tags() bucket + ResponseCache (to ensure UI refreshes). */
+    private function flushDomain(string $tag, string $label): void
     {
-        $paths = [
-            storage_path('framework/cache'),
-            storage_path('framework/sessions'),
-            storage_path('framework/views'),
-            bootstrap_path('cache'),
-        ];
+        $this->safely(function () use ($tag) {
+            $store = Cache::store();
+            if (method_exists($store->getStore(), 'tags')) {
+                Cache::tags($tag)->flush();
+            }
+            ResponseCache::clear();
+        }, "{$label} cache очищено", "Tag «{$tag}» + response cache спорожнено");
+    }
 
-        foreach ($paths as $path) {
-            if (File::exists($path)) {
-                File::deleteDirectory($path);
-                File::makeDirectory($path, 0755, true);
+    private function safely(\Closure $fn, string $title, string $body): void
+    {
+        try {
+            $fn();
+            $this->logCacheAction($title, $body);
+            Notification::make()->title($title)->body($body)->success()->send();
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Помилка')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
+    }
+
+    private function clearSessions(): void
+    {
+        if (config('session.driver') === 'redis') {
+            try {
+                Redis::connection()->flushdb();
+            } catch (\Throwable $e) { /* keep going */ }
+        }
+        $sessionPath = storage_path('framework/sessions');
+        if (File::exists($sessionPath)) {
+            foreach (File::files($sessionPath) as $file) {
+                File::delete($file->getPathname());
             }
         }
     }
 
     private function warmCriticalCache(): void
     {
-        // Прогрітий кеш для критичних даних
         \App\Models\Category::whereNull('parent_id')->withCount('products')->get();
         \App\Models\Product::where('is_hit', 1)->limit(20)->get();
         \App\Models\Product::where('is_new', 1)->limit(20)->get();
 
-        // Популярні категорії
-        $popularSlugs = ['laptops', 'phones', 'accessories', 'clothing'];
-        foreach ($popularSlugs as $slug) {
-            $category = \App\Models\Category::findBySlug($slug);
-            if ($category) {
-                \App\Models\Product::where('category_id', $category->id)->limit(50)->get();
-            }
+        // HTTP warm-up for top pages (rebuilds ResponseCache).
+        $urls = ['/', '/catalog', '/novynky', '/khity', '/akcii', '/blog'];
+        foreach ($urls as $url) {
+            try {
+                $client = new \GuzzleHttp\Client(['timeout' => 10, 'verify' => false]);
+                $client->get(config('app.url').$url);
+            } catch (\Throwable $e) { /* network might be unavailable, skip */ }
         }
     }
 
-    public function clearSpecificCache(string $pattern): void
+    private function getDirectorySize(string $directory): int
     {
-        try {
-            if ($pattern === 'home_page_data') {
-                Cache::forget('home_page_data');
-                Cache::forget('home_categories');
-                $message = 'Кеш головної сторінки очищено';
-            } elseif (str_contains($pattern, 'category_*')) {
-                $this->clearCacheByPattern('category_*');
-                $message = 'Кеш всіх категорій очищено';
-            } elseif (str_contains($pattern, 'hit_products_*')) {
-                $this->clearCacheByPattern('hit_products_*');
-                $message = 'Кеш хіт товарів очищено';
-            } elseif (str_contains($pattern, 'new_products_*')) {
-                $this->clearCacheByPattern('new_products_*');
-                $message = 'Кеш нових товарів очищено';
-            } else {
-                Cache::forget($pattern);
-                $message = "Кеш '{$pattern}' очищено";
-            }
-
-            $this->logCacheAction('Селективне очищення', $message);
-
-            Notification::make()
-                ->title('✅ Кеш очищено')
-                ->body($message)
-                ->success()
-                ->send();
-
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('❌ Помилка')
-                ->body('Не вдалося очистити кеш: '.$e->getMessage())
-                ->danger()
-                ->send();
+        $size = 0;
+        if (File::exists($directory)) {
+            foreach (File::allFiles($directory) as $file) $size += $file->getSize();
         }
+        return $size;
     }
 
-    public function clearOpcache(): void
+    private function formatBytes(int $bytes): string
     {
-        try {
-            if (function_exists('opcache_reset')) {
-                opcache_reset();
-                $message = 'OPcache очищено успішно';
-            } else {
-                $message = 'OPcache недоступний на цьому сервері';
-            }
-
-            $this->logCacheAction('OPcache', $message);
-
-            Notification::make()
-                ->title('🚀 OPcache')
-                ->body($message)
-                ->success()
-                ->send();
-
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('❌ Помилка OPcache')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    public function clearSessions(): void
-    {
-        try {
-            $sessionPath = storage_path('framework/sessions');
-            if (File::exists($sessionPath)) {
-                $files = File::files($sessionPath);
-                foreach ($files as $file) {
-                    File::delete($file->getPathname());
-                }
-                $message = 'Видалено '.count($files).' файлів сесій';
-            } else {
-                $message = 'Папка сесій не знайдена';
-            }
-
-            $this->logCacheAction('Сесії', $message);
-
-            Notification::make()
-                ->title('👥 Сесії очищено')
-                ->body($message)
-                ->success()
-                ->send();
-
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('❌ Помилка очищення сесій')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    public function optimizeForProduction(): void
-    {
-        try {
-            Artisan::call('config:cache');
-            Artisan::call('route:cache');
-            Artisan::call('view:cache');
-            Artisan::call('optimize');
-
-            $this->logCacheAction('Продакшн оптимізація', 'Кешування config, routes, views завершено');
-
-            Notification::make()
-                ->title('⚡ Оптимізовано для продакшн!')
-                ->body('Config, routes та views закешовано для максимальної швидкості')
-                ->success()
-                ->send();
-
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('❌ Помилка оптимізації')
-                ->body($e->getMessage())
-                ->danger()
-                ->send();
-        }
-    }
-
-    private function clearCacheByPattern(string $pattern): void
-    {
-        $cacheDir = storage_path('framework/cache/data');
-        if (File::exists($cacheDir)) {
-            $pattern = str_replace('*', '', $pattern);
-            $files = File::files($cacheDir);
-            $deletedCount = 0;
-
-            foreach ($files as $file) {
-                if (str_contains($file->getFilename(), $pattern)) {
-                    File::delete($file->getPathname());
-                    $deletedCount++;
-                }
-            }
-        }
+        $units = ['B', 'KB', 'MB', 'GB'];
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) $bytes /= 1024;
+        return round($bytes, 2).' '.$units[$i];
     }
 
     private function logCacheAction(string $action, string $details): void
     {
         $logs = session('cache_logs', []);
-
-        // Додати новий лог
         array_unshift($logs, [
             'time' => now()->format('H:i:s'),
             'action' => $action,
             'details' => $details,
         ]);
-
-        // Зберегти тільки останні 20 записів
-        $logs = array_slice($logs, 0, 20);
-
-        session(['cache_logs' => $logs]);
+        session(['cache_logs' => array_slice($logs, 0, 30)]);
     }
 }
