@@ -278,6 +278,10 @@ class StoreController extends Controller
             'inStockOnly'         => $request->query('stock') === 'in',
             'totalCount'          => $paginator->total(),
             'activeNav'           => 'catalog',
+            // Car-selector (4B) — pre-populate dropdowns when URL carries the filter.
+            'selectedMake'        => (string) $request->query('make', ''),
+            'selectedModel'       => (string) $request->query('model', ''),
+            'selectedEngine'      => (string) $request->query('engine', ''),
         ]);
     }
 
@@ -1020,6 +1024,81 @@ class StoreController extends Controller
     public function notFound()
     {
         return response()->view('gazu.404', ['activeNav' => null], 404);
+    }
+
+    // -- Car-selector cascade --------------------------------------------------
+    //
+    // марка → модель → двигун. Endpoints are public + heavily cached (1h)
+    // because the data set is small and rarely changes. The hero / catalog
+    // selector + the product-page «Підходить чи ні» check all call these.
+
+    public function apiCarMakes()
+    {
+        $items = \Cache::remember('cars:makes', 3600, function () {
+            return \App\Models\CarMake::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'slug', 'name'])
+                ->all();
+        });
+        return response()->json(['items' => $items]);
+    }
+
+    public function apiCarModels(Request $request)
+    {
+        $makeKey = (string) $request->query('make', '');
+        if ($makeKey === '') return response()->json(['items' => []]);
+        $cacheKey = 'cars:models:'.md5($makeKey);
+        $items = \Cache::remember($cacheKey, 3600, function () use ($makeKey) {
+            $make = \App\Models\CarMake::query()
+                ->where(function ($q) use ($makeKey) {
+                    $q->where('slug', $makeKey);
+                    if (ctype_digit($makeKey)) {
+                        $q->orWhere('id', (int) $makeKey);
+                    }
+                })
+                ->first();
+            if (! $make) return [];
+            return $make->models()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'make_id', 'slug', 'name', 'body_type', 'years_range'])
+                ->all();
+        });
+        return response()->json(['items' => $items]);
+    }
+
+    public function apiCarEngines(Request $request)
+    {
+        $makeKey = (string) $request->query('make', '');
+        $modelKey = (string) $request->query('model', '');
+        if ($modelKey === '') return response()->json(['items' => []]);
+        $cacheKey = 'cars:engines:'.md5($makeKey.':'.$modelKey);
+        $items = \Cache::remember($cacheKey, 3600, function () use ($makeKey, $modelKey) {
+            $q = \App\Models\CarModel::query()->where('is_active', true);
+            if ($makeKey !== '') {
+                $q->whereHas('make', function ($mq) use ($makeKey) {
+                    $mq->where('slug', $makeKey);
+                    if (ctype_digit($makeKey)) {
+                        $mq->orWhere('id', (int) $makeKey);
+                    }
+                });
+            }
+            $q->where(function ($w) use ($modelKey) {
+                $w->where('slug', $modelKey);
+                if (ctype_digit($modelKey)) {
+                    $w->orWhere('id', (int) $modelKey);
+                }
+            });
+            $model = $q->first();
+            if (! $model) return [];
+            return $model->engines()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'model_id', 'code', 'label', 'fuel_type', 'hp', 'years_range'])
+                ->all();
+        });
+        return response()->json(['items' => $items]);
     }
 
     // Mobile previews

@@ -248,6 +248,21 @@ class Product extends Model
     }
 
     /**
+     * Engines this part is compatible with (марка → модель → двигун).
+     * Powers the "Підходить чи ні?" check on the product page and the
+     * car-selector filter in catalog/hero.
+     */
+    public function compatibleEngines(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(
+            CarEngine::class,
+            'product_compatibility',
+            'product_id',
+            'engine_id'
+        )->withPivot('note')->withTimestamps();
+    }
+
+    /**
      * Stock count at a specific warehouse (or default if null).
      */
     public function inventoryFor(MerchantWarehouse|int|null $warehouse = null): ?Inventory

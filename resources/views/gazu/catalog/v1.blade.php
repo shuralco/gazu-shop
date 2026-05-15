@@ -37,6 +37,17 @@
             </div>
         </div>
 
+        {{-- Car-selector: швидкий підбір по марці → моделі → двигуну (4B).
+             Sticky на десктопі (вище за filters drawer) — пошук серед компатибельних запчастин. --}}
+        <div class="mb-4">
+            <x-gazu.car-selector
+                variant="catalog"
+                :selected-make="$selectedMake ?? ''"
+                :selected-model="$selectedModel ?? ''"
+                :selected-engine="$selectedEngine ?? ''"
+            />
+        </div>
+
         {{-- Subcategories drilldown — клікабельні плитки L2/L3 під поточною категорією --}}
         @if(! empty($subcategories) && $subcategories->isNotEmpty())
             <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 mb-5">

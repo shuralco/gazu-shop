@@ -163,6 +163,7 @@ class CatalogQuery
         $q = $this->applyConditions($q);
         $q = $this->applyPrice($q);
         $q = $this->applyStock($q);
+        $q = $this->applyVehicle($q);
         $q = $this->applyFlags($q);
         $q = $this->applySort($q);
 
@@ -176,6 +177,7 @@ class CatalogQuery
         $q = $this->applyCategory($q, $cat);
         $q = $this->applySearch($q);
         $q = $this->applyStock($q);
+        $q = $this->applyVehicle($q);
         return $q;
     }
 
@@ -273,6 +275,45 @@ class CatalogQuery
         if ($this->request->query('stock') === 'in') {
             $q->where('quantity', '>', 0);
         }
+        return $q;
+    }
+
+    /**
+     * ?make=byd&model=han&engine=dm-i — restrict to parts whose
+     * compatibleEngines pivot matches. If only `make` (no model/engine),
+     * match any engine under that make. Same logic for model-only.
+     * Silently no-op when the vehicle tables are missing.
+     */
+    private function applyVehicle(Builder $q): Builder
+    {
+        if (! \Schema::hasTable('product_compatibility')) {
+            return $q;
+        }
+        $make   = trim((string) $this->request->query('make', ''));
+        $model  = trim((string) $this->request->query('model', ''));
+        $engine = trim((string) $this->request->query('engine', ''));
+        if ($make === '' && $model === '' && $engine === '') {
+            return $q;
+        }
+        $q->whereHas('compatibleEngines', function (Builder $eq) use ($make, $model, $engine) {
+            if ($engine !== '') {
+                $eq->where('car_engines.code', $engine);
+            }
+            if ($model !== '') {
+                $eq->whereHas('model', function (Builder $mq) use ($model, $make) {
+                    $mq->where('car_models.slug', $model);
+                    if ($make !== '') {
+                        $mq->whereHas('make', function (Builder $kq) use ($make) {
+                            $kq->where('car_makes.slug', $make);
+                        });
+                    }
+                });
+            } elseif ($make !== '') {
+                $eq->whereHas('model.make', function (Builder $kq) use ($make) {
+                    $kq->where('car_makes.slug', $make);
+                });
+            }
+        });
         return $q;
     }
 

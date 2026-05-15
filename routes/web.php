@@ -87,6 +87,11 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/up/cities', [$c, 'upCities'])->name('api.up.cities');
     Route::get('/api/up/post-offices', [$c, 'upPostOffices'])->name('api.up.post-offices');
 
+    // Car-selector cascade (марка → модель → двигун). Public, cached 1h.
+    Route::get('/api/cars/makes', [$c, 'apiCarMakes'])->name('api.cars.makes');
+    Route::get('/api/cars/models', [$c, 'apiCarModels'])->name('api.cars.models');
+    Route::get('/api/cars/engines', [$c, 'apiCarEngines'])->name('api.cars.engines');
+
     Route::get('/404', [$c, 'notFound'])->name('404');
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');
 
