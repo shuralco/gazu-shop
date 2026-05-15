@@ -3,8 +3,8 @@
 @section('title', 'GAZU — пошук автозапчастин за артикулом')
 
 @section('content')
-    {{-- Hero — Артикул-first --}}
-    <section class="py-12" style="background: linear-gradient(180deg, var(--gazu-mist) 0%, var(--gazu-paper) 100%);">
+    {{-- Hero — селектор як primary CTA справа. Зліва — тексти + бенефіти + CTA. --}}
+    <section class="py-10 sm:py-14" style="background: linear-gradient(180deg, var(--gazu-mist) 0%, var(--gazu-paper) 100%);">
         <div class="gazu-container gazu-grid-hero-vin">
             <div>
                 @php
@@ -14,61 +14,37 @@
                     $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">марку</span> і двигун.';
                 @endphp
                 <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5">{{ $heroSubtitle }}</div>
-                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(28px, 5.4vw, 48px); line-height: 1.08; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">
+                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(28px, 5.2vw, 52px); line-height: 1.05; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">
                     {{ $heroTitle1 }}<br>{!! $heroTitle2Html !!}
                 </h1>
+                <p class="text-[15px] sm:text-[16px] text-[var(--gazu-graphite)] leading-relaxed mt-5 max-w-md">
+                    BYD, Chery, Geely, Haval, Great Wall, JAC, MG, VW. У наявності 1278+ оригінальних запчастин і перевірених аналогів. Доставка 1-3 дні по Україні.
+                </p>
 
-                {{-- Hero car-selector — primary CTA: підбір запчастин по авто.
-                     Article-search lives in the sticky header, не в hero. --}}
-                <div class="mt-7">
-                    <x-gazu.car-selector variant="hero"/>
+                {{-- Primary CTA buttons --}}
+                <div class="flex flex-wrap gap-3 mt-6">
+                    <a wire:navigate href="{{ route('gazu.catalog') }}" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-ink)] text-white rounded-md text-[14px] font-semibold no-underline hover:bg-[var(--gazu-ink-2)] transition-colors">
+                        Дивитись каталог
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                    <a href="tel:0800751024" class="inline-flex items-center gap-2 px-5 py-3 bg-white text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline shadow-[inset_0_0_0_1px_var(--gazu-line)] hover:shadow-[inset_0_0_0_1px_var(--gazu-ink)] transition-shadow">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                        0 800 75 10 24
+                    </a>
                 </div>
 
-                <div class="flex flex-wrap gap-6 mt-5 text-xs text-[var(--gazu-graphite)]">
+                {{-- Trust badges --}}
+                <div class="flex flex-wrap gap-x-5 gap-y-2 mt-6 text-[12px] sm:text-[13px] text-[var(--gazu-graphite)]">
                     <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Без передоплати</span>
                     <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Гарантія 12+ міс.</span>
                     <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Повернення 14 днів</span>
                 </div>
             </div>
 
-            {{-- Visual: top product from $featured (or admin override). --}}
-            @php
-                $topProd = isset($featured) ? collect($featured)->first() : null;
-                $vKind = $gazuSettings['gazu_hero_visual_image_kind']
-                    ?? (is_object($topProd) ? ($topProd->image_kind ?? 'bearing') : 'bearing');
-                $vOem = $gazuSettings['gazu_hero_visual_oem_code']
-                    ?? (is_object($topProd) && $topProd->oem ? 'OEM ' . $topProd->oem : null);
-                $vTitle = $gazuSettings['gazu_hero_visual_title']
-                    ?? (is_object($topProd) ? ($topProd->name ?? null) : null);
-                $vSubtitle = $gazuSettings['gazu_hero_visual_subtitle']
-                    ?? (is_object($topProd) ? ($topProd->oem ?? '') : '');
-                $vPrice = $gazuSettings['gazu_hero_visual_price']
-                    ?? (is_object($topProd) && $topProd->price ? number_format($topProd->price, 0, '.', ' ') . ' ₴' : null);
-                $vUrl = is_object($topProd) ? ($topProd->url ?? null) : null;
-            @endphp
-            @php $heroTag = $vUrl ? 'a' : 'div'; @endphp
-            <{{ $heroTag }} @if($vUrl) wire:navigate href="{{ $vUrl }}" @endif
-               class="bg-white rounded-xl border border-[var(--gazu-line)] relative overflow-hidden no-underline {{ $vUrl ? 'cursor-pointer transition-all hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)]' : '' }} block"
-               style="aspect-ratio: 4/3;">
-                <div class="absolute inset-0 gazu-grid-pattern"></div>
-                <div class="absolute inset-0 flex items-center justify-center">
-                    <x-gazu.part-image kind="{{ $vKind }}" size="280"/>
-                </div>
-                @if($vOem)
-                    <div class="absolute top-4 left-4 px-2.5 py-1.5 bg-[var(--gazu-ink)] text-white gazu-mono text-[11px] tracking-wider rounded">{{ $vOem }}</div>
-                @endif
-                @if($vTitle || $vSubtitle || $vPrice)
-                    <div class="absolute bottom-4 left-4 right-4 p-3 bg-white/95 rounded-lg border border-[var(--gazu-line)] text-xs">
-                        @if($vTitle)<div class="text-[var(--gazu-graphite)] line-clamp-1">{{ $vTitle }}</div>@endif
-                        @if($vSubtitle || $vPrice)
-                            <div class="flex justify-between items-baseline mt-1">
-                                <span class="gazu-mono text-[var(--gazu-muted)]">{{ $vSubtitle }}</span>
-                                <span class="gazu-display font-bold text-[var(--gazu-ink)]">{{ $vPrice }}</span>
-                            </div>
-                        @endif
-                    </div>
-                @endif
-            </{{ $heroTag }}>
+            {{-- Right side: car-selector (primary feature) --}}
+            <div>
+                <x-gazu.car-selector variant="hero"/>
+            </div>
         </div>
     </section>
 

@@ -38,37 +38,30 @@
             </template>
         </div>
 
-        <div x-show="activeLevel()" class="min-h-[208px] sm:min-h-[180px] flex flex-col">
-            <div x-show="currentList().length > 6" class="mb-1.5">
-                <div class="relative">
-                    <svg class="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--gazu-graphite)]" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                    <input type="text" x-model="search" placeholder="Пошук…" class="pl-6 pr-2 py-1 text-[12px] bg-white rounded-md outline-none shadow-[inset_0_0_0_1px_var(--gazu-line)] focus:shadow-[inset_0_0_0_1px_var(--gazu-blue,#2563eb)] w-full">
-                </div>
-            </div>
-
-            <div x-show="loading" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 flex-1">
-                <template x-for="i in 4" :key="i"><div class="rounded-md bg-[var(--gazu-paper)] animate-pulse min-h-[42px]"></div></template>
+        <div x-show="activeLevel()" class="min-h-[200px] sm:min-h-[180px] flex flex-col">
+            <div x-show="loading" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 flex-1">
+                <template x-for="i in 4" :key="i"><div class="rounded-lg bg-[var(--gazu-paper)] animate-pulse min-h-[52px]"></div></template>
             </div>
 
             <div x-show="!loading && filteredItems().length > 0"
                  :class="expanded ? 'max-h-none' : 'max-h-[260px]'"
-                 class="gazu-tile-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-1.5 overflow-y-auto content-start transition-[max-height] flex-1">
+                 class="gazu-tile-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto content-start transition-[max-height] flex-1">
                 <template x-for="(item, idx) in filteredItems()" :key="activeLevel() + ':' + itemKey(item)">
                     <button type="button"
                             @click="pick(item)"
                             :style="'--gazu-tile-delay: ' + (idx * 18) + 'ms'"
-                            :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_6px_-3px_rgba(14,27,44,0.18)]'"
-                            class="gazu-tile-in flex items-center gap-2 px-2 py-1.5 rounded-md text-left cursor-pointer transition-all text-[12px] text-[var(--gazu-ink)] min-h-[42px]">
-                        <div class="w-7 h-7 rounded bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[9px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="itemBadge(item)"></div>
+                            :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]'"
+                            class="gazu-tile-in flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[52px]">
+                        <div class="w-9 h-9 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="itemBadge(item)"></div>
                         <div class="min-w-0 flex-1">
                             <div class="font-medium truncate leading-tight" x-text="itemPrimary(item)"></div>
-                            <div x-show="itemSecondary(item)" class="text-[9px] text-[var(--gazu-graphite)] truncate leading-tight" x-text="itemSecondary(item)"></div>
+                            <div x-show="itemSecondary(item)" class="text-[10px] text-[var(--gazu-graphite)] truncate leading-tight mt-0.5" x-text="itemSecondary(item)"></div>
                         </div>
                     </button>
                 </template>
             </div>
 
-            <div x-show="!loading && filteredItems().length > 12" x-cloak class="mt-1 text-center">
+            <div x-show="!loading && filteredItems().length > 12" x-cloak class="mt-2 text-center">
                 <button type="button" @click="expanded = !expanded" class="text-[11px] text-[var(--gazu-blue)] hover:underline bg-transparent border-0 cursor-pointer p-0">
                     <span x-show="!expanded">Показати всі (<span x-text="filteredItems().length"></span>)</span>
                     <span x-show="expanded" x-cloak>Згорнути</span>
