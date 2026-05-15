@@ -12,7 +12,12 @@
     @endphp
     <title>{{ $pageTitle }}</title>
     <meta name="description" content="{{ $pageDescription }}">
-    <link rel="canonical" href="{{ $canonical }}">
+    @if((bool) (\App\Models\DisplaySetting::get('seo_noindex_all', true)))
+        {{-- Site-wide no-index for staging/презентаційний домен --}}
+        <meta name="robots" content="noindex,nofollow">
+    @else
+        <link rel="canonical" href="{{ $canonical }}">
+    @endif
 
     {{-- OpenGraph / Twitter — for share previews --}}
     <meta property="og:type" content="@yield('og_type', 'website')">

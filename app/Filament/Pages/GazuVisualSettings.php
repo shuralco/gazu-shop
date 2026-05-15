@@ -36,6 +36,9 @@ class GazuVisualSettings extends Page implements HasForms
     public ?array $data = [];
 
     public static array $defaults = [
+        // SEO / Privacy
+        'seo_noindex_all' => true, // презентаційний домен закритий за замовчуванням
+
         // Hero V2 (Car-picker, темний)
         'gazu_hero_v2_kicker' => 'Підбір за вашим авто',
         'gazu_hero_v2_title' => "Запчастини, які\nточно підійдуть.",
@@ -216,6 +219,20 @@ class GazuVisualSettings extends Page implements HasForms
     {
         return $form->statePath('data')->schema([
             Forms\Components\Tabs::make('Tabs')->tabs([
+                // ── SEO / Privacy ──
+                Forms\Components\Tabs\Tab::make('SEO / Приватність')
+                    ->icon('heroicon-o-lock-closed')
+                    ->schema([
+                        Forms\Components\Section::make('Індексація пошуковими системами')
+                            ->description('Презентаційний домен повинен бути закритий від Google/Bing. Увімкніть «Закрити від індексації» поки сайт у тестовому стані.')
+                            ->schema([
+                                Forms\Components\Toggle::make('seo_noindex_all')
+                                    ->label('Закрити від індексації (noindex + robots.txt Disallow: /)')
+                                    ->helperText('Коли увімкнено: робота додає <meta name="robots" content="noindex,nofollow"> на всі сторінки + /robots.txt повертає "Disallow: /". Для продакшну вимикайте.')
+                                    ->default(true),
+                            ]),
+                    ]),
+
                 // ── Top bar ──
                 Forms\Components\Tabs\Tab::make('Верхня смуга')
                     ->icon('heroicon-o-bars-3-bottom-left')

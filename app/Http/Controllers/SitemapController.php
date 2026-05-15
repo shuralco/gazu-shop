@@ -195,6 +195,14 @@ class SitemapController extends Controller
 
     public function robotsTxt(): Response
     {
+        // Site-wide no-index toggle for staging/презентаційний домен.
+        // Default TRUE — поки не виключили вручну в адмінці, домен закритий.
+        $noindexAll = (bool) (\App\Models\DisplaySetting::get('seo_noindex_all', true));
+        if ($noindexAll) {
+            $robots = "User-agent: *\nDisallow: /\n";
+            return response($robots)->header('Content-Type', 'text/plain; charset=UTF-8');
+        }
+
         $robots = "User-agent: *\n";
         $robots .= "Allow: /\n";
         $robots .= "Disallow: /admin/\n";
