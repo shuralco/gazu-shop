@@ -30,6 +30,11 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/zapchastyny/{make}/{model}/{engine}', [$c, 'catalogByCar'])->name('catalog.by-engine')
         ->where(['make' => '[a-z0-9][a-z0-9-]*', 'model' => '[a-z0-9][a-z0-9-]*', 'engine' => '[a-z0-9][a-z0-9-\.]*']);
 
+    // Pretty URLs для меню: «Новинки» / «Хіти» / «Акції» (раніше ?new=1 etc).
+    Route::get('/novynky', fn () => app(\App\Http\Controllers\Gazu\StoreController::class)->catalog(request()->merge(['new' => 1])))->name('catalog.new');
+    Route::get('/khity',   fn () => app(\App\Http\Controllers\Gazu\StoreController::class)->catalog(request()->merge(['hits' => 1])))->name('catalog.hits');
+    Route::get('/akcii',   fn () => app(\App\Http\Controllers\Gazu\StoreController::class)->catalog(request()->merge(['promo' => 1])))->name('catalog.promo');
+
     // Backward compat: 301 to clean URL.
     Route::get('/product/{slug}', fn (string $slug) => redirect('/'.$slug, 301))
         ->where('slug', '[a-z0-9][a-z0-9-]*');
@@ -77,7 +82,10 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
         Route::delete('/garage/{car}', [$garage, 'destroy'])->name('garage.destroy');
     });
 
-    Route::get('/brand/{slug?}', [$c, 'brand'])->name('brand');
+    // Brands: /brendy (index), /brendy/{slug} (specific). /brand aliases still 301 to canonical.
+    Route::get('/brendy/{slug?}', [$c, 'brand'])->name('brand');
+    Route::get('/brand', fn () => redirect('/brendy', 301));
+    Route::get('/brand/{slug}', fn (string $slug) => redirect("/brendy/{$slug}", 301));
 
     $wish = \App\Http\Controllers\Gazu\WishlistController::class;
     Route::get('/wishlist', [$wish, 'index'])->name('wishlist');

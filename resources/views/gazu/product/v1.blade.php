@@ -105,7 +105,7 @@
             {{-- Gallery: big main image, thumbnails row below it --}}
             <div class="flex flex-col gap-3">
                 @php $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0; @endphp
-                <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
+                <div class="aspect-square bg-white shadow-[0_1px_0_0_var(--gazu-line)] rounded-2xl relative overflow-hidden">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
                     <div class="absolute inset-0">
                         <x-gazu.part-image kind="{{ $kind }}" :seed="$gallerySeed" fit/>

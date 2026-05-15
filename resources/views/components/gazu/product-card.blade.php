@@ -64,7 +64,7 @@
         </button>
     @endif
 
-    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center border-b border-[var(--gazu-line)] no-underline relative overflow-hidden p-2 sm:p-3">
+    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center no-underline relative overflow-hidden p-2 sm:p-3 m-2 sm:m-3 mb-0 rounded-lg">
         <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
         @if($oem)
             {{-- bottom-left so it never collides with the discount badge (top-left) or wishlist heart (top-right) --}}

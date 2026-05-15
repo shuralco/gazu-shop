@@ -88,9 +88,9 @@
         <div class="px-3 py-4 border-t border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
             <div class="grid grid-cols-3 gap-2">
                 @foreach([
-                    ['Акції', route('gazu.catalog', ['promo' => 1])],
-                    ['Хіти', route('gazu.catalog', ['hits' => 1])],
-                    ['Новинки', route('gazu.catalog', ['new' => 1])],
+                    ['Акції', route('gazu.catalog.promo')],
+                    ['Хіти', route('gazu.catalog.hits')],
+                    ['Новинки', route('gazu.catalog.new')],
                     ['Бренди', route('gazu.brand')],
                     ['СТО', route('gazu.sto')],
                     ['Блог', route('gazu.blog')],
