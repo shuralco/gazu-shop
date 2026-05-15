@@ -24,43 +24,62 @@
         api: { makes: @js($apiMakes), models: @js($apiModels), engines: @js($apiEngines) },
      })"
      x-init="init()"
+     :class="!activeLevel() && !_redirecting && !{{ $isHero ? 'true' : 'false' }} ? 'gazu-done-bar' : ''"
      class="gazu-car-selector relative w-full font-text
             {{ $isHero
                 ? 'p-5 sm:p-6 bg-white rounded-2xl shadow-[0_20px_50px_-30px_rgba(14,27,44,0.22)]'
-                : 'p-3 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]' }}">
+                : 'px-3 py-2.5 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]' }}">
 
-    {{-- Header — мінімалістичний. Subtitle ховаємо коли selector в done-режимі
-         (зайвий контекст коли всі чипи й так видно). --}}
-    <div class="flex items-center justify-between mb-2 gap-2">
+    {{-- DONE state (catalog only): single-row filter-bar з іконкою + чипами + reset.
+         Hero завжди показує повний layout. --}}
+    @if(! $isHero)
+    <div x-show="!activeLevel() && !_redirecting" x-cloak class="flex items-center gap-2 flex-wrap">
+        <div class="inline-flex items-center gap-1.5 shrink-0">
+            <svg class="text-[var(--gazu-blue)]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 11 3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+            <span class="text-[12px] sm:text-[13px] font-semibold text-[var(--gazu-ink)]">Авто:</span>
+        </div>
+        <div class="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
+            <template x-for="chip in pickedChips()" :key="chip.level">
+                <button type="button" @click="changeLevel(chip.level)"
+                        class="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-[var(--gazu-mist)] text-[12px] text-[var(--gazu-ink)] hover:bg-[var(--gazu-line)] cursor-pointer border-0 transition-colors">
+                    <span class="w-5 h-5 rounded-full bg-white inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></span>
+                    <span class="font-medium truncate" x-text="chip.label"></span>
+                </button>
+            </template>
+        </div>
+        <button type="button" @click="reset()" class="text-[11px] text-[var(--gazu-graphite)] hover:text-[var(--gazu-ink)] bg-transparent border-0 cursor-pointer p-0 inline-flex items-center gap-1 shrink-0">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Скинути
+        </button>
+    </div>
+    @endif
+
+    {{-- ACTIVE state header (під час вибору): title + step + reset. --}}
+    <div x-show="activeLevel() || _redirecting || {{ $isHero ? 'true' : 'false' }}" x-cloak class="flex items-center justify-between gap-2 mb-2">
         <div class="flex items-center gap-2 min-w-0">
             <div class="w-7 h-7 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] shrink-0">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 16H9m10 0h3v-3.15a1 1 0 0 0-.84-.99L16 11l-2.7-3.6a1 1 0 0 0-.8-.4H5.24a2 2 0 0 0-1.8 1.1l-.8 1.63A6 6 0 0 0 2 12.42V16h2"/><circle cx="6.5" cy="16.5" r="2.5"/><circle cx="16.5" cy="16.5" r="2.5"/></svg>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9h6l2 4v5a2 2 0 0 1-2 2h-1"/><path d="M14 17H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h9z"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
             </div>
             <div class="min-w-0">
                 <div class="text-[13px] sm:text-[14px] font-semibold text-[var(--gazu-ink)] leading-tight">Підбір по авто</div>
-                <div x-show="activeLevel() || _redirecting"
-                     class="text-[10px] sm:text-[11px] text-[var(--gazu-graphite)] leading-tight" x-text="stepLabel()"></div>
+                <div x-show="activeLevel() || _redirecting" class="text-[10px] sm:text-[11px] text-[var(--gazu-graphite)] leading-tight" x-text="stepLabel()"></div>
             </div>
         </div>
-        <button type="button"
-                @click="reset()"
-                x-show="hasAnySelection()" x-cloak
+        <button type="button" @click="reset()" x-show="hasAnySelection()" x-cloak
                 class="text-[11px] text-[var(--gazu-graphite)] hover:text-[var(--gazu-ink)] bg-transparent border-0 cursor-pointer p-0 inline-flex items-center gap-1 shrink-0">
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             Скинути
         </button>
     </div>
 
-    {{-- Chip row — reserves space to prevent jump --}}
-    <div class="flex flex-wrap items-center gap-1 mb-2 min-h-[24px]">
+    {{-- Active chip row — тільки під час активного вибору (показує вже обрані рівні) --}}
+    <div x-show="(activeLevel() || _redirecting) && hasAnySelection()" x-cloak class="flex flex-wrap items-center gap-1 mb-2">
         <template x-for="chip in pickedChips()" :key="chip.level">
-            <div class="inline-flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-full bg-[var(--gazu-mist)] text-[11px] text-[var(--gazu-ink)] max-w-full">
-                <div class="w-4 h-4 rounded-full bg-white inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></div>
+            <button type="button" @click="changeLevel(chip.level)"
+                    class="inline-flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full bg-[var(--gazu-mist)] text-[11px] text-[var(--gazu-ink)] hover:bg-[var(--gazu-line)] cursor-pointer border-0 transition-colors">
+                <span class="w-4 h-4 rounded-full bg-white inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></span>
                 <span class="font-medium truncate" x-text="chip.label"></span>
-                <button type="button"
-                        @click="changeLevel(chip.level)"
-                        class="text-[9px] text-[var(--gazu-blue)] hover:underline bg-transparent border-0 cursor-pointer p-0 shrink-0">×</button>
-            </div>
+            </button>
         </template>
     </div>
 
