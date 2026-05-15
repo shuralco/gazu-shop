@@ -139,8 +139,10 @@
         </div>
     </div>
 
-    {{-- Secondary nav --}}
-    <div class="border-t border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
+    {{-- Secondary nav — hidden on mobile/tablet (the same links live inside
+         the catalog mega-menu at the top of its mobile accordion, opened via
+         the ☰ button). Shows from lg up. --}}
+    <div class="hidden lg:block border-t border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
         <div class="gazu-container px-6 flex items-center gap-0.5 text-[13px] whitespace-nowrap overflow-x-auto">
             @foreach([
                 ['promo', 'Акції', route('gazu.catalog', ['promo' => 1])],

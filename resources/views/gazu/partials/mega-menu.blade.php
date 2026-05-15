@@ -37,6 +37,25 @@
 
     {{-- ============ MOBILE / TABLET: single-column accordion (< lg) ============ --}}
     <div class="lg:hidden overflow-y-auto">
+        {{-- Quick-links (Акції / Хіти / Новинки / Бренди / СТО / Блог) — moved
+             out of the header secondary nav so they don't crowd the phone. --}}
+        <div class="px-3 pt-3 pb-2 border-b border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
+            <div class="grid grid-cols-3 gap-2">
+                @foreach([
+                    ['Акції', route('gazu.catalog', ['promo' => 1])],
+                    ['Хіти', route('gazu.catalog', ['hits' => 1])],
+                    ['Новинки', route('gazu.catalog', ['new' => 1])],
+                    ['Бренди', route('gazu.brand')],
+                    ['СТО', route('gazu.sto')],
+                    ['Блог', route('gazu.blog')],
+                ] as [$label, $url])
+                    <a wire:navigate href="{{ $url }}"
+                       class="flex items-center justify-center px-2 py-2.5 bg-white border border-[var(--gazu-line)] rounded-lg text-[13px] font-medium text-[var(--gazu-ink)] no-underline text-center hover:border-[var(--gazu-ink)] transition-colors">
+                        {{ $label }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
         @foreach($megaTree as $c)
             @php $catLink = ! empty($c['slug']) ? url('/'.$c['slug']) : route('gazu.catalog'); @endphp
             <div class="border-b border-[var(--gazu-line)] last:border-b-0">
