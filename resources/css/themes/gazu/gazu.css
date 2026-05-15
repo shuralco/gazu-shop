@@ -457,3 +457,17 @@ html.gazu, body.gazu {
     .gazu-drawer,
     .gazu-toast::after { animation: none !important; transition: none !important; }
 }
+
+/* Car-selector tile cascade: each tile fades+slides in with a small stagger
+ * (--gazu-tile-delay is set inline per-tile). Premium feel without JS deps. */
+@keyframes gazu-tile-in {
+    from { opacity: 0; transform: translateY(6px) scale(0.97); }
+    to   { opacity: 1; transform: translateY(0)   scale(1); }
+}
+.gazu-tile-in {
+    animation: gazu-tile-in 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--gazu-tile-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+    .gazu-tile-in { animation: none !important; }
+}

@@ -56,14 +56,15 @@
 
             <div x-show="!loading && filteredItems().length > 0"
                  :class="expanded ? 'max-h-none' : 'max-h-[260px] sm:max-h-[280px]'"
-                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto content-start transition-[max-height] flex-1">
-                <template x-for="(item, idx) in filteredItems()" :key="itemKey(item)">
+                 class="gazu-tile-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto content-start transition-[max-height] flex-1">
+                <template x-for="(item, idx) in filteredItems()" :key="activeLevel() + ':' + itemKey(item)">
                     <button type="button"
                             @click="pick(item)"
+                            :style="'--gazu-tile-delay: ' + (idx * 22) + 'ms'"
                             :class="[
                                 isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]',
                             ]"
-                            class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[52px] sm:min-h-[56px]">
+                            class="gazu-tile-in flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[52px] sm:min-h-[56px]">
                         <div class="w-9 h-9 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="itemBadge(item)"></div>
                         <div class="min-w-0 flex-1">
                             <div class="font-medium truncate leading-tight" x-text="itemPrimary(item)"></div>
