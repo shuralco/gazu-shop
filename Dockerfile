@@ -1,6 +1,7 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.3-cli-alpine
 
-# Install dependencies
+# Laravel Octane (Swoole) replaces php-fpm. Nginx залишається як reverse-proxy
+# на :80 + статика, Octane worker слухає 127.0.0.1:8000.
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -29,11 +30,13 @@ RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
     intl \
     opcache
 
-# Install Redis extension
-RUN apk add --no-cache autoconf g++ make \
+# Install Redis + Swoole (Octane). Build deps installed once, both extensions
+# compiled, deps removed to keep image small.
+RUN apk add --no-cache --virtual .build-deps autoconf g++ make linux-headers openssl-dev curl-dev \
     && pecl install redis \
-    && docker-php-ext-enable redis \
-    && apk del autoconf g++ make
+    && pecl install swoole \
+    && docker-php-ext-enable redis swoole \
+    && apk del .build-deps
 
 # Install Node.js + npm for Vite frontend build
 RUN apk add --no-cache nodejs npm
@@ -80,11 +83,6 @@ RUN npm ci --no-audit --no-fund \
 RUN mkdir -p /run/nginx
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY docker/supervisord.conf /etc/supervisord.conf
-
-# PHP-FPM tuning: defaults are pm.max_children=5 which deadlocks under
-# Filament's heavy boot (~3s cold). Bump to 20 dynamic workers + slowlog
-# + 60s request timeout so a hanging request doesn't take down the pool.
-COPY docker/php-fpm-overrides.conf /usr/local/etc/php-fpm.d/zz-overrides.conf
 
 # Production OPcache + memory_limit + realpath cache.
 # validate_timestamps=0 means PHP never re-stats files — biggest single

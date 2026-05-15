@@ -13,6 +13,7 @@
         "filament/spatie-laravel-translatable-plugin": "^3.3",
         "kolirt/laravel-ukrposhta": "^1.0",
         "laravel/framework": "^12.0",
+        "laravel/octane": "^2.17",
         "laravel/scout": "^10.0",
         "laravel/tinker": "^2.10.1",
         "liqpay/liqpay": "^1.0",
