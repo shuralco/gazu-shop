@@ -14,6 +14,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->append(\App\Http\Middleware\CacheHeaders::class);
 
+        // Full-page HTML response cache (Redis). Caches storefront GET для гостей,
+        // skip /admin /cart /checkout /api — див. GazuCacheProfile.
+        // Auto-flush через model observers — див. AppServiceProvider::boot().
+        $middleware->append(\Spatie\ResponseCache\Middlewares\CacheResponse::class);
+
         // Trust upstream proxies (Coolify, Traefik, Caddy, nginx) so
         // request()->ip() returns the real visitor IP for geo-detect,
         // rate-limiting, and audit logs. Reads TRUSTED_PROXIES env (csv

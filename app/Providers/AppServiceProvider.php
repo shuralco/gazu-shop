@@ -55,6 +55,25 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Brand::observe(\App\Observers\BrandObserver::class);
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
 
+        // Auto-invalidate Spatie ResponseCache on any storefront-visible model change.
+        // Wire all models whose data appears on public pages — saved/deleted/restored
+        // triggers ResponseCache::clear() (Redis-tagged: 'gazu-response').
+        $responseCacheModels = [
+            \App\Models\Product::class,
+            \App\Models\Category::class,
+            \App\Models\Brand::class,
+            \App\Models\InfoPage::class,
+            \App\Models\Page::class,
+            \App\Models\DisplaySetting::class,
+            \App\Models\MerchantWarehouse::class,
+            \App\Models\Inventory::class,
+        ];
+        foreach ($responseCacheModels as $model) {
+            if (class_exists($model)) {
+                $model::observe(\App\Observers\ResponseCacheObserver::class);
+            }
+        }
+
         \Illuminate\Support\Facades\Event::listen(
             \App\Events\NpShipmentStatusChanged::class,
             \App\Listeners\NotifyCustomerOnStatusChange::class,
