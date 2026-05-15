@@ -152,9 +152,9 @@ class GazuVisualSettings extends Page implements HasForms
         ],
 
         // Hero
-        'gazu_hero_subtitle' => null, // composed from shopStats.products_label
-        'gazu_hero_title_1' => 'Знайди потрібну деталь',
-        'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">артикулом</span> або назвою.',
+        'gazu_hero_subtitle' => 'Запчастини для китайських авто',
+        'gazu_hero_title_1' => 'Підбір по авто',
+        'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">марку</span> і двигун.',
         'gazu_hero_description' => null, // composed from shopStats.warehouses_label
 
         // Hero V1 — visual картка справа (демо-товар у hero)

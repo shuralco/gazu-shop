@@ -3,11 +3,11 @@
         @click="toggleLevel('{{ $level }}')"
         :disabled="triggerState('{{ $level }}').locked"
         :class="[
-            openLevel === '{{ $level }}'           ? 'border-[var(--gazu-blue,#2563eb)] shadow-[0_0_0_3px_rgba(37,99,235,0.10)]' : 'border-[var(--gazu-line)] hover:border-[var(--gazu-line-2)]',
-            triggerState('{{ $level }}').locked   ? 'opacity-60 cursor-not-allowed bg-[var(--gazu-paper)]' : 'cursor-pointer bg-white',
-            triggerState('{{ $level }}').selected && openLevel !== '{{ $level }}' ? 'border-[var(--gazu-line-2)]' : '',
+            openLevel === '{{ $level }}'           ? 'shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]'
+                                                    : (triggerState('{{ $level }}').selected ? 'shadow-[inset_0_0_0_1px_var(--gazu-line-2)]' : 'shadow-[inset_0_0_0_1px_var(--gazu-line)]'),
+            triggerState('{{ $level }}').locked   ? 'opacity-60 cursor-not-allowed bg-[var(--gazu-paper)]' : 'cursor-pointer bg-white hover:shadow-[inset_0_0_0_1px_var(--gazu-line-2)]',
         ]"
-        class="group w-full text-left px-3 py-3 border rounded-lg transition-all flex items-center justify-between gap-2 min-h-[58px]">
+        class="group w-full text-left px-3 py-3 rounded-lg transition-all flex items-center justify-between gap-2 min-h-[58px]">
     <div class="min-w-0 flex-1">
         <div class="flex items-center gap-1.5 mb-0.5">
             <span :class="triggerState('{{ $level }}').selected ? 'bg-[var(--gazu-success,#1f9d55)]' : 'bg-[var(--gazu-line-2)]'"

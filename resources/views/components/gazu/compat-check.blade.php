@@ -24,7 +24,7 @@
          x-init="init()"
          @click.outside="closeAll()"
          @keydown.escape.window="closeAll()"
-         class="relative bg-white border border-[var(--gazu-line)] rounded-2xl p-5 sm:p-6 font-text">
+         class="relative bg-white rounded-2xl p-5 sm:p-6 font-text shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]">
         <div class="flex items-center gap-3 mb-4">
             <div class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] shrink-0">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
@@ -35,9 +35,34 @@
             </div>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-            @include('components.gazu.partials.compat-trigger', ['level' => 'make', 'label' => 'Марка', 'placeholderLocked' => 'Оберіть марку'])
-            @include('components.gazu.partials.compat-trigger', ['level' => 'model', 'label' => 'Модель', 'placeholderLocked' => 'Спершу марку'])
+        {{-- Brand tiles — same UX as catalog/hero --}}
+        <div x-show="!make"
+             class="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+            <template x-for="m in makes" :key="m.slug">
+                <button type="button"
+                        @click="pickMake(m)"
+                        class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] bg-white min-h-[48px]
+                               shadow-[0_1px_0_0_var(--gazu-line)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.15)] hover:bg-[var(--gazu-paper)]">
+                    <div class="w-9 h-9 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[11px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0"
+                         x-text="m.name.substring(0, 2)"></div>
+                    <span class="font-medium truncate" x-text="m.name"></span>
+                </button>
+            </template>
+        </div>
+
+        <div x-show="make" x-cloak class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+            <div class="px-3 py-3 rounded-lg bg-[var(--gazu-mist)] flex items-center justify-between gap-2 min-h-[58px]">
+                <div class="flex items-center gap-2 min-w-0">
+                    <div class="w-8 h-8 rounded-md bg-white inline-flex items-center justify-center text-[11px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0"
+                         x-text="makeName().substring(0, 2)"></div>
+                    <div class="min-w-0">
+                        <div class="text-[10px] uppercase tracking-wider font-semibold text-[var(--gazu-graphite)] leading-tight">Марка</div>
+                        <div class="text-[14px] font-medium text-[var(--gazu-ink)] leading-tight truncate" x-text="makeName()"></div>
+                    </div>
+                </div>
+                <button type="button" @click="changeMake()" class="text-[11px] text-[var(--gazu-blue)] hover:underline bg-transparent border-0 cursor-pointer p-0 shrink-0">змінити</button>
+            </div>
+            @include('components.gazu.partials.compat-trigger', ['level' => 'model', 'label' => 'Модель', 'placeholderLocked' => 'Оберіть модель'])
             @include('components.gazu.partials.compat-trigger', ['level' => 'engine', 'label' => 'Двигун', 'placeholderLocked' => 'Спершу модель'])
         </div>
 
@@ -164,25 +189,31 @@
                 },
 
                 triggerState(level) {
-                    if (level === 'make')   { const m = this.makes.find(x => x.slug === this.make);   return { locked: false, selected: !!m, label: m ? m.name : null }; }
                     if (level === 'model')  { if (!this.make) return { locked: true, selected: false, label: null }; const m = this.models.find(x => x.slug === this.model); return { locked: false, selected: !!m, label: m ? m.name : null }; }
                     if (level === 'engine') { if (!this.model) return { locked: true, selected: false, label: null }; const e = this.engines.find(x => x.code === this.engine); return { locked: false, selected: !!e, label: e ? (e.label || e.code) : null }; }
                     return { locked: true, selected: false, label: null };
                 },
+                pickMake(m) {
+                    this.make = m.slug; this.model = ''; this.engine = '';
+                    this.models = []; this.engines = []; this.openLevel = null;
+                    this.result = null; this.fetchModels();
+                },
+                changeMake() {
+                    this.make = ''; this.model = ''; this.engine = '';
+                    this.models = []; this.engines = []; this.openLevel = null; this.result = null;
+                },
+                makeName() { const m = this.makes.find(x => x.slug === this.make); return m ? m.name : ''; },
                 toggleLevel(level) { const st = this.triggerState(level); if (st.locked) return; this.openLevel = this.openLevel === level ? null : level; },
                 closeAll() { this.openLevel = null; },
 
                 filteredItems() {
-                    const list = this.openLevel === 'make' ? this.makes
-                               : this.openLevel === 'model' ? this.models
-                               : this.openLevel === 'engine' ? this.engines : [];
+                    const list = this.openLevel === 'model' ? this.models : this.openLevel === 'engine' ? this.engines : [];
                     const q = this.search.trim().toLowerCase();
                     if (!q) return list;
                     return list.filter(item => ((item.name || '') + ' ' + (item.label || '') + ' ' + (item.code || '')).toLowerCase().includes(q));
                 },
                 isItemSelected(item) {
-                    return (this.openLevel === 'make' && item.slug === this.make)
-                        || (this.openLevel === 'model' && item.slug === this.model)
+                    return (this.openLevel === 'model' && item.slug === this.model)
                         || (this.openLevel === 'engine' && item.code === this.engine);
                 },
                 itemPrimaryLabel(item) { return this.openLevel === 'engine' ? (item.label || item.code) : (item.name + (item.years_range ? ' ('+item.years_range+')' : '')); },
@@ -191,8 +222,7 @@
                 moveHighlight(d) { const list = this.filteredItems(); if (!list.length) return; this.highlight = (this.highlight + d + list.length) % list.length; },
                 commitHighlighted() { const list = this.filteredItems(); if (list.length) this.pick(list[this.highlight]); },
                 pick(item) {
-                    if (this.openLevel === 'make')        { this.make = item.slug; this.model = ''; this.engine = ''; this.models = []; this.engines = []; this.openLevel = null; this.result = null; this.fetchModels(); }
-                    else if (this.openLevel === 'model')  { this.model = item.slug; this.engine = ''; this.engines = []; this.openLevel = null; this.result = null; this.fetchEngines(); }
+                    if (this.openLevel === 'model')       { this.model = item.slug; this.engine = ''; this.engines = []; this.openLevel = null; this.result = null; this.fetchEngines(); }
                     else if (this.openLevel === 'engine') { this.engine = item.code; this.openLevel = null; this.result = null; }
                 },
                 panelPositionStyle() {

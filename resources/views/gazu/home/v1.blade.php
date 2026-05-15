@@ -9,19 +9,14 @@
             <div>
                 @php
                     $s = $gazuSettings ?? [];
-                    $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Магазин автозапчастин'.(isset($shopStats['products_label']) ? ' · '.$shopStats['products_label'] : '');
-                    $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Знайди потрібну деталь';
-                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">артикулом</span> або назвою.';
-                    $heroDescription = $s['gazu_hero_description'] ?? sprintf(
-                        'Точний підбір з оригінальних каталогів. %s в Україні, доставка 1–3 дні, гарантія на кожну позицію.',
-                        $shopStats['warehouses_label'] ?? 'власні склади'
-                    );
+                    $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Запчастини для китайських авто';
+                    $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Підбір по авто';
+                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">марку</span> і двигун.';
                 @endphp
                 <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5">{{ $heroSubtitle }}</div>
-                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(26px, 6.4vw, 56px); line-height: 1.08; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">
+                <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(28px, 5.4vw, 48px); line-height: 1.08; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">
                     {{ $heroTitle1 }}<br>{!! $heroTitle2Html !!}
                 </h1>
-                <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mt-4 max-w-lg">{{ $heroDescription }}</p>
 
                 {{-- Hero car-selector — primary CTA: підбір запчастин по авто.
                      Article-search lives in the sticky header, не в hero. --}}
