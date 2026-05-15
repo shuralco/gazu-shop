@@ -12,8 +12,9 @@
 @section('title', $title.' — GAZU блог')
 
 @php
-    // Rough reading time — ~200 wpm; show only when content is non-trivial.
-    $wordCount = str_word_count(strip_tags((string) $content));
+    // Rough reading time — ~200 wpm; str_word_count doesn't count Cyrillic, use a unicode-aware regex.
+    $plain = trim(strip_tags((string) $content));
+    $wordCount = $plain !== '' ? preg_match_all('/[\pL\pN]+/u', $plain) : 0;
     $readingMin = $wordCount > 200 ? max(1, (int) round($wordCount / 200)) : null;
 @endphp
 
@@ -38,9 +39,16 @@
             <p class="text-[18px] text-[var(--gazu-graphite)] leading-relaxed mb-7 max-w-[60ch]">{{ $excerpt }}</p>
         @endif
 
-        @if($img)
+        @php
+            $imgSrc = $img
+                ? (\Str::startsWith($img, ['http://','https://'])
+                    ? $img
+                    : ($img[0] === '/' ? asset(ltrim($img, '/')) : asset('storage/'.$img)))
+                : null;
+        @endphp
+        @if($imgSrc)
             <figure class="aspect-video rounded-xl overflow-hidden mb-8 bg-[var(--gazu-paper)]">
-                <img src="{{ \Str::startsWith($img, 'http') ? $img : asset('storage/'.$img) }}" alt="{{ $title }}" loading="eager" class="w-full h-full object-cover">
+                <img src="{{ $imgSrc }}" alt="{{ $title }}" loading="eager" class="w-full h-full object-cover">
             </figure>
         @endif
 

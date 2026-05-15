@@ -24,9 +24,18 @@
                 @endphp
                 <a wire:navigate href="{{ route('gazu.blog.show', ['slug' => $slug]) }}"
                    class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden no-underline text-[var(--gazu-ink)] flex flex-col hover:border-[var(--gazu-line-2)]">
+                    @php
+                        $img = $post->og_image;
+                        // Handle three forms: full URL, absolute path "/img/...", relative "img/..." stored in /storage
+                        $imgSrc = $img
+                            ? (\Str::startsWith($img, ['http://','https://'])
+                                ? $img
+                                : ($img[0] === '/' ? asset(ltrim($img, '/')) : asset('storage/'.$img)))
+                            : null;
+                    @endphp
                     <div class="aspect-video bg-[var(--gazu-paper)] flex items-center justify-center">
-                        @if(! empty($post->og_image))
-                            <img src="{{ \Str::startsWith($post->og_image, 'http') ? $post->og_image : asset('storage/'.$post->og_image) }}" alt="" class="w-full h-full object-cover">
+                        @if($imgSrc)
+                            <img src="{{ $imgSrc }}" alt="" class="w-full h-full object-cover">
                         @else
                             <x-gazu.part-image kind="{{ $kind }}" size="120"/>
                         @endif
