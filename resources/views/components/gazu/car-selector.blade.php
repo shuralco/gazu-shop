@@ -233,11 +233,9 @@
                 },
                 submit() {
                     if (!(this.make && this.model && this.engine)) return;
-                    const u = new URL(opts.catalogUrl, window.location.origin);
-                    u.searchParams.set('make',   this.make);
-                    u.searchParams.set('model',  this.model);
-                    u.searchParams.set('engine', this.engine);
-                    window.location.assign(u.toString());
+                    // Pretty URL: /zapchastyny/{make}/{model}/{engine}
+                    const segs = ['zapchastyny', this.make, this.model, this.engine].map(encodeURIComponent);
+                    window.location.assign(window.location.origin + '/' + segs.join('/'));
                 },
             }));
         };

@@ -79,15 +79,19 @@
             </div>
         </div>
         {{-- Mobile-only fold-out trigger: tap to open since no hover on touch.
-             Lives inside the same wrapper so it can mutate `open`. --}}
+             Positioned ABOVE popover wrapper (top-full), aligned roughly with the
+             price line of the card (~95px above bottom: cart button 44 + gap 4 + price 36 + margin). --}}
         <button type="button"
                 @click.stop.prevent="open = !open"
-                class="md:hidden pointer-events-auto absolute -top-7 right-2 z-30
-                       text-[10px] gazu-mono uppercase tracking-wider px-1.5 py-0.5
-                       bg-white border border-[var(--gazu-line)] rounded text-[var(--gazu-graphite)]
-                       hover:text-[var(--gazu-ink)] cursor-pointer">
-            <span x-show="!open">Склади ↓</span>
-            <span x-show="open" x-cloak>Сховати</span>
+                class="md:hidden pointer-events-auto absolute -top-[95px] right-2 z-30
+                       text-[10px] gazu-mono uppercase tracking-wider px-2 py-1
+                       bg-white shadow-[0_1px_4px_-1px_rgba(14,27,44,0.20)]
+                       rounded-md text-[var(--gazu-blue)] font-semibold
+                       hover:text-[var(--gazu-ink)] cursor-pointer
+                       inline-flex items-center gap-1">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+            <span x-show="!open">Склади</span>
+            <span x-show="open" x-cloak>×</span>
         </button>
     </div>
 @endif

@@ -228,13 +228,40 @@ class StoreController extends Controller
         return $this->notFound();
     }
 
+    /**
+     * Pretty-URL catalog: /zapchastyny/{make}/{model?}/{engine?}.
+     * Merges path params into query, then defers to catalog() — handles search/sort/etc.
+     */
+    public function catalogByCar(Request $request, string $make, ?string $model = null, ?string $engine = null)
+    {
+        $request->query->set('make', $make);
+        if ($model !== null)  $request->query->set('model', $model);
+        if ($engine !== null) $request->query->set('engine', $engine);
+        return $this->catalog($request);
+    }
+
     public function catalog(Request $request, string $variant = 'v1')
     {
+        // Canonical-redirect: if both make and at least the path '/catalog' are used,
+        // 301 to the pretty URL so search engines see one URL per vehicle filter.
+        $routeName = optional($request->route())->getName();
+        if (
+            $request->isMethod('get')
+            && $request->filled('make')
+            && $variant === 'v1'
+            && $routeName === 'gazu.catalog'
+            && ! $request->hasAny(['cat', 'q', 'brand', 'min', 'max', 'stock', 'sort', 'page', 'condition', 'promo', 'hits', 'new'])
+        ) {
+            $segments = ['zapchastyny', $request->query('make')];
+            if ($request->filled('model'))  { $segments[] = $request->query('model'); }
+            if ($request->filled('engine')) { $segments[] = $request->query('engine'); }
+            return redirect('/'.implode('/', $segments), 301);
+        }
+
         // SEO redirect: `/catalog?cat=foo` → `/foo` (no other filters).
         // Only triggered for the legacy `gazu.catalog` route; the new
         // `gazu.category` resolver calls this method internally with the
         // same `cat` query, so we'd loop without this guard.
-        $routeName = optional($request->route())->getName();
         if (
             $request->isMethod('get')
             && $request->filled('cat')

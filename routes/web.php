@@ -21,6 +21,15 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/catalog/v2', [$c, 'catalog'])->defaults('variant', 'v2')->name('catalog.v2');
     Route::get('/catalog/v3', [$c, 'catalog'])->defaults('variant', 'v3')->name('catalog.v3');
 
+    // Pretty URLs for car-selector filter: /zapchastyny/{make}/{model?}/{engine?}
+    // Controller still consumes ?make/&model/&engine — route binding maps params into the query.
+    Route::get('/zapchastyny/{make}', [$c, 'catalogByCar'])->name('catalog.by-make')
+        ->where('make', '[a-z0-9][a-z0-9-]*');
+    Route::get('/zapchastyny/{make}/{model}', [$c, 'catalogByCar'])->name('catalog.by-model')
+        ->where(['make' => '[a-z0-9][a-z0-9-]*', 'model' => '[a-z0-9][a-z0-9-]*']);
+    Route::get('/zapchastyny/{make}/{model}/{engine}', [$c, 'catalogByCar'])->name('catalog.by-engine')
+        ->where(['make' => '[a-z0-9][a-z0-9-]*', 'model' => '[a-z0-9][a-z0-9-]*', 'engine' => '[a-z0-9][a-z0-9-\.]*']);
+
     // Backward compat: 301 to clean URL.
     Route::get('/product/{slug}', fn (string $slug) => redirect('/'.$slug, 301))
         ->where('slug', '[a-z0-9][a-z0-9-]*');
