@@ -151,7 +151,7 @@ class CatalogQuery
         // bookkeeping the trait sets up via casts/observers).
         $q = Product::query()
             ->where('is_active', true)
-            ->with(['category', 'inventory']);
+            ->with(['category', 'inventory.warehouse']);
 
         if (\Schema::hasColumn('products', 'brand_id')) {
             $q->with('brand');

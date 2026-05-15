@@ -17,7 +17,19 @@
     $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
     $productId = is_object($p) ? ($p->id ?? null) : ($p['id'] ?? null);
 @endphp
-<div class="gazu-card-anim bg-white border border-[var(--gazu-line)] rounded-lg flex flex-col overflow-hidden font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5">
+<div x-data="{
+        cardWh: null,
+        cardPrice: {{ (float) $price }},
+        cardQty: {{ (int) $qty }},
+     }"
+     @gazu:card-warehouse.window="
+        if (parseInt($event.detail.productId) === {{ (int) ($productId ?? 0) }}) {
+            cardWh    = parseInt($event.detail.warehouseId);
+            cardPrice = parseFloat($event.detail.price);
+            cardQty   = parseInt($event.detail.qty);
+        }
+     "
+     class="group gazu-card-anim bg-white border border-[var(--gazu-line)] rounded-lg flex flex-col font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5 hover:z-40">
     @if($discount)
         <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-white text-[11px] font-semibold rounded gazu-mono z-10">−{{ $discount }}%</div>
     @endif
@@ -95,7 +107,8 @@
                 <span class="text-xs text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</span>
             @endif
             <span class="gazu-display text-[19px] sm:text-[22px] font-bold text-[var(--gazu-ink)] leading-none">
-                {{ number_format($price, 0, '.', ' ') }} <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span>
+                <span x-text="Math.round(cardPrice).toLocaleString('uk-UA').replace(/,/g,' ')">{{ number_format($price, 0, '.', ' ') }}</span>
+                <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span>
             </span>
         </div>
 
@@ -109,7 +122,7 @@
                             fetch('{{ route('gazu.cart.add') }}', {
                                 method: 'POST',
                                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
-                                body: new URLSearchParams({ product_id: '{{ $productId }}', quantity: '1' })
+                                body: new URLSearchParams(Object.assign({ product_id: '{{ $productId }}', quantity: '1' }, cardWh ? { warehouse_id: cardWh } : {}))
                             }).then(r => r.json()).then(d => {
                                 if (d.ok) {
                                     window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: d.count, qtyTotal: d.qtyTotal, total: d.total } }));
@@ -157,4 +170,10 @@
             @endif
         </div>
     </div>
+
+    {{-- Warehouse prices popover — sits BELOW the card, appears on hover (desktop)
+         or tap (mobile, via Склади button rendered inside). --}}
+    @if(is_object($p) && $p instanceof \App\Models\Product)
+        <x-gazu.product-card-stocks :p="$p" :base-price="(float) $price"/>
+    @endif
 </div>
