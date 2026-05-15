@@ -46,6 +46,14 @@ class AppServiceProvider extends ServiceProvider
             \Log::warning("Lazy loading [{$relation}] on " . get_class($model));
         });
 
+        // Force HTTPS asset/route URLs when behind a TLS-terminating proxy
+        // (Traefik / Caddy / nginx). Without this, Vite-rendered <link href>
+        // and asset() helpers emit http:// — browsers then block mixed
+        // content or follow the 302 to https (CSS sometimes fails to apply).
+        if (str_starts_with((string) config('app.url'), 'https://')) {
+            \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
         // Custom Livewire synthesizer for models with HasTranslations
         \Livewire\Livewire::propertySynthesizer(\App\Livewire\Synthesizers\TranslatableModelSynth::class);
 
