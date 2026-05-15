@@ -23,25 +23,9 @@
                 </h1>
                 <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mt-4 max-w-lg">{{ $heroDescription }}</p>
 
-                {{-- Search --}}
-                <div class="mt-7 bg-white rounded-[10px] border border-[var(--gazu-line)] overflow-hidden" style="box-shadow: var(--gazu-shadow-2);">
-                    <div class="p-4">
-                        <form action="{{ route('gazu.search') }}" method="GET" class="flex gap-2">
-                            <input name="q" placeholder="Введіть артикул або назву деталі"
-                                   class="flex-1 px-4 py-3.5 gazu-mono text-[15px] border border-[var(--gazu-line)] rounded-md outline-none">
-                            <button type="submit" class="px-6 bg-[var(--gazu-ink)] text-white border-0 rounded-md font-medium text-sm cursor-pointer inline-flex items-center gap-2">
-                                <x-gazu.icon name="search" size="16"/> Пошук
-                            </button>
-                        </form>
-                        <div class="mt-2.5 text-xs text-[var(--gazu-graphite)]">
-                            Приклади: <span class="gazu-mono text-[var(--gazu-ink)]">06A 115 561 B</span> · <span class="gazu-mono text-[var(--gazu-ink)]">1K0 407 151 BC</span>
-                        </div>
-                    </div>
-                </div>
-
-                {{-- 4C: hero car-selector — підбір по марці/моделі/двигуну.
-                     Альтернатива до search-by-article, працює як «не знаю артикул — обери авто». --}}
-                <div class="mt-5">
+                {{-- Hero car-selector — primary CTA: підбір запчастин по авто.
+                     Article-search lives in the sticky header, не в hero. --}}
+                <div class="mt-7">
                     <x-gazu.car-selector variant="hero"/>
                 </div>
 
