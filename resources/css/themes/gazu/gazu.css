@@ -140,8 +140,18 @@ html.gazu, body.gazu {
     }
 }
 /* Horizontal scroll container with the scrollbar hidden — used by the
-   sticky mobile product-tab strip (← / → buttons nudge it). */
-.gazu-scroll-x { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+   sticky mobile product-tab strip (← / → buttons nudge it).
+   `overflow-y: hidden` is explicit so the browser doesn't implicitly make
+   the vertical axis scrollable too. `touch-action: pan-x` lets vertical
+   touch-swipes pass through to the page instead of being captured here. */
+.gazu-scroll-x {
+    overflow-x: auto;
+    overflow-y: hidden;
+    touch-action: pan-x;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    scroll-behavior: smooth;
+}
 .gazu-scroll-x::-webkit-scrollbar { display: none; }
 
 /* Margins on a sticky element are a known source of jumpiness during the
