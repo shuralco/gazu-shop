@@ -83,6 +83,12 @@ php artisan config:cache
 php artisan route:cache
 php artisan view:cache
 
+# CRITICAL: clear ResponseCache so cached HTML doesn't reference stale Vite
+# asset hashes from the previous deploy (HTML refs gazu-ABC.css but new
+# build produced gazu-XYZ.css → 404 on every asset → broken styles).
+php artisan responsecache:clear || true
+php artisan cache:clear || true
+
 # Setup Meilisearch if configured
 if [ "$SCOUT_DRIVER" = "meilisearch" ]; then
     echo "[entrypoint] Setting up Meilisearch indexes..."
