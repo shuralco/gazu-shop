@@ -1068,6 +1068,48 @@ class StoreController extends Controller
         return response()->json(['items' => $items]);
     }
 
+    /**
+     * 4D: «Чи підходить ця запчастина моєму авто?»
+     * Returns { fits: bool, engine: {...}, productCompatCount: int }.
+     * Engine lookup is by composite (make.slug, model.slug, engine.code).
+     */
+    public function apiCompatCheck(Request $request)
+    {
+        $productId = (int) $request->query('product_id', 0);
+        $makeSlug  = trim((string) $request->query('make', ''));
+        $modelSlug = trim((string) $request->query('model', ''));
+        $engineCode = trim((string) $request->query('engine', ''));
+        if (! $productId || $makeSlug === '' || $modelSlug === '' || $engineCode === '') {
+            return response()->json(['ok' => false, 'message' => 'Заповніть всі поля'], 422);
+        }
+
+        $engine = \App\Models\CarEngine::query()
+            ->where('car_engines.code', $engineCode)
+            ->whereHas('model', function ($q) use ($modelSlug, $makeSlug) {
+                $q->where('car_models.slug', $modelSlug)
+                  ->whereHas('make', fn ($mq) => $mq->where('car_makes.slug', $makeSlug));
+            })
+            ->with(['model.make'])
+            ->first();
+        if (! $engine) {
+            return response()->json(['ok' => true, 'fits' => false, 'message' => 'Цей двигун не знайдено в базі.']);
+        }
+
+        $fits = \DB::table('product_compatibility')
+            ->where('product_id', $productId)
+            ->where('engine_id', $engine->id)
+            ->exists();
+
+        return response()->json([
+            'ok' => true,
+            'fits' => $fits,
+            'engine' => [
+                'id'    => $engine->id,
+                'label' => trim(($engine->model->make->name ?? '').' '.($engine->model->name ?? '').' '.($engine->label ?? $engine->code)),
+            ],
+        ]);
+    }
+
     public function apiCarEngines(Request $request)
     {
         $makeKey = (string) $request->query('make', '');

@@ -91,6 +91,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/cars/makes', [$c, 'apiCarMakes'])->name('api.cars.makes');
     Route::get('/api/cars/models', [$c, 'apiCarModels'])->name('api.cars.models');
     Route::get('/api/cars/engines', [$c, 'apiCarEngines'])->name('api.cars.engines');
+    // 4D: compat-check — «чи підходить ця запчастина моєму авто?»
+    Route::get('/api/compat/check', [$c, 'apiCompatCheck'])->name('api.compat.check');
 
     Route::get('/404', [$c, 'notFound'])->name('404');
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');

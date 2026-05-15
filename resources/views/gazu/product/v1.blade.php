@@ -181,6 +181,13 @@
             </div>
         </div>{{-- /gazu-grid-product-main --}}
 
+        {{-- 4D: Compat-check — перевірити чи запчастина підходить вашому авто.
+             Reference: chery911.com.ua/products/aftermarket-yj026280-30376.html.
+             Логіка: марка→модель→двигун, перевірити по product_compatibility. --}}
+        @if(is_object($p) && $p instanceof \App\Models\Product)
+            <x-gazu.compat-check :product-id="$p->id"/>
+        @endif
+
         @php
                     $analogList = ($analogs ?? null) instanceof \Illuminate\Support\Collection
                         ? $analogs : collect();

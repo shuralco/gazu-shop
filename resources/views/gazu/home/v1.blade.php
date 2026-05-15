@@ -39,6 +39,12 @@
                     </div>
                 </div>
 
+                {{-- 4C: hero car-selector — підбір по марці/моделі/двигуну.
+                     Альтернатива до search-by-article, працює як «не знаю артикул — обери авто». --}}
+                <div class="mt-5">
+                    <x-gazu.car-selector variant="hero"/>
+                </div>
+
                 <div class="flex flex-wrap gap-6 mt-5 text-xs text-[var(--gazu-graphite)]">
                     <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Без передоплати</span>
                     <span class="inline-flex gap-1.5 items-center"><x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/> Гарантія 12+ міс.</span>
