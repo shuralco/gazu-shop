@@ -33,6 +33,9 @@
                 open: false,
                 loading: false,
                 timer: null,
+                voiceSupported: false,
+                listening: false,
+                _rec: null,
                 async fetch() {
                     if (this.q.length < 2) { this.items = []; this.open = false; return; }
                     this.loading = true;
@@ -48,18 +51,48 @@
                 onInput() {
                     clearTimeout(this.timer);
                     this.timer = setTimeout(() => this.fetch(), 250);
+                },
+                initVoice() {
+                    this.voiceSupported = 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+                },
+                voice() {
+                    if (!this.voiceSupported) return;
+                    if (this.listening) { this._rec?.stop(); return; }
+                    const R = window.SpeechRecognition || window.webkitSpeechRecognition;
+                    const r = new R();
+                    r.lang = 'uk-UA';
+                    r.interimResults = true;
+                    r.continuous = false;
+                    r.onstart  = () => { this.listening = true; };
+                    r.onend    = () => { this.listening = false; this._rec = null; };
+                    r.onerror  = () => { this.listening = false; };
+                    r.onresult = (e) => {
+                        const t = Array.from(e.results).map(x => x[0].transcript).join('').trim();
+                        this.q = t;
+                        if (e.results[e.results.length - 1].isFinal) {
+                            this.onInput();
+                        }
+                    };
+                    this._rec = r;
+                    try { r.start(); } catch(e) { this.listening = false; }
                 }
              }"
+             x-init="initVoice()"
              @click.outside="open = false">
-            <form action="{{ route('gazu.search') }}" method="GET" class="flex border-[1.5px] border-[var(--gazu-ink)] rounded-lg overflow-hidden bg-white">
-                <div class="flex items-center gap-1.5 px-3.5 border-r border-[var(--gazu-line)] text-[var(--gazu-graphite)] text-[13px] cursor-pointer shrink-0 select-none">
-                    <span>Каталог</span>
-                    <x-gazu.icon name="chevron" size="14"/>
-                </div>
-                <input name="q" placeholder="Назва категорії, бренд або деталь (напр. оливний фільтр, Bosch, амортизатор)"
+            <form action="{{ route('gazu.search') }}" method="GET" class="flex items-stretch border-[1.5px] border-[var(--gazu-ink)] rounded-lg overflow-hidden bg-white">
+                <input name="q" placeholder="Назва категорії, бренд або деталь — напр. оливний фільтр, Bosch, амортизатор"
                        x-model="q" @input="onInput" @focus="if (items.length) open = true"
                        class="flex-1 min-w-0 border-0 outline-none px-3.5 py-2.5 text-sm text-[var(--gazu-ink)]"
                        autocomplete="off">
+                {{-- Voice input — Web Speech API. Hidden when the browser doesn't support it. --}}
+                <button type="button" @click="voice()" x-show="voiceSupported" x-cloak
+                        :aria-pressed="listening"
+                        :title="listening ? 'Зупинити запис' : 'Голосовий пошук'"
+                        :class="listening ? 'text-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)]' : 'text-[var(--gazu-graphite)] bg-white hover:bg-[var(--gazu-paper)]'"
+                        class="border-0 border-l border-[var(--gazu-line)] px-3 cursor-pointer inline-flex items-center justify-center shrink-0 transition-colors">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         :class="listening ? 'animate-pulse' : ''"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 1 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 1 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                </button>
                 <button type="submit" class="border-0 bg-[var(--gazu-ink)] text-white px-4 cursor-pointer inline-flex items-center gap-1.5 text-sm shrink-0">
                     <x-gazu.icon name="search" size="16"/> <span class="hidden sm:inline">Знайти</span>
                 </button>
