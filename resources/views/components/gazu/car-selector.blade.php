@@ -29,7 +29,8 @@
                 ? 'p-3 sm:p-4 bg-white rounded-2xl shadow-[0_20px_50px_-30px_rgba(14,27,44,0.22)]'
                 : 'p-3 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]' }}">
 
-    {{-- Header — compact (smaller icon + tighter spacing) --}}
+    {{-- Header — мінімалістичний. Subtitle ховаємо коли selector в done-режимі
+         (зайвий контекст коли всі чипи й так видно). --}}
     <div class="flex items-center justify-between mb-2 gap-2">
         <div class="flex items-center gap-2 min-w-0">
             <div class="w-7 h-7 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] shrink-0">
@@ -37,7 +38,8 @@
             </div>
             <div class="min-w-0">
                 <div class="text-[13px] sm:text-[14px] font-semibold text-[var(--gazu-ink)] leading-tight">Підбір по авто</div>
-                <div class="text-[10px] sm:text-[11px] text-[var(--gazu-graphite)] leading-tight" x-text="stepLabel()"></div>
+                <div x-show="activeLevel() || _redirecting"
+                     class="text-[10px] sm:text-[11px] text-[var(--gazu-graphite)] leading-tight" x-text="stepLabel()"></div>
             </div>
         </div>
         <button type="button"
@@ -111,27 +113,17 @@
         </div>
     </div>
 
-    {{-- After-redirect ready state: всі 3 рівні заповнені (з URL або щойно обрано), redirect-loop спрацював.
-         Показуємо коротке Авто визначено + кнопку «Шукати ще раз» (reset). --}}
-    <div x-show="!activeLevel() && !_redirecting" x-cloak
-         class="min-h-[140px] sm:min-h-[160px] flex flex-col items-center justify-center text-center px-3">
-        <div class="w-9 h-9 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-success,#1f9d55)] mb-2">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
-        </div>
-        <div class="text-[13px] font-semibold text-[var(--gazu-ink)]">Авто визначено</div>
-        <div class="text-[11px] text-[var(--gazu-graphite)] mt-0.5">Фільтр застосовано до каталогу</div>
-    </div>
+    {{-- Done state — селектор колапсує до тонкого filter-bar'а (тільки чипи + reset вгорі).
+         Жодного додаткового візуального простору не займає. --}}
 
     {{-- Transition spinner — тільки під час pick→redirect (350ms вікно). --}}
     <div x-show="_redirecting" x-cloak
-         class="min-h-[140px] sm:min-h-[160px] flex flex-col items-center justify-center text-center px-3">
-        <div class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] mb-2">
-            <svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
-                <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-            </svg>
-        </div>
-        <div class="text-[13px] font-semibold text-[var(--gazu-ink)]">Шукаємо запчастини…</div>
+         class="min-h-[120px] flex items-center justify-center gap-2 px-3">
+        <svg class="animate-spin shrink-0 text-[var(--gazu-blue)]" width="18" height="18" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
+            <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <div class="text-[13px] font-medium text-[var(--gazu-ink)]">Шукаємо запчастини…</div>
     </div>
 </div>
 

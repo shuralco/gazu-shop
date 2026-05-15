@@ -253,7 +253,7 @@ class StoreController extends Controller
 
         // Декорація під product-card props.
         $products = collect($paginator->items())->map(fn ($p) => $this->decorate($p));
-        if ($products->isEmpty() && ! $request->hasAny(['cat', 'q', 'brand', 'min', 'max', 'stock'])) {
+        if ($products->isEmpty() && ! $request->hasAny(['cat', 'q', 'brand', 'min', 'max', 'stock', 'make', 'model', 'engine'])) {
             // Жодних товарів і жодних фільтрів — показуємо моки, щоб шаблон не виглядав порожнім.
             $products = $this->mockProducts(12);
         }
