@@ -22,6 +22,10 @@
             $crumbs[] = [(string) $title, url('/'.($slug ?: $c->id))];
         }
     }
-    $crumbs[] = trim(($brand ?? '') . ' ' . ($oem ?? '')) ?: ($name ?? 'Товар');
+    // Last crumb is the product NAME (not brand + article). The article is
+    // already shown below in the central column's meta block — duplicating
+    // it in the breadcrumb above the gallery was redundant and made the
+    // article appear above the product photo on mobile.
+    $crumbs[] = $name ?: (trim(($brand ?? '').' '.($oem ?? '')) ?: 'Товар');
 @endphp
 <x-gazu.breadcrumbs :items="$crumbs"/>

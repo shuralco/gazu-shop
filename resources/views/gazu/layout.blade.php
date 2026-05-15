@@ -30,8 +30,12 @@
     @endif
 
     <style>
-        /* Mobile safety: ніколи не дозволяти горизонтальний overflow */
-        html, body.gazu { max-width: 100vw; overflow-x: hidden; }
+        /* Mobile: cap width to viewport. We deliberately do NOT set
+           `overflow-x: hidden/clip` here — it breaks `position: sticky` for
+           descendants in WebKit/Chromium. The earlier layout fixes (grid
+           `min-width: 0` children, font-size capping etc.) keep horizontal
+           overflow under control without needing this safety net. */
+        html, body.gazu { max-width: 100vw; }
         @media (max-width: 640px) {
             .gazu-container { padding-left: 16px; padding-right: 16px; }
         }
