@@ -50,8 +50,9 @@
         </button>
     </div>
 
-    {{-- Picked chips — horizontal row of selected levels with «змінити». --}}
-    <div x-show="hasAnySelection()" x-cloak class="flex flex-wrap items-center gap-1.5 mb-3">
+    {{-- Picked chips — horizontal row of selected levels with «змінити».
+         Always reserves vertical space so the block doesn't jump when chips appear. --}}
+    <div class="flex flex-wrap items-center gap-1.5 mb-3 min-h-[28px]">
         <template x-for="chip in pickedChips()" :key="chip.level">
             <div class="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-full bg-[var(--gazu-mist)] text-[12px] text-[var(--gazu-ink)] max-w-full">
                 <div class="w-5 h-5 rounded-full bg-white inline-flex items-center justify-center text-[9px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></div>
@@ -63,30 +64,34 @@
         </template>
     </div>
 
-    {{-- Active level: tile grid for current step --}}
-    <div x-show="activeLevel()" class="mb-3 sm:mb-4">
+    {{-- Active level: tile grid for current step.
+         Fixed min-height keeps the block from jumping when the user moves
+         between steps with differing tile counts (8 makes → 4 models → 2 engines). --}}
+    <div x-show="activeLevel()"
+         class="mb-3 sm:mb-4 min-h-[256px] sm:min-h-[208px] flex flex-col">
         {{-- Step label --}}
-        <div class="flex items-center justify-between mb-2">
+        <div class="flex items-center justify-between mb-2 gap-2">
             <div class="text-[10px] uppercase tracking-wider font-semibold text-[var(--gazu-graphite)]" x-text="stepLabel()"></div>
-            {{-- Search appears only when list has many items --}}
-            <div x-show="currentList().length > 6" class="relative max-w-[200px]">
+            <div x-show="currentList().length > 6" class="relative max-w-[200px] shrink-0">
                 <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--gazu-graphite)]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 <input type="text" x-model="search" placeholder="Пошук…"
                        class="pl-7 pr-2 py-1.5 text-[12px] bg-white rounded-md outline-none shadow-[inset_0_0_0_1px_var(--gazu-line)] focus:shadow-[inset_0_0_0_1px_var(--gazu-blue,#2563eb)] w-full">
             </div>
         </div>
 
-        {{-- Loading state --}}
-        <div x-show="loading" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+        {{-- Loading skeleton — same shape as real tiles so the box doesn't resize. --}}
+        <div x-show="loading" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 flex-1">
             <template x-for="i in 4" :key="i">
-                <div class="rounded-lg bg-[var(--gazu-paper)] animate-pulse min-h-[52px]"></div>
+                <div class="rounded-lg bg-[var(--gazu-paper)] animate-pulse min-h-[52px] sm:min-h-[56px]"></div>
             </template>
         </div>
 
-        {{-- Tile grid: 2/3/4 cols based on viewport --}}
+        {{-- Tile grid: 2/3/4 cols based on viewport.
+             Wrapper has flex-1 + content-start so empty space below tiles is
+             reserved (locks the block height) without leaving them visually orphaned. --}}
         <div x-show="!loading && filteredItems().length > 0"
              :class="expanded ? 'max-h-none' : 'max-h-[260px] sm:max-h-[280px]'"
-             class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto transition-[max-height]">
+             class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto content-start transition-[max-height] flex-1">
             <template x-for="(item, idx) in filteredItems()" :key="itemKey(item)">
                 <button type="button"
                         @click="pick(item)"
@@ -94,7 +99,6 @@
                             isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]',
                         ]"
                         class="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[52px] sm:min-h-[56px]">
-                    {{-- Badge: 2-letter brand acronym for makes, otherwise the item code --}}
                     <div class="w-9 h-9 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0"
                          x-text="itemBadge(item)"></div>
                     <div class="min-w-0 flex-1">
@@ -105,7 +109,6 @@
             </template>
         </div>
 
-        {{-- "Show all" toggle for very long lists (above 12 items, ~3 rows on desktop) --}}
         <div x-show="!loading && filteredItems().length > 12" x-cloak class="mt-2 text-center">
             <button type="button" @click="expanded = !expanded"
                     class="text-[12px] text-[var(--gazu-blue)] hover:underline bg-transparent border-0 cursor-pointer p-0">
@@ -114,11 +117,20 @@
             </button>
         </div>
 
-        {{-- Empty search results --}}
         <div x-show="!loading && filteredItems().length === 0 && search"
              class="text-center py-4 text-[12px] text-[var(--gazu-graphite)]">
             Нічого не знайдено за «<span x-text="search"></span>»
         </div>
+    </div>
+
+    {{-- "All done" state — keeps the block at the same height as during selection. --}}
+    <div x-show="!activeLevel()" x-cloak
+         class="mb-3 sm:mb-4 min-h-[256px] sm:min-h-[208px] flex flex-col items-center justify-center text-center px-4">
+        <div class="w-14 h-14 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-success,#1f9d55)] mb-3">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+        </div>
+        <div class="text-[14px] font-semibold text-[var(--gazu-ink)]">Авто визначено</div>
+        <div class="text-[12px] text-[var(--gazu-graphite)] mt-1">Натисніть «Знайти запчастини» нижче</div>
     </div>
 
     {{-- Submit CTA — shown only once we have at least one selection --}}

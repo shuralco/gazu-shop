@@ -29,8 +29,8 @@
             </div>
         </div>
 
-        {{-- Picked chips --}}
-        <div x-show="hasAnySelection()" x-cloak class="flex flex-wrap items-center gap-1.5 mb-3">
+        {{-- Picked chips — reserves space to prevent layout jump --}}
+        <div class="flex flex-wrap items-center gap-1.5 mb-3 min-h-[28px]">
             <template x-for="chip in pickedChips()" :key="chip.level">
                 <div class="inline-flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-full bg-[var(--gazu-mist)] text-[12px] text-[var(--gazu-ink)] max-w-full">
                     <div class="w-5 h-5 rounded-full bg-white inline-flex items-center justify-center text-[9px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></div>
@@ -40,23 +40,23 @@
             </template>
         </div>
 
-        {{-- Active level tile grid --}}
-        <div x-show="activeLevel()" class="mb-3 sm:mb-4">
-            <div class="flex items-center justify-between mb-2">
+        {{-- Active level tile grid — min-height locks the block size between steps. --}}
+        <div x-show="activeLevel()" class="mb-3 sm:mb-4 min-h-[256px] sm:min-h-[208px] flex flex-col">
+            <div class="flex items-center justify-between mb-2 gap-2">
                 <div class="text-[10px] uppercase tracking-wider font-semibold text-[var(--gazu-graphite)]" x-text="stepLabel()"></div>
-                <div x-show="currentList().length > 6" class="relative max-w-[200px]">
+                <div x-show="currentList().length > 6" class="relative max-w-[200px] shrink-0">
                     <svg class="absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--gazu-graphite)]" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                     <input type="text" x-model="search" placeholder="Пошук…" class="pl-7 pr-2 py-1.5 text-[12px] bg-white rounded-md outline-none shadow-[inset_0_0_0_1px_var(--gazu-line)] focus:shadow-[inset_0_0_0_1px_var(--gazu-blue,#2563eb)] w-full">
                 </div>
             </div>
 
-            <div x-show="loading" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-                <template x-for="i in 4" :key="i"><div class="rounded-lg bg-[var(--gazu-paper)] animate-pulse min-h-[52px]"></div></template>
+            <div x-show="loading" x-cloak class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 flex-1">
+                <template x-for="i in 4" :key="i"><div class="rounded-lg bg-[var(--gazu-paper)] animate-pulse min-h-[52px] sm:min-h-[56px]"></div></template>
             </div>
 
             <div x-show="!loading && filteredItems().length > 0"
                  :class="expanded ? 'max-h-none' : 'max-h-[260px] sm:max-h-[280px]'"
-                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto transition-[max-height]">
+                 class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 overflow-y-auto content-start transition-[max-height] flex-1">
                 <template x-for="(item, idx) in filteredItems()" :key="itemKey(item)">
                     <button type="button"
                             @click="pick(item)"
@@ -83,6 +83,15 @@
             <div x-show="!loading && filteredItems().length === 0 && search" class="text-center py-4 text-[12px] text-[var(--gazu-graphite)]">
                 Нічого не знайдено за «<span x-text="search"></span>»
             </div>
+        </div>
+
+        <div x-show="!activeLevel()" x-cloak
+             class="mb-3 sm:mb-4 min-h-[256px] sm:min-h-[208px] flex flex-col items-center justify-center text-center px-4">
+            <div class="w-14 h-14 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-success,#1f9d55)] mb-3">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9 12l2 2 4-4"/></svg>
+            </div>
+            <div class="text-[14px] font-semibold text-[var(--gazu-ink)]">Авто визначено</div>
+            <div class="text-[12px] text-[var(--gazu-graphite)] mt-1">Натисніть «Перевірити» нижче</div>
         </div>
 
         {{-- Check button + reset --}}
