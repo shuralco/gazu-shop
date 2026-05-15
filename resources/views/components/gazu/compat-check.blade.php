@@ -147,6 +147,7 @@
                 _opts: opts,
 
                 async init() {
+                    this._host = this.$el;
                     try { const r = await fetch(opts.api.makes); const d = await r.json(); this.makes = d.items || []; } catch (e) {}
                     this.$watch('openLevel', (v) => { this.search = ''; this.highlight = 0; if (v) this.$nextTick(() => this.$refs.searchInput?.focus()); });
                 },
@@ -195,11 +196,13 @@
                     else if (this.openLevel === 'engine') { this.engine = item.code; this.openLevel = null; this.result = null; }
                 },
                 panelPositionStyle() {
-                    const trigger = this.$el.querySelector('[data-trigger="' + this.openLevel + '"]');
-                    if (!trigger) return '';
-                    const r = trigger.getBoundingClientRect();
-                    const hostR = this.$el.getBoundingClientRect();
-                    return `left: ${r.left - hostR.left}px; top: ${r.bottom - hostR.top + 6}px; width: ${Math.max(r.width, 240)}px;`;
+                    const host = this._host || this.$el;
+                    const triggers = host.querySelectorAll('[data-trigger]');
+                    if (!triggers.length) return '';
+                    let maxBottom = 0;
+                    triggers.forEach(t => { const r = t.getBoundingClientRect(); if (r.bottom > maxBottom) maxBottom = r.bottom; });
+                    const hostR = host.getBoundingClientRect();
+                    return `left: 0; right: 0; top: ${maxBottom - hostR.top + 6}px;`;
                 },
 
                 hasAnySelection() { return !!(this.make || this.model || this.engine); },

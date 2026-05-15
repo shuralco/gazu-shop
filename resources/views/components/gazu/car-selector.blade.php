@@ -113,20 +113,20 @@
                 </div>
             </div>
 
-            {{-- Brand-grid view (makes only): visual 2-column grid with selection rings --}}
+            {{-- Brand-grid view (makes only): responsive 2/3/4 cols depending on host width --}}
             <template x-if="openLevel === 'make' && !search">
-                <div class="p-2 max-h-[280px] overflow-y-auto">
-                    <div class="grid grid-cols-2 gap-1.5">
+                <div class="p-2.5 max-h-[320px] overflow-y-auto">
+                    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
                         <template x-for="(item, idx) in filteredItems()" :key="item.slug">
                             <button type="button"
                                     @click="pick(item)"
                                     @mouseover="highlight = idx"
                                     :class="[
-                                        highlight === idx ? 'border-[var(--gazu-ink)] bg-[var(--gazu-mist)]' : 'border-[var(--gazu-line)] hover:border-[var(--gazu-graphite)]',
-                                        item.slug === make ? 'ring-2 ring-[var(--gazu-blue)]' : '',
+                                        highlight === idx ? 'border-[var(--gazu-blue,#2563eb)] bg-[var(--gazu-mist)]' : 'border-[var(--gazu-line)] hover:border-[var(--gazu-line-2)] hover:bg-[var(--gazu-paper)]',
+                                        item.slug === make ? 'border-[var(--gazu-blue,#2563eb)] bg-[var(--gazu-mist)]' : '',
                                     ]"
-                                    class="flex items-center gap-2 px-2.5 py-2 bg-white border rounded-md text-left cursor-pointer transition-colors text-[13px] text-[var(--gazu-ink)] min-h-[42px]">
-                                <div class="w-7 h-7 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0"
+                                    class="flex items-center gap-2.5 px-3 py-2.5 bg-white border rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[46px]">
+                                <div class="w-8 h-8 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0"
                                      x-text="item.name.substring(0, 2)"></div>
                                 <span class="font-medium truncate" x-text="item.name"></span>
                             </button>
@@ -202,6 +202,9 @@
                 _opts: opts,
 
                 async init() {
+                    // Capture host root for cross-template DOM queries — $el shifts when
+                    // methods are called from inside <template x-if> blocks.
+                    this._host = this.$el;
                     this.loading = true;
                     try { const r = await fetch(opts.api.makes, { headers: { Accept: 'application/json' } }); const d = await r.json(); this.makes = d.items || []; } catch (e) {}
                     finally { this.loading = false; }
@@ -299,16 +302,15 @@
                 },
 
                 panelPositionStyle() {
-                    // Position the panel right below the appropriate trigger column.
-                    // Computed off the data-trigger attribute on the trigger button.
-                    const trigger = this.$el.querySelector('[data-trigger="' + this.openLevel + '"]');
-                    if (! trigger) return '';
-                    const r = trigger.getBoundingClientRect();
-                    const hostR = this.$el.getBoundingClientRect();
-                    const left   = r.left - hostR.left;
-                    const top    = r.bottom - hostR.top + 6;
-                    const width  = Math.max(r.width, 240);
-                    return `left: ${left}px; top: ${top}px; width: ${width}px;`;
+                    // Panel spans the full host width and drops below the row of all triggers
+                    // (not just the clicked column) — feels like a single dropdown surface.
+                    const host = this._host || this.$el;
+                    const triggers = host.querySelectorAll('[data-trigger]');
+                    if (! triggers.length) return '';
+                    let maxBottom = 0;
+                    triggers.forEach(t => { const r = t.getBoundingClientRect(); if (r.bottom > maxBottom) maxBottom = r.bottom; });
+                    const hostR = host.getBoundingClientRect();
+                    return `left: 0; right: 0; top: ${maxBottom - hostR.top + 6}px;`;
                 },
 
                 hasAnySelection() { return !!(this.make || this.model || this.engine); },
