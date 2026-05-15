@@ -144,6 +144,11 @@ html.gazu, body.gazu {
 .gazu-scroll-x { overflow-x: auto; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
 .gazu-scroll-x::-webkit-scrollbar { display: none; }
 
+/* Margins on a sticky element are a known source of jumpiness during the
+   in-flow → pinned transition — keep margins on a wrapper, leave the
+   sticky element clean. (We deliberately do NOT add `transform` / GPU
+   hints here — `transform` on a sticky element disables its pinning.) */
+
 .gazu-grid-product-rhs { display: grid; gap: 24px; grid-template-columns: 1fr; }
 .gazu-grid-product-rhs > * { min-width: 0; }
 @media (min-width: 1024px) {

@@ -207,7 +207,12 @@
                     {{-- Mobile — sticky tab strip: every tab sits in a row; the
                          ← / → buttons appear only when the row overflows and
                          nudge it sideways (the row itself is also swipe-scrollable). --}}
-                    <div class="md:hidden sticky top-2 z-30 mt-3 mb-5"
+                    {{-- Sticky element has no margins — margins on a sticky element
+                         cause jumpiness during the in-flow → pinned transition.
+                         Sticky's parent (the .mt-2 tabs container) is tall — it
+                         holds the active tabpanel content — giving sticky enough
+                         room to pin while the user reads through that panel. --}}
+                    <div class="md:hidden sticky top-2 z-30 mt-3"
                          x-data="{
                             canL: false, canR: false,
                             upd() {
