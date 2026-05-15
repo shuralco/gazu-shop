@@ -111,9 +111,20 @@
         </div>
     </div>
 
-    {{-- Auto-submitting state (all 3 picked) --}}
-    <div x-show="!activeLevel()" x-cloak
-         class="min-h-[208px] sm:min-h-[180px] flex flex-col items-center justify-center text-center px-3">
+    {{-- After-redirect ready state: всі 3 рівні заповнені (з URL або щойно обрано), redirect-loop спрацював.
+         Показуємо коротке Авто визначено + кнопку «Шукати ще раз» (reset). --}}
+    <div x-show="!activeLevel() && !_redirecting" x-cloak
+         class="min-h-[140px] sm:min-h-[160px] flex flex-col items-center justify-center text-center px-3">
+        <div class="w-9 h-9 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-success,#1f9d55)] mb-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        </div>
+        <div class="text-[13px] font-semibold text-[var(--gazu-ink)]">Авто визначено</div>
+        <div class="text-[11px] text-[var(--gazu-graphite)] mt-0.5">Фільтр застосовано до каталогу</div>
+    </div>
+
+    {{-- Transition spinner — тільки під час pick→redirect (350ms вікно). --}}
+    <div x-show="_redirecting" x-cloak
+         class="min-h-[140px] sm:min-h-[160px] flex flex-col items-center justify-center text-center px-3">
         <div class="w-10 h-10 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] mb-2">
             <svg class="animate-spin" width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
@@ -121,7 +132,6 @@
             </svg>
         </div>
         <div class="text-[13px] font-semibold text-[var(--gazu-ink)]">Шукаємо запчастини…</div>
-        <div class="text-[11px] text-[var(--gazu-graphite)] mt-0.5">Переходимо до каталогу</div>
     </div>
 </div>
 
@@ -138,6 +148,7 @@
                 model: opts.initialModel || '',
                 engine: opts.initialEngine || '',
                 search: '', expanded: false, loading: false,
+                _redirecting: false, // only true between engine-pick and URL navigation
                 _opts: opts,
 
                 async init() {
@@ -213,6 +224,7 @@
                         this.engine = item.code;
                         // Auto-submit — small delay so the loading state renders briefly.
                         if (opts.autoSubmit) {
+                            this._redirecting = true;
                             setTimeout(() => this.submit(), 350);
                         }
                     }
