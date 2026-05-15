@@ -12,7 +12,7 @@
 
     <article class="bg-white border border-[var(--gazu-line)] rounded-xl p-8 space-y-5 text-[15px] leading-relaxed text-[var(--gazu-ink)]">
         @if(! empty($content_html ?? null))
-            <div class="prose max-w-none">{!! $content_html !!}</div>
+            <div class="gazu-prose">{!! $content_html !!}</div>
         @endif
         @foreach($sections ?? [] as $sec)
             @if(isset($sec['title']))

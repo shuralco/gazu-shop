@@ -90,13 +90,20 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/404', [$c, 'notFound'])->name('404');
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');
 
-    // Static info pages (about, delivery, warranty, privacy, terms, wholesale)
-    Route::get('/about',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'about')->name('about');
-    Route::get('/delivery',  [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'delivery')->name('delivery');
-    Route::get('/warranty',  [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'warranty')->name('warranty');
-    Route::get('/privacy',   [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'privacy')->name('privacy');
-    Route::get('/terms',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'terms')->name('terms');
-    Route::get('/wholesale', [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'wholesale')->name('wholesale');
+    // Static info pages — all served by InfoController which reads from the
+    // `info_pages` table (editable in the Filament admin) and falls back to
+    // hard-coded content when a row is missing.
+    Route::get('/about',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'about')->name('about');
+    Route::get('/delivery',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'delivery')->name('delivery');
+    Route::get('/warranty',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'warranty')->name('warranty');
+    Route::get('/privacy',      [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'privacy')->name('privacy');
+    Route::get('/terms',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'terms')->name('terms');
+    Route::get('/wholesale',    [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'wholesale')->name('wholesale');
+    Route::get('/faq',          [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'faq')->name('faq');
+    Route::get('/loyalty',      [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'loyalty')->name('loyalty');
+    Route::get('/careers',      [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'careers')->name('careers');
+    Route::get('/certificates', [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'certificates')->name('certificates');
+    Route::get('/offer',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'offer')->name('offer');
 
     // Root-level catch-all: resolveSlug dispatches to product (slug ends in
     // -\d+, Rozetka-style) or category (no numeric suffix). Must be LAST in

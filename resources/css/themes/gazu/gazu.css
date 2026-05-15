@@ -139,6 +139,92 @@ html.gazu, body.gazu {
         align-items: start;
     }
 }
+/* Long-form prose typography — used by info pages (about, delivery, …)
+   and by the blog. Tailwind Typography plugin isn't installed, so this
+   is a hand-rolled minimal "prose" replacement tuned to the GAZU theme. */
+.gazu-prose { color: var(--gazu-ink); font-size: 15px; line-height: 1.7; max-width: 72ch; }
+.gazu-prose > *:first-child { margin-top: 0; }
+.gazu-prose > *:last-child  { margin-bottom: 0; }
+.gazu-prose h2 {
+    font-family: var(--font-display, "Inter", system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 1.25;
+    color: var(--gazu-ink);
+    margin: 2em 0 0.75em;
+    letter-spacing: -0.01em;
+}
+.gazu-prose h2:first-child { margin-top: 0; }
+.gazu-prose h3 {
+    font-family: var(--font-display, "Inter", system-ui, sans-serif);
+    font-weight: 600;
+    font-size: 19px;
+    line-height: 1.3;
+    color: var(--gazu-ink);
+    margin: 1.6em 0 0.5em;
+}
+.gazu-prose h4 { font-weight: 600; font-size: 16px; margin: 1.3em 0 0.4em; color: var(--gazu-ink); }
+.gazu-prose p  { margin: 0 0 1em; }
+.gazu-prose strong { color: var(--gazu-ink); font-weight: 600; }
+.gazu-prose em     { color: var(--gazu-graphite); }
+.gazu-prose a {
+    color: var(--gazu-blue);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    text-decoration-color: color-mix(in srgb, var(--gazu-blue) 35%, transparent);
+}
+.gazu-prose a:hover { text-decoration-color: var(--gazu-blue); }
+.gazu-prose ul,
+.gazu-prose ol { margin: 0.75em 0 1.25em 1.25em; padding-left: 0.5em; }
+.gazu-prose ul { list-style: disc; }
+.gazu-prose ol { list-style: decimal; }
+.gazu-prose li { margin: 0.4em 0; padding-left: 0.25em; }
+.gazu-prose li::marker { color: var(--gazu-line-2); }
+.gazu-prose blockquote {
+    margin: 1.25em 0;
+    padding: 0.5em 1.1em;
+    border-left: 3px solid var(--gazu-blue);
+    background: var(--gazu-paper);
+    color: var(--gazu-graphite);
+    font-style: italic;
+    border-radius: 0 6px 6px 0;
+}
+.gazu-prose code {
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.9em;
+    background: var(--gazu-paper);
+    border: 1px solid var(--gazu-line);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+}
+.gazu-prose pre {
+    margin: 1em 0;
+    padding: 1em 1.25em;
+    background: var(--gazu-ink);
+    color: #E4E7EB;
+    border-radius: 8px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.55;
+}
+.gazu-prose pre code { background: transparent; border: 0; padding: 0; color: inherit; }
+.gazu-prose hr { border: 0; border-top: 1px solid var(--gazu-line); margin: 2.25em 0; }
+.gazu-prose img { max-width: 100%; height: auto; border-radius: 10px; margin: 1.25em 0; }
+.gazu-prose table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1em 0 1.5em;
+    font-size: 14px;
+    border: 1px solid var(--gazu-line);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.gazu-prose thead { background: var(--gazu-paper); }
+.gazu-prose th,
+.gazu-prose td { padding: 0.65em 0.9em; text-align: left; border-bottom: 1px solid var(--gazu-line); vertical-align: top; }
+.gazu-prose th { font-weight: 600; color: var(--gazu-ink); }
+.gazu-prose tbody tr:last-child td { border-bottom: 0; }
+
 /* Horizontal scroll container with the scrollbar hidden — used by the
    sticky mobile product-tab strip (← / → buttons nudge it).
    `overflow-y: hidden` is explicit so the browser doesn't implicitly make

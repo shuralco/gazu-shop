@@ -20,14 +20,14 @@
         'Салон'                 => route('gazu.catalog'),
         'Доставка та оплата'    => route('gazu.delivery'),
         'Гарантія та повернення'=> route('gazu.warranty'),
-        'Питання та відповіді'  => route('gazu.delivery'),
-        'Бонусна програма'      => route('gazu.delivery'),
+        'Питання та відповіді'  => route('gazu.faq'),
+        'Бонусна програма'      => route('gazu.loyalty'),
         'Гуртовим клієнтам'     => route('gazu.wholesale'),
         'Про нас'               => route('gazu.about'),
         'Контакти'              => route('gazu.contacts'),
-        'Вакансії'              => route('gazu.about'),
-        'Сертифікати'           => route('gazu.about'),
-        'Публічна оферта'       => route('gazu.terms'),
+        'Вакансії'              => route('gazu.careers'),
+        'Сертифікати'           => route('gazu.certificates'),
+        'Публічна оферта'       => route('gazu.offer'),
     ];
     $payments = $s['gazu_footer_payments'] ?? 'Visa, Mastercard, Apple Pay, Google Pay, Нова Пошта';
     $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
