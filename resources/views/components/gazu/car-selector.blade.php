@@ -83,9 +83,9 @@
         </template>
     </div>
 
-    {{-- Active step tile grid — no search input (брендів мало, не потрібен).
-         Adaptive grid: 2 cols mobile, 2 cols hero (вузький), 3-4 cols catalog (широкий). --}}
-    <div x-show="activeLevel()" class="min-h-[244px] sm:min-h-[252px] flex flex-col">
+    {{-- Active step tile grid — auto height (підлаштовується під 8/4/2 tiles),
+         min-h тільки для loading skeleton щоб не стрибало під час fetch. --}}
+    <div x-show="activeLevel()" class="flex flex-col" :class="loading ? 'min-h-[120px]' : ''">
         {{-- Loading skeleton --}}
         <div x-show="loading" x-cloak class="grid grid-cols-2 gap-2 flex-1">
             <template x-for="i in 4" :key="i">
