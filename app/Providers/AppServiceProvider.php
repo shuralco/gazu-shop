@@ -75,6 +75,9 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\DisplaySetting::class,
             \App\Models\MerchantWarehouse::class,
             \App\Models\Inventory::class,
+            \App\Models\CarMake::class,
+            \App\Models\CarModel::class,
+            \App\Models\CarEngine::class,
         ];
         foreach ($responseCacheModels as $model) {
             if (class_exists($model)) {
