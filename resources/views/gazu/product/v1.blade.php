@@ -95,7 +95,8 @@
             if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
                 $brandHeaderSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
             }
-            $brandUrl = $brandHeaderSlug ? route('gazu.catalog', ['brand' => [$brandHeaderSlug]]) : null;
+            // SEO-friendly: /brendy/{slug} (brand profile) замість /catalog filter.
+            $brandUrl = $brandHeaderSlug ? route('gazu.brand', ['slug' => $brandHeaderSlug]) : null;
             $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
             $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
             // Etap 51: $productId був визначений нижче (line 480) — підняли наверх
@@ -343,7 +344,7 @@
                                 @php
                                     $href = null;
                                     if ($k === 'Виробник' && $brandSlug && $v !== '—') {
-                                        $href = route('gazu.catalog', ['brand' => [$brandSlug]]);
+                                        $href = route('gazu.brand', ['slug' => $brandSlug]);
                                     } elseif ($k === 'Категорія' && $catSlug) {
                                         $href = url('/'.$catSlug);
                                     }
