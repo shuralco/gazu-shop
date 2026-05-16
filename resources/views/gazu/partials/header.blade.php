@@ -10,17 +10,19 @@
 
     {{-- flex-wrap so the search box drops to its own full-width row below `lg`
          instead of being crushed to ~30px between the logo and action icons. --}}
-    <div class="gazu-container py-3 sm:py-4 flex flex-wrap items-center gap-x-2 gap-y-3 lg:flex-nowrap lg:gap-5">
-        <a wire:navigate href="{{ route('gazu.home') }}" class="no-underline shrink-0">
+    <div class="gazu-container py-3 sm:py-4 flex flex-wrap items-center gap-x-3 sm:gap-x-4 gap-y-3 lg:flex-nowrap lg:gap-5">
+        <a wire:navigate href="{{ route('gazu.home') }}" class="no-underline shrink-0 inline-flex items-center">
             <x-gazu.logo size="26"/>
         </a>
 
-        {{-- Catalog mega-button — icon-only on mobile, label from sm: up --}}
+        {{-- Catalog mega-button — square 40x40 icon-only on mobile, label from sm: up --}}
         <button type="button"
                 @click="megaOpen = !megaOpen"
+                :aria-label="megaOpen ? 'Закрити каталог' : 'Відкрити каталог'"
                 :class="megaOpen ? 'bg-[var(--gazu-blue)]' : 'bg-[var(--gazu-ink)]'"
-                class="inline-flex items-center gap-2 px-2.5 sm:px-4 py-2.5 text-white border-0 rounded-lg text-sm font-medium shrink-0 cursor-pointer transition-colors">
-            <x-gazu.icon name="menu" size="18"/> <span class="hidden sm:inline">Каталог</span>
+                class="inline-flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 text-white border-0 rounded-lg text-sm font-medium shrink-0 cursor-pointer transition-colors hover:opacity-90">
+            <x-gazu.icon name="menu" size="18"/>
+            <span class="hidden sm:inline">Каталог</span>
         </button>
 
         {{-- Search bar — артикул / категорія / бренд з live autocomplete.
