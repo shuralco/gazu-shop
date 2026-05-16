@@ -59,8 +59,24 @@ class GazuCacheProfile extends BaseCacheProfile
 
     public function useCacheNameSuffix(Request $request): string
     {
-        // Different cache entries per locale + query-string permutation
-        // (catalog filters create different views).
-        return app()->getLocale().':'.$request->getQueryString();
+        // Different cache entries per: locale, query-string, AND Vite manifest hash.
+        // Last part — silver bullet against CSS hash mismatch between deploys:
+        // після `npm run build` manifest.json змінюється → cache keys auto-invalidate
+        // → старі HTML з посиланнями на видалені assets більше не подаються.
+        $manifestVersion = $this->viteManifestVersion();
+        return implode(':', [
+            app()->getLocale(),
+            (string) $request->getQueryString(),
+            $manifestVersion,
+        ]);
+    }
+
+    private function viteManifestVersion(): string
+    {
+        static $cached = null;
+        if ($cached !== null) return $cached;
+        $manifest = public_path('build/manifest.json');
+        if (! is_file($manifest)) return $cached = 'no-manifest';
+        return $cached = substr(md5_file($manifest) ?: 'none', 0, 8);
     }
 }
