@@ -98,6 +98,9 @@
             $brandUrl = $brandHeaderSlug ? route('gazu.catalog', ['brand' => [$brandHeaderSlug]]) : null;
             $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
             $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;
+            // Etap 51: $productId був визначений нижче (line 480) — підняли наверх
+            // для heart button у gallery section (line ~130). Інакше Undefined variable.
+            $productId = is_object($p) ? ($p->id ?? null) : null;
         @endphp
         {{-- Product top — outer grid: gallery | right-hand side.
              RHS = title (over) + nested grid [ info+warehouse | buy-panel ]. --}}
