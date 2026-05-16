@@ -26,7 +26,7 @@
     <div class="gazu-container">
 
         {{-- Hero (text + image collage) --}}
-        <div class="grid lg:grid-cols-[1.1fr_1fr] gap-10 lg:gap-14 items-center mb-14 lg:mb-20">
+        <div class="grid lg:grid-cols-2 gap-10 lg:gap-14 items-center mb-14 lg:mb-20">
             <div>
                 <div class="inline-flex items-center gap-2 px-3 py-1.5 bg-[var(--gazu-mist)] rounded-full mb-5">
                     <span class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-blue)]"></span>
@@ -91,14 +91,14 @@
 
         {{-- Main SEO content — H3 / paragraphs / lists, через RichEditor admin --}}
         @if($html)
-            <div class="grid lg:grid-cols-[1fr_3fr] gap-8 lg:gap-14">
-                <div class="lg:sticky lg:top-6 lg:self-start">
+            <div class="grid lg:grid-cols-4 gap-8 lg:gap-14">
+                <div class="lg:sticky lg:top-6 lg:self-start lg:col-span-1">
                     <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3">Деталі</div>
                     <p class="text-[13px] text-[var(--gazu-muted)] leading-relaxed max-w-xs">
                         Все що варто знати про каталог, бренди, способи підбору та умови обслуговування.
                     </p>
                 </div>
-                <div class="gazu-seo-content gazu-prose">
+                <div class="gazu-seo-content gazu-prose lg:col-span-3">
                     {!! $html !!}
                 </div>
             </div>
@@ -108,7 +108,7 @@
         <div class="mt-14 lg:mt-20 relative overflow-hidden rounded-2xl bg-[var(--gazu-ink)] text-white p-8 sm:p-10 lg:p-14">
             <div class="absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 14px 14px;"></div>
             <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-[var(--gazu-blue)] opacity-20 blur-3xl"></div>
-            <div class="relative grid lg:grid-cols-[1.4fr_1fr] gap-6 items-center">
+            <div class="relative grid lg:grid-cols-2 gap-6 items-center">
                 <div>
                     <h3 class="gazu-display text-[22px] sm:text-[28px] font-semibold leading-tight m-0 mb-2">Не знайшли потрібну деталь?</h3>
                     <p class="text-[14px] sm:text-[15px] text-white/75 leading-relaxed m-0 max-w-md">
