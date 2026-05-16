@@ -75,7 +75,7 @@
                 <div class="text-xs text-[#9DA5B2] mb-4">{{ $hours }}, безкоштовно</div>
             @endif
             <button type="button"
-                    @click="$dispatch('gazu:callback-open')"
+                    onclick="window.dispatchEvent(new CustomEvent('gazu:callback-open'))"
                     class="w-full py-3 bg-[var(--gazu-blue)] text-white rounded-lg text-sm font-medium cursor-pointer hover:bg-[var(--gazu-blue-600)] transition-colors">
                 Замовити дзвінок
             </button>
