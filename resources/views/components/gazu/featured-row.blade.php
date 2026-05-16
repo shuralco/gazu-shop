@@ -10,7 +10,9 @@
             <span class="text-[11px] px-2 py-0.5 bg-[var(--gazu-danger)] text-white rounded gazu-mono tracking-wider">{{ $badge }}</span>
         @endif
         <span class="flex-1"></span>
-        <a wire:navigate href="{{ $viewAll ?: route('gazu.catalog') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Дивитись усі →</a>
+        @if($viewAll)
+            <a wire:navigate href="{{ $viewAll }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Дивитись усі →</a>
+        @endif
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
         @foreach($items as $p)

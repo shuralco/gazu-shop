@@ -1197,7 +1197,28 @@ class StoreController extends Controller
             ->get();
         $orderMap = array_flip($ids);
         $products = $products->sortBy(fn ($p) => $orderMap[$p->id] ?? 999)->values();
-        $items = $products->map(function ($p) {
+        // Repeat the part-image.blade.php logic so recently-viewed gets the SAME
+        // photo as catalog cards (resolves from public/img/parts/{kind}/*.webp pool).
+        static $partPoolCache = [];
+        $resolvePartImage = function (string $kind, ?int $seed) use (&$partPoolCache) {
+            if (! array_key_exists($kind, $partPoolCache)) {
+                $dir = public_path("img/parts/{$kind}");
+                $files = is_dir($dir) ? glob($dir.'/*.webp') : [];
+                sort($files);
+                $partPoolCache[$kind] = array_map('basename', $files);
+            }
+            $pool = $partPoolCache[$kind];
+            if (! empty($pool)) {
+                $idx = $seed !== null ? abs($seed) % count($pool) : 0;
+                return asset("img/parts/{$kind}/".$pool[$idx]);
+            }
+            if (is_file(public_path("img/parts/{$kind}.webp"))) {
+                return asset("img/parts/{$kind}.webp");
+            }
+            return null;
+        };
+
+        $items = $products->map(function ($p) use ($resolvePartImage) {
             $title = is_array($p->title) ? ($p->title['uk'] ?? '') : ($p->title ?? '');
             $name = $title ?: ($p->name ?? '');
             $brand = is_object($p->brand ?? null) ? ($p->brand->name ?? '') : (is_string($p->brand ?? null) ? $p->brand : '');
@@ -1205,6 +1226,11 @@ class StoreController extends Controller
             $image = null;
             if (! empty($p->image)) {
                 $image = \Str::startsWith($p->image, ['http://','https://','/']) ? $p->image : asset('storage/'.$p->image);
+            }
+            // Fallback на part-image pool (same algorithm as <x-gazu.part-image>).
+            if (! $image) {
+                $kind = $p->image_kind ?? 'filter';
+                $image = $resolvePartImage((string) $kind, (int) $p->id);
             }
             return [
                 'id'    => $p->id,
