@@ -316,21 +316,11 @@ html.gazu, body.gazu {
     75%      { transform: scale(1.08) rotate(-4deg); }
 }
 
-/* Stagger animation для product/category cards */
-.gazu-stagger > * { opacity: 0; animation: gazu-stagger-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-.gazu-stagger > *:nth-child(1)  { animation-delay: 0.02s; }
-.gazu-stagger > *:nth-child(2)  { animation-delay: 0.06s; }
-.gazu-stagger > *:nth-child(3)  { animation-delay: 0.10s; }
-.gazu-stagger > *:nth-child(4)  { animation-delay: 0.14s; }
-.gazu-stagger > *:nth-child(5)  { animation-delay: 0.18s; }
-.gazu-stagger > *:nth-child(6)  { animation-delay: 0.22s; }
-.gazu-stagger > *:nth-child(7)  { animation-delay: 0.26s; }
-.gazu-stagger > *:nth-child(8)  { animation-delay: 0.30s; }
-.gazu-stagger > *:nth-child(n+9){ animation-delay: 0.34s; }
-@keyframes gazu-stagger-in {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+/* Stagger animation для product/category cards — ВИМКНЕНО.
+ * На SPA-навігації стартова opacity:0 з затримкою до 0.34s робила
+ * «порожні» секунди → користувач сприймав це як білий flash.
+ * Залишена лише nominal-marker class для DOM compatibility. */
+.gazu-stagger > * { opacity: 1; }
 
 /* Toast container + items */
 .gazu-toast-container {
@@ -465,21 +455,17 @@ html.gazu, body.gazu {
     .gazu-tile-in { animation: none !important; }
 }
 
-/* SPA-like crossfade — без translateY (інакше «стрибає»), 90ms quick fade.
- * Тримаємо мінімум, щоб контент з'являвся миттєво.
- * Опція auto: вмикається тільки якщо браузер підтримує View Transitions API. */
+/* SPA navigation: INSTANT swap, без анімації, як в нативному mobile app.
+ * Будь-яка анімація додає видиму паузу — користувач сприймає це як «моргання».
+ * Plus: Livewire wire:navigate робить in-place DOM swap, тому View Transitions
+ * (cross-document) тут зайве — воно знімає snapshot, який під час swap може
+ * проявитися білим canvas, поки нові стилі/картинки завантажуються.
+ *
+ * Замість анімації: prefetch on hover (див. layout.blade.php) + instant render. */
 @view-transition {
-    navigation: auto;
+    navigation: none;
 }
-::view-transition-old(root) {
-    animation: gazu-x-out 90ms ease-out both;
-}
+::view-transition-old(root),
 ::view-transition-new(root) {
-    animation: gazu-x-in 110ms ease-in both;
-}
-@keyframes gazu-x-out { to { opacity: 0; } }
-@keyframes gazu-x-in  { from { opacity: 0; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) {
-    ::view-transition-old(root),
-    ::view-transition-new(root) { animation: none !important; }
+    animation: none !important;
 }

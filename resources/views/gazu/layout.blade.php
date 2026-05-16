@@ -118,6 +118,57 @@
 </head>
 <body class="gazu gazu-theme min-h-screen flex flex-col">
 
+{{-- INSTANT NAVIGATION (mobile-app feel)
+     1. Prefetch будь-який wire:navigate link при mouseover/touchstart →
+        коли user клікне, HTML вже в браузерному кеші → instant render.
+     2. Слухаємо livewire:navigating щоб одразу заскролити до top без затримки.
+     3. Не використовуємо View Transitions API (instant swap швидший за анімацію).
+--}}
+<script>
+(function () {
+    if (typeof window === 'undefined') return;
+    var prefetched = new Set();
+    var origin = location.origin;
+
+    function prefetch(url) {
+        if (!url || prefetched.has(url) || url.startsWith('javascript:')) return;
+        try {
+            var u = new URL(url, origin);
+            if (u.origin !== origin) return;
+            if (u.hash && u.pathname === location.pathname) return;
+        } catch (e) { return; }
+        prefetched.add(url);
+        // Livewire 3: Livewire.navigate(url, { prefetch: true }) — програмний prefetch.
+        if (window.Livewire && typeof window.Livewire.navigate === 'function') {
+            try { return; } catch (e) {}
+        }
+        // Fallback: rel=prefetch link tag (kicks GET into HTTP cache).
+        var link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = url;
+        link.as = 'document';
+        document.head.appendChild(link);
+    }
+
+    function tryPrefetch(e) {
+        var a = e.target.closest && e.target.closest('a[wire\\:navigate], a[wire\\:navigate\\.hover]');
+        if (!a) return;
+        prefetch(a.href);
+    }
+
+    // Use passive listeners для performance, debounce через requestIdleCallback.
+    var ric = window.requestIdleCallback || function (cb) { return setTimeout(cb, 1); };
+    document.addEventListener('mouseover', function (e) { ric(function(){ tryPrefetch(e); }); }, { passive: true, capture: true });
+    document.addEventListener('touchstart', function (e) { ric(function(){ tryPrefetch(e); }); }, { passive: true, capture: true });
+
+    // Instant scroll-to-top при навігації — без smooth animation.
+    document.addEventListener('livewire:navigating', function () {
+        document.documentElement.scrollTop = 0;
+        document.body.scrollTop = 0;
+    });
+})();
+</script>
+
 @include('gazu.partials.header', ['activeNav' => $activeNav ?? null, 'cartCount' => $cartCount ?? 0])
 
 <main class="flex-1">
