@@ -116,17 +116,7 @@
     <script defer src="{{ asset('assets/js/gazu-np-map.js') }}"></script>
     <script defer src="{{ asset('assets/js/gazu-fx.js') }}"></script>
 </head>
-<body class="gazu gazu-theme min-h-screen flex flex-col gazu-booting">
-<script>
-    // Premium fade-in — body shows when Alpine inits OR DOM ready (whichever first).
-    // Failsafe 350ms timer ensures body shows навіть якщо Alpine не завантажиться.
-    (function () {
-        var swap = function () { document.body.classList.remove('gazu-booting'); document.body.classList.add('gazu-booted'); };
-        document.addEventListener('alpine:initialized', swap, { once: true });
-        document.addEventListener('DOMContentLoaded', function () { setTimeout(swap, 50); }, { once: true });
-        setTimeout(swap, 350);
-    })();
-</script>
+<body class="gazu gazu-theme min-h-screen flex flex-col">
 
 @include('gazu.partials.header', ['activeNav' => $activeNav ?? null, 'cartCount' => $cartCount ?? 0])
 

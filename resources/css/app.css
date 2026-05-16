@@ -620,9 +620,12 @@ body {
     opacity: 1 !important;
 }
 
-/* Prevent layout shift when modal opens by reserving scrollbar space */
+/* Prevent layout shift when modal opens by reserving scrollbar space.
+ * Background-color на html — щоб під час @view-transition crossfade
+ * (де старий root зникає) не світив дефолтний білий браузера. */
 html {
     overflow-y: scroll;
+    background-color: var(--color-bg);
 }
 
 body {

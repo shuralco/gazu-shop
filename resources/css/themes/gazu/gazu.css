@@ -305,14 +305,7 @@ html.gazu, body.gazu {
    GAZU FX — анімації, переходи, toast
    ─────────────────────────────────────────────── */
 
-/* View Transitions API — плавні переходи між сторінками */
-@view-transition { navigation: auto; }
-::view-transition-old(root),
-::view-transition-new(root) { animation-duration: 220ms; animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-::view-transition-old(root) { animation-name: gazu-fade-out; }
-::view-transition-new(root) { animation-name: gazu-fade-in; }
-@keyframes gazu-fade-out { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-6px); } }
-@keyframes gazu-fade-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+/* View Transitions — фінальний блок нижче (єдиний). */
 
 /* Cart icon bounce (data-gazu-cart-icon) */
 .gazu-bounce { animation: gazu-bounce-kf 0.6s cubic-bezier(0.36, 0, 0.66, -0.56); }
@@ -472,33 +465,21 @@ html.gazu, body.gazu {
     .gazu-tile-in { animation: none !important; }
 }
 
-/* SPA-like crossfade between Livewire-navigated pages.
- * Browser falls back to instant swap if View Transitions API not supported. */
+/* SPA-like crossfade — без translateY (інакше «стрибає»), 90ms quick fade.
+ * Тримаємо мінімум, щоб контент з'являвся миттєво.
+ * Опція auto: вмикається тільки якщо браузер підтримує View Transitions API. */
 @view-transition {
     navigation: auto;
 }
 ::view-transition-old(root) {
-    animation: gazu-fade-out 140ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: gazu-x-out 90ms ease-out both;
 }
 ::view-transition-new(root) {
-    animation: gazu-fade-in 220ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation: gazu-x-in 110ms ease-in both;
 }
-@keyframes gazu-fade-out {
-    to { opacity: 0; transform: translateY(2px); }
-}
-@keyframes gazu-fade-in {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
+@keyframes gazu-x-out { to { opacity: 0; } }
+@keyframes gazu-x-in  { from { opacity: 0; } to { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
     ::view-transition-old(root),
     ::view-transition-new(root) { animation: none !important; }
-}
-
-/* Premium initial paint — body fades in коли CSS+JS готові.
- * Запобігає flash-of-unstyled-content та pop-in компонентів. */
-body.gazu-booting { opacity: 0; transition: opacity 180ms ease-out; }
-body.gazu-booted  { opacity: 1; }
-@media (prefers-reduced-motion: reduce) {
-    body.gazu-booting { opacity: 1; transition: none; }
 }
