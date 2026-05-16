@@ -102,6 +102,16 @@ class StoreController extends Controller
         // Use the original 'brand' string column as fallback (legacy data).
         $brandName = $brandName ?: $p->getRawOriginal('brand');
         $p->brand = (string) ($brandName ?: $p->manufacturer ?: 'GAZU');
+        // Brand slug для filter link у product card (catalog?brand[]=slug).
+        // Priority: BrandModel.slug → manufacturer (legacy string) → slugified name.
+        $p->brand_slug = null;
+        if ($p->relationLoaded('brand') && ($bm = $p->getRelation('brand')) && $bm->slug) {
+            $p->brand_slug = (string) $bm->slug;
+        } elseif (! empty($p->manufacturer)) {
+            $p->brand_slug = (string) $p->manufacturer;
+        } elseif ($brandName) {
+            $p->brand_slug = \Illuminate\Support\Str::slug((string) $brandName);
+        }
         $p->image_kind = $this->imageKindFor($p);
         $p->qty = method_exists($p, 'totalAvailableQuantity') ? (int) $p->totalAvailableQuantity() : (int) ($p->quantity ?? 0);
         if (! $p->qty) {

@@ -4,6 +4,12 @@
     $name = is_object($p) ? ($p->name ?? '') : ($p['name'] ?? '');
     $oem = is_object($p) ? ($p->oem ?? $p->sku ?? '') : ($p['oem'] ?? '');
     $brand = is_object($p) ? ($p->brand ?? $p->manufacturer ?? '') : ($p['brand'] ?? '');
+    // Brand slug для clickable link на /catalog?brand[]=slug
+    $brandSlug = is_object($p) ? ($p->brand_slug ?? null) : ($p['brand_slug'] ?? null);
+    if (! $brandSlug && $brand && $brand !== 'GAZU') {
+        $brandSlug = is_object($p) && ! empty($p->manufacturer) ? $p->manufacturer : \Illuminate\Support\Str::slug($brand);
+    }
+    $brandUrl = $brandSlug ? route('gazu.catalog', ['brand' => [$brandSlug]]) : null;
     $image = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');
     $price = is_object($p) ? (float) ($p->price ?? 0) : (float) ($p['price'] ?? 0);
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
@@ -83,7 +89,11 @@
     <div class="{{ $compact ? 'p-2.5 sm:p-3.5' : 'p-3.5' }} flex flex-col gap-1.5 sm:gap-2">
         <div class="flex items-center gap-1.5 min-w-0">
             <x-gazu.condition-badge value="{{ $condition }}"/>
-            <span class="gazu-mono text-[11px] text-[var(--gazu-graphite)] truncate">{{ $brand }}</span>
+            @if($brandUrl)
+                <a wire:navigate href="{{ $brandUrl }}" class="gazu-mono text-[11px] text-[var(--gazu-graphite)] hover:text-[var(--gazu-blue)] truncate no-underline transition-colors" @click.stop>{{ $brand }}</a>
+            @else
+                <span class="gazu-mono text-[11px] text-[var(--gazu-graphite)] truncate">{{ $brand }}</span>
+            @endif
         </div>
 
         <a wire:navigate href="{{ $url }}" class="text-[13px] text-[var(--gazu-ink)] leading-snug font-medium no-underline line-clamp-2" style="min-height: 36px;">
