@@ -16,6 +16,36 @@
 @endphp
 
 @section('title', $title . ' — GAZU')
+
+@section('jsonld')
+    @php
+        $itemList = [];
+        $pos = 1;
+        foreach ($crumbs as $crumb) {
+            if (is_array($crumb)) {
+                $itemList[] = [
+                    '@type' => 'ListItem',
+                    'position' => $pos++,
+                    'name' => (string) $crumb[0],
+                    'item' => (string) ($crumb[1] ?? url()->current()),
+                ];
+            } elseif (is_string($crumb)) {
+                $itemList[] = [
+                    '@type' => 'ListItem',
+                    'position' => $pos++,
+                    'name' => $crumb,
+                    'item' => url()->current(),
+                ];
+            }
+        }
+        $breadcrumbLd = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => $itemList,
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
+@endsection
 @section('description', $category && $category->meta_description
     ? $category->meta_description
     : ($category

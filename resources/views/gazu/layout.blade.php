@@ -51,6 +51,44 @@
 
     @yield('jsonld')
 
+    {{-- Global JSON-LD: Organization + WebSite з SearchAction (sitelinks search box у Google) --}}
+    @php
+        $orgLd = [
+            '@context' => 'https://schema.org',
+            '@graph' => [
+                [
+                    '@type' => 'Organization',
+                    '@id' => url('/').'#organization',
+                    'name' => 'GAZU',
+                    'url' => url('/'),
+                    'logo' => url('/og-default.svg'),
+                    'sameAs' => array_values(array_filter([
+                        $gazuSettings['gazu_social_facebook'] ?? null,
+                        $gazuSettings['gazu_social_instagram'] ?? null,
+                        $gazuSettings['gazu_social_telegram'] ?? null,
+                    ])),
+                ],
+                [
+                    '@type' => 'WebSite',
+                    '@id' => url('/').'#website',
+                    'url' => url('/'),
+                    'name' => 'GAZU',
+                    'inLanguage' => 'uk-UA',
+                    'publisher' => ['@id' => url('/').'#organization'],
+                    'potentialAction' => [
+                        '@type' => 'SearchAction',
+                        'target' => [
+                            '@type' => 'EntryPoint',
+                            'urlTemplate' => url('/search').'?q={search_term_string}',
+                        ],
+                        'query-input' => 'required name=search_term_string',
+                    ],
+                ],
+            ],
+        ];
+    @endphp
+    <script type="application/ld+json">{!! json_encode($orgLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT) !!}</script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
