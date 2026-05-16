@@ -89,18 +89,11 @@
             @endforeach
         </div>
 
-        {{-- Main SEO content — H3 / paragraphs / lists, через RichEditor admin --}}
+        {{-- Main SEO content — H3 / paragraphs / lists, через RichEditor admin.
+             2-column на lg+ для природного reading flow. --}}
         @if($html)
-            <div class="grid lg:grid-cols-4 gap-8 lg:gap-14">
-                <div class="lg:sticky lg:top-6 lg:self-start lg:col-span-1">
-                    <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3">Деталі</div>
-                    <p class="text-[13px] text-[var(--gazu-muted)] leading-relaxed max-w-xs">
-                        Все що варто знати про каталог, бренди, способи підбору та умови обслуговування.
-                    </p>
-                </div>
-                <div class="gazu-seo-content gazu-prose lg:col-span-3">
-                    {!! $html !!}
-                </div>
+            <div class="gazu-seo-content gazu-prose-2col text-[var(--gazu-graphite)] max-w-none">
+                {!! $html !!}
             </div>
         @endif
 

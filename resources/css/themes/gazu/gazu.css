@@ -143,6 +143,39 @@ html.gazu, body.gazu {
    and by the blog. Tailwind Typography plugin isn't installed, so this
    is a hand-rolled minimal "prose" replacement tuned to the GAZU theme. */
 .gazu-prose { color: var(--gazu-ink); font-size: 16px; line-height: 1.75; max-width: 88ch; }
+
+/* SEO 2-col layout — auto multi-column для широкого контенту. */
+.gazu-prose-2col {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--gazu-graphite);
+}
+.gazu-prose-2col h3 {
+    font-family: var(--font-display, "Inter", system-ui, sans-serif);
+    font-weight: 700;
+    font-size: 19px;
+    color: var(--gazu-ink);
+    margin: 1.4em 0 0.6em;
+    line-height: 1.3;
+    break-inside: avoid;
+}
+.gazu-prose-2col h3:first-child { margin-top: 0; }
+.gazu-prose-2col p { margin: 0 0 1em; }
+.gazu-prose-2col ul { margin: 0 0 1em; padding-left: 1.2em; list-style: disc; }
+.gazu-prose-2col li { margin: 0.35em 0; }
+.gazu-prose-2col strong { color: var(--gazu-ink); font-weight: 600; }
+.gazu-prose-2col a { color: var(--gazu-blue); text-decoration: none; border-bottom: 1px solid currentColor; }
+.gazu-prose-2col a:hover { color: var(--gazu-ink); }
+@media (min-width: 1024px) {
+    .gazu-prose-2col {
+        column-count: 2;
+        column-gap: 56px;
+        column-fill: balance;
+    }
+    .gazu-prose-2col h3,
+    .gazu-prose-2col ul,
+    .gazu-prose-2col p { break-inside: avoid-column; }
+}
 .gazu-prose > *:first-child { margin-top: 0; }
 .gazu-prose > *:last-child  { margin-bottom: 0; }
 .gazu-prose h2 {
