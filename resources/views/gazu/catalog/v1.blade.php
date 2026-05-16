@@ -16,6 +16,9 @@
             $crumbs[] = [(string) ($anc->title ?? '—'), url('/'.$anc->slug)];
         }
         $crumbs[] = (string) ($category->title ?? 'Категорія');
+    } elseif ($contextTitle) {
+        $crumbs[] = ['Каталог', route('gazu.catalog')];
+        $crumbs[] = $contextTitle;
     } else {
         $crumbs[] = 'Каталог';
     }
