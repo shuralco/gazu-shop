@@ -192,10 +192,22 @@ class StoreController extends Controller
         $products = $this->fetchProducts(8);
         $categories = $this->fetchCategories();
 
+        // Pre-fetch car makes для SSR brand tiles у hero — без pop-in
+        // після Alpine fetch. Cached 1h, дешева операція.
+        $heroMakes = \Cache::remember('home:hero:makes', 3600, function () {
+            if (! class_exists(\App\Models\CarMake::class)) return [];
+            return \App\Models\CarMake::query()
+                ->where('is_active', true)
+                ->orderBy('sort_order')
+                ->get(['id', 'slug', 'name'])
+                ->toArray();
+        });
+
         return view("gazu.home.$variant", [
             'featured' => $products->take(4),
             'popular' => $products->skip(4)->take(4)->values(),
             'categories' => $categories,
+            'heroMakes' => $heroMakes,
             'activeNav' => $variant === 'v2' ? 'compat' : 'catalog',
         ]);
     }

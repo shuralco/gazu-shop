@@ -3,6 +3,7 @@
     'selectedMake' => null,
     'selectedModel' => null,
     'selectedEngine' => null,
+    'initialMakes' => [],  // SSR-prefetched brand list — уникає pop-in після Alpine fetch
 ])
 @php
     $apiMakes   = route('gazu.api.cars.makes');
@@ -19,6 +20,7 @@
         initialMake: @js((string) $selectedMake),
         initialModel: @js((string) $selectedModel),
         initialEngine: @js((string) $selectedEngine),
+        initialMakes: @js($initialMakes),
         catalogUrl: @js($catalogUrl),
         autoSubmit: true,
         api: { makes: @js($apiMakes), models: @js($apiModels), engines: @js($apiEngines) },
@@ -142,18 +144,22 @@
         const register = () => {
             if (! window.Alpine) { document.addEventListener('alpine:init', register, { once: true }); return; }
             window.Alpine.data('gazuCarSelector', (opts) => ({
-                makes: [], models: [], engines: [],
+                makes: Array.isArray(opts.initialMakes) ? opts.initialMakes : [],
+                models: [], engines: [],
                 make: opts.initialMake || '',
                 model: opts.initialModel || '',
                 engine: opts.initialEngine || '',
                 search: '', expanded: false, loading: false,
-                _redirecting: false, // only true between engine-pick and URL navigation
+                _redirecting: false,
                 _opts: opts,
 
                 async init() {
-                    this.loading = true;
-                    try { const r = await fetch(opts.api.makes, { headers: { Accept: 'application/json' } }); const d = await r.json(); this.makes = d.items || []; } catch (e) {}
-                    finally { this.loading = false; }
+                    // Якщо SSR вже передав makes — не fetch'ити (миттєвий рендер).
+                    if (this.makes.length === 0) {
+                        this.loading = true;
+                        try { const r = await fetch(opts.api.makes, { headers: { Accept: 'application/json' } }); const d = await r.json(); this.makes = d.items || []; } catch (e) {}
+                        finally { this.loading = false; }
+                    }
                     if (this.make) await this.fetchModels();
                     if (this.model) await this.fetchEngines();
                 },

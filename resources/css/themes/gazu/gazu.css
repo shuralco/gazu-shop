@@ -494,3 +494,11 @@ html.gazu, body.gazu {
     ::view-transition-old(root),
     ::view-transition-new(root) { animation: none !important; }
 }
+
+/* Premium initial paint — body fades in коли CSS+JS готові.
+ * Запобігає flash-of-unstyled-content та pop-in компонентів. */
+body.gazu-booting { opacity: 0; transition: opacity 180ms ease-out; }
+body.gazu-booted  { opacity: 1; }
+@media (prefers-reduced-motion: reduce) {
+    body.gazu-booting { opacity: 1; transition: none; }
+}

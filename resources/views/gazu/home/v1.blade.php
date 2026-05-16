@@ -41,9 +41,9 @@
                 </div>
             </div>
 
-            {{-- Right side: car-selector (primary feature) --}}
+            {{-- Right side: car-selector (primary feature) — server-rendered initial brands --}}
             <div>
-                <x-gazu.car-selector variant="hero"/>
+                <x-gazu.car-selector variant="hero" :initial-makes="$heroMakes ?? []"/>
             </div>
         </div>
     </section>
