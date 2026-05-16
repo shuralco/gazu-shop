@@ -190,8 +190,6 @@
                    style="border-bottom: 2px solid {{ $activeNav === $k ? 'var(--gazu-blue)' : 'transparent' }};">{{ $label }}</a>
             @endforeach
             <span class="flex-1"></span>
-            @php $totalSku = $gazuSettings['gazu_total_sku'] ?? 50000; @endphp
-            <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format((int) $totalSku, 0, '.', ' ') }}+ SKU</span>
         </div>
     </div>
 
