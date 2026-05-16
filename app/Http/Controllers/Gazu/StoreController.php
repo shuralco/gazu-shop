@@ -599,6 +599,28 @@ class StoreController extends Controller
         ]);
     }
 
+    /**
+     * /orders/{order}/payment — payment redirect/stub.
+     * Поки немає integration з payment gateway (LiqPay/Mono) — повертаємо
+     * на order details page, де user бачить інструкції з оплати +
+     * банківські реквізити (з admin settings).
+     */
+    public function orderPayment(Request $request, int $order)
+    {
+        $user = $request->user();
+        $orderModel = \App\Models\Order::find($order);
+        if (! $orderModel || $orderModel->user_id !== $user->id) {
+            abort(404);
+        }
+        if ($orderModel->payment_status === 'paid') {
+            return redirect()->route('gazu.account.order', ['order' => $order])
+                ->with('flash_message', 'Замовлення вже оплачене');
+        }
+
+        return redirect()->route('gazu.account.order', ['order' => $order])
+            ->with('flash_message', 'Інструкції з оплати знизу. Менеджер передзвонить для уточнення.');
+    }
+
     public function garage()
     {
         return view('gazu.account.garage', [

@@ -73,6 +73,7 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::middleware('auth')->group(function () use ($c) {
         Route::get('/account', [$c, 'account'])->name('account');
         Route::get('/account/orders/{order}', [$c, 'orderDetails'])->name('account.order');
+        Route::get('/orders/{order}/payment', [$c, 'orderPayment'])->name('order.payment');
 
         $garage = \App\Http\Controllers\Gazu\GarageController::class;
         Route::get('/garage', [$garage, 'index'])->name('garage');

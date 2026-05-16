@@ -140,7 +140,7 @@
             <div class="flex gap-2 flex-wrap">
                 <a wire:navigate href="{{ route('gazu.account') }}" class="gazu-btn-outline no-underline">← Усі замовлення</a>
                 @if($needsPayment)
-                    <a href="{{ url('/'.app()->getLocale().'/orders/'.$order->id.'/payment') }}" class="gazu-btn-primary no-underline">💳 Перейти до оплати</a>
+                    <a href="{{ route('gazu.order.payment', ['order' => $order->id]) }}" class="gazu-btn-primary no-underline">💳 Перейти до оплати</a>
                 @endif
                 <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Замовити ще</a>
             </div>
