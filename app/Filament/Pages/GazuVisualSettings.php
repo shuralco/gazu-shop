@@ -66,7 +66,7 @@ class GazuVisualSettings extends Page implements HasForms
         // Featured rows titles
         'gazu_section_specials' => 'Акції тижня',
         'gazu_section_hits' => 'Хіти продажів',
-        'gazu_section_categories' => 'Каталог за категоріями',
+        'gazu_section_categories' => 'Усе для вашого авто',
         'gazu_section_brands' => 'Топ-бренди',
         'gazu_section_related' => 'Часто купують разом',
 
