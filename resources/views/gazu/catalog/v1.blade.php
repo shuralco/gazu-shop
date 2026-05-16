@@ -166,4 +166,6 @@
             </div>
         </div>
     </div>
+
+    <x-gazu.recently-viewed/>
 @endsection

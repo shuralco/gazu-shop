@@ -203,9 +203,36 @@ class StoreController extends Controller
                 ->toArray();
         });
 
+        // Новинки + Акції — 8 кожна для home featured rows
+        $relations = ['category', 'inventory.warehouse'];
+        if (\Schema::hasColumn('products', 'brand_id')) $relations[] = 'brand';
+        $newProducts = \Cache::remember('home:new:8', 600, function () use ($relations) {
+            return \App\Models\Product::query()
+                ->with($relations)
+                ->where('is_active', true)
+                ->where('is_new', true)
+                ->orderByDesc('updated_at')
+                ->limit(8)
+                ->get();
+        });
+        $promoProducts = \Cache::remember('home:promo:8', 600, function () use ($relations) {
+            return \App\Models\Product::query()
+                ->with($relations)
+                ->where('is_active', true)
+                ->whereNotNull('old_price')
+                ->whereColumn('old_price', '>', 'price')
+                ->orderByDesc('updated_at')
+                ->limit(8)
+                ->get();
+        });
+        $newProducts = $newProducts->map(fn ($p) => $this->decorate($p));
+        $promoProducts = $promoProducts->map(fn ($p) => $this->decorate($p));
+
         return view("gazu.home.$variant", [
             'featured' => $products->take(4),
             'popular' => $products->skip(4)->take(4)->values(),
+            'newProducts' => $newProducts,
+            'promoProducts' => $promoProducts,
             'categories' => $categories,
             'heroMakes' => $heroMakes,
             'activeNav' => $variant === 'v2' ? 'compat' : 'catalog',
@@ -1147,6 +1174,44 @@ class StoreController extends Controller
                 'label' => trim(($engine->model->make->name ?? '').' '.($engine->model->name ?? '').' '.($engine->label ?? $engine->code)),
             ],
         ]);
+    }
+
+    /**
+     * Recently-viewed: повертає список товарів за ID (?ids=1,2,3).
+     * Зберігає порядок з input.
+     */
+    public function apiProductsByIds(Request $request)
+    {
+        $raw = (string) $request->query('ids', '');
+        $ids = array_values(array_filter(array_map('intval', explode(',', $raw)), fn ($x) => $x > 0));
+        if (empty($ids)) return response()->json(['items' => []]);
+        $ids = array_slice($ids, 0, 12);
+        $products = \App\Models\Product::query()
+            ->whereIn('id', $ids)
+            ->where('is_active', true)
+            ->limit(12)
+            ->get();
+        $orderMap = array_flip($ids);
+        $products = $products->sortBy(fn ($p) => $orderMap[$p->id] ?? 999)->values();
+        $items = $products->map(function ($p) {
+            $title = is_array($p->title) ? ($p->title['uk'] ?? '') : ($p->title ?? '');
+            $name = $title ?: ($p->name ?? '');
+            $brand = is_object($p->brand ?? null) ? ($p->brand->name ?? '') : (is_string($p->brand ?? null) ? $p->brand : '');
+            if (! $brand) $brand = is_array(($p->brand ?? null)) ? ($p->brand['uk'] ?? '') : '';
+            $image = null;
+            if (! empty($p->image)) {
+                $image = \Str::startsWith($p->image, ['http://','https://','/']) ? $p->image : asset('storage/'.$p->image);
+            }
+            return [
+                'id'    => $p->id,
+                'name'  => is_string($name) ? $name : '',
+                'brand' => is_string($brand) ? $brand : '',
+                'price' => number_format((float) $p->price, 0, '.', ' '),
+                'url'   => route('gazu.product.show', ['slug' => $p->slug ?? $p->id]),
+                'image' => $image,
+            ];
+        })->all();
+        return response()->json(['items' => $items]);
     }
 
     public function apiCarEngines(Request $request)

@@ -110,6 +110,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/cars/engines', [$c, 'apiCarEngines'])->name('api.cars.engines');
     // 4D: compat-check — «чи підходить ця запчастина моєму авто?»
     Route::get('/api/compat/check', [$c, 'apiCompatCheck'])->name('api.compat.check');
+    // Recently-viewed: повертає products by ID list (для recently-viewed block)
+    Route::get('/api/products/by-ids', [$c, 'apiProductsByIds'])->name('api.products.by-ids');
 
     Route::get('/404', [$c, 'notFound'])->name('404');
     Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');

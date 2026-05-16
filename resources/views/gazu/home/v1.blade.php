@@ -50,12 +50,18 @@
 
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
-    @php
-        $promoItems = (isset($featured) ? collect($featured) : collect())->filter(fn ($p) => is_object($p) && ! empty($p->old_price) && $p->old_price > ($p->price ?? 0))->values();
-    @endphp
-    @if($promoItems->isNotEmpty())
-        <x-gazu.featured-row title="Акції тижня" :items="$promoItems" :viewAll="route('gazu.catalog', ['promo' => 1])"/>
+
+    @if(isset($promoProducts) && $promoProducts->isNotEmpty())
+        <x-gazu.featured-row title="Акції тижня" :items="$promoProducts" :viewAll="route('gazu.catalog.promo')"/>
     @endif
-    <x-gazu.featured-row title="Хіти продажів" :items="$popular" :viewAll="route('gazu.catalog', ['hits' => 1])"/>
+
+    @if(isset($newProducts) && $newProducts->isNotEmpty())
+        <x-gazu.featured-row title="Новинки" :items="$newProducts" :viewAll="route('gazu.catalog.new')"/>
+    @endif
+
+    <x-gazu.featured-row title="Хіти продажів" :items="$popular" :viewAll="route('gazu.catalog.hits')"/>
+
+    <x-gazu.recently-viewed/>
+
     <x-gazu.brand-strip/>
 @endsection

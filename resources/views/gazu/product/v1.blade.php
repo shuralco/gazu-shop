@@ -117,18 +117,8 @@
                         <x-gazu.icon name="heart" size="18"/>
                     </button>
                 </div>
-                {{-- Thumbnails — horizontal row beneath the main image --}}
-                <div class="flex gap-2">
-                    @for($i = 0; $i < 4; $i++)
-                        <div class="flex-1 aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
-                            {{-- each thumb offsets the seed → 4 different pool photos --}}
-                            <x-gazu.part-image kind="{{ $kind }}" :seed="$gallerySeed + $i" fit/>
-                        </div>
-                    @endfor
-                    <div class="flex-1 aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)] text-[11px] gazu-mono" style="border: 1.5px solid var(--gazu-line);">
-                        +6
-                    </div>
-                </div>
+                {{-- Thumbnails — показуємо тільки коли є більше 1 реальної фото.
+                     Не генеруємо fake thumbnails з різними seed-ами (виглядає як фейк). --}}
             </div>{{-- /gallery --}}
 
             {{-- Right-hand side: product title spanning the two columns below it --}}
@@ -493,5 +483,20 @@
                 </button>
             </form>
         </div>
+    @endif
+
+    {{-- Track product visit + recently viewed block --}}
+    @php $currentPid = is_object($p) ? (int) ($p->id ?? 0) : 0; @endphp
+    @if($currentPid)
+        <script>
+            // Trigger через wire:navigate (livewire:navigated) + initial DOMContentLoaded
+            (function () {
+                var t = function () { if (window.gazuTrackProduct) window.gazuTrackProduct({{ $currentPid }}); };
+                document.addEventListener('DOMContentLoaded', t, { once: true });
+                document.addEventListener('livewire:navigated', t);
+                t(); // immediate if script late
+            })();
+        </script>
+        <x-gazu.recently-viewed :exclude-id="$currentPid"/>
     @endif
 @endsection
