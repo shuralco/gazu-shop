@@ -1228,8 +1228,9 @@ class StoreController extends Controller
                 $image = \Str::startsWith($p->image, ['http://','https://','/']) ? $p->image : asset('storage/'.$p->image);
             }
             // Fallback на part-image pool (same algorithm as <x-gazu.part-image>).
+            // image_kind НЕ в DB — controller hot-injects через ID hash. Repeat те саме.
             if (! $image) {
-                $kind = $p->image_kind ?? 'filter';
+                $kind = $p->image_kind ?? $this->imageKindFor($p);
                 $image = $resolvePartImage((string) $kind, (int) $p->id);
             }
             return [
