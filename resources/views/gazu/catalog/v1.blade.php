@@ -1,7 +1,13 @@
 @extends('gazu.layout')
 
 @php
-    $title = $category->title ?? ($searchQuery ? 'Пошук: '.$searchQuery : 'Каталог');
+    // Pretty-URL contexts (/novynky, /khity, /akcii) have правильні title
+    // замість generic 'Каталог'. Перевіряємо query string що ставить роут.
+    $contextTitle = null;
+    if (request('new') == 1) { $contextTitle = 'Новинки'; }
+    elseif (request('hits') == 1) { $contextTitle = 'Хіти продажу'; }
+    elseif (request('promo') == 1) { $contextTitle = 'Акції та знижки'; }
+    $title = $category->title ?? ($searchQuery ? 'Пошук: '.$searchQuery : ($contextTitle ?? 'Каталог'));
     $crumbs = [['Головна', route('gazu.home')]];
     if ($category) {
         $crumbs[] = ['Каталог', route('gazu.catalog')];
