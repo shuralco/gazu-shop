@@ -97,8 +97,9 @@
 
         {{-- Tile grid: hero uses 2-cols (tight column), catalog uses 3-4 cols (wide) --}}
         <div x-show="!loading && filteredItems().length > 0"
-             :class="expanded ? 'max-h-none' : 'max-h-[280px]'"
-             class="gazu-tile-grid grid grid-cols-2 {{ $isHero ? 'sm:grid-cols-2' : 'sm:grid-cols-3 md:grid-cols-4' }} gap-2 overflow-y-auto content-start transition-[max-height] flex-1">
+             :class="(filteredItems().length > 12 && !expanded) ? 'max-h-[280px] overflow-y-auto' : 'overflow-visible'"
+             class="gazu-tile-grid grid grid-cols-2 {{ $isHero ? 'sm:grid-cols-2' : 'sm:grid-cols-3 md:grid-cols-4' }} gap-2 content-start transition-[max-height] flex-1"
+             style="scrollbar-gutter: stable;">
             <template x-for="(item, idx) in filteredItems()" :key="activeLevel() + ':' + itemKey(item)">
                 <button type="button"
                         @click="pick(item)"
