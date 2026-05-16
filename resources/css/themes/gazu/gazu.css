@@ -471,3 +471,26 @@ html.gazu, body.gazu {
 @media (prefers-reduced-motion: reduce) {
     .gazu-tile-in { animation: none !important; }
 }
+
+/* SPA-like crossfade between Livewire-navigated pages.
+ * Browser falls back to instant swap if View Transitions API not supported. */
+@view-transition {
+    navigation: auto;
+}
+::view-transition-old(root) {
+    animation: gazu-fade-out 140ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+::view-transition-new(root) {
+    animation: gazu-fade-in 220ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+@keyframes gazu-fade-out {
+    to { opacity: 0; transform: translateY(2px); }
+}
+@keyframes gazu-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root) { animation: none !important; }
+}
