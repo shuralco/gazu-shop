@@ -88,25 +88,28 @@
         </div>
     </details>
 
-    {{-- Виробник --}}
+    {{-- Виробник — truncate до 8, з тонкою 'Показати ще' для розкриття решти --}}
     @if($brands->isNotEmpty())
+        @php
+            $brandLimit = 8;
+            $brandHidden = max(0, $brands->count() - $brandLimit);
+        @endphp
         <details class="border-b border-[var(--gazu-line)] py-3.5" open>
             <summary class="flex justify-between items-center cursor-pointer list-none">
                 <span class="text-sm font-medium text-[var(--gazu-ink)]">Виробник</span>
                 <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
             </summary>
-            <div class="mt-3">
-                @foreach($brands as $row)
+            <div class="mt-3" x-data="{ showAll: false }">
+                @foreach($brands as $i => $row)
                     @php
-                        // `manufacturer` = filter value (slug for FK-backed brands,
-                        // or literal manufacturer string for legacy products).
-                        // `label` = display name (translated via HasTranslations).
                         $value = is_object($row) ? $row->manufacturer : ($row['manufacturer'] ?? '');
                         $label = is_object($row) ? ($row->label ?? $row->manufacturer) : ($row['label'] ?? $row['manufacturer'] ?? '');
                         $count = is_object($row) ? $row->count : ($row['count'] ?? 0);
                         $checked = $selected->contains($value);
+                        $hidden = $i >= $brandLimit && ! $checked;
                     @endphp
-                    <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]">
+                    <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]"
+                           @if($hidden) x-show="showAll" x-cloak @endif>
                         <input type="checkbox" name="brand[]" value="{{ $value }}"
                                class="sr-only" {{ $checked ? 'checked' : '' }}
                                onchange="this.form.submit()">
@@ -117,6 +120,15 @@
                         <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $count }}</span>
                     </label>
                 @endforeach
+                @if($brandHidden > 0)
+                    <button type="button"
+                            @click.prevent="showAll = !showAll"
+                            class="mt-2 text-[12px] text-[var(--gazu-blue)] hover:text-[var(--gazu-ink)] no-underline inline-flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0">
+                        <span x-show="!showAll">Показати ще {{ $brandHidden }}</span>
+                        <span x-show="showAll" x-cloak>Згорнути</span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="showAll ? 'rotate-180' : ''" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                @endif
             </div>
         </details>
     @endif

@@ -418,11 +418,14 @@ button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
    .gazu-card-anim is intentionally a tailwind-only hover hook now —
    no entry animation here to avoid double-firing. */
 
-/* === Sticky filters sidebar on desktop === */
+/* === Sticky filters sidebar on desktop ===
+ * Прибрано max-height + overflow-y: auto — користувач не любив scroll
+ * в самому фільтрі (потворно). Списки brand/condition тепер truncate
+ * через Alpine 'show more' button (див. filter-panel.blade.php). */
 @media (min-width: 1024px) {
     .gazu-grid-sidebar > aside,
     .gazu-grid-sidebar > .gazu-filter-panel {
-        position: sticky; top: 1rem; align-self: start; max-height: calc(100vh - 2rem); overflow-y: auto;
+        position: sticky; top: 1rem; align-self: start;
     }
 }
 
