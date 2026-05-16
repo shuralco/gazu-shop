@@ -90,6 +90,7 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     $wish = \App\Http\Controllers\Gazu\WishlistController::class;
     Route::get('/wishlist', [$wish, 'index'])->name('wishlist');
     Route::post('/wishlist/toggle', [$wish, 'toggle'])->name('wishlist.toggle');
+    Route::get('/api/wishlist/ids', [$wish, 'ids'])->name('wishlist.ids');
 
     Route::get('/sto', [$c, 'sto'])->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');

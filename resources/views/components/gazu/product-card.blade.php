@@ -34,11 +34,13 @@
         <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-white text-[11px] font-semibold rounded gazu-mono z-10">−{{ $discount }}%</div>
     @endif
     @if($productId)
-        @php
-            $inWishlist = auth()->check() && \DB::table('wishlists')->where('user_id', auth()->id())->where('product_id', $productId)->exists();
-        @endphp
+        {{-- Wishlist state hydrated client-side з /api/wishlist/ids (бо HTML кешований
+             через Spatie ResponseCache → server-side check може бути stale для іншого user). --}}
         <button type="button"
-                x-data="{ active: {{ $inWishlist ? 'true' : 'false' }}, busy: false, burst: false }"
+                data-wishlist-pid="{{ $productId }}"
+                x-data="{ active: false, busy: false, burst: false }"
+                x-init="if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true;
+                        window.addEventListener('gazu:wishlist-ids-loaded', () => { if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true; });"
                 @click.prevent="
                     if (busy) return;
                     busy = true;
@@ -64,11 +66,17 @@
         </button>
     @endif
 
-    <a wire:navigate href="{{ $url }}" class="aspect-square bg-[var(--gazu-paper)] flex items-center justify-center no-underline relative overflow-hidden p-2 sm:p-3 m-2 sm:m-3 mb-0 rounded-lg">
-        <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
+    {{-- Картинка без ободка/паддінгів/маржинів — повна ширина card-а, скруглені верхні кути.
+         На hover показуємо альтернативний variant SVG part-image (другий "ракурс"). --}}
+    <a wire:navigate href="{{ $url }}" class="aspect-square block no-underline relative overflow-hidden rounded-t-lg group/img">
+        <div class="absolute inset-0 flex items-center justify-center bg-white transition-opacity duration-300 group-hover/img:opacity-0">
+            <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
+        </div>
+        <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-paper)] opacity-0 transition-opacity duration-300 group-hover/img:opacity-100">
+            <x-gazu.part-image kind="{{ $image }}" :seed="($productId ?? 0) + 7777" fit/>
+        </div>
         @if($oem)
-            {{-- bottom-left so it never collides with the discount badge (top-left) or wishlist heart (top-right) --}}
-            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
+            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded z-[1]">{{ $oem }}</span>
         @endif
     </a>
 

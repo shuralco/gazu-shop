@@ -24,6 +24,25 @@
             var tokenInput = form.querySelector('input[name="_token"]');
             if (tokenInput) tokenInput.value = window.GAZU_CSRF;
         }, true);
+
+        // Wishlist client-side hydration: HTML кешований ResponseCache → server-side
+        // $inWishlist неконсистентний для різних users. JS витягує справжні wishlist
+        // ids поточного user і dispatch event щоб кожна product-card оновила heart-state.
+        (function () {
+            window.GAZU_WISHLIST_IDS = new Set();
+            function loadIds() {
+                fetch('{{ route('gazu.wishlist.ids') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                    .then(function (r) { return r.ok ? r.json() : { ids: [] }; })
+                    .then(function (d) {
+                        window.GAZU_WISHLIST_IDS = new Set((d.ids || []).map(Number));
+                        window.dispatchEvent(new CustomEvent('gazu:wishlist-ids-loaded'));
+                    })
+                    .catch(function () {});
+            }
+            if (document.readyState !== 'loading') loadIds();
+            else document.addEventListener('DOMContentLoaded', loadIds);
+            document.addEventListener('livewire:navigated', loadIds);
+        })();
     </script>
 
     {{-- Performance hints — preconnect до origin + dns-prefetch до zовнішніх сервісів --}}

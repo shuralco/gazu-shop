@@ -102,23 +102,61 @@
         {{-- Product top — outer grid: gallery | right-hand side.
              RHS = title (over) + nested grid [ info+warehouse | buy-panel ]. --}}
         <div class="gazu-grid-product-main mt-1">
-            {{-- Gallery: big main image, thumbnails row below it --}}
-            <div class="flex flex-col gap-3">
-                @php $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0; @endphp
+            {{-- Gallery: big main image + active-thumb grid (4 ракурси, hover/click swap) --}}
+            @php
+                $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0;
+                $variants = [
+                    $gallerySeed,
+                    $gallerySeed + 1001,
+                    $gallerySeed + 2002,
+                    $gallerySeed + 3003,
+                ];
+            @endphp
+            <div class="flex flex-col gap-3" x-data="{ idx: 0 }">
                 <div class="aspect-square bg-white shadow-[0_1px_0_0_var(--gazu-line)] rounded-2xl relative overflow-hidden">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
-                    <div class="absolute inset-0">
-                        <x-gazu.part-image kind="{{ $kind }}" :seed="$gallerySeed" fit/>
+                    @foreach($variants as $i => $seed)
+                        <div class="absolute inset-0 transition-opacity duration-200"
+                             :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
+                            <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
+                        </div>
+                    @endforeach
+                    <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded z-[1]">
+                        <span x-text="idx + 1">1</span> / {{ count($variants) }}
                     </div>
-                    <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded">
-                        1 / 8
-                    </div>
-                    <button type="button" class="absolute top-3.5 right-3.5 w-9 h-9 border border-[var(--gazu-line)] bg-white rounded-lg cursor-pointer inline-flex items-center justify-center text-[var(--gazu-graphite)]">
-                        <x-gazu.icon name="heart" size="18"/>
-                    </button>
+                    @if($productId)
+                        {{-- Heart wired to wishlist toggle, hydrated client-side --}}
+                        <button type="button"
+                                data-wishlist-pid="{{ $productId }}"
+                                x-data="{ active: false, busy: false }"
+                                x-init="if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true;
+                                        window.addEventListener('gazu:wishlist-ids-loaded', () => { if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true; });"
+                                @click.prevent="
+                                    if (busy) return; busy = true;
+                                    fetch('{{ route('gazu.wishlist.toggle') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' }, body: new URLSearchParams({ product_id: '{{ $productId }}' }) })
+                                      .then(r => r.json()).then(d => { if (d.ok) { active = d.in_wishlist; window.gazuToast && window.gazuToast(active ? 'Додано в обране ❤' : 'Видалено з обраного', active ? 'success' : 'info'); } else if (d.redirect) { window.location = d.redirect; } })
+                                      .catch(() => { window.location = '{{ route('gazu.auth') }}'; })
+                                      .finally(() => busy = false);"
+                                :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
+                                :class="active ? 'text-[var(--gazu-danger)] border-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] border-[var(--gazu-line)] hover:text-[var(--gazu-danger)]'"
+                                class="absolute top-3.5 right-3.5 w-9 h-9 border bg-white rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors z-[1]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
+                            </svg>
+                        </button>
+                    @endif
                 </div>
-                {{-- Thumbnails — показуємо тільки коли є більше 1 реальної фото.
-                     Не генеруємо fake thumbnails з різними seed-ами (виглядає як фейк). --}}
+                {{-- Real thumbnails (4 variants) — клік/hover для перемикання головної. --}}
+                <div class="grid grid-cols-4 gap-2">
+                    @foreach($variants as $i => $seed)
+                        <button type="button"
+                                @click="idx = {{ $i }}" @mouseover="idx = {{ $i }}"
+                                :class="idx === {{ $i }} ? 'border-[var(--gazu-ink)] ring-2 ring-[var(--gazu-blue)]/20' : 'border-[var(--gazu-line)] hover:border-[var(--gazu-graphite)]'"
+                                class="aspect-square bg-[var(--gazu-paper)] rounded-md border-2 p-1.5 cursor-pointer transition-all flex items-center justify-center">
+                            <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
+                        </button>
+                    @endforeach
+                </div>
             </div>{{-- /gallery --}}
 
             {{-- Right-hand side: product title spanning the two columns below it --}}

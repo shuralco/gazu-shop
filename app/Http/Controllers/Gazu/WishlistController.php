@@ -12,6 +12,21 @@ use Illuminate\Http\Request;
  */
 class WishlistController extends Controller
 {
+    /**
+     * Client-side hydration: повертає список product_id у wishlist поточного user.
+     * НЕ кешується ResponseCache (per-request data), читається JS після завантаження
+     * сторінки → синхронізує heart-state на cached HTML.
+     */
+    public function ids(Request $request)
+    {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['ids' => []])->header('Cache-Control', 'no-store, private');
+        }
+        $ids = \DB::table('wishlists')->where('user_id', $user->id)->pluck('product_id')->all();
+        return response()->json(['ids' => $ids])->header('Cache-Control', 'no-store, private');
+    }
+
     public function toggle(Request $request)
     {
         $request->validate(['product_id' => 'required|integer']);
