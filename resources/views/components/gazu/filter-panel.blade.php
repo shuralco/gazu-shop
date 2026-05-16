@@ -15,7 +15,10 @@
     $hasFilters = !empty(request('brand')) || request()->filled('min') || request()->filled('max') || request('stock') === 'in';
 @endphp
 
-<form method="GET" action="{{ url()->current() }}" class="font-text text-sm" x-data="{ priceMin: {{ (int) $priceRange['currentMin'] }}, priceMax: {{ (int) $priceRange['currentMax'] }} }">
+<form method="GET" action="{{ url()->current() }}" class="font-text text-sm" x-data="{
+        priceMin: '{{ request()->filled('min') ? (int) request('min') : '' }}',
+        priceMax: '{{ request()->filled('max') ? (int) request('max') : '' }}'
+    }">
     {{-- Зберігаємо з URL: ?cat, ?q, ?sort при subimt --}}
     @foreach (['cat', 'q', 'sort'] as $kept)
         @if (request()->filled($kept))
@@ -71,10 +74,12 @@
             <div class="flex gap-2">
                 <input type="number" name="min" x-model="priceMin"
                        min="{{ $priceRange['min'] }}" max="{{ $priceRange['max'] }}"
-                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none">
+                       placeholder="від {{ (int) $priceRange['min'] }}"
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none placeholder:text-[var(--gazu-muted)]">
                 <input type="number" name="max" x-model="priceMax"
                        min="{{ $priceRange['min'] }}" max="{{ $priceRange['max'] }}"
-                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none">
+                       placeholder="до {{ (int) $priceRange['max'] }}"
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none placeholder:text-[var(--gazu-muted)]">
             </div>
             <div class="text-[11px] text-[var(--gazu-muted)] mt-2">
                 Від <span class="gazu-mono">{{ number_format($priceRange['min'], 0, '.', ' ') }} ₴</span>

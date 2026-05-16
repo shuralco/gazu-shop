@@ -142,7 +142,7 @@ html.gazu, body.gazu {
 /* Long-form prose typography — used by info pages (about, delivery, …)
    and by the blog. Tailwind Typography plugin isn't installed, so this
    is a hand-rolled minimal "prose" replacement tuned to the GAZU theme. */
-.gazu-prose { color: var(--gazu-ink); font-size: 15px; line-height: 1.7; max-width: 72ch; }
+.gazu-prose { color: var(--gazu-ink); font-size: 16px; line-height: 1.75; max-width: 88ch; }
 .gazu-prose > *:first-child { margin-top: 0; }
 .gazu-prose > *:last-child  { margin-bottom: 0; }
 .gazu-prose h2 {

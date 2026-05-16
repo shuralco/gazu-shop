@@ -18,18 +18,27 @@
             '#475569',  // accessories slate
         ];
     }
-    // Iconic glyphs (1 SVG per category by slug/name match).
+    // Realistic auto-part glyphs. innerHTML of <svg viewBox="0 0 24 24"> — multi-element.
+    // Each glyph reads as a recognizable part silhouette (gear, disc, plug, can, etc).
     $iconBySlug = [
-        'engine' => 'M 14 4 L 14 8 L 18 8 L 18 12 L 22 12 L 22 16 L 18 16 L 18 20 L 14 20 L 14 16 L 6 16 L 6 12 L 2 12 L 2 8 L 6 8 L 6 4 L 10 4 L 10 12 L 14 12 Z',
-        'brakes' => 'M 12 2 A 10 10 0 1 0 12 22 A 10 10 0 1 0 12 2 M 12 6 A 6 6 0 1 1 12 18 A 6 6 0 1 1 12 6',
-        'suspension' => 'M 12 2 L 12 22 M 8 6 L 16 6 M 6 10 L 18 10 M 8 14 L 16 14 M 10 18 L 14 18',
-        'electrics' => 'M 13 2 L 4 14 L 11 14 L 10 22 L 20 10 L 13 10 Z',
-        'transmission' => 'M 7 7 L 17 7 L 17 17 L 7 17 Z M 9 5 L 9 9 M 15 5 L 15 9 M 9 15 L 9 19 M 15 15 L 15 19',
-        'fluids' => 'M 12 2.5 C 7 9 5 13 5 16 a 7 7 0 0 0 14 0 C 19 13 17 9 12 2.5 Z',
-        'body' => 'M 5 11 L 7 5 L 17 5 L 19 11 M 3 11 L 21 11 L 21 18 L 18 18 L 18 16 L 6 16 L 6 18 L 3 18 Z M 7 13.5 A 1.5 1.5 0 0 1 7 16.5 M 17 13.5 A 1.5 1.5 0 0 1 17 16.5',
-        'accessories' => 'M 12 2 L 14.5 8.5 L 21 9 L 16 13.5 L 17.5 20 L 12 16.5 L 6.5 20 L 8 13.5 L 3 9 L 9.5 8.5 Z',
+        // Двигун — V-block з валом + 2 поршні + клапани зверху
+        'engine' => '<rect x="3" y="9" width="18" height="9" rx="1"/><path d="M5 9V6h3v3M16 9V6h3v3"/><circle cx="6.5" cy="13.5" r="1.4"/><circle cx="12" cy="13.5" r="1.4"/><circle cx="17.5" cy="13.5" r="1.4"/><path d="M3 18v2h18v-2"/>',
+        // Гальма — диск + caliper збоку + центральна гайка
+        'brakes' => '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5.5"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/><path d="M3.5 8.5h4v7h-4z"/><path d="M5 12h2"/>',
+        // Підвіска — пружина амортизатора (zigzag) + шток
+        'suspension' => '<rect x="9" y="2" width="6" height="3" rx="0.5"/><path d="M12 5v2"/><path d="M8 7h8l-2 2h-4l2 2H8l2 2h4l-2 2H8l2 2h4"/><path d="M12 18v3"/><rect x="9" y="19" width="6" height="3" rx="0.5"/>',
+        // Електрика — свічка запалювання (резьба + ізолятор + електрод)
+        'electrics' => '<path d="M11 2h2v3h-2z"/><rect x="9.5" y="5" width="5" height="3" rx="0.5"/><path d="M10 8h4l-0.5 2.5h-3z"/><rect x="10.5" y="10.5" width="3" height="6"/><path d="M11 16.5v3M13 16.5v3M11.5 19.5h2"/><path d="M11.5 19.5l-1.5 2.5"/>',
+        // Трансмісія — зубчасте колесо (gear)
+        'transmission' => '<path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2.5"/>',
+        // Мастила — каністра з ручкою + носик
+        'fluids' => '<path d="M7 7h10v13H7z"/><path d="M9 7V4h3.5v3"/><path d="M12.5 5h4v3l-2 1"/><path d="M9 10h6M9 13h6M9 16h6"/>',
+        // Кузов — силует машини збоку (хетчбек)
+        'body' => '<path d="M3 16h2c0-1.7 1.3-3 3-3s3 1.3 3 3M11 16h2c0-1.7 1.3-3 3-3s3 1.3 3 3"/><path d="M3 16v-3l3-5h11l3 4v4"/><path d="M6 8h4v3M11 8h5v3"/><circle cx="8" cy="16" r="2"/><circle cx="16" cy="16" r="2"/>',
+        // Аксесуари — гайковий ключ (wrench)
+        'accessories' => '<path d="M15.5 4.5a4 4 0 105 5l-2.5 2.5-3-3z"/><path d="M14.5 8.5L4 19l3 3 10.5-10.5"/>',
     ];
-    $defaultIcon = 'M 12 2 L 2 7 L 12 12 L 22 7 Z M 2 17 L 12 22 L 22 17 M 2 12 L 12 17 L 22 12';
+    $defaultIcon = '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 12h18M12 3v18"/>';
 
     $tree = $categories ?? app(\App\Services\Gazu\MegaMenuBuilder::class)->build();
     $cats = [];
@@ -88,16 +97,11 @@
                 <div class="absolute inset-0 opacity-[0.08]"
                      style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 12px 12px;"></div>
 
-                {{-- Big glyph in corner — auto-parts iconic look --}}
-                <svg class="absolute -bottom-4 -right-4 w-32 h-32 sm:w-40 sm:h-40 text-white/15 group-hover:text-white/25 transition-colors"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="{{ $c['icon'] }}"/>
+                {{-- Big glyph in corner — auto-parts iconic look (multi-element SVG) --}}
+                <svg class="absolute -bottom-3 -right-3 w-32 h-32 sm:w-40 sm:h-40 text-white/20 group-hover:text-white/30 transition-colors"
+                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                    {!! $c['icon'] !!}
                 </svg>
-
-                {{-- Top-left: count chip --}}
-                <div class="absolute top-3 left-3 px-2 py-1 bg-white/15 backdrop-blur rounded-md text-[10px] gazu-mono tracking-wider uppercase">
-                    {{ number_format($c['count'], 0, '.', ' ') }} {{ \plural_uk_count($c['count'], 'товар', 'товари', 'товарів') }}
-                </div>
 
                 {{-- Bottom: title + subcategories slide-up on hover --}}
                 <div class="absolute inset-x-0 bottom-0 p-4">

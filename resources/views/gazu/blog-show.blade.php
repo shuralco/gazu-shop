@@ -26,7 +26,7 @@
         $title,
     ]"/>
 
-    <article class="max-w-4xl mx-auto">
+    <article class="max-w-5xl mx-auto">
         <div class="flex items-center gap-3 mb-5 text-xs flex-wrap">
             <span class="gazu-mono px-2 py-0.5 bg-[var(--gazu-mist)] text-[var(--gazu-blue)] rounded tracking-wider uppercase">{{ $cat }}</span>
             @if($date)<span class="text-[var(--gazu-graphite)]">· {{ $date }}</span>@endif
