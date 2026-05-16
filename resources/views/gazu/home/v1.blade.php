@@ -64,4 +64,6 @@
     <x-gazu.recently-viewed/>
 
     <x-gazu.brand-strip/>
+
+    <x-gazu.seo-text/>
 @endsection

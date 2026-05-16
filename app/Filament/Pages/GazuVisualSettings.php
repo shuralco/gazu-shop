@@ -203,6 +203,37 @@ class GazuVisualSettings extends Page implements HasForms
         'gazu_social_instagram' => '#',
         'gazu_social_telegram' => '#',
         'gazu_social_youtube' => '#',
+
+        // SEO-текст на головній (рендериться після brand-strip, перед footer)
+        'gazu_seo_enabled' => true,
+        'gazu_seo_title' => 'Автозапчастини для китайських авто в Україні',
+        'gazu_seo_html' => '<p><strong>GAZU</strong> — спеціалізований інтернет-магазин запчастин для китайських автомобілів: <strong>BYD, Chery, Geely, Haval, Great Wall, JAC, MG, FAW, DongFeng</strong>. У каталозі понад <strong>1 278 артикулів</strong> оригінальних запчастин та перевірених аналогів — для самостійного ремонту або СТО.</p>
+
+<h3>Що ви знайдете в каталозі</h3>
+<ul>
+  <li><strong>Двигун та системи живлення</strong> — масляні, повітряні та паливні фільтри, свічки запалювання, ремені ГРМ, ланцюги, помпи.</li>
+  <li><strong>Гальмівна система</strong> — колодки, диски, циліндри, гальмівні рідини.</li>
+  <li><strong>Підвіска та рульове</strong> — амортизатори, пружини, сайлентблоки, кульові, ШРУСи.</li>
+  <li><strong>Електрика</strong> — генератори, стартери, акумулятори, датчики, реле, лампи.</li>
+  <li><strong>Мастила та технічні рідини</strong> — оливи Mobil, Liqui Moly, Shell; антифризи, гальмівні рідини.</li>
+  <li><strong>Кузов та оптика</strong> — фари, склоочисники, бампери, дзеркала.</li>
+</ul>
+
+<h3>Чому обирають GAZU</h3>
+<ul>
+  <li><strong>Без передоплати</strong> — оплата при отриманні через Нову Пошту або Укрпошту.</li>
+  <li><strong>Гарантія 12+ місяців</strong> на всі оригінальні запчастини.</li>
+  <li><strong>Доставка 1-3 дні</strong> по всій Україні — Київ, Львів, Одеса, Харків, Дніпро, Запоріжжя.</li>
+  <li><strong>Повернення 14 днів</strong> — без пояснення причин.</li>
+  <li><strong>Підбір за артикулом OEM</strong> або через селектор «марка → модель → двигун».</li>
+  <li><strong>Допомога з підбором</strong> — менеджер передзвонить за 5 хвилин.</li>
+</ul>
+
+<h3>Як підібрати запчастину</h3>
+<p>Найшвидший спосіб — введіть <strong>артикул OEM</strong> у пошуку. Або скористайтеся селектором на головній: оберіть марку, модель та двигун — система покаже сумісні деталі. Якщо не впевнені — телефонуйте <a href="tel:0800751024">0 800 75 10 24</a>, безкоштовно проконсультуємо.</p>
+
+<h3>Бренди в каталозі</h3>
+<p>Працюємо з провідними виробниками: <strong>Bosch, Mann Filter, Mahle, ATE, Brembo, NGK, TRW, Sachs, KYB, Valeo, Liqui Moly, Mobil, Shell, Castrol</strong>. Кожна позиція проходить перевірку справжності — підробок у нашому магазині немає.</p>',
     ];
 
     public function mount(): void
@@ -326,6 +357,34 @@ class GazuVisualSettings extends Page implements HasForms
                             ])
                             ->defaultItems(0)
                             ->columnSpanFull(),
+                    ]),
+
+                // ── SEO-текст на головній ──
+                Forms\Components\Tabs\Tab::make('SEO-текст головна')
+                    ->icon('heroicon-o-document-text')
+                    ->schema([
+                        Forms\Components\Section::make('SEO-блок на /')
+                            ->description('Довгий описовий текст з ключовими словами. Виводиться між брендами і футером на головній. Підвищує relevance в Google.')
+                            ->schema([
+                                Forms\Components\Toggle::make('gazu_seo_enabled')
+                                    ->label('Показувати SEO-блок на головній')
+                                    ->default(true)
+                                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('gazu_seo_title')
+                                    ->label('Заголовок секції (H2)')
+                                    ->helperText('Наприклад: «Автозапчастини для китайських авто в Україні»')
+                                    ->maxLength(160)
+                                    ->columnSpanFull(),
+                                Forms\Components\RichEditor::make('gazu_seo_html')
+                                    ->label('SEO-контент (HTML)')
+                                    ->helperText('Великий описовий текст. Заголовки H3, списки, посилання — все підтримується. Використовуй ключові слова: марка авто, тип запчастини, бренди.')
+                                    ->toolbarButtons([
+                                        'h2', 'h3', 'bold', 'italic', 'link',
+                                        'bulletList', 'orderedList',
+                                        'undo', 'redo',
+                                    ])
+                                    ->columnSpanFull(),
+                            ]),
                     ]),
 
                 // ── Footer ──
