@@ -144,7 +144,8 @@ html.gazu, body.gazu {
    is a hand-rolled minimal "prose" replacement tuned to the GAZU theme. */
 .gazu-prose { color: var(--gazu-ink); font-size: 16px; line-height: 1.75; max-width: 88ch; }
 
-/* SEO 2-col layout — auto multi-column для широкого контенту. */
+/* SEO 2-col layout — multi-column. */
+.gazu-seo-v60c { /* anchor for cache busting */ display: block; }
 .gazu-prose-2col {
     font-size: 15px;
     line-height: 1.7;
