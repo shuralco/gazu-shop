@@ -4,6 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {{-- Performance hints — preconnect до origin + dns-prefetch до zовнішніх сервісів --}}
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://gazu.uno" crossorigin>
     @php
         $metaProductsLabel = $shopStats['products_label'] ?? 'широкий каталог';
         $pageTitle = trim(($__env->yieldContent('title') ?: 'GAZU — каталог автозапчастин'));
