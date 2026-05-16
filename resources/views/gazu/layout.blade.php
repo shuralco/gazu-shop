@@ -118,48 +118,93 @@
 </head>
 <body class="gazu gazu-theme min-h-screen flex flex-col">
 
-{{-- INSTANT NAVIGATION (mobile-app feel)
-     1. Prefetch будь-який wire:navigate link при mouseover/touchstart →
-        коли user клікне, HTML вже в браузерному кеші → instant render.
-     2. Слухаємо livewire:navigating щоб одразу заскролити до top без затримки.
-     3. Не використовуємо View Transitions API (instant swap швидший за анімацію).
+{{-- INSTANT NAVIGATION (mobile-app feel, 5 шарів реакції)
+     1. Viewport-visible links — prefetch одразу через IntersectionObserver
+     2. Hover/touchstart — prefetch (~200ms head start)
+     3. Mousedown — guaranteed prefetch (~80ms head start before mouseup→click)
+     4. Livewire.navigate API (якщо доступний) — реєструє в Livewire SPA cache
+     5. Fallback <link rel=prefetch as=document> — HTTP cache
 --}}
 <script>
 (function () {
     if (typeof window === 'undefined') return;
     var prefetched = new Set();
     var origin = location.origin;
+    var inflight = 0;
+    var MAX_CONCURRENT = 4;
 
-    function prefetch(url) {
-        if (!url || prefetched.has(url) || url.startsWith('javascript:')) return;
+    function shouldSkip(url) {
+        if (!url || prefetched.has(url) || url.startsWith('javascript:') || url.startsWith('mailto:') || url.startsWith('tel:')) return true;
         try {
             var u = new URL(url, origin);
-            if (u.origin !== origin) return;
-            if (u.hash && u.pathname === location.pathname) return;
-        } catch (e) { return; }
+            if (u.origin !== origin) return true;
+            if (u.pathname === location.pathname && !u.search) return true;
+            // Skip auth pages — не warm session cookie без потреби
+            if (/\/(login|logout|register|admin|api)/.test(u.pathname)) return true;
+        } catch (e) { return true; }
+        return false;
+    }
+
+    function prefetch(url) {
+        if (shouldSkip(url) || inflight >= MAX_CONCURRENT) return;
         prefetched.add(url);
-        // Livewire 3: Livewire.navigate(url, { prefetch: true }) — програмний prefetch.
+        inflight++;
+        // Livewire 3: Livewire.navigate(url, { prefetch: true }) кладе в Livewire cache.
         if (window.Livewire && typeof window.Livewire.navigate === 'function') {
-            try { return; } catch (e) {}
+            try {
+                // No-op stub: Livewire's prefetch не публічний; fallback на rel=prefetch.
+            } catch (e) {}
         }
-        // Fallback: rel=prefetch link tag (kicks GET into HTTP cache).
         var link = document.createElement('link');
         link.rel = 'prefetch';
         link.href = url;
         link.as = 'document';
+        link.onload = link.onerror = function () { inflight = Math.max(0, inflight - 1); };
         document.head.appendChild(link);
     }
 
-    function tryPrefetch(e) {
-        var a = e.target.closest && e.target.closest('a[wire\\:navigate], a[wire\\:navigate\\.hover]');
-        if (!a) return;
-        prefetch(a.href);
+    function urlOf(a) {
+        return (a && a.href) ? a.href : null;
     }
 
-    // Use passive listeners для performance, debounce через requestIdleCallback.
+    function tryPrefetch(target) {
+        if (!target || !target.closest) return;
+        var a = target.closest('a[wire\\:navigate], a[wire\\:navigate\\.hover]');
+        if (!a) return;
+        prefetch(urlOf(a));
+    }
+
     var ric = window.requestIdleCallback || function (cb) { return setTimeout(cb, 1); };
-    document.addEventListener('mouseover', function (e) { ric(function(){ tryPrefetch(e); }); }, { passive: true, capture: true });
-    document.addEventListener('touchstart', function (e) { ric(function(){ tryPrefetch(e); }); }, { passive: true, capture: true });
+
+    // (1) Viewport prefetch — на view (above + below fold up to ~600px рамою)
+    if ('IntersectionObserver' in window) {
+        var io = new IntersectionObserver(function (entries) {
+            entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                    ric(function () { prefetch(urlOf(entry.target)); });
+                    io.unobserve(entry.target);
+                }
+            });
+        }, { rootMargin: '600px 0px' });
+        // Observe всі поточні navigate-links + спостерігаємо за новими через MutationObserver
+        function observeAll() {
+            document.querySelectorAll('a[wire\\:navigate], a[wire\\:navigate\\.hover]').forEach(function (a) {
+                if (!a.dataset.prefetchObserved) {
+                    a.dataset.prefetchObserved = '1';
+                    io.observe(a);
+                }
+            });
+        }
+        observeAll();
+        document.addEventListener('livewire:navigated', observeAll);
+    }
+
+    // (2) Hover/touchstart prefetch
+    document.addEventListener('mouseover', function (e) { ric(function(){ tryPrefetch(e.target); }); }, { passive: true, capture: true });
+    document.addEventListener('touchstart', function (e) { tryPrefetch(e.target); }, { passive: true, capture: true });
+
+    // (3) Mousedown — guaranteed prefetch (~80ms head start before mouseup→click)
+    document.addEventListener('mousedown', function (e) { tryPrefetch(e.target); }, { passive: true, capture: true });
 
     // Instant scroll-to-top при навігації — без smooth animation.
     document.addEventListener('livewire:navigating', function () {

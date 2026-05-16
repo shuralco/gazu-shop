@@ -322,6 +322,38 @@ html.gazu, body.gazu {
  * Залишена лише nominal-marker class для DOM compatibility. */
 .gazu-stagger > * { opacity: 1; }
 
+/* ───── INSTANT TACTILE FEEDBACK (iOS-app feel) ─────
+ * При натиску на card/button → миттєвий scale-down 97%.
+ * Transition 80ms — дає відчуття «кнопка спрацювала» до того як
+ * сторінка завантажиться. Plus touch-action:manipulation вбиває 300ms tap-delay. */
+.gazu-cat-tile,
+.gazu-product-card,
+a[wire\:navigate],
+button:not([disabled]):not([type="checkbox"]):not([type="radio"]) {
+    -webkit-tap-highlight-color: transparent;
+    transition: transform 80ms ease-out, box-shadow 200ms ease-out, background-color 150ms ease;
+    touch-action: manipulation;
+}
+a[wire\:navigate]:active,
+.gazu-cat-tile:active,
+.gazu-product-card:active,
+button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
+    transform: scale(0.97);
+    transition-duration: 50ms;
+}
+@media (prefers-reduced-motion: reduce) {
+    a[wire\:navigate]:active,
+    .gazu-cat-tile:active,
+    .gazu-product-card:active,
+    button:active { transform: none; }
+}
+
+/* Image stable bg-placeholder — без layout shift, image fades in over neutral bg */
+.gazu-product-card img,
+.gazu-cat-tile img {
+    background-color: var(--gazu-mist);
+}
+
 /* Toast container + items */
 .gazu-toast-container {
     position: fixed; top: 16px; right: 16px; z-index: 70;
