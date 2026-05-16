@@ -475,7 +475,7 @@
                     </div>
                 </div>{{-- /tabs --}}
 
-        <x-gazu.featured-row title="Часто купують разом" :items="$related"/>
+        <x-gazu.featured-row title="Часто купують разом" :items="$related" bare/>
     </div>
 
     {{-- Mobile sticky add-to-cart bar — shows only when buy-panel scrolled off-screen --}}
