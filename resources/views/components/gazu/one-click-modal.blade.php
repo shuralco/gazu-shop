@@ -29,7 +29,7 @@
             try {
                 const r = await fetch('{{ route('gazu.checkout.one-click') }}', {
                     method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
                     body: new URLSearchParams({
                         product_id: this.productId,
                         phone: this.phone,

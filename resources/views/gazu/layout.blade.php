@@ -4,6 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {{-- CSRF token — Spatie ResponseCache CsrfTokenReplacer auto-replaces this
+         meta value per-request, тому будь-який кешований HTML має правильний
+         токен для активної session. Усі JS-fetch'ери мають читати з нього. --}}
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script>
+        // Глобальний токен для всіх fetch() — single source of truth, читається
+        // з мета-тега який Spatie ResponseCache оновлює per-request.
+        window.GAZU_CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
+    </script>
 
     {{-- Performance hints — preconnect до origin + dns-prefetch до zовнішніх сервісів --}}
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">

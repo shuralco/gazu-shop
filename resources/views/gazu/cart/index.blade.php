@@ -98,7 +98,7 @@
                                 try {
                                     const r = await fetch('{{ route('gazu.cart.update') }}', {
                                         method: 'POST',
-                                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                                        headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
                                         body: new URLSearchParams({ product_id: '{{ $productId }}', quantity: String(newQty) })
                                     });
                                     const d = await r.json();
@@ -116,7 +116,7 @@
                                 try {
                                     const r = await fetch('{{ route('gazu.cart.remove') }}', {
                                         method: 'POST',
-                                        headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                                        headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
                                         body: new URLSearchParams({ product_id: '{{ $productId }}' })
                                     });
                                     const d = await r.json();
@@ -285,7 +285,7 @@
                         this.busy = true;
                         fetch('{{ route('gazu.cart.coupon.apply') }}', {
                             method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
                             body: new URLSearchParams({ code: this.code.trim() })
                         }).then(r => r.json()).then(d => {
                             if (d.ok) {

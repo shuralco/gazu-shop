@@ -50,7 +50,7 @@
                         if (busy) return; busy = true;
                         fetch('{{ route('gazu.cart.add') }}', {
                             method: 'POST',
-                            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                            headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
                             body: new URLSearchParams({ product_id: '{{ $productId }}', quantity: '1' })
                         }).then(r => r.json()).then(d => {
                             if (d.ok) {
