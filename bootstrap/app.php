@@ -17,7 +17,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // Full-page HTML response cache (Redis). Caches storefront GET для гостей,
         // skip /admin /cart /checkout /api — див. GazuCacheProfile.
         // Auto-flush через model observers — див. AppServiceProvider::boot().
-        $middleware->append(\Spatie\ResponseCache\Middlewares\CacheResponse::class);
+        // CRITICAL: appendToGroup('web') — НЕ global ->append() — щоб ResponseCache
+        // спрацював ПІСЛЯ StartSession + VerifyCsrfToken. Інакше:
+        //   - $request->user() = null (session не стартувала) → кешує auth users
+        //   - CsrfTokenReplacer не знає поточного csrf_token() → 419 для всіх POST
+        $middleware->appendToGroup('web', \Spatie\ResponseCache\Middlewares\CacheResponse::class);
 
         // Trust upstream proxies (Coolify, Traefik, Caddy, nginx) so
         // request()->ip() returns the real visitor IP for geo-detect,
