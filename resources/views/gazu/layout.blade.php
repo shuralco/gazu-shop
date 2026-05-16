@@ -12,6 +12,18 @@
         // Глобальний токен для всіх fetch() — single source of truth, читається
         // з мета-тега який Spatie ResponseCache оновлює per-request.
         window.GAZU_CSRF = document.querySelector('meta[name=csrf-token]')?.content || '';
+
+        // CSRF Form Auto-Refresh: будь-який <form> з @csrf input (_token) при submit
+        // отримує СВІЖИЙ токен з window.GAZU_CSRF. Це fix для кешованого HTML де
+        // @csrf видає stale token (Spatie CsrfTokenReplacer оновлює лише meta, не inputs).
+        // Capture-phase listener спрацьовує ДО надсилання форми браузером.
+        document.addEventListener('submit', function (e) {
+            if (!window.GAZU_CSRF) return;
+            var form = e.target;
+            if (!form || form.tagName !== 'FORM') return;
+            var tokenInput = form.querySelector('input[name="_token"]');
+            if (tokenInput) tokenInput.value = window.GAZU_CSRF;
+        }, true);
     </script>
 
     {{-- Performance hints — preconnect до origin + dns-prefetch до zовнішніх сервісів --}}
