@@ -92,6 +92,9 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::post('/wishlist/toggle', [$wish, 'toggle'])->name('wishlist.toggle');
     Route::get('/api/wishlist/ids', [$wish, 'ids'])->name('wishlist.ids');
 
+    // Callback request (footer popup, throttled).
+    Route::post('/api/callback', [\App\Http\Controllers\Gazu\CallbackController::class, 'store'])->name('callback.store');
+
     Route::get('/sto', [$c, 'sto'])->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
