@@ -343,7 +343,11 @@ class StoreController extends Controller
             'currentSort'         => (string) $request->query('sort', 'popular'),
             'inStockOnly'         => $request->query('stock') === 'in',
             'totalCount'          => $paginator->total(),
-            'activeNav'           => 'catalog',
+            // Sub-nav active highlight: /novynky → new, /khity → hits, /akcii → promo
+            'activeNav'           => $request->query('new') == 1 ? 'new'
+                : ($request->query('hits') == 1 ? 'hits'
+                : ($request->query('promo') == 1 ? 'promo'
+                : 'catalog')),
             // Car-selector (4B) — pre-populate dropdowns when URL carries the filter.
             'selectedMake'        => (string) $request->query('make', ''),
             'selectedModel'       => (string) $request->query('model', ''),
