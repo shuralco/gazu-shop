@@ -95,7 +95,7 @@
             if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
                 $brandHeaderSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
             }
-            // SEO-friendly: /brendy/{slug} (brand profile) замість /catalog filter.
+            // SEO-friendly: /brand/{slug} (brand profile) замість /catalog filter.
             $brandUrl = $brandHeaderSlug ? route('gazu.brand', ['slug' => $brandHeaderSlug]) : null;
             $oemReal = $oem ?: (is_object($p) ? ($p->sku ?? '') : '');
             $soldCount = is_object($p) ? (int) ($p->sold_count ?? 0) : 0;

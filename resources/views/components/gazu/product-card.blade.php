@@ -9,7 +9,7 @@
     if (! $brandSlug && $brand && $brand !== 'GAZU') {
         $brandSlug = is_object($p) && ! empty($p->manufacturer) ? $p->manufacturer : \Illuminate\Support\Str::slug($brand);
     }
-    // SEO-friendly URL: /brendy/{slug} замість /catalog?brand[]=slug.
+    // SEO-friendly URL: /brand/{slug} замість /catalog?brand[]=slug.
     // Controller робить fallback на name search якщо slug не matches → працює для legacy.
     $brandUrl = $brandSlug ? route('gazu.brand', ['slug' => $brandSlug]) : null;
     $image = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');

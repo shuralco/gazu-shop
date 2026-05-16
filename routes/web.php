@@ -82,10 +82,10 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
         Route::delete('/garage/{car}', [$garage, 'destroy'])->name('garage.destroy');
     });
 
-    // Brands: /brendy (index), /brendy/{slug} (specific). /brand aliases still 301 to canonical.
-    Route::get('/brendy/{slug?}', [$c, 'brand'])->name('brand');
-    Route::get('/brand', fn () => redirect('/brendy', 301));
-    Route::get('/brand/{slug}', fn (string $slug) => redirect("/brendy/{$slug}", 301));
+    // Brands: /brand (index), /brand/{slug} (specific). /brendy* — 301 legacy redirect.
+    Route::get('/brand/{slug?}', [$c, 'brand'])->name('brand');
+    Route::get('/brendy', fn () => redirect('/brand', 301));
+    Route::get('/brendy/{slug}', fn (string $slug) => redirect("/brand/{$slug}", 301));
 
     $wish = \App\Http\Controllers\Gazu\WishlistController::class;
     Route::get('/wishlist', [$wish, 'index'])->name('wishlist');
