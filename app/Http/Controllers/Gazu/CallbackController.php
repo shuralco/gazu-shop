@@ -41,6 +41,23 @@ class CallbackController extends Controller
             'user_agent'   => mb_substr((string) $request->userAgent(), 0, 500),
         ]);
 
+        // Telegram-сповіщення менеджеру — швидкий push.
+        try {
+            $tg = app(\App\Services\TelegramService::class);
+            if ($tg->isConfigured()) {
+                $msg = "🔔 <b>НОВА заявка на дзвінок</b>\n\n"
+                    ."📞 <b>".e($req->phone)."</b>\n"
+                    .($req->name ? "👤 ".e($req->name)."\n" : '')
+                    ."🌐 Джерело: <code>".e($req->source)."</code>\n"
+                    .($req->referrer_url ? "🔗 ".e($req->referrer_url)."\n" : '')
+                    ."🕒 ".($req->created_at?->format('H:i d.m.Y') ?? '')."\n\n"
+                    ."<a href=\"".url('/admin/callback-requests/'.$req->id.'/edit')."\">Відкрити в адмінці</a>";
+                $tg->send($msg);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Callback Telegram failed: '.$e->getMessage());
+        }
+
         // Email сповіщення адміну — silent fail щоб не ламати UX.
         try {
             $adminEmail = \App\Models\DisplaySetting::get('email_admin_address')

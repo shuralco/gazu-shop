@@ -192,6 +192,35 @@
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 </button>
             @endif
+            @if($productId)
+                {{-- Compare toggle — додає/видаляє з cookie gazu_compare; max 4 --}}
+                <button type="button"
+                        x-data="{ active: false, init() { const c = document.cookie.match(/(?:^|; )gazu_compare=([^;]+)/); const ids = c ? c[1].split(',') : []; this.active = ids.includes('{{ $productId }}'); } }"
+                        @click.prevent="
+                            let c = document.cookie.match(/(?:^|; )gazu_compare=([^;]+)/);
+                            let ids = c ? c[1].split(',').filter(Boolean) : [];
+                            const id = '{{ $productId }}';
+                            if (ids.includes(id)) {
+                                ids = ids.filter(x => x !== id);
+                                active = false;
+                                window.gazuToast && window.gazuToast('Прибрано з порівняння', 'info');
+                            } else if (ids.length >= 4) {
+                                window.gazuToast && window.gazuToast('Максимум 4 товари у порівнянні', 'error');
+                                return;
+                            } else {
+                                ids.push(id);
+                                active = true;
+                                window.gazuToast && window.gazuToast('Додано до порівняння', 'success');
+                            }
+                            document.cookie = 'gazu_compare=' + ids.join(',') + '; path=/; max-age=' + (60*60*24*30) + '; samesite=lax';
+                            window.dispatchEvent(new CustomEvent('gazu:compare-updated', { detail: { count: ids.length } }));
+                        "
+                        :title="active ? 'Прибрати з порівняння' : 'Додати до порівняння'"
+                        :class="active ? 'bg-[var(--gazu-ink)] text-white border-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-graphite)] border-[var(--gazu-line)] hover:border-[var(--gazu-ink)]'"
+                        class="w-8 sm:w-9 shrink-0 border rounded-md cursor-pointer inline-flex items-center justify-center transition-colors">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+                </button>
+            @endif
         </div>
     </div>
 

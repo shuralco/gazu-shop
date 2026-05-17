@@ -253,6 +253,24 @@
 @include('gazu.partials.header', ['activeNav' => $activeNav ?? null, 'cartCount' => $cartCount ?? 0])
 
 <main id="main-content" class="flex-1" tabindex="-1">
+
+{{-- Sticky compare bar — внизу-справа, видно тільки коли cookie gazu_compare має товари --}}
+<div x-data="{
+        count: 0,
+        recalc() {
+            const m = document.cookie.match(/(?:^|; )gazu_compare=([^;]+)/);
+            this.count = m ? m[1].split(',').filter(Boolean).length : 0;
+        },
+        init() { this.recalc(); }
+     }"
+     @gazu:compare-updated.window="count = $event.detail.count"
+     x-show="count > 0" x-cloak x-transition.opacity
+     class="fixed bottom-4 right-4 z-[60] bg-white border-2 border-[var(--gazu-ink)] rounded-xl shadow-[0_12px_32px_-8px_rgba(14,27,44,0.30)] flex items-center gap-3 px-4 py-2.5">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-[var(--gazu-blue)]"><line x1="9" y1="3" x2="9" y2="21"/><line x1="15" y1="3" x2="15" y2="21"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+    <span class="text-[13px] font-medium text-[var(--gazu-ink)] whitespace-nowrap">У порівнянні: <span x-text="count" class="font-bold"></span></span>
+    <a wire:navigate href="/compare" class="px-3 py-1.5 bg-[var(--gazu-ink)] text-white rounded text-[12px] font-medium no-underline hover:bg-[var(--gazu-ink-2)] transition-colors">Порівняти →</a>
+</div>
+
     @yield('content')
 </main>
 

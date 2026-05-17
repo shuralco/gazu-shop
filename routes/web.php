@@ -125,6 +125,9 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // Stock notify: «повідомити коли з'явиться».
     Route::post('/api/stock-notify', [\App\Http\Controllers\Gazu\StockNotificationController::class, 'store'])->name('stock.notify');
 
+    // Compare products — cookie-based, max 4 items.
+    Route::get('/compare', [\App\Http\Controllers\Gazu\CompareController::class, 'index'])->name('compare');
+
     Route::get('/sto', [$c, 'sto'])->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
