@@ -7,10 +7,11 @@
     $s = $gazuSettings ?? [];
     $title = $s['gazu_404_title'] ?? 'Сторінку не знайдено';
     $desc  = $s['gazu_404_desc']  ?? 'Можливо, посилання застаріле або сторінку перенесли. Спробуйте знайти потрібне нижче.';
-    // Популярні категорії — top 8 з cache
+    // Популярні категорії — top 8 з cache (withCount генерує products_count з relation).
     $popular404 = \Cache::remember('home:popular404', 3600, function () {
         return \App\Models\Category::query()
             ->where('is_active', true)
+            ->withCount('products')
             ->orderByDesc('products_count')
             ->limit(8)
             ->get(['id', 'slug', 'title']);
