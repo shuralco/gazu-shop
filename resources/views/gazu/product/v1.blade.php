@@ -37,14 +37,37 @@
         ];
     }
 
-    // Compatibility: array of [make, model, years, engine] objects from БД.
-    // No fallback demo data — empty array means tab shows "not available" hint.
-    $rawCompat = is_object($p) ? ($p->compatibility ?? null) : ($p['compatibility'] ?? null);
+    // Compatibility — SINGLE SOURCE OF TRUTH: pivot product_compatibility
+    // (та сама data що використовує car-selector filter та apiCompatCheck).
+    // Fallback на JSON column products.compatibility для legacy records.
     $compat = [];
-    if (is_array($rawCompat) && ! empty($rawCompat)) {
-        foreach ($rawCompat as $row) {
-            if (is_array($row)) {
-                $compat[] = [$row['make'] ?? '—', $row['model'] ?? '—', $row['years'] ?? '—', $row['engine'] ?? '—'];
+    if (is_object($p) && method_exists($p, 'compatibleEngines')) {
+        try {
+            $engines = $p->compatibleEngines()
+                ->with(['model.make'])
+                ->limit(100)
+                ->get();
+            foreach ($engines as $eng) {
+                $makeName  = $eng->model->make->name ?? '—';
+                $modelName = $eng->model->name ?? '—';
+                $years = '';
+                if (! empty($eng->model->year_from) || ! empty($eng->model->year_to)) {
+                    $years = (string) ($eng->model->year_from ?? '') . '–' . (string) ($eng->model->year_to ?? '');
+                    $years = trim($years, '–') ?: '—';
+                }
+                $engineLabel = trim(($eng->label ?? '') . ' ' . ($eng->code ?? ''));
+                $compat[] = [$makeName, $modelName, $years ?: '—', $engineLabel ?: '—'];
+            }
+        } catch (\Throwable $e) { /* relation might not exist on mock $p */ }
+    }
+    // Fallback: legacy JSON column для старих products без pivot rows.
+    if (empty($compat)) {
+        $rawCompat = is_object($p) ? ($p->compatibility ?? null) : ($p['compatibility'] ?? null);
+        if (is_array($rawCompat) && ! empty($rawCompat)) {
+            foreach ($rawCompat as $row) {
+                if (is_array($row)) {
+                    $compat[] = [$row['make'] ?? '—', $row['model'] ?? '—', $row['years'] ?? '—', $row['engine'] ?? '—'];
+                }
             }
         }
     }
