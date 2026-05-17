@@ -1083,7 +1083,7 @@ class StoreController extends Controller
             mb_convert_case($q, MB_CASE_TITLE),
         ])));
 
-        $searchClosure = function ($w) use ($variants, $qNormalized) {
+        $searchClosure = function ($w) use ($variants, $qNormalized, $q) {
             foreach ($variants as $v) {
                 $like = '%'.$v.'%';
                 $w->orWhere('sku', 'like', $like)

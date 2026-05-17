@@ -139,7 +139,7 @@
 
 {{-- OG image — real product photo для share-previews у соцмережах. --}}
 @if(! empty($productImageUrl))
-    @section('og_image', $productImageUrl)
+    @section('og_image'){{ $productImageUrl }}@endsection
 @endif
 
 @section('content')
