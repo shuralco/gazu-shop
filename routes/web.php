@@ -14,12 +14,26 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
 
     Route::get('/', [$c, 'home'])->name('home');
-    Route::get('/v2', [$c, 'home'])->defaults('variant', 'v2')->name('home.v2');
-    Route::get('/v3', [$c, 'home'])->defaults('variant', 'v3')->name('home.v3');
+    // Dev/staging variants — приховані за query string '?dev=1', або при APP_DEBUG=true.
+    // Public users не побачать ці URLs.
+    Route::get('/v2', function () use ($c) {
+        if (! request('dev') && ! config('app.debug')) abort(404);
+        return app($c)->home(request()->merge(['variant' => 'v2']));
+    })->name('home.v2');
+    Route::get('/v3', function () use ($c) {
+        if (! request('dev') && ! config('app.debug')) abort(404);
+        return app($c)->home(request()->merge(['variant' => 'v3']));
+    })->name('home.v3');
 
     Route::get('/catalog', [$c, 'catalog'])->name('catalog');
-    Route::get('/catalog/v2', [$c, 'catalog'])->defaults('variant', 'v2')->name('catalog.v2');
-    Route::get('/catalog/v3', [$c, 'catalog'])->defaults('variant', 'v3')->name('catalog.v3');
+    Route::get('/catalog/v2', function () use ($c) {
+        if (! request('dev') && ! config('app.debug')) abort(404);
+        return app($c)->catalog(request()->merge(['variant' => 'v2']));
+    })->name('catalog.v2');
+    Route::get('/catalog/v3', function () use ($c) {
+        if (! request('dev') && ! config('app.debug')) abort(404);
+        return app($c)->catalog(request()->merge(['variant' => 'v3']));
+    })->name('catalog.v3');
 
     // Pretty URLs for car-selector filter: /zapchastyny/{make}/{model?}/{engine?}
     // Controller still consumes ?make/&model/&engine — route binding maps params into the query.
@@ -63,24 +77,35 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::post('/checkout/one-click', [$checkout, 'oneClick'])->name('checkout.one-click');
 
     $auth = \App\Http\Controllers\Gazu\AuthController::class;
-    Route::get('/auth', [$auth, 'show'])->name('auth');
+    Route::get('/login', [$auth, 'show'])->name('auth');
+    Route::get('/auth', fn () => redirect('/login', 301)); // legacy 301
     Route::middleware('throttle:10,1')->group(function () use ($auth) {
-        Route::post('/auth/login', [$auth, 'login'])->name('auth.login');
-        Route::post('/auth/register', [$auth, 'register'])->name('auth.register');
+        Route::post('/login', [$auth, 'login'])->name('auth.login');
+        Route::post('/register', [$auth, 'register'])->name('auth.register');
+        Route::post('/auth/login', fn () => redirect('/login', 301)); // legacy
+        Route::post('/auth/register', fn () => redirect('/register', 301)); // legacy
     });
-    Route::post('/auth/logout', [$auth, 'logout'])->name('auth.logout');
+    Route::post('/logout', [$auth, 'logout'])->name('auth.logout');
+    Route::post('/auth/logout', fn () => redirect('/logout', 301)); // legacy
 
     Route::middleware('auth')->group(function () use ($c) {
-        Route::get('/account', [$c, 'account'])->name('account');
-        Route::get('/account/orders/{order}', [$c, 'orderDetails'])->name('account.order');
-        Route::get('/orders/{order}/payment', [$c, 'orderPayment'])->name('order.payment');
+        // Canonical UA URLs.
+        Route::get('/kabinet', [$c, 'account'])->name('account');
+        Route::get('/kabinet/zamovlennya/{order}', [$c, 'orderDetails'])->name('account.order');
+        Route::get('/zamovlennya/{order}/oplata', [$c, 'orderPayment'])->name('order.payment');
+        // English aliases — 301 legacy (Google has indexed /account).
+        Route::get('/account', fn () => redirect('/kabinet', 301));
+        Route::get('/account/orders/{order}', fn ($o) => redirect("/kabinet/zamovlennya/{$o}", 301));
+        Route::get('/orders/{order}/payment', fn ($o) => redirect("/zamovlennya/{$o}/oplata", 301));
 
         $garage = \App\Http\Controllers\Gazu\GarageController::class;
-        Route::get('/garage', [$garage, 'index'])->name('garage');
-        Route::post('/garage', [$garage, 'store'])->name('garage.store');
-        Route::post('/garage/{car}', [$garage, 'update'])->name('garage.update');
-        Route::post('/garage/{car}/primary', [$garage, 'makePrimary'])->name('garage.primary');
-        Route::delete('/garage/{car}', [$garage, 'destroy'])->name('garage.destroy');
+        Route::get('/garazh', [$garage, 'index'])->name('garage');
+        Route::post('/garazh', [$garage, 'store'])->name('garage.store');
+        Route::post('/garazh/{car}', [$garage, 'update'])->name('garage.update');
+        Route::post('/garazh/{car}/primary', [$garage, 'makePrimary'])->name('garage.primary');
+        Route::delete('/garazh/{car}', [$garage, 'destroy'])->name('garage.destroy');
+        // /garage* → 301 legacy.
+        Route::get('/garage', fn () => redirect('/garazh', 301));
     });
 
     // Brands: /brand (index), /brand/{slug} (specific). /brendy* — 301 legacy redirect.
@@ -119,7 +144,11 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/products/by-ids', [$c, 'apiProductsByIds'])->name('api.products.by-ids');
 
     Route::get('/404', [$c, 'notFound'])->name('404');
-    Route::get('/m/{page}', [$c, 'mobile'])->name('mobile');
+    // /m/{page} — test mobile page, доступний тільки в debug режимі
+    Route::get('/m/{page}', function (\Illuminate\Http\Request $r, string $page) use ($c) {
+        if (! config('app.debug')) abort(404);
+        return app($c)->mobile($r, $page);
+    })->name('mobile');
 
     // Static info pages — all served by InfoController which reads from the
     // `info_pages` table (editable in the Filament admin) and falls back to
@@ -129,9 +158,11 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/warranty',     [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'warranty')->name('warranty');
     Route::get('/privacy',      [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'privacy')->name('privacy');
     Route::get('/terms',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'terms')->name('terms');
-    Route::get('/wholesale',    [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'wholesale')->name('wholesale');
+    Route::get('/optom',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'wholesale')->name('wholesale');
+    Route::get('/wholesale',    fn () => redirect('/optom', 301)); // legacy
     Route::get('/faq',          [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'faq')->name('faq');
-    Route::get('/loyalty',      [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'loyalty')->name('loyalty');
+    Route::get('/bonusy',       [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'loyalty')->name('loyalty');
+    Route::get('/loyalty',      fn () => redirect('/bonusy', 301)); // legacy
     Route::get('/careers',      [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'careers')->name('careers');
     Route::get('/certificates', [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'certificates')->name('certificates');
     Route::get('/offer',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'offer')->name('offer');
