@@ -5,19 +5,25 @@
         $shopStats['products_label'] ?? 'широкий каталог'
     );
     $columns = $s['gazu_footer_columns'] ?? [
-        ['title' => 'Каталог', 'items' => ['Двигун', 'Гальмівна система', 'Підвіска', 'Електрика', 'Кузов', 'Салон']],
+        ['title' => 'Каталог', 'items' => ['Двигун', 'Гальмівна система', 'Підвіска', 'Електрика', 'Кузов і оптика', 'Аксесуари']],
         ['title' => 'Клієнтам', 'items' => ['Доставка та оплата', 'Гарантія та повернення', 'Питання та відповіді', 'Бонусна програма', 'Гуртовим клієнтам']],
         ['title' => 'Компанія', 'items' => ['Про нас', 'Контакти', 'Вакансії', 'Сертифікати', 'Публічна оферта']],
     ];
 
     // Map common footer labels to actual routes — kills the 'href="#"' dead-link cluster.
+    // Категорії ведуть на real /{slug} (root-level catch-all → category page).
     $linkMap = [
-        'Двигун'                => route('gazu.catalog'),
-        'Гальмівна система'     => route('gazu.catalog'),
-        'Підвіска'              => route('gazu.catalog'),
-        'Електрика'             => route('gazu.catalog'),
-        'Кузов'                 => route('gazu.catalog'),
-        'Салон'                 => route('gazu.catalog'),
+        'Двигун'                => url('/engine'),
+        'Гальмівна система'     => url('/brakes'),
+        'Підвіска'              => url('/suspension'),
+        'Електрика'             => url('/electrics'),
+        'Трансмісія'            => url('/transmission'),
+        'Мастила і рідини'      => url('/fluids'),
+        'Мастила'               => url('/fluids'),
+        'Кузов і оптика'        => url('/body'),
+        'Кузов'                 => url('/body'),
+        'Аксесуари'             => url('/accessories'),
+        'Салон'                 => url('/accessories'),
         'Доставка та оплата'    => route('gazu.delivery'),
         'Гарантія та повернення'=> route('gazu.warranty'),
         'Питання та відповіді'  => route('gazu.faq'),

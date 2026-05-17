@@ -49,6 +49,11 @@ class SitemapController extends Controller
         return $this->cachedXml('sitemap_products_v3', fn () => $this->generateProductsSitemap());
     }
 
+    public function brands(): Response
+    {
+        return $this->cachedXml('sitemap_brands_v1', fn () => $this->generateBrandsSitemap());
+    }
+
     private function cachedXml(string $key, \Closure $generator): Response
     {
         try {
@@ -87,6 +92,10 @@ class SitemapController extends Controller
             [
                 'loc' => URL::to('/sitemap-products.xml'),
                 'lastmod' => $prodMax ? \Carbon\Carbon::parse($prodMax)->toISOString() : $now,
+            ],
+            [
+                'loc' => URL::to('/sitemap-brands.xml'),
+                'lastmod' => $now,
             ],
         ];
 
@@ -127,6 +136,31 @@ class SitemapController extends Controller
                 ];
             }
         });
+        return $this->buildUrlset($urls);
+    }
+
+    private function generateBrandsSitemap(): string
+    {
+        $urls = [
+            ['loc' => URL::to('/brand'), 'lastmod' => now()->toISOString(), 'changefreq' => 'weekly', 'priority' => 0.7],
+        ];
+        if (\Schema::hasTable('brands')) {
+            \App\Models\Brand::query()
+                ->when(\Schema::hasColumn('brands', 'is_active'), fn ($q) => $q->where('is_active', true))
+                ->select(['id', 'slug', 'updated_at'])
+                ->chunk(500, function ($rows) use (&$urls) {
+                    foreach ($rows as $brand) {
+                        $slug = $brand->slug;
+                        if (! $slug) continue;
+                        $urls[] = [
+                            'loc' => URL::to('/brand/'.$slug),
+                            'lastmod' => optional($brand->updated_at)->toISOString() ?? now()->toISOString(),
+                            'changefreq' => 'weekly',
+                            'priority' => 0.6,
+                        ];
+                    }
+                });
+        }
         return $this->buildUrlset($urls);
     }
 

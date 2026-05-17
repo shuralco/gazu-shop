@@ -51,18 +51,72 @@
 @endphp
 
 @php
+    // Schema.org Product — enriched для rich snippets у Google.
+    // Включає: mpn, image, itemCondition, priceValidUntil, hasMerchantReturnPolicy,
+    // shippingDetails. Це дає Google показувати ціну/наявність/рейтинг прямо у SERP.
+    $conditionMap = [
+        'new'         => 'https://schema.org/NewCondition',
+        'Новий'       => 'https://schema.org/NewCondition',
+        'used'        => 'https://schema.org/UsedCondition',
+        'Б/у'         => 'https://schema.org/UsedCondition',
+        'refurbished' => 'https://schema.org/RefurbishedCondition',
+        'Відновлений' => 'https://schema.org/RefurbishedCondition',
+    ];
+    $productImageUrl = is_object($p) ? ($p->image ?? null) : null;
+    if ($productImageUrl && ! \Illuminate\Support\Str::startsWith($productImageUrl, ['http://','https://'])) {
+        $productImageUrl = url('/storage/'.$productImageUrl);
+    }
+    // Fallback на part-image webp pool (same algorithm як у product card).
+    if (! $productImageUrl) {
+        $kindForJsonLd = is_object($p) ? ($p->image_kind ?? 'filter') : 'filter';
+        $poolDir = public_path("img/parts/{$kindForJsonLd}");
+        $poolFiles = is_dir($poolDir) ? glob($poolDir.'/*.webp') : [];
+        sort($poolFiles);
+        if (! empty($poolFiles)) {
+            $seedForLd = is_object($p) ? (int) ($p->id ?? 0) : 0;
+            $productImageUrl = url("/img/parts/{$kindForJsonLd}/".basename($poolFiles[abs($seedForLd) % count($poolFiles)]));
+        }
+    }
+
     $jsonldProduct = [
         '@context' => 'https://schema.org',
         '@type' => 'Product',
         'name' => $name,
-        'sku' => $oem,
+        'sku' => (string) $oem,
+        'mpn' => (string) $oem,
         'description' => $fits ?: $name,
+        'image' => $productImageUrl ?: url('/og-default.svg'),
+        'url' => url()->current(),
         'offers' => [
             '@type' => 'Offer',
             'price' => number_format($price, 2, '.', ''),
             'priceCurrency' => 'UAH',
             'availability' => $qty > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'itemCondition' => $conditionMap[$condition ?? 'new'] ?? 'https://schema.org/NewCondition',
             'url' => url()->current(),
+            'priceValidUntil' => now()->addYear()->format('Y-m-d'),
+            'seller' => [
+                '@type' => 'Organization',
+                'name' => 'GAZU',
+            ],
+            'hasMerchantReturnPolicy' => [
+                '@type' => 'MerchantReturnPolicy',
+                'applicableCountry' => 'UA',
+                'returnPolicyCategory' => 'https://schema.org/MerchantReturnFiniteReturnWindow',
+                'merchantReturnDays' => 14,
+                'returnMethod' => 'https://schema.org/ReturnByMail',
+                'returnFees' => 'https://schema.org/FreeReturn',
+            ],
+            'shippingDetails' => [
+                '@type' => 'OfferShippingDetails',
+                'shippingDestination' => ['@type' => 'DefinedRegion', 'addressCountry' => 'UA'],
+                'deliveryTime' => [
+                    '@type' => 'ShippingDeliveryTime',
+                    'businessDays' => ['@type' => 'OpeningHoursSpecification', 'dayOfWeek' => ['https://schema.org/Monday','https://schema.org/Tuesday','https://schema.org/Wednesday','https://schema.org/Thursday','https://schema.org/Friday','https://schema.org/Saturday']],
+                    'handlingTime' => ['@type' => 'QuantitativeValue', 'minValue' => 0, 'maxValue' => 1, 'unitCode' => 'DAY'],
+                    'transitTime'  => ['@type' => 'QuantitativeValue', 'minValue' => 1, 'maxValue' => 3, 'unitCode' => 'DAY'],
+                ],
+            ],
         ],
     ];
     if (! empty($brand)) {
@@ -73,6 +127,8 @@
             '@type' => 'AggregateRating',
             'ratingValue' => (string) $rating,
             'reviewCount' => $reviews,
+            'bestRating' => '5',
+            'worstRating' => '1',
         ];
     }
 @endphp
