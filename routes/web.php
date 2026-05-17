@@ -88,15 +88,18 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::post('/logout', [$auth, 'logout'])->name('auth.logout');
     Route::post('/auth/logout', fn () => redirect('/logout', 301)); // legacy
 
+    // Legacy 301 — ЗА межами auth middleware щоб 301 спрацював одразу,
+    // а не 302 на login. SEO правильно: /account → 301 → /kabinet → 302 → /login.
+    Route::get('/account', fn () => redirect('/kabinet', 301));
+    Route::get('/account/orders/{order}', fn ($o) => redirect("/kabinet/zamovlennya/{$o}", 301));
+    Route::get('/orders/{order}/payment', fn ($o) => redirect("/zamovlennya/{$o}/oplata", 301));
+    Route::get('/garage', fn () => redirect('/garazh', 301));
+
     Route::middleware('auth')->group(function () use ($c) {
         // Canonical UA URLs.
         Route::get('/kabinet', [$c, 'account'])->name('account');
         Route::get('/kabinet/zamovlennya/{order}', [$c, 'orderDetails'])->name('account.order');
         Route::get('/zamovlennya/{order}/oplata', [$c, 'orderPayment'])->name('order.payment');
-        // English aliases — 301 legacy (Google has indexed /account).
-        Route::get('/account', fn () => redirect('/kabinet', 301));
-        Route::get('/account/orders/{order}', fn ($o) => redirect("/kabinet/zamovlennya/{$o}", 301));
-        Route::get('/orders/{order}/payment', fn ($o) => redirect("/zamovlennya/{$o}/oplata", 301));
 
         $garage = \App\Http\Controllers\Gazu\GarageController::class;
         Route::get('/garazh', [$garage, 'index'])->name('garage');
@@ -104,8 +107,6 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
         Route::post('/garazh/{car}', [$garage, 'update'])->name('garage.update');
         Route::post('/garazh/{car}/primary', [$garage, 'makePrimary'])->name('garage.primary');
         Route::delete('/garazh/{car}', [$garage, 'destroy'])->name('garage.destroy');
-        // /garage* → 301 legacy.
-        Route::get('/garage', fn () => redirect('/garazh', 301));
     });
 
     // Brands: /brand (index), /brand/{slug} (specific). /brendy* — 301 legacy redirect.
