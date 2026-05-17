@@ -171,9 +171,13 @@
                     </span>
                 </button>
             @elseif($qty <= 0)
-                <button type="button" disabled class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] border-0 rounded-md text-[13px] font-medium cursor-not-allowed inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
-                    Під замовлення
-                </button>
+                @if($productId)
+                    <x-gazu.stock-notify :productId="$productId" variant="card"/>
+                @else
+                    <button type="button" disabled class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] border-0 rounded-md text-[13px] font-medium cursor-not-allowed inline-flex items-center justify-center gap-1.5 whitespace-nowrap">
+                        Під замовлення
+                    </button>
+                @endif
             @else
                 <a wire:navigate href="{{ $url }}" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
                     <x-gazu.icon name="cart" size="14"/> Деталі

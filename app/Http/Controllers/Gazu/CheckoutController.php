@@ -27,6 +27,11 @@ class CheckoutController extends Controller
             'cartTotal' => Cart::getCartTotal(),
             'activeNav' => null,
             'cartCount' => Cart::getCartQuantityItems(),
+            'appliedCoupon' => [
+                'code' => session('gazu.coupon.code'),
+                'discount' => (int) session('gazu.coupon.discount', 0),
+                'type' => session('gazu.coupon.type'),
+            ],
         ]);
     }
 

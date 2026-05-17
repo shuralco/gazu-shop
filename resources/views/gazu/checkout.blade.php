@@ -603,10 +603,52 @@
             <div class="h-px bg-[var(--gazu-line)] my-3"></div>
             <div x-data="{
                     base: {{ (float) $cartTotal }},
+                    discount: {{ (int) ($appliedCoupon['discount'] ?? 0) }},
+                    couponCode: @js($appliedCoupon['code'] ?? ''),
                     shippingCost: null,
                     shippingMethod: 'novaposhta',
+                    promoOpen: false,
+                    promoBusy: false,
+                    promoInput: '',
                     fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g,' '); },
-                    get total() { return this.base + (this.shippingCost || 0); },
+                    get total() { return Math.max(0, this.base - this.discount) + (this.shippingCost || 0); },
+                    async applyPromo() {
+                        if (!this.promoInput.trim() || this.promoBusy) return;
+                        this.promoBusy = true;
+                        try {
+                            const r = await fetch('{{ route('gazu.cart.coupon.apply') }}', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
+                                body: new URLSearchParams({ code: this.promoInput.trim() })
+                            });
+                            const d = await r.json();
+                            if (d.ok) {
+                                this.discount = d.discount || 0;
+                                this.couponCode = this.promoInput.trim();
+                                this.promoInput = '';
+                                this.promoOpen = false;
+                                window.gazuToast && window.gazuToast(d.message || 'Промокод застосовано · -' + this.fmt(this.discount) + ' ₴', 'success');
+                            } else {
+                                window.gazuToast && window.gazuToast(d.message || 'Промокод не знайдено', 'error');
+                            }
+                        } catch (e) {
+                            window.gazuToast && window.gazuToast('Помилка', 'error');
+                        } finally { this.promoBusy = false; }
+                    },
+                    async removePromo() {
+                        if (this.promoBusy) return;
+                        this.promoBusy = true;
+                        try {
+                            await fetch('{{ route('gazu.cart.coupon.remove') }}', {
+                                method: 'POST',
+                                headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
+                            });
+                            this.discount = 0;
+                            this.couponCode = '';
+                            window.gazuToast && window.gazuToast('Промокод видалено', 'info');
+                        } catch (e) {}
+                        finally { this.promoBusy = false; }
+                    },
                     get shippingLabel() {
                         if (this.shippingMethod === 'pickup') return 'Безкоштовно';
                         if (this.shippingCost === null) return 'розрахунок при отриманні';
@@ -637,6 +679,40 @@
                           class="gazu-count-up"
                           x-text="shippingLabel">розрахунок при отриманні</span>
                 </div>
+
+                {{-- Промокод --}}
+                <div class="my-3 pt-3 border-t border-[var(--gazu-line)]">
+                    <template x-if="couponCode && discount > 0">
+                        <div class="flex justify-between items-center mb-2">
+                            <div class="text-sm">
+                                <span class="text-[var(--gazu-success)] font-medium">Промокод <code class="gazu-mono text-[12px]" x-text="couponCode"></code></span>
+                                <button type="button" @click="removePromo()" class="ml-1.5 text-[11px] text-[var(--gazu-muted)] hover:text-[var(--gazu-danger)] cursor-pointer bg-transparent border-0 underline">прибрати</button>
+                            </div>
+                            <span class="text-[var(--gazu-success)] font-medium text-sm">−<span x-text="fmt(discount)"></span> ₴</span>
+                        </div>
+                    </template>
+                    <template x-if="!couponCode || discount === 0">
+                        <div>
+                            <button type="button" @click="promoOpen = !promoOpen" class="w-full flex items-center justify-between text-sm text-[var(--gazu-ink)] bg-transparent border-0 cursor-pointer p-0">
+                                <span class="inline-flex items-center gap-1.5">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                                    Маєте промокод?
+                                </span>
+                                <svg :class="promoOpen ? 'rotate-180' : ''" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+                            </button>
+                            <div x-show="promoOpen" x-cloak x-collapse class="mt-2.5 flex gap-2">
+                                <input type="text" x-model="promoInput" @keydown.enter.prevent="applyPromo()" placeholder="Введіть код"
+                                       class="flex-1 px-3 py-2 border border-[var(--gazu-line)] rounded-md text-sm focus:border-[var(--gazu-ink)] outline-none gazu-mono uppercase">
+                                <button type="button" @click="applyPromo()" :disabled="promoBusy || !promoInput.trim()"
+                                        class="px-3.5 py-2 bg-[var(--gazu-ink)] text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--gazu-ink-2)] transition-colors">
+                                    <span x-show="!promoBusy">OK</span>
+                                    <svg x-show="promoBusy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+
                 <div class="h-px bg-[var(--gazu-line)] my-3"></div>
                 <div class="flex justify-between items-baseline">
                     <span class="font-medium text-[var(--gazu-ink)]">До сплати</span>

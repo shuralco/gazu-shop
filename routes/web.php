@@ -122,6 +122,9 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // Callback request (footer popup, throttled).
     Route::post('/api/callback', [\App\Http\Controllers\Gazu\CallbackController::class, 'store'])->name('callback.store');
 
+    // Stock notify: «повідомити коли з'явиться».
+    Route::post('/api/stock-notify', [\App\Http\Controllers\Gazu\StockNotificationController::class, 'store'])->name('stock.notify');
+
     Route::get('/sto', [$c, 'sto'])->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
