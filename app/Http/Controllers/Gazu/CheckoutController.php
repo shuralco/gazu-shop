@@ -226,15 +226,27 @@ class CheckoutController extends Controller
     {
         // Захищено від помилок — email не повинен ламати checkout flow.
         try {
-            // Клієнту
+            $vars = ['order' => [
+                'id' => $order->id,
+                'customer_name' => $order->name ?: ($order->email ?: 'Клієнт'),
+                'phone' => $order->phone ?? '',
+                'email' => $order->email ?? '',
+                'total' => number_format((float) ($order->total ?? 0), 0, '.', ' '),
+                'delivery_method' => $order->delivery_method ?? '—',
+                'delivery_city' => $order->delivery_city ?? '',
+                'url' => url('/kabinet/zamovlennya/'.$order->id),
+                'admin_url' => url('/admin/orders/'.$order->id.'/edit'),
+            ]];
+
+            // Клієнту — використовує EmailTemplate (admin-managed).
             if (! empty($order->email)) {
-                \Mail::to($order->email)->queue(new \App\Mail\OrderConfirmation($order));
+                \Mail::to($order->email)->queue(new \App\Mail\TemplatedMail('order.created', $vars));
             }
-            // Адміну (якщо є client/manager mailable)
+            // Адміну
             $adminEmail = \App\Models\DisplaySetting::get('email_admin_address')
                 ?? config('mail.from.address');
-            if (! empty($adminEmail) && class_exists(\App\Mail\OrderManager::class)) {
-                \Mail::to($adminEmail)->queue(new \App\Mail\OrderManager($order));
+            if (! empty($adminEmail)) {
+                \Mail::to($adminEmail)->queue(new \App\Mail\TemplatedMail('order.admin_new', $vars));
             }
         } catch (\Throwable $e) {
             \Log::warning('Order email failed for #'.$order->id.': '.$e->getMessage());

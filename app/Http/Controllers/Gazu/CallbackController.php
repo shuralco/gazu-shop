@@ -41,6 +41,26 @@ class CallbackController extends Controller
             'user_agent'   => mb_substr((string) $request->userAgent(), 0, 500),
         ]);
 
+        // Email сповіщення адміну — silent fail щоб не ламати UX.
+        try {
+            $adminEmail = \App\Models\DisplaySetting::get('email_admin_address')
+                ?? config('mail.from.address');
+            if (! empty($adminEmail)) {
+                \Mail::to($adminEmail)->queue(new \App\Mail\TemplatedMail('callback.received', [
+                    'callback' => [
+                        'phone' => $req->phone,
+                        'name' => $req->name ?: '—',
+                        'source' => $req->source,
+                        'referrer_url' => $req->referrer_url ?: '—',
+                        'created_at' => $req->created_at?->format('d.m.Y H:i') ?: '',
+                        'admin_url' => url('/admin/callback-requests/'.$req->id.'/edit'),
+                    ],
+                ]));
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('Callback email failed: '.$e->getMessage());
+        }
+
         return response()->json([
             'ok' => true,
             'id' => $req->id,
