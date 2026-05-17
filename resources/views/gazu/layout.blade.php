@@ -148,6 +148,11 @@
     <script defer src="{{ asset('assets/js/gazu-fx.js') }}"></script>
 </head>
 <body class="gazu gazu-theme min-h-screen flex flex-col">
+{{-- Accessibility: skip-to-main link для keyboard navigation (Tab key) --}}
+<a href="#main-content"
+   class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--gazu-ink)] focus:text-white focus:rounded focus:no-underline focus:outline-2 focus:outline-[var(--gazu-blue)]">
+    Перейти до основного контенту
+</a>
 
 {{-- INSTANT NAVIGATION (mobile-app feel, 5 шарів реакції)
      1. Viewport-visible links — prefetch одразу через IntersectionObserver
@@ -247,7 +252,7 @@
 
 @include('gazu.partials.header', ['activeNav' => $activeNav ?? null, 'cartCount' => $cartCount ?? 0])
 
-<main class="flex-1">
+<main id="main-content" class="flex-1" tabindex="-1">
     @yield('content')
 </main>
 

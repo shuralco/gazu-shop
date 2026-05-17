@@ -356,6 +356,32 @@ html.gazu, body.gazu {
  * Залишена лише nominal-marker class для DOM compatibility. */
 .gazu-stagger > * { opacity: 1; }
 
+/* ───── ACCESSIBILITY ─────
+ * Кращі focus-visible outlines для keyboard navigation. Видно тільки
+ * при tab-навігації (не при mouse click). */
+*:focus-visible {
+    outline: 2px solid var(--gazu-blue);
+    outline-offset: 2px;
+    border-radius: 3px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--gazu-blue);
+    outline-offset: 2px;
+}
+/* Hide outline для mouse interactions (стандартна Tailwind поведінка) */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+/* Високий contrast для placeholder */
+::placeholder {
+    color: var(--gazu-muted);
+    opacity: 1;
+}
+
 /* ───── INSTANT TACTILE FEEDBACK (iOS-app feel) ─────
  * При натиску на card/button → миттєвий scale-down 97%.
  * Transition 80ms — дає відчуття «кнопка спрацювала» до того як

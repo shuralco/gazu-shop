@@ -1072,27 +1072,42 @@ class StoreController extends Controller
             return response()->json(['items' => [], 'total' => 0]);
         }
 
-        // Case-insensitive on any driver (SQLite LIKE is ASCII-only CI) —
-        // LIKE against several case variants of the query.
+        // Normalize OEM-style query: strip spaces, dashes, dots, slashes — OEMs
+        // часто пишуть як '06A 115 561 B' / '06A-115-561-B' / '06A.115.561.B'.
+        $qNormalized = preg_replace('/[\s\-\.\/]+/', '', $q);
+
         $variants = array_values(array_unique(array_filter([
             $q,
             mb_strtolower($q),
             mb_strtoupper($q),
             mb_convert_case($q, MB_CASE_TITLE),
         ])));
-        $searchClosure = function ($w) use ($variants) {
+
+        $searchClosure = function ($w) use ($variants, $qNormalized) {
             foreach ($variants as $v) {
                 $like = '%'.$v.'%';
                 $w->orWhere('sku', 'like', $like)
                   ->orWhere('barcode', 'like', $like)
                   ->orWhere('manufacturer', 'like', $like)
-                  ->orWhere('title', 'like', $like);
+                  ->orWhere('title', 'like', $like)
+                  ->orWhere('analogs', 'like', $like)
+                  ->orWhere('search_tags', 'like', $like);
+            }
+            // Normalized SKU search (без separators) — knows 06A115561B == "06A 115 561 B"
+            if (mb_strlen($qNormalized) >= 4 && $qNormalized !== $q) {
+                $w->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(LOWER(sku), ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ['%'.mb_strtolower($qNormalized).'%']);
+                $w->orWhereRaw("REPLACE(REPLACE(REPLACE(REPLACE(LOWER(barcode), ' ', ''), '-', ''), '.', ''), '/', '') LIKE ?", ['%'.mb_strtolower($qNormalized).'%']);
             }
         };
 
         $items = Product::query()
             ->where('is_active', true)
             ->where($searchClosure)
+            // Smart ordering: exact SKU match → SKU starts-with → rating
+            ->orderByRaw('CASE WHEN LOWER(sku) = ? THEN 0 WHEN LOWER(sku) LIKE ? THEN 1 ELSE 2 END', [
+                mb_strtolower($q),
+                mb_strtolower($q).'%',
+            ])
             ->orderByDesc('rating')
             ->limit(8)
             ->get(['id', 'title', 'slug', 'sku', 'manufacturer', 'price', 'image']);

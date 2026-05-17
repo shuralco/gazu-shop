@@ -146,7 +146,7 @@
         {{-- Actions — compact on mobile (9×9), full from sm: up (11×11).
              ml-auto pushes them to the right edge of row 1 on mobile. --}}
         <div class="flex items-center gap-1 shrink-0 ml-auto lg:ml-0">
-            <a wire:navigate href="{{ route('gazu.wishlist') }}" title="Обране" class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
+            <a wire:navigate href="{{ route('gazu.wishlist') }}" title="Обране" aria-label="Список обраних товарів" class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="heart" size="20"/>
                 @auth
                     @php $wlc = \DB::table('wishlists')->where('user_id', auth()->id())->count(); @endphp

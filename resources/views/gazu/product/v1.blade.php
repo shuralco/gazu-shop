@@ -137,6 +137,11 @@
 <script type="application/ld+json">{!! json_encode($jsonldProduct, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
 
+{{-- OG image — real product photo для share-previews у соцмережах. --}}
+@if(! empty($productImageUrl))
+    @section('og_image', $productImageUrl)
+@endif
+
 @section('content')
     <div class="gazu-container">
         @include('gazu.partials.product-breadcrumbs', compact('p', 'brand', 'oem', 'name'))
