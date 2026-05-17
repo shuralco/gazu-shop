@@ -59,6 +59,20 @@ class AuthController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
+        // Welcome email — auth.welcome template (editable у /admin/email-templates).
+        // Silent fail — реєстрація не повинна ламатись через mail issue.
+        try {
+            \Mail::to($user->email)->queue(new \App\Mail\TemplatedMail('auth.welcome', [
+                'user' => [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                ],
+                'site_url' => url('/'),
+            ]));
+        } catch (\Throwable $e) {
+            \Log::warning('Welcome email failed for user #'.$user->id.': '.$e->getMessage());
+        }
+
         return redirect()->route('gazu.account')->with('flash_message', 'Вітаємо у GAZU, '.$user->name.'!');
     }
 
