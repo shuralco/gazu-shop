@@ -1128,12 +1128,17 @@ class StoreController extends Controller
             ];
         });
 
+        $totalCount = Product::query()
+            ->where('is_active', true)
+            ->where($searchClosure)
+            ->count();
+
+        // Log search query для analytics — admin побачить top queries + zero-results.
+        \App\Models\SearchQuery::logSearch($q, $totalCount);
+
         return response()->json([
             'items' => $payload,
-            'total' => Product::query()
-                ->where('is_active', true)
-                ->where($searchClosure)
-                ->count(),
+            'total' => $totalCount,
             'q' => $q,
         ]);
     }
