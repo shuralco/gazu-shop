@@ -62,6 +62,13 @@ class AppServiceProvider extends ServiceProvider
         \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
         \App\Models\Brand::observe(\App\Observers\BrandObserver::class);
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);
+        // Shipped notifications — fire 'order.shipped' email коли admin створює TTN.
+        if (class_exists(\App\Models\NpShipment::class)) {
+            \App\Models\NpShipment::observe(\App\Observers\ShipmentNotificationObserver::class);
+        }
+        if (class_exists(\App\Models\UpShipment::class)) {
+            \App\Models\UpShipment::observe(\App\Observers\ShipmentNotificationObserver::class);
+        }
 
         // Auto-invalidate Spatie ResponseCache on any storefront-visible model change.
         // Wire all models whose data appears on public pages — saved/deleted/restored
