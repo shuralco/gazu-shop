@@ -72,30 +72,70 @@ class CatalogQuery
      * Список доступних кореневих категорій з лічильниками у поточному filter-scope.
      * Поточна категорія (якщо є) пріоритетна — показуємо її children.
      * Без категорії — root categories.
+     *
+     * Лічильник: SUM products по всьому subtree (root + children + grandchildren),
+     * бо в більшості e-commerce товари висять на L2/L3 категоріях, не на L1 root.
      */
     public function availableCategories(?Category $cat): Collection
     {
         $key = $this->aggregateCacheKey('categories', $cat);
         return $this->cacheStore()->remember($key, 600, function () use ($cat) {
-            if ($cat) {
-                // Поточна категорія — показуємо дочірні (drill-down).
-                return Category::query()
-                    ->where('parent_id', $cat->id)
-                    ->where('is_active', true)
-                    ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
-                    ->orderByDesc('products_count')
-                    ->limit(20)
-                    ->get(['id', 'parent_id', 'slug', 'title']);
-            }
-            // Корневі категорії.
-            return Category::query()
-                ->whereNull('parent_id')
+            $query = Category::query()
                 ->where('is_active', true)
-                ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
-                ->orderByDesc('products_count')
-                ->limit(20)
-                ->get(['id', 'parent_id', 'slug', 'title']);
+                ->limit(20);
+
+            if ($cat) {
+                $query->where('parent_id', $cat->id);
+            } else {
+                $query->whereNull('parent_id');
+            }
+
+            $categories = $query->get(['id', 'parent_id', 'slug', 'title']);
+
+            // Build subtree counts: для кожної категорії — count активних products
+            // у ній самій + ВСІХ її descendants (recursive children).
+            foreach ($categories as $c) {
+                $c->products_count = $this->countProductsInSubtree($c->id);
+            }
+
+            return $categories->sortByDesc('products_count')->values();
         });
+    }
+
+    /**
+     * Рекурсивний підрахунок products у категорії + всіх її descendants.
+     * Cached per request через static array.
+     */
+    private function countProductsInSubtree(int $categoryId): int
+    {
+        static $cache = [];
+        if (isset($cache[$categoryId])) return $cache[$categoryId];
+
+        $ids = $this->collectDescendantIds($categoryId);
+        $count = Product::query()
+            ->where('is_active', true)
+            ->whereIn('category_id', $ids)
+            ->count();
+
+        return $cache[$categoryId] = $count;
+    }
+
+    /**
+     * Collect category ID + all descendant IDs (1-2 levels typical).
+     */
+    private function collectDescendantIds(int $categoryId, int $depth = 0): array
+    {
+        if ($depth > 5) return [$categoryId]; // safety
+        $ids = [$categoryId];
+        $children = Category::query()
+            ->where('parent_id', $categoryId)
+            ->where('is_active', true)
+            ->pluck('id')
+            ->all();
+        foreach ($children as $childId) {
+            $ids = array_merge($ids, $this->collectDescendantIds($childId, $depth + 1));
+        }
+        return $ids;
     }
 
     /**

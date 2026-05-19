@@ -89,8 +89,18 @@
         </div>
     </details>
 
-    {{-- Категорія — drill-down. Показуємо тільки якщо є availableCategories --}}
-    @php $catList = collect($availableCategories ?? []); @endphp
+    {{-- Категорія — drill-down. Показуємо тільки якщо є availableCategories.
+         Filter persistence: при переході на іншу категорію → preserve існуючі
+         filters (brand, min, max, condition, stock, sort) у URL. --}}
+    @php
+        $catList = collect($availableCategories ?? []);
+        // Збираємо filter query string що треба зберегти.
+        $preserveParams = collect(['brand', 'min', 'max', 'condition', 'stock', 'sort', 'q'])
+            ->mapWithKeys(fn ($k) => [$k => request($k)])
+            ->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])
+            ->all();
+        $preserveQuery = ! empty($preserveParams) ? '?'.http_build_query($preserveParams) : '';
+    @endphp
     @if($catList->isNotEmpty())
         @php $catLimit = 8; $catHidden = max(0, $catList->count() - $catLimit); @endphp
         <details class="border-b border-[var(--gazu-line)] py-3.5" open>
@@ -102,8 +112,8 @@
             </summary>
             <div class="mt-3" x-data="{ showAllCats: false }">
                 @if($category)
-                    {{-- 'Усі' link — повертає на корінь catalog без category --}}
-                    <a wire:navigate href="{{ route('gazu.catalog') }}"
+                    {{-- 'Усі' link — повертає на корінь catalog без category, з збереженням filters --}}
+                    <a wire:navigate href="{{ route('gazu.catalog').$preserveQuery }}"
                        class="flex items-center gap-2 py-1.5 text-[13px] text-[var(--gazu-blue)] no-underline hover:text-[var(--gazu-ink)]">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
                         Усі категорії
@@ -120,7 +130,7 @@
                         $catCount = $cat->products_count ?? 0;
                         $hidden = $i >= $catLimit;
                     @endphp
-                    <a wire:navigate href="{{ url('/'.$catSlug) }}"
+                    <a wire:navigate href="{{ url('/'.$catSlug).$preserveQuery }}"
                        class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)] no-underline"
                        @if($hidden) x-show="showAllCats" x-cloak @endif>
                         <span class="flex-1 truncate">{{ $catTitle }}</span>

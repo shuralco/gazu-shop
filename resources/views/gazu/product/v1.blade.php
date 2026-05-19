@@ -217,6 +217,27 @@
                     <div class="absolute bottom-3.5 left-3.5 w-9 h-9 rounded-lg bg-white/90 backdrop-blur border border-[var(--gazu-line)] inline-flex items-center justify-center text-[var(--gazu-ink)] opacity-0 group-hover/main:opacity-100 transition-opacity z-[1] pointer-events-none">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
                     </div>
+                    @if($productId)
+                        {{-- Heart wired to wishlist toggle, hydrated client-side --}}
+                        <button type="button"
+                                data-wishlist-pid="{{ $productId }}"
+                                x-data="{ active: false, busy: false }"
+                                x-init="if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true;
+                                        window.addEventListener('gazu:wishlist-ids-loaded', () => { if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true; });"
+                                @click.prevent.stop="
+                                    if (busy) return; busy = true;
+                                    fetch('{{ route('gazu.wishlist.toggle') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' }, body: new URLSearchParams({ product_id: '{{ $productId }}' }) })
+                                      .then(r => r.json()).then(d => { if (d.ok) { active = d.in_wishlist; window.gazuToast && window.gazuToast(active ? 'Додано в обране ❤' : 'Видалено з обраного', active ? 'success' : 'info'); } else if (d.redirect) { window.location = d.redirect; } })
+                                      .catch(() => { window.location = '{{ route('gazu.auth') }}'; })
+                                      .finally(() => busy = false);"
+                                :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
+                                :class="active ? 'text-[var(--gazu-danger)] border-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] border-[var(--gazu-line)] hover:text-[var(--gazu-danger)]'"
+                                class="absolute top-3.5 right-3.5 w-9 h-9 border bg-white rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors z-[2]">
+                            <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
+                            </svg>
+                        </button>
+                    @endif
                 </div>
 
                 {{-- Fullscreen lightbox: arrows навігація, ESC + click backdrop close --}}
@@ -251,28 +272,6 @@
                             <span x-text="idx + 1">1</span> / {{ count($variants) }}
                         </div>
                     </div>
-                </div>
-                    @if($productId)
-                        {{-- Heart wired to wishlist toggle, hydrated client-side --}}
-                        <button type="button"
-                                data-wishlist-pid="{{ $productId }}"
-                                x-data="{ active: false, busy: false }"
-                                x-init="if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true;
-                                        window.addEventListener('gazu:wishlist-ids-loaded', () => { if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true; });"
-                                @click.prevent="
-                                    if (busy) return; busy = true;
-                                    fetch('{{ route('gazu.wishlist.toggle') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' }, body: new URLSearchParams({ product_id: '{{ $productId }}' }) })
-                                      .then(r => r.json()).then(d => { if (d.ok) { active = d.in_wishlist; window.gazuToast && window.gazuToast(active ? 'Додано в обране ❤' : 'Видалено з обраного', active ? 'success' : 'info'); } else if (d.redirect) { window.location = d.redirect; } })
-                                      .catch(() => { window.location = '{{ route('gazu.auth') }}'; })
-                                      .finally(() => busy = false);"
-                                :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
-                                :class="active ? 'text-[var(--gazu-danger)] border-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] border-[var(--gazu-line)] hover:text-[var(--gazu-danger)]'"
-                                class="absolute top-3.5 right-3.5 w-9 h-9 border bg-white rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors z-[1]">
-                            <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
-                            </svg>
-                        </button>
-                    @endif
                 </div>
                 {{-- Real thumbnails (4 variants) — клік/hover для перемикання головної. --}}
                 <div class="grid grid-cols-4 gap-2">
