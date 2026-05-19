@@ -136,6 +136,29 @@
                         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="showAllCats ? 'rotate-180' : ''" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                 @endif
+
+                {{-- Footer actions: переключити головну категорію АБО переглянути всі товари --}}
+                <div class="mt-3 pt-3 border-t border-[var(--gazu-line)] flex flex-col gap-1.5">
+                    @if($category)
+                        {{-- Drill-down state — пропонуємо вийти на інші головні --}}
+                        <a wire:navigate href="{{ route('gazu.catalog') }}"
+                           class="flex items-center justify-between gap-2 px-2.5 py-1.5 bg-[var(--gazu-mist)] hover:bg-[var(--gazu-paper)] rounded text-[12px] text-[var(--gazu-ink)] no-underline transition-colors">
+                            <span class="inline-flex items-center gap-1.5">
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                                Обрати головну категорію
+                            </span>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                        </a>
+                    @endif
+                    <a wire:navigate href="{{ route('gazu.catalog') }}"
+                       class="flex items-center justify-between gap-2 px-2.5 py-1.5 hover:bg-[var(--gazu-mist)] rounded text-[12px] text-[var(--gazu-blue)] hover:text-[var(--gazu-ink)] no-underline transition-colors">
+                        <span class="inline-flex items-center gap-1.5">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                            Переглянути всі товари
+                        </span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+                    </a>
+                </div>
             </div>
         </details>
     @endif

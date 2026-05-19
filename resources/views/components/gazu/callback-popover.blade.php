@@ -39,7 +39,7 @@
      }"
      @keydown.escape.window="open && close()"
      @click.away="open && close()"
-     class="relative inline-block">
+     class="relative {{ $variant === 'button' ? 'block w-full' : 'inline-block' }}">
 
     @if($variant === 'link')
         <button type="button" @click="toggle()"
