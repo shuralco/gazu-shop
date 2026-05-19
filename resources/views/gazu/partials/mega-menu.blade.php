@@ -109,9 +109,14 @@
         @php
             // Normalize brands: composer тепер passes array of ['name'=>, 'slug'=>] — fallback на просто names
             $brandList = collect($menuBrands)->map(function ($b) {
-                if (is_array($b) && isset($b['slug'])) return $b;
-                return ['name' => (string) $b, 'slug' => \Illuminate\Support\Str::slug((string) $b)];
-            })->all();
+                if (is_array($b) && isset($b['slug'])) {
+                    $bn = $b['name'] ?? '';
+                    if (is_array($bn)) $bn = $bn['uk'] ?? array_values($bn)[0] ?? '';
+                    return ['name' => (string) $bn, 'slug' => (string) $b['slug']];
+                }
+                $name = is_array($b) ? ($b['uk'] ?? array_values($b)[0] ?? '') : (string) $b;
+                return ['name' => (string) $name, 'slug' => \Illuminate\Support\Str::slug((string) $name)];
+            })->filter(fn ($b) => $b['name'] && $b['slug'])->all();
         @endphp
         @if(! empty($brandList))
             <div class="px-4 py-4 border-t border-[var(--gazu-line)]">
@@ -206,9 +211,14 @@
         <div class="px-5 pt-5 pb-6 flex flex-col gap-4.5" style="gap: 18px;">
             @php
                 $menuBrandsDesktop = collect($brands ?? [])->map(function ($b) {
-                    if (is_array($b) && isset($b['slug'])) return $b;
-                    return ['name' => (string) $b, 'slug' => \Illuminate\Support\Str::slug((string) $b)];
-                })->filter(fn ($b) => $b['name'])->values()->all();
+                    if (is_array($b) && isset($b['slug'])) {
+                        $bn = $b['name'] ?? '';
+                        if (is_array($bn)) $bn = $bn['uk'] ?? array_values($bn)[0] ?? '';
+                        return ['name' => (string) $bn, 'slug' => (string) $b['slug']];
+                    }
+                    $name = is_array($b) ? ($b['uk'] ?? array_values($b)[0] ?? '') : (string) $b;
+                    return ['name' => (string) $name, 'slug' => \Illuminate\Support\Str::slug((string) $name)];
+                })->filter(fn ($b) => $b['name'] && $b['slug'])->values()->all();
             @endphp
             <div>
                 <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-2.5">Топ бренди</div>
@@ -227,7 +237,13 @@
                     </div>
                     <div class="flex flex-col gap-0.5">
                         @foreach($cars as $c)
-                            @php $name = is_array($c) ? ($c['name'] ?? '') : (string) $c; $slug = is_array($c) ? ($c['slug'] ?? \Illuminate\Support\Str::slug($name)) : \Illuminate\Support\Str::slug($name); @endphp
+                            @php
+                                $name = is_array($c) ? ($c['name'] ?? '') : (string) $c;
+                                if (is_array($name)) { $name = $name['uk'] ?? array_values($name)[0] ?? ''; }
+                                $name = (string) $name;
+                                $slug = is_array($c) ? ((string) ($c['slug'] ?? '')) : '';
+                                if ($slug === '' && $name !== '') $slug = \Illuminate\Support\Str::slug($name);
+                            @endphp
                             @if($name && $slug)
                                 <a wire:navigate href="{{ route('gazu.catalog.by-make', ['make' => $slug]) }}"
                                    class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs hover:bg-[var(--gazu-mist)]">
