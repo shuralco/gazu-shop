@@ -111,7 +111,7 @@ class CatalogQuery
         static $cache = [];
         if (isset($cache[$categoryId])) return $cache[$categoryId];
 
-        $ids = $this->collectDescendantIds($categoryId);
+        $ids = $this->collectSubtreeIds($categoryId);
         $count = Product::query()
             ->where('is_active', true)
             ->whereIn('category_id', $ids)
@@ -122,10 +122,11 @@ class CatalogQuery
 
     /**
      * Collect category ID + all descendant IDs (1-2 levels typical).
+     * Bulk query: один SELECT для всіх дочірніх, потім recursion рівнями.
      */
-    private function collectDescendantIds(int $categoryId, int $depth = 0): array
+    private function collectSubtreeIds(int $categoryId, int $depth = 0): array
     {
-        if ($depth > 5) return [$categoryId]; // safety
+        if ($depth > 5) return [$categoryId];
         $ids = [$categoryId];
         $children = Category::query()
             ->where('parent_id', $categoryId)
@@ -133,7 +134,7 @@ class CatalogQuery
             ->pluck('id')
             ->all();
         foreach ($children as $childId) {
-            $ids = array_merge($ids, $this->collectDescendantIds($childId, $depth + 1));
+            $ids = array_merge($ids, $this->collectSubtreeIds($childId, $depth + 1));
         }
         return $ids;
     }
