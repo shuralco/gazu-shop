@@ -200,8 +200,9 @@
                     $gallerySeed + 3003,
                 ];
             @endphp
-            <div class="flex flex-col gap-3" x-data="{ idx: 0 }">
-                <div class="aspect-square bg-white shadow-[0_1px_0_0_var(--gazu-line)] rounded-2xl relative overflow-hidden">
+            <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
+                <div class="aspect-square bg-white shadow-[0_1px_0_0_var(--gazu-line)] rounded-2xl relative overflow-hidden cursor-zoom-in group/main"
+                     @click="zoom = true" title="Натисніть щоб збільшити">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
                     @foreach($variants as $i => $seed)
                         <div class="absolute inset-0 transition-opacity duration-200"
@@ -212,6 +213,45 @@
                     <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded z-[1]">
                         <span x-text="idx + 1">1</span> / {{ count($variants) }}
                     </div>
+                    {{-- Zoom hint icon — top-right поряд з heart, видно тільки при hover --}}
+                    <div class="absolute bottom-3.5 left-3.5 w-9 h-9 rounded-lg bg-white/90 backdrop-blur border border-[var(--gazu-line)] inline-flex items-center justify-center text-[var(--gazu-ink)] opacity-0 group-hover/main:opacity-100 transition-opacity z-[1] pointer-events-none">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                    </div>
+                </div>
+
+                {{-- Fullscreen lightbox: arrows навігація, ESC + click backdrop close --}}
+                <div x-show="zoom" x-cloak x-transition.opacity
+                     class="fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-8"
+                     style="background: rgba(14,27,44,0.92);"
+                     @click.self="zoom = false">
+                    <button type="button" @click="zoom = false" aria-label="Закрити"
+                            class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white border-0 cursor-pointer inline-flex items-center justify-center transition-colors z-[1]">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+                    </button>
+                    <button type="button"
+                            @click.stop="idx = (idx - 1 + {{ count($variants) }}) % {{ count($variants) }}"
+                            aria-label="Попереднє"
+                            class="absolute left-4 sm:left-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white border-0 cursor-pointer inline-flex items-center justify-center transition-colors z-[1]">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                    </button>
+                    <button type="button"
+                            @click.stop="idx = (idx + 1) % {{ count($variants) }}"
+                            aria-label="Наступне"
+                            class="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white border-0 cursor-pointer inline-flex items-center justify-center transition-colors z-[1]">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                    </button>
+                    <div class="relative w-full max-w-[90vw] max-h-[85vh] aspect-square bg-white rounded-2xl overflow-hidden flex items-center justify-center" @click.stop>
+                        @foreach($variants as $i => $seed)
+                            <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
+                                 :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
+                                <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
+                            </div>
+                        @endforeach
+                        <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/70 text-white gazu-mono text-[12px] rounded">
+                            <span x-text="idx + 1">1</span> / {{ count($variants) }}
+                        </div>
+                    </div>
+                </div>
                     @if($productId)
                         {{-- Heart wired to wishlist toggle, hydrated client-side --}}
                         <button type="button"

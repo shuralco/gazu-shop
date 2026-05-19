@@ -125,7 +125,7 @@
                                 @if($closestWarehouseId && $s->warehouse_id === $closestWarehouseId)
                                     <span class="text-[9px] gazu-mono px-1 py-0.5 rounded uppercase tracking-wider"
                                           :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-white/15 text-white' : 'bg-[var(--gazu-blue-bg,#E0EBFF)] text-[var(--gazu-blue)]'">
-                                        ближче вам
+                                        {{ ($gazuSettings ?? [])['gazu_warehouse_closest_label'] ?? 'найшвидша відправка' }}
                                     </span>
                                 @endif
                             </div>

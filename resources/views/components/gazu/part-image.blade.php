@@ -104,7 +104,13 @@
 @else
 <svg width="{{ $size }}" height="{{ $size }}" viewBox="0 0 160 160" {{ $attributes->merge(['class' => 'block']) }}>
 @endif
-    <rect width="160" height="160" fill="{{ $T->paper }}"/>
+    <rect width="160" height="160" fill="#EEF1F4"/>
+    {{-- Gear watermark — subtle, нейтральний колір. Видно якщо kind-specific
+         illustration не покриває весь bg (тобто реальне placeholder fallback). --}}
+    <g opacity="0.06" transform="translate(80 80)">
+        <path d="M0 -50 L6 -42 L18 -45 L20 -33 L31 -28 L26 -18 L34 -10 L24 -3 L24 8 L13 11 L9 22 L-3 21 L-12 28 L-18 19 L-29 17 L-28 5 L-37 -2 L-30 -11 L-32 -22 L-21 -25 L-15 -35 L-3 -34 Z" fill="#0E1B2C"/>
+        <circle cx="0" cy="0" r="15" fill="#EEF1F4"/>
+    </g>
     {!! $svg !!}
 </svg>
 @endif

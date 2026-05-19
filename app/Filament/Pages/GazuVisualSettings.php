@@ -190,6 +190,8 @@ class GazuVisualSettings extends Page implements HasForms
         // Product page — tab "Доставка та оплата"
         'gazu_product_delivery_text' => 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.',
         'gazu_product_payment_text'  => 'Visa / Mastercard, Apple Pay, Google Pay, готівка при отриманні (накладений платіж), безпечна оплата через LiqPay.',
+        // Warehouse selector — closest warehouse label (картка товару)
+        'gazu_warehouse_closest_label' => 'найшвидша відправка',
 
         // Footer
         'gazu_footer_about' => null, // composed from shopStats.products_label
@@ -635,6 +637,13 @@ class GazuVisualSettings extends Page implements HasForms
                                 Forms\Components\Textarea::make('gazu_product_payment_text')
                                     ->label('Текст про оплату')
                                     ->rows(3),
+                            ]),
+                        Forms\Components\Section::make('Склади у вибірці на товарі')
+                            ->schema([
+                                Forms\Components\TextInput::make('gazu_warehouse_closest_label')
+                                    ->label('Бейдж пріоритетного складу')
+                                    ->helperText('Маленький chip біля найшвидшого / найближчого складу. Наприклад: «найшвидша відправка», «3 год до відправки», «з Києва завтра».')
+                                    ->maxLength(40),
                             ]),
                     ]),
 
