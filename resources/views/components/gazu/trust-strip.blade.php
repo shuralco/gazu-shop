@@ -6,7 +6,7 @@
             ['icon' => 'truck',  'title' => 'Доставка по Україні', 'desc' => '1–3 дні · Нова Пошта · Укрпошта', 'accent' => 'blue'],
             ['icon' => 'shield', 'title' => 'Гарантія на запчастини', 'desc' => 'Від 6 до 24 місяців', 'accent' => 'green'],
             ['icon' => 'return', 'title' => 'Повернення', 'desc' => '14 днів без пояснення причин', 'accent' => 'warn'],
-            ['icon' => 'wrench', 'title' => 'Допомога з підбором', 'desc' => 'Менеджер передзвонить за 5 хв', 'accent' => 'purple'],
+            ['icon' => 'headset', 'title' => 'Допомога з підбором', 'desc' => 'Менеджер передзвонить за 5 хв', 'accent' => 'purple'],
         ];
     }
 
@@ -17,6 +17,7 @@
             'shield' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v7c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V5l-8-3Z"/><path d="m9 12 2.2 2.2L15 10.5"/></svg>',
             'return' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/></svg>',
             'wrench' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a5 5 0 0 0-1 5.7l-8.4 8.4a1.5 1.5 0 1 0 2.1 2.1l8.4-8.4a5 5 0 1 0 5-5l-3.1 3.1-2.7-.7-.7-2.7 3.1-3.1a5 5 0 0 0-2.7 0Z"/></svg>',
+            'headset' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2"/><path d="M4 14h3v6H4a1 1 0 0 1-1-1v-4a1 1 0 0 1 1-1Z"/><path d="M20 14h-3v6h3a1 1 0 0 0 1-1v-4a1 1 0 0 0-1-1Z"/><path d="M17 20a4 4 0 0 1-4 4h-1"/></svg>',
             default => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg>',
         };
     };
