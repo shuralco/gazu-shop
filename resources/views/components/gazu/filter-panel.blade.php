@@ -1,5 +1,6 @@
 @props([
     'priceRange' => ['min' => 0, 'max' => 10000, 'currentMin' => 0, 'currentMax' => 10000],
+    'availableCategories' => null,
     'availableBrands' => collect(),
     'selectedBrands' => [],
     'availableConditions' => null,
@@ -87,6 +88,57 @@
             </div>
         </div>
     </details>
+
+    {{-- Категорія — drill-down. Показуємо тільки якщо є availableCategories --}}
+    @php $catList = collect($availableCategories ?? []); @endphp
+    @if($catList->isNotEmpty())
+        @php $catLimit = 8; $catHidden = max(0, $catList->count() - $catLimit); @endphp
+        <details class="border-b border-[var(--gazu-line)] py-3.5" open>
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+                <span class="text-sm font-medium text-[var(--gazu-ink)]">
+                    {{ $category ? 'Підкатегорії' : 'Категорія' }}
+                </span>
+                <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
+            </summary>
+            <div class="mt-3" x-data="{ showAllCats: false }">
+                @if($category)
+                    {{-- 'Усі' link — повертає на корінь catalog без category --}}
+                    <a wire:navigate href="{{ route('gazu.catalog') }}"
+                       class="flex items-center gap-2 py-1.5 text-[13px] text-[var(--gazu-blue)] no-underline hover:text-[var(--gazu-ink)]">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+                        Усі категорії
+                    </a>
+                @endif
+                @foreach($catList as $i => $cat)
+                    @php
+                        $rawSlug = $cat->getRawOriginal('slug');
+                        if (is_string($rawSlug) && str_starts_with($rawSlug, '{')) {
+                            $rawSlug = json_decode($rawSlug, true)['uk'] ?? null;
+                        }
+                        $catSlug = (string) ($rawSlug ?: '');
+                        $catTitle = is_array($cat->title) ? ($cat->title['uk'] ?? '—') : ($cat->title ?? '—');
+                        $catCount = $cat->products_count ?? 0;
+                        $hidden = $i >= $catLimit;
+                    @endphp
+                    <a wire:navigate href="{{ url('/'.$catSlug) }}"
+                       class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)] no-underline"
+                       @if($hidden) x-show="showAllCats" x-cloak @endif>
+                        <span class="flex-1 truncate">{{ $catTitle }}</span>
+                        <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $catCount }}</span>
+                    </a>
+                @endforeach
+                @if($catHidden > 0)
+                    <button type="button"
+                            @click.prevent="showAllCats = !showAllCats"
+                            class="mt-2 text-[12px] text-[var(--gazu-blue)] hover:text-[var(--gazu-ink)] no-underline inline-flex items-center gap-1 cursor-pointer bg-transparent border-0 p-0">
+                        <span x-show="!showAllCats">Показати ще {{ $catHidden }}</span>
+                        <span x-show="showAllCats" x-cloak>Згорнути</span>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" :class="showAllCats ? 'rotate-180' : ''" class="transition-transform"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                @endif
+            </div>
+        </details>
+    @endif
 
     {{-- Виробник — truncate до 8, з тонкою 'Показати ще' для розкриття решти --}}
     @if($brands->isNotEmpty())

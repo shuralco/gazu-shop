@@ -345,6 +345,7 @@ class StoreController extends Controller
             'subcategories'       => $subcategories,
             'ancestors'           => $ancestors,
             'priceRange'          => $query->priceRange($category),
+            'availableCategories' => $query->availableCategories($category),
             'availableBrands'     => $query->availableBrands($category),
             'selectedBrands'      => $query->selectedBrands(),
             'availableConditions' => $query->availableConditions($category),

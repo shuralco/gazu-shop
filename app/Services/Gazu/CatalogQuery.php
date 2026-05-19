@@ -69,6 +69,36 @@ class CatalogQuery
     }
 
     /**
+     * Список доступних кореневих категорій з лічильниками у поточному filter-scope.
+     * Поточна категорія (якщо є) пріоритетна — показуємо її children.
+     * Без категорії — root categories.
+     */
+    public function availableCategories(?Category $cat): Collection
+    {
+        $key = $this->aggregateCacheKey('categories', $cat);
+        return $this->cacheStore()->remember($key, 600, function () use ($cat) {
+            if ($cat) {
+                // Поточна категорія — показуємо дочірні (drill-down).
+                return Category::query()
+                    ->where('parent_id', $cat->id)
+                    ->where('is_active', true)
+                    ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
+                    ->orderByDesc('products_count')
+                    ->limit(20)
+                    ->get(['id', 'parent_id', 'slug', 'title']);
+            }
+            // Корневі категорії.
+            return Category::query()
+                ->whereNull('parent_id')
+                ->where('is_active', true)
+                ->withCount(['products' => fn ($q) => $q->where('is_active', true)])
+                ->orderByDesc('products_count')
+                ->limit(20)
+                ->get(['id', 'parent_id', 'slug', 'title']);
+        });
+    }
+
+    /**
      * Список доступних брендів (manufacturer) у вибраній категорії з лічильниками.
      */
     public function availableBrands(?Category $cat): Collection

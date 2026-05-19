@@ -144,6 +144,7 @@
                 </div>
                 <x-gazu.filter-panel
                     :priceRange="$priceRange"
+                    :availableCategories="$availableCategories ?? collect()"
                     :availableBrands="$availableBrands"
                     :selectedBrands="$selectedBrands"
                     :availableConditions="$availableConditions ?? null"
