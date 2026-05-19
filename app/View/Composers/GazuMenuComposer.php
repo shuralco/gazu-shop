@@ -52,25 +52,31 @@ class GazuMenuComposer
         // GAZU visual settings (з DisplaySetting або defaults).
         $view->with('gazuSettings', $this->loadVisualSettings());
 
-        // Demo: показуємо популярні китайські авто у правій колонці мегаменю,
-        // щоб одразу видно профіль магазину. У майбутньому — з settings.
+        // Список марок авто з DB → лінкуються на /zapchastyny/{make-slug}.
         if (! array_key_exists('cars', $view->getData())) {
-            $view->with('cars', $this->popularChineseCars());
+            $view->with('cars', $this->carMakes());
         }
     }
 
-    /** @return array<int, array{0:string,1:string,2:string}> [brand, model, years] */
-    private function popularChineseCars(): array
+    /** Real CarMakes з DB. Returns [name, slug] для link generation. */
+    private function carMakes(): array
     {
-        return [
-            ['Chery', 'Tiggo 4 Pro', '2020–2024'],
-            ['Geely', 'Atlas Pro', '2021–2024'],
-            ['BYD', 'Atto 3', '2022–2024'],
-            ['Haval', 'Jolion', '2021–2024'],
-            ['Great Wall', 'Wingle 5', '2010–2018'],
-            ['MG', 'ZS', '2017–2024'],
-            ['Changan', 'CS75', '2014–2024'],
-        ];
+        return Cache::remember('gazu_mega_carmakes', 600, function () {
+            if (! class_exists(\App\Models\CarMake::class)) return [];
+            try {
+                return \App\Models\CarMake::query()
+                    ->when(\Schema::hasColumn('car_makes', 'is_active'), fn ($q) => $q->where('is_active', true))
+                    ->orderBy('name')
+                    ->limit(12)
+                    ->get(['id', 'name', 'slug'])
+                    ->map(fn ($m) => ['name' => (string) $m->name, 'slug' => (string) $m->slug])
+                    ->filter(fn ($m) => $m['name'] && $m['slug'])
+                    ->values()
+                    ->all();
+            } catch (\Throwable) {
+                return [];
+            }
+        });
     }
 
     private function loadShopStats(): array

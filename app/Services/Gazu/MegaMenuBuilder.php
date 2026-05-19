@@ -37,6 +37,10 @@ class MegaMenuBuilder
         return $tree;
     }
 
+    /**
+     * Топ-бренди для mega-menu. Повертає array of [name, slug] щоб mega-menu
+     * рендерив clickable links на /brand/{slug}.
+     */
     public function brands(): array
     {
         if (! class_exists(Brand::class)) {
@@ -45,13 +49,18 @@ class MegaMenuBuilder
         try {
             $brands = Brand::query()
                 ->when(\Schema::hasColumn('brands', 'is_active'), fn ($q) => $q->where('is_active', true))
+                ->when(\Schema::hasColumn('brands', 'sort_order'), fn ($q) => $q->orderBy('sort_order'))
                 ->orderBy('id')
                 ->limit(12)
-                ->get(['id', \Schema::hasColumn('brands', 'name') ? 'name' : 'title as name']);
+                ->get(['id', 'name', 'slug']);
 
-            return $brands->isNotEmpty()
-                ? $brands->pluck('name')->filter()->values()->all()
-                : $this->fallbackBrands();
+            if ($brands->isNotEmpty()) {
+                return $brands->map(fn ($b) => [
+                    'name' => (string) $b->name,
+                    'slug' => (string) $b->slug,
+                ])->filter(fn ($b) => $b['name'] && $b['slug'])->values()->all();
+            }
+            return $this->fallbackBrands();
         } catch (\Throwable) {
             return $this->fallbackBrands();
         }
@@ -279,6 +288,10 @@ class MegaMenuBuilder
 
     private function fallbackBrands(): array
     {
-        return ['Bosch', 'SACHS', 'Lemförder', 'Febi', 'Mahle', 'NGK', 'Brembo', 'Mann', 'Continental', 'Valeo', 'Hella', 'Castrol'];
+        $names = ['Bosch', 'SACHS', 'Lemförder', 'Febi', 'Mahle', 'NGK', 'Brembo', 'Mann', 'Continental', 'Valeo', 'Hella', 'Castrol'];
+        return array_map(fn ($n) => [
+            'name' => $n,
+            'slug' => \Illuminate\Support\Str::slug($n),
+        ], $names);
     }
 }

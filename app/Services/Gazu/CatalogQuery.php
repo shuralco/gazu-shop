@@ -154,7 +154,9 @@ class CatalogQuery
             // display name via the Translatable accessor.
             $useBrandFk = \Schema::hasColumn('products', 'brand_id') && \Schema::hasTable('brands');
             if ($useBrandFk) {
-                $base = $this->scope(Product::query(), $cat);
+                // Facet з excludeBrand → brand counts враховують price+condition+inStock,
+                // АЛЕ не active brand filter (інакше при обраному brand = Mahle всі інші brands мали б count 0).
+                $base = $this->facetScope(Product::query(), $cat, excludeBrand: true);
                 $brandIdCounts = $base->reorder()
                     ->whereNotNull('brand_id')
                     ->selectRaw('brand_id, COUNT(*) as count')
@@ -175,7 +177,7 @@ class CatalogQuery
                     ])->sortByDesc('count')->values();
                 }
             }
-            $base = $this->scope(Product::query(), $cat);
+            $base = $this->facetScope(Product::query(), $cat, excludeBrand: true);
             return $base->reorder()
                 ->selectRaw('manufacturer, COUNT(*) as count')
                 ->whereNotNull('manufacturer')
@@ -241,7 +243,7 @@ class CatalogQuery
         return $q->paginate(self::PER_PAGE)->withQueryString();
     }
 
-    /** Базові обмеження — для price-range / available brands. Без застосування brand/price/sort. */
+    /** Базові обмеження — для price-range. Без brand/price/condition/sort. */
     private function scope(Builder $q, ?Category $cat): Builder
     {
         $q->where('is_active', true);
@@ -249,6 +251,19 @@ class CatalogQuery
         $q = $this->applySearch($q);
         $q = $this->applyStock($q);
         $q = $this->applyVehicle($q);
+        return $q;
+    }
+
+    /** Facet scope — додає price + condition для accurate counts brand/category facets.
+     *  Excludes brand filter from itself (user має бачити інші brands щоб переключитись). */
+    private function facetScope(Builder $q, ?Category $cat, bool $excludeBrand = false): Builder
+    {
+        $q = $this->scope($q, $cat);
+        $q = $this->applyPrice($q);
+        $q = $this->applyConditions($q);
+        if (! $excludeBrand) {
+            $q = $this->applyBrands($q);
+        }
         return $q;
     }
 

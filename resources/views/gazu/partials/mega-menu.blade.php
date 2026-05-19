@@ -106,26 +106,36 @@
         @php
             $menuBrands = is_array($brands) ? $brands : ($brands instanceof \Illuminate\Support\Enumerable ? $brands->pluck('name')->all() : []);
         @endphp
-        @if(! empty($menuBrands))
+        @php
+            // Normalize brands: composer тепер passes array of ['name'=>, 'slug'=>] — fallback на просто names
+            $brandList = collect($menuBrands)->map(function ($b) {
+                if (is_array($b) && isset($b['slug'])) return $b;
+                return ['name' => (string) $b, 'slug' => \Illuminate\Support\Str::slug((string) $b)];
+            })->all();
+        @endphp
+        @if(! empty($brandList))
             <div class="px-4 py-4 border-t border-[var(--gazu-line)]">
                 <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-2.5">Топ бренди</div>
                 <div class="grid grid-cols-3 gap-1.5">
-                    @foreach(array_slice($menuBrands, 0, 9) as $b)
-                        <div class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white">{{ $b }}</div>
+                    @foreach(array_slice($brandList, 0, 9) as $b)
+                        <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
+                           class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] no-underline transition-colors">{{ $b['name'] }}</a>
                     @endforeach
                 </div>
             </div>
         @endif
         @if(! empty($cars))
             <div class="px-4 py-4 border-t border-[var(--gazu-line)]">
-                <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold mb-2">🇨🇳 Китайські авто</div>
+                <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold mb-2">Марки</div>
                 <div class="flex flex-col gap-0.5">
-                    @foreach($cars as [$brand, $model, $years])
-                        <a wire:navigate href="{{ route('gazu.catalog', ['q' => $brand.' '.$model]) }}"
-                           class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs">
-                            <span class="flex-1">{{ $brand }} {{ $model }}</span>
-                            <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $years }}</span>
-                        </a>
+                    @foreach($cars as $c)
+                        @php $name = is_array($c) ? ($c['name'] ?? '') : (string) $c; $slug = is_array($c) ? ($c['slug'] ?? \Illuminate\Support\Str::slug($name)) : \Illuminate\Support\Str::slug($name); @endphp
+                        @if($name && $slug)
+                            <a wire:navigate href="{{ route('gazu.catalog.by-make', ['make' => $slug]) }}"
+                               class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs hover:bg-[var(--gazu-mist)]">
+                                <span class="flex-1">{{ $name }}</span>
+                            </a>
+                        @endif
                     @endforeach
                 </div>
             </div>
@@ -194,14 +204,18 @@
 
         {{-- Col 3 — brands + cars + promo --}}
         <div class="px-5 pt-5 pb-6 flex flex-col gap-4.5" style="gap: 18px;">
+            @php
+                $menuBrandsDesktop = collect($brands ?? [])->map(function ($b) {
+                    if (is_array($b) && isset($b['slug'])) return $b;
+                    return ['name' => (string) $b, 'slug' => \Illuminate\Support\Str::slug((string) $b)];
+                })->filter(fn ($b) => $b['name'])->values()->all();
+            @endphp
             <div>
                 <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-2.5">Топ бренди</div>
                 <div class="grid grid-cols-3 gap-1.5">
-                    @php
-                        $menuBrands = is_array($brands) ? $brands : ($brands instanceof \Illuminate\Support\Enumerable ? $brands->pluck('name')->all() : []);
-                    @endphp
-                    @foreach(array_slice($menuBrands, 0, 9) as $b)
-                        <div class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white cursor-pointer">{{ $b }}</div>
+                    @foreach(array_slice($menuBrandsDesktop, 0, 9) as $b)
+                        <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
+                           class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] cursor-pointer no-underline transition-colors">{{ $b['name'] }}</a>
                     @endforeach
                 </div>
             </div>
@@ -209,15 +223,17 @@
             @if(! empty($cars))
                 <div>
                     <div class="flex items-center gap-1.5 mb-2">
-                        <span class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold">🇨🇳 Китайські авто</span>
+                        <span class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold">Марки</span>
                     </div>
                     <div class="flex flex-col gap-0.5">
-                        @foreach($cars as [$brand, $model, $years])
-                            <a wire:navigate href="{{ route('gazu.catalog', ['q' => $brand.' '.$model]) }}"
-                               class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs hover:bg-[var(--gazu-mist)]">
-                                <span class="flex-1">{{ $brand }} {{ $model }}</span>
-                                <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $years }}</span>
-                            </a>
+                        @foreach($cars as $c)
+                            @php $name = is_array($c) ? ($c['name'] ?? '') : (string) $c; $slug = is_array($c) ? ($c['slug'] ?? \Illuminate\Support\Str::slug($name)) : \Illuminate\Support\Str::slug($name); @endphp
+                            @if($name && $slug)
+                                <a wire:navigate href="{{ route('gazu.catalog.by-make', ['make' => $slug]) }}"
+                                   class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs hover:bg-[var(--gazu-mist)]">
+                                    <span class="flex-1">{{ $name }}</span>
+                                </a>
+                            @endif
                         @endforeach
                     </div>
                 </div>
