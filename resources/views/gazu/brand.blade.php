@@ -9,8 +9,8 @@
         $brand->name,
     ]"/>
 
-    <section class="bg-white border border-[var(--gazu-line)] rounded-xl p-8 mb-7 gazu-grid-brand-hero">
-        <div class="w-32 h-32 bg-[var(--gazu-paper)] rounded-lg flex items-center justify-center gazu-display text-3xl font-bold text-[var(--gazu-ink)]">
+    <section class="bg-white border border-[var(--gazu-line)] rounded-xl p-5 sm:p-8 mb-7 gazu-grid-brand-hero">
+        <div class="w-24 h-24 sm:w-32 sm:h-32 bg-[var(--gazu-paper)] rounded-lg flex items-center justify-center gazu-display text-2xl sm:text-3xl font-bold text-[var(--gazu-ink)]">
             @if($brand->logo)
                 <img src="{{ Str::startsWith($brand->logo, 'http') ? $brand->logo : asset('storage/'.$brand->logo) }}"
                      alt="{{ $brand->name }}" class="max-w-full max-h-full object-contain">

@@ -316,8 +316,20 @@ html.gazu, body.gazu {
 }
 
 .gazu-grid-brand-hero {
-    display: grid; gap: 28px; align-items: center;
-    grid-template-columns: 160px 1fr 220px;
+    display: grid; gap: 20px; align-items: center;
+    grid-template-columns: 1fr;
+    text-align: center;
+}
+.gazu-grid-brand-hero > *:first-child {
+    justify-self: center;
+}
+@media (min-width: 768px) {
+    .gazu-grid-brand-hero {
+        gap: 28px;
+        grid-template-columns: 160px 1fr 220px;
+        text-align: left;
+    }
+    .gazu-grid-brand-hero > *:first-child { justify-self: start; }
 }
 
 .gazu-grid-contacts { display: grid; gap: 28px; grid-template-columns: 1fr; }
