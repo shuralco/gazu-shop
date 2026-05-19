@@ -186,7 +186,6 @@
                 ['hits', 'Хіти', route('gazu.catalog.hits')],
                 ['new', 'Новинки', route('gazu.catalog.new')],
                 ['brands', 'Бренди', route('gazu.brand')],
-                ['sto', 'СТО та послуги', route('gazu.sto')],
                 ['blog', 'Блог', route('gazu.blog')],
             ] as [$k, $label, $url])
                 <a wire:navigate href="{{ $url }}"

@@ -125,7 +125,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // Stock notify: «повідомити коли з'явиться».
     Route::post('/api/stock-notify', [\App\Http\Controllers\Gazu\StockNotificationController::class, 'store'])->name('stock.notify');
 
-    Route::get('/sto', [$c, 'sto'])->name('sto');
+    // СТО page removed (Etap 91). Legacy 301 → home для backward compat у Google index.
+    Route::get('/sto', fn () => redirect('/', 301))->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
     Route::get('/contacts', [$c, 'contacts'])->name('contacts');

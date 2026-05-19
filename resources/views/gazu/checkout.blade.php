@@ -575,8 +575,8 @@
             </p>
         </div>
 
-        {{-- Order summary --}}
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 self-start">
+        {{-- Order summary — sticky on desktop scroll, item removal --}}
+        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 lg:sticky lg:top-4 self-start">
             <h3 class="gazu-display text-lg font-semibold m-0 mb-4">Ваше замовлення</h3>
             <div class="flex flex-col gap-3 mb-4 max-h-[400px] overflow-y-auto">
                 @foreach($cart as $key => $item)
@@ -588,7 +588,7 @@
                         $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
                         $kind = $kinds[$productId % count($kinds)];
                     @endphp
-                    <div class="flex gap-3 items-center">
+                    <div class="flex gap-3 items-center group" x-data="{ removing: false }">
                         <div class="w-12 h-12 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
                             <x-gazu.part-image kind="{{ $kind }}" size="42"/>
                         </div>
@@ -597,6 +597,31 @@
                             <div class="text-[11px] text-[var(--gazu-graphite)] gazu-mono">{{ $qty }} × {{ number_format($price, 0, '.', ' ') }} ₴</div>
                         </div>
                         <div class="gazu-display font-bold text-sm text-[var(--gazu-ink)] whitespace-nowrap">{{ number_format($price * $qty, 0, '.', ' ') }} ₴</div>
+                        <button type="button" :disabled="removing"
+                                @click.prevent="
+                                    if (removing) return;
+                                    removing = true;
+                                    fetch('{{ route('gazu.cart.remove') }}', {
+                                        method: 'POST',
+                                        headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
+                                        body: new URLSearchParams({ product_id: '{{ $productId }}' })
+                                    }).then(r => r.json()).then(d => {
+                                        if (d.ok) {
+                                            window.location.reload();
+                                        } else {
+                                            removing = false;
+                                            window.gazuToast && window.gazuToast(d.message || 'Не вдалося видалити', 'error');
+                                        }
+                                    }).catch(() => {
+                                        removing = false;
+                                        window.gazuToast && window.gazuToast('Помилка з\'єднання', 'error');
+                                    });
+                                "
+                                title="Видалити з замовлення"
+                                class="w-7 h-7 rounded-md text-[var(--gazu-muted)] hover:text-[var(--gazu-danger)] hover:bg-[var(--gazu-danger-bg)] cursor-pointer inline-flex items-center justify-center bg-transparent border-0 opacity-50 group-hover:opacity-100 transition-all disabled:opacity-30 disabled:cursor-wait shrink-0">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" x-show="!removing"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" x-show="removing" x-cloak class="animate-spin"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
+                        </button>
                     </div>
                 @endforeach
             </div>

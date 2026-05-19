@@ -92,7 +92,6 @@
                     ['Хіти', route('gazu.catalog.hits')],
                     ['Новинки', route('gazu.catalog.new')],
                     ['Бренди', route('gazu.brand')],
-                    ['СТО', route('gazu.sto')],
                     ['Блог', route('gazu.blog')],
                 ] as [$label, $url])
                     <a wire:navigate href="{{ $url }}"

@@ -14,7 +14,6 @@
         'Контакти'           => 'gazu.contacts',
         'Про нас'            => 'gazu.about',
         'Блог'               => 'gazu.blog',
-        'СТО'                => 'gazu.sto',
         'FAQ'                => 'gazu.faq',
     ];
 
