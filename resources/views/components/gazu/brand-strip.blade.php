@@ -17,6 +17,16 @@
     if (empty($brands)) {
         $brands = ['Bosch', 'Mahle', 'TRW', 'KYB', 'NGK', 'FAG', 'Osram', 'Mobil', 'Mann', 'Sachs', 'Lemförder', 'ATE'];
     }
+    // Normalize: composer тепер passes [name, slug] dicts. Handle обидва формати.
+    $brandList = collect($brands)->map(function ($b) {
+        if (is_array($b) && isset($b['slug'])) {
+            $bn = $b['name'] ?? '';
+            if (is_array($bn)) $bn = $bn['uk'] ?? array_values($bn)[0] ?? '';
+            return ['name' => (string) $bn, 'slug' => (string) $b['slug']];
+        }
+        $name = is_array($b) ? ($b['uk'] ?? array_values($b)[0] ?? '') : (string) $b;
+        return ['name' => (string) $name, 'slug' => \Illuminate\Support\Str::slug((string) $name)];
+    })->filter(fn ($b) => $b['name'] && $b['slug'])->values()->all();
 @endphp
 <section class="gazu-container py-10">
     <div class="flex items-baseline justify-between mb-5">
@@ -27,10 +37,10 @@
         <a wire:navigate href="{{ route('gazu.brand') }}" class="text-[13px] text-[var(--gazu-blue)] no-underline">Усі {{ $brandsLabel }} →</a>
     </div>
     <div class="grid grid-cols-3 md:grid-cols-6 gap-2.5">
-        @foreach($brands as $b)
-            <a wire:navigate href="{{ route('gazu.brand', ['slug' => \Str::slug($b)]) }}"
+        @foreach($brandList as $b)
+            <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
                class="bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gazu-display text-lg font-semibold text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]"
-               style="aspect-ratio: 5/2;">{{ $b }}</a>
+               style="aspect-ratio: 5/2;">{{ $b['name'] }}</a>
         @endforeach
     </div>
 </section>
