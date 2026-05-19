@@ -118,7 +118,22 @@ html.gazu, body.gazu {
 .gazu-grid-account { display: grid; gap: 28px; grid-template-columns: 1fr; }
 @media (min-width: 1024px) { .gazu-grid-account { grid-template-columns: 280px 1fr; } }
 
-.gazu-grid-list { display: grid; gap: 16px; grid-template-columns: 140px minmax(0, 1fr) 200px; }
+.gazu-grid-list {
+    display: grid; gap: 16px;
+    grid-template-columns: 1fr;
+    grid-template-areas: "img" "info" "price";
+}
+.gazu-grid-list > *:nth-child(1) { grid-area: img; max-width: 200px; justify-self: center; width: 100%; }
+.gazu-grid-list > *:nth-child(2) { grid-area: info; min-width: 0; }
+.gazu-grid-list > *:nth-child(3) { grid-area: price; border-left: 0 !important; padding-left: 0 !important; border-top: 1px solid var(--gazu-line); padding-top: 14px; }
+@media (min-width: 768px) {
+    .gazu-grid-list {
+        grid-template-columns: 140px minmax(0, 1fr) 200px;
+        grid-template-areas: "img info price";
+    }
+    .gazu-grid-list > *:nth-child(1) { max-width: none; justify-self: stretch; }
+    .gazu-grid-list > *:nth-child(3) { border-left: 1px solid var(--gazu-line) !important; padding-left: 20px !important; border-top: 0; padding-top: 0; }
+}
 
 .gazu-grid-hero-vin { display: grid; gap: 48px; grid-template-columns: 1fr; align-items: center; }
 @media (min-width: 1024px) { .gazu-grid-hero-vin { grid-template-columns: 1.2fr 1fr; } }
@@ -126,7 +141,8 @@ html.gazu, body.gazu {
 .gazu-grid-hero-picker { display: grid; gap: 60px; grid-template-columns: 1fr; align-items: center; }
 @media (min-width: 1024px) { .gazu-grid-hero-picker { grid-template-columns: 1fr 1.1fr; } }
 
-.gazu-grid-product-tabs { display: grid; gap: 28px; grid-template-columns: 1.1fr 1fr; }
+.gazu-grid-product-tabs { display: grid; gap: 28px; grid-template-columns: 1fr; }
+@media (min-width: 768px) { .gazu-grid-product-tabs { grid-template-columns: 1.1fr 1fr; } }
 
 /* Product top section. Outer grid: gallery | right-hand side.
    The right-hand side stacks the product title over a nested grid of
@@ -311,8 +327,32 @@ html.gazu, body.gazu {
 
 .gazu-grid-order-row {
     display: grid;
-    grid-template-columns: 1fr 100px 100px 140px 100px;
-    gap: 16px; align-items: center;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+        "id      status"
+        "date    total"
+        "details details";
+    gap: 8px 12px; align-items: center;
+}
+.gazu-grid-order-row > *:nth-child(1) { grid-area: id; }
+.gazu-grid-order-row > *:nth-child(2) { grid-area: date; }
+.gazu-grid-order-row > *:nth-child(3) { grid-area: total; justify-self: end; }
+.gazu-grid-order-row > *:nth-child(4) { grid-area: status; justify-self: end; }
+.gazu-grid-order-row > *:nth-child(5) { grid-area: details; justify-self: stretch; text-align: center; margin-top: 4px; }
+@media (min-width: 768px) {
+    .gazu-grid-order-row {
+        grid-template-columns: 1fr 100px 120px 140px 100px;
+        grid-template-areas: "id date total status details";
+        gap: 16px;
+    }
+    .gazu-grid-order-row > *:nth-child(2),
+    .gazu-grid-order-row > *:nth-child(3),
+    .gazu-grid-order-row > *:nth-child(4),
+    .gazu-grid-order-row > *:nth-child(5) {
+        justify-self: auto;
+        text-align: initial;
+        margin-top: 0;
+    }
 }
 
 .gazu-grid-brand-hero {
