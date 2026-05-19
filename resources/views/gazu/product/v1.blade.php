@@ -380,7 +380,7 @@
 
                     {{-- Desktop — classic horizontal tablist --}}
                     <div role="tablist" aria-label="Інформація про товар"
-                         class="border-b border-[var(--gazu-line)] hidden md:flex gap-1 font-text mt-3 overflow-x-auto whitespace-nowrap">
+                         class="border-b border-[var(--gazu-line)] hidden md:flex gap-1 font-text mt-3 gazu-scroll-x whitespace-nowrap">
                         @foreach($tabDefs as $k => $l)
                             <button type="button" role="tab"
                                     :aria-selected="tab === '{{ $k }}'"
