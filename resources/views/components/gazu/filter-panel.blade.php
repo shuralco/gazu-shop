@@ -95,12 +95,21 @@
     @php
         $catList = collect($availableCategories ?? []);
         // Збираємо filter query string що треба зберегти при переході між
-        // категоріями. Включає вибір авто (make/model/engine) — щоб user не
-        // втрачав свій авто-фільтр при drill-down або переході в іншу root cat.
-        $preserveParams = collect(['brand', 'min', 'max', 'condition', 'stock', 'sort', 'q', 'make', 'model', 'engine'])
+        // категоріями. Pretty-URL routes (/zapchastyny/{make}/...) ставлять
+        // car params через $request->query->set (path → query). Беремо також
+        // $selectedMake/Model/Engine якщо доступні з catalog/v1 controller.
+        $carParams = array_filter([
+            'make'   => $selectedMake   ?? request('make'),
+            'model'  => $selectedModel  ?? request('model'),
+            'engine' => $selectedEngine ?? request('engine'),
+        ], fn ($v) => $v !== null && $v !== '');
+
+        $otherParams = collect(['brand', 'min', 'max', 'condition', 'stock', 'sort', 'q'])
             ->mapWithKeys(fn ($k) => [$k => request($k)])
             ->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])
             ->all();
+
+        $preserveParams = array_merge($carParams, $otherParams);
         $preserveQuery = ! empty($preserveParams) ? '?'.http_build_query($preserveParams) : '';
     @endphp
     @if($catList->isNotEmpty())

@@ -27,7 +27,7 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->brandName('GAZU · Адміністрування')
-            ->favicon(asset('admin-favicon.ico'))
+            ->favicon(asset('admin-favicon.svg'))
             ->colors([
                 'primary' => Color::Blue,
                 'gray' => Color::Slate,

@@ -7,6 +7,11 @@
     {{-- CSRF token — Spatie ResponseCache CsrfTokenReplacer auto-replaces this
          meta value per-request, тому будь-який кешований HTML має правильний
          токен для активної session. Усі JS-fetch'ери мають читати з нього. --}}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon.png') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+    <meta name="theme-color" content="#0E1B2C">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script>
         // Глобальний токен для всіх fetch() — single source of truth, читається
