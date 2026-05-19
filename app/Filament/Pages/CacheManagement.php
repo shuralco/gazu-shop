@@ -32,6 +32,11 @@ class CacheManagement extends Page
     protected static ?int $navigationSort = 4;
     protected static string $view = 'filament.pages.cache-management';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->is_admin === true;
+    }
+
     public function getCacheStats(): array
     {
         $cacheDir = storage_path('framework/cache/data');
@@ -70,14 +75,14 @@ class CacheManagement extends Page
     protected function getHeaderActions(): array
     {
         return [
-            // ── NUCLEAR — clear everything ──────────────────────────────────────
+            // ── NUCLEAR — clear everything + reload Octane ─────────────────────
             Action::make('clear_all')
                 ->label('Очистити ВЕСЬ кеш')
                 ->color('danger')
                 ->icon('heroicon-o-fire')
                 ->requiresConfirmation()
-                ->modalHeading('Очистити абсолютно весь кеш?')
-                ->modalDescription('Response cache + application + config + routes + views + OPcache + sessions.')
+                ->modalHeading('Очистити абсолютно весь кеш + reload Octane?')
+                ->modalDescription('Response cache + application + config + routes + views + OPcache + Octane workers. Це знадобиться після деплою, коли потрібно щоб нові assets / config підхопились без рестарту контейнера.')
                 ->modalSubmitActionLabel('ТАК, ОЧИСТИТИ')
                 ->action(function () {
                     $this->safely(function () {
@@ -88,7 +93,8 @@ class CacheManagement extends Page
                         Artisan::call('view:clear');
                         Artisan::call('optimize:clear');
                         if (function_exists('opcache_reset')) opcache_reset();
-                    }, '✅ Весь кеш очищено', 'Response + Application + Config + Routes + Views + OPcache');
+                        try { Artisan::call('octane:reload'); } catch (\Throwable $e) { /* not on octane env */ }
+                    }, '✅ Весь кеш очищено + Octane reload', 'Response + Application + Config + Routes + Views + OPcache + workers reload');
                 }),
 
             // ── PER-DRIVER actions grouped ──────────────────────────────────────
