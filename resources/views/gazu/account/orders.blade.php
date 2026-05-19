@@ -16,7 +16,7 @@
 @section('content')
 <div class="gazu-container">
     <x-gazu.breadcrumbs :items="[['Головна', route('gazu.home')], 'Особистий кабінет']"/>
-    <h1 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-7">Особистий кабінет</h1>
+    <h1 class="gazu-display text-2xl sm:text-3xl md:text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-7">Особистий кабінет</h1>
 
     @if(session('flash_message'))
         <div class="bg-[var(--gazu-success-bg)] text-[var(--gazu-success)] px-4 py-2 rounded-md mb-4 text-sm">

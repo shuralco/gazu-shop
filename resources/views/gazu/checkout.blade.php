@@ -4,7 +4,7 @@
 @section('content')
 <div class="gazu-container">
     <x-gazu.breadcrumbs :items="[['Головна', route('gazu.home')], ['Кошик', route('gazu.cart')], 'Оформлення']"/>
-    <h1 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-5">Оформлення замовлення</h1>
+    <h1 class="gazu-display text-2xl sm:text-3xl md:text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-5">Оформлення замовлення</h1>
 
     {{-- Multi-step progress indicator (UA shop convention) --}}
     <nav aria-label="Прогрес замовлення" class="mb-7">
