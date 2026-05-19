@@ -94,8 +94,10 @@
          filters (brand, min, max, condition, stock, sort) у URL. --}}
     @php
         $catList = collect($availableCategories ?? []);
-        // Збираємо filter query string що треба зберегти.
-        $preserveParams = collect(['brand', 'min', 'max', 'condition', 'stock', 'sort', 'q'])
+        // Збираємо filter query string що треба зберегти при переході між
+        // категоріями. Включає вибір авто (make/model/engine) — щоб user не
+        // втрачав свій авто-фільтр при drill-down або переході в іншу root cat.
+        $preserveParams = collect(['brand', 'min', 'max', 'condition', 'stock', 'sort', 'q', 'make', 'model', 'engine'])
             ->mapWithKeys(fn ($k) => [$k => request($k)])
             ->filter(fn ($v) => $v !== null && $v !== '' && $v !== [])
             ->all();

@@ -96,16 +96,19 @@
             </div>
         </div>
 
-        {{-- Car-selector: швидкий підбір по марці → моделі → двигуну (4B).
-             Sticky на десктопі (вище за filters drawer) — пошук серед компатибельних запчастин. --}}
-        <div class="mb-4">
-            <x-gazu.car-selector
-                variant="catalog"
-                :selected-make="$selectedMake ?? ''"
-                :selected-model="$selectedModel ?? ''"
-                :selected-engine="$selectedEngine ?? ''"
-            />
-        </div>
+        {{-- Car-selector: показуємо ТІЛЬКИ на category pages (коли $category set)
+             АБО коли user вже обрав авто (preserve UX flow). На root /catalog
+             без category — пошук per car робить через home hero. --}}
+        @if($category || ! empty($selectedMake ?? '') || ! empty($selectedModel ?? '') || ! empty($selectedEngine ?? ''))
+            <div class="mb-4">
+                <x-gazu.car-selector
+                    variant="catalog"
+                    :selected-make="$selectedMake ?? ''"
+                    :selected-model="$selectedModel ?? ''"
+                    :selected-engine="$selectedEngine ?? ''"
+                />
+            </div>
+        @endif
 
         {{-- Subcategories drilldown — клікабельні плитки L2/L3 під поточною категорією --}}
         @if(! empty($subcategories) && $subcategories->isNotEmpty())
