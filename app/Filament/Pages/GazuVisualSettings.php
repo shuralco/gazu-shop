@@ -151,7 +151,7 @@ class GazuVisualSettings extends Page implements HasForms
             ['icon' => 'truck',  'title' => 'Доставка по Україні',  'desc' => '1–3 дні · Нова Пошта · Укрпошта'],
             ['icon' => 'shield', 'title' => 'Гарантія на запчастини', 'desc' => 'Від 6 до 24 місяців'],
             ['icon' => 'return', 'title' => 'Повернення',            'desc' => '14 днів без пояснення причин'],
-            ['icon' => 'wrench', 'title' => 'Допомога з підбором',   'desc' => 'Менеджер передзвонить за 5 хв'],
+            ['icon' => 'headset', 'title' => 'Допомога з підбором',   'desc' => 'Менеджер передзвонить за 5 хв'],
         ],
 
         // Hero
@@ -340,7 +340,7 @@ class GazuVisualSettings extends Page implements HasForms
                     ->schema([
                         Forms\Components\Repeater::make('gazu_trust_items')
                             ->label('Пункти')
-                            ->helperText('4 рекомендовано. Іконки: truck, shield, return, wrench, check, star, phone, location')
+                            ->helperText('4 рекомендовано. Іконки з власним дизайном: truck, shield, return, wrench, headset')
                             ->schema([
                                 Forms\Components\Grid::make(3)->schema([
                                     Forms\Components\Select::make('icon')->label('Іконка')->options([
@@ -348,10 +348,7 @@ class GazuVisualSettings extends Page implements HasForms
                                         'shield' => '🛡 shield',
                                         'return' => '↩ return',
                                         'wrench' => '🔧 wrench',
-                                        'check' => '✓ check',
-                                        'star' => '⭐ star',
-                                        'phone' => '📞 phone',
-                                        'location' => '📍 location',
+                                        'headset' => '🎧 headset',
                                     ])->required(),
                                     Forms\Components\TextInput::make('title')->label('Заголовок')->required(),
                                     Forms\Components\TextInput::make('desc')->label('Опис')->required(),
