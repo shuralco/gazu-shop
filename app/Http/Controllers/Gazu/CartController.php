@@ -73,11 +73,14 @@ class CartController extends Controller
             $price = (float) ($item['price'] ?? 0);
             $qty = (int) ($item['quantity'] ?? 1);
 
-            // Image: stored image first, else deterministic part-image webp.
+            // Image: real product image (Product::getImage returns a root-relative
+            // public path like "/assets/img/products/x.jpg"), else deterministic
+            // part-image webp. The "default-product" placeholder counts as "no image".
             $image = null;
             $stored = $item['image'] ?? null;
-            if ($stored) {
-                $image = \Illuminate\Support\Str::startsWith($stored, 'http') ? $stored : asset('storage/'.$stored);
+            $isDefault = ! $stored || \Illuminate\Support\Str::contains((string) $stored, 'default-product');
+            if (! $isDefault) {
+                $image = \Illuminate\Support\Str::startsWith($stored, 'http') ? $stored : url('/'.ltrim((string) $stored, '/'));
             } else {
                 $kind = $kinds[$productId % count($kinds)];
                 $dir = public_path("img/parts/{$kind}");
