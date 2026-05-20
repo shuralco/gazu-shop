@@ -152,6 +152,7 @@ class GazuVisualSettings extends Page implements HasForms
             ['icon' => 'shield', 'title' => 'Гарантія 12 місяців',     'subtitle' => 'Повернення коштів при дефекті'],
             ['icon' => 'return', 'title' => '14 днів на повернення',   'subtitle' => 'Без пояснення причин'],
         ],
+        'gazu_subnav' => null,                    // null → стандартні пункти меню в blade
         'gazu_default_warranty' => '12 місяців',  // дефолт для картки товару без specs
         'gazu_phone' => '0 800 75 10 24',
         'gazu_phone_subtitle' => 'безкоштовно по Україні',
@@ -292,6 +293,17 @@ class GazuVisualSettings extends Page implements HasForms
                                 Forms\Components\Grid::make(2)->schema([
                                     Forms\Components\TextInput::make('label')->label('Назва')->required(),
                                     Forms\Components\TextInput::make('url')->label('URL')->required(),
+                                ]),
+                            ])
+                            ->defaultItems(0)
+                            ->columnSpanFull(),
+                        Forms\Components\Repeater::make('gazu_subnav')
+                            ->label('Горизонтальне меню під шапкою')
+                            ->helperText('Акції / Хіти / Новинки / Бренди / Блог тощо. Якщо порожньо — показуються стандартні пункти.')
+                            ->schema([
+                                Forms\Components\Grid::make(2)->schema([
+                                    Forms\Components\TextInput::make('label')->label('Назва')->required(),
+                                    Forms\Components\TextInput::make('url')->label('URL')->required()->placeholder('/akcii'),
                                 ]),
                             ])
                             ->defaultItems(0)

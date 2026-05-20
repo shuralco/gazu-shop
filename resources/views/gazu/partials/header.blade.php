@@ -180,17 +180,33 @@
          the catalog mega-menu at the top of its mobile accordion, opened via
          the ☰ button). Shows from lg up. --}}
     <div class="hidden lg:block border-t border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
+        @php
+            // Sub-nav: admin-editable (gazu_subnav) із fallback на дефолтні маршрути.
+            $subnavSetting = $gazuSettings['gazu_subnav'] ?? null;
+            if (is_array($subnavSetting) && ! empty($subnavSetting)) {
+                $subnav = collect($subnavSetting)
+                    ->map(fn ($i) => [
+                        'k'     => $i['key'] ?? \Illuminate\Support\Str::slug($i['label'] ?? ''),
+                        'label' => $i['label'] ?? '',
+                        'url'   => $i['url'] ?? '#',
+                    ])
+                    ->filter(fn ($i) => $i['label'] !== '')
+                    ->all();
+            } else {
+                $subnav = [
+                    ['k' => 'promo',  'label' => 'Акції',   'url' => route('gazu.catalog.promo')],
+                    ['k' => 'hits',   'label' => 'Хіти',    'url' => route('gazu.catalog.hits')],
+                    ['k' => 'new',    'label' => 'Новинки', 'url' => route('gazu.catalog.new')],
+                    ['k' => 'brands', 'label' => 'Бренди',  'url' => route('gazu.brand')],
+                    ['k' => 'blog',   'label' => 'Блог',    'url' => route('gazu.blog')],
+                ];
+            }
+        @endphp
         <div class="gazu-container px-6 flex items-center gap-0.5 text-[13px] whitespace-nowrap overflow-x-auto">
-            @foreach([
-                ['promo', 'Акції', route('gazu.catalog.promo')],
-                ['hits', 'Хіти', route('gazu.catalog.hits')],
-                ['new', 'Новинки', route('gazu.catalog.new')],
-                ['brands', 'Бренди', route('gazu.brand')],
-                ['blog', 'Блог', route('gazu.blog')],
-            ] as [$k, $label, $url])
-                <a wire:navigate href="{{ $url }}"
-                   class="px-3.5 py-3.5 no-underline {{ $activeNav === $k ? 'text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-graphite)]' }}"
-                   style="border-bottom: 2px solid {{ $activeNav === $k ? 'var(--gazu-blue)' : 'transparent' }};">{{ $label }}</a>
+            @foreach($subnav as $item)
+                <a wire:navigate href="{{ $item['url'] }}"
+                   class="px-3.5 py-3.5 no-underline {{ $activeNav === $item['k'] ? 'text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-graphite)]' }}"
+                   style="border-bottom: 2px solid {{ $activeNav === $item['k'] ? 'var(--gazu-blue)' : 'transparent' }};">{{ $item['label'] }}</a>
             @endforeach
             <span class="flex-1"></span>
         </div>
