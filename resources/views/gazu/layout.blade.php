@@ -336,15 +336,24 @@
         busy: {},
         items: [],
         count: 0, qtyTotal: 0, total: 0,
+        _idleMs: 6000,   // авто-приховування, якщо немає взаємодії
+        _idle: null,
         _csrf() { return document.querySelector('meta[name=csrf-token]')?.content || ''; },
         init() {
             window.addEventListener('cart-updated', () => { this.openAndLoad(); });
         },
         openAndLoad() {
             this.open = true;
-            clearTimeout(this._t);
             this.fetchContents();
+            this.armIdle();
         },
+        // Закрити drawer через _idleMs бездіяльності. Скидається на будь-яку
+        // взаємодію (hover/scroll/click). Скасовується поки курсор всередині.
+        armIdle() {
+            clearTimeout(this._idle);
+            this._idle = setTimeout(() => { this.open = false; }, this._idleMs);
+        },
+        cancelIdle() { clearTimeout(this._idle); },
         async fetchContents() {
             this.loading = true;
             try {
@@ -390,6 +399,11 @@
      x-show="open" x-cloak
      @click.outside="open = false"
      @keydown.escape.window="open = false"
+     @mouseenter="cancelIdle()"
+     @mouseleave="armIdle()"
+     @mousemove="cancelIdle()"
+     @scroll.passive="cancelIdle(); armIdle()"
+     @touchstart.passive="cancelIdle()"
      class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[400px] bg-white border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
      :data-open="open ? '1' : '0'"
      role="dialog" aria-label="Кошик">

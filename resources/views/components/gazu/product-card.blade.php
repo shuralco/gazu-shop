@@ -145,9 +145,9 @@
                                 body: new URLSearchParams(Object.assign({ product_id: '{{ $productId }}', quantity: '1' }, cardWh ? { warehouse_id: cardWh } : {}))
                             }).then(r => r.json()).then(d => {
                                 if (d.ok) {
+                                    // Drawer показує результат — toast прибрано.
                                     window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: d.count, qtyTotal: d.qtyTotal, total: d.total } }));
                                     added = true;
-                                    window.gazuToast && window.gazuToast('Додано до кошика', 'success');
                                     setTimeout(() => added = false, 1500);
                                 } else {
                                     window.gazuToast && window.gazuToast(d.message || 'Не вдалося додати', 'error');

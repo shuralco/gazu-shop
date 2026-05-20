@@ -54,8 +54,8 @@
                 });
                 const d = await r.json();
                 if (d.ok) {
+                    // Drawer (right side) — єдиний feedback на додавання. Toast прибрано.
                     window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: d.count, qtyTotal: d.qtyTotal, total: d.total } }));
-                    window.gazuToast && window.gazuToast('Додано до кошика', 'success');
                 } else {
                     window.gazuToast && window.gazuToast(d.message || 'Не вдалося додати', 'error');
                 }
