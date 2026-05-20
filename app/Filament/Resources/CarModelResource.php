@@ -51,6 +51,14 @@ class CarModelResource extends Resource
             Forms\Components\TextInput::make('years_range')->label('Роки')->placeholder('2018-2024'),
             Forms\Components\TextInput::make('sort_order')->label('Порядок')->numeric()->default(0),
             Forms\Components\Toggle::make('is_active')->label('Активна')->default(true),
+            Forms\Components\Section::make('SEO')
+                ->description('Meta для сторінки /zapchastyny/{марка}/{модель}. Якщо порожньо — генерується автоматично.')
+                ->collapsed()
+                ->schema([
+                    Forms\Components\TextInput::make('meta_title')->label('SEO Title')->maxLength(70),
+                    Forms\Components\Textarea::make('meta_description')->label('SEO Description')->maxLength(160)->rows(2),
+                    Forms\Components\RichEditor::make('description')->label('Опис моделі'),
+                ]),
         ]);
     }
 

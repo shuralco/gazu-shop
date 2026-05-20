@@ -292,6 +292,26 @@ class StoreController extends Controller
         $request->query->set('make', $make);
         if ($model !== null)  $request->query->set('model', $model);
         if ($engine !== null) $request->query->set('engine', $engine);
+
+        // Resolve make/model для SEO (meta + H1 + опис). Editable у адмінці,
+        // інакше авто-генерується. Передаємо в catalog() через request attributes.
+        if (class_exists(\App\Models\CarMake::class)) {
+            $makeModel = \App\Models\CarMake::where('slug', $make)->first();
+            $modelModel = ($model !== null && $makeModel)
+                ? \App\Models\CarModel::where('make_id', $makeModel->id)->where('slug', $model)->first()
+                : null;
+            $primary = $modelModel ?: $makeModel;
+            if ($primary) {
+                $names = trim(($makeModel->name ?? $make).' '.($modelModel->name ?? ($model ?? '')));
+                $request->attributes->set('carSeo', [
+                    'contextTitle'    => 'Запчастини '.$names,
+                    'metaTitle'       => $primary->meta_title ?: null,
+                    'metaDescription' => $primary->meta_description ?: null,
+                    'description'     => $primary->description ?: null,
+                ]);
+            }
+        }
+
         return $this->catalog($request);
     }
 
@@ -369,6 +389,8 @@ class StoreController extends Controller
             'selectedMake'        => (string) $request->query('make', ''),
             'selectedModel'       => (string) $request->query('model', ''),
             'selectedEngine'      => (string) $request->query('engine', ''),
+            // SEO context for /zapchastyny/{make}/{model} (set by catalogByCar).
+            'carSeo'              => $request->attributes->get('carSeo'),
         ]);
     }
 

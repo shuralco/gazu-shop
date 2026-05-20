@@ -9,6 +9,7 @@ class CarMake extends Model
 {
     protected $fillable = [
         'slug', 'name', 'logo_path', 'sort_order', 'is_active',
+        'meta_title', 'meta_description', 'description',
     ];
 
     protected $casts = [

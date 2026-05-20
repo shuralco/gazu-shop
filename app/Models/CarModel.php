@@ -10,6 +10,7 @@ class CarModel extends Model
 {
     protected $fillable = [
         'make_id', 'slug', 'name', 'body_type', 'years_range', 'sort_order', 'is_active',
+        'meta_title', 'meta_description', 'description',
     ];
 
     protected $casts = [

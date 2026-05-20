@@ -58,6 +58,23 @@ class CarMakeResource extends Resource
             Forms\Components\Toggle::make('is_active')
                 ->label('Активна')
                 ->default(true),
+            Forms\Components\Section::make('SEO')
+                ->description('Meta для сторінки /zapchastyny/{марка}. Якщо порожньо — генерується автоматично.')
+                ->collapsed()
+                ->schema([
+                    Forms\Components\TextInput::make('meta_title')
+                        ->label('SEO Title')
+                        ->maxLength(70)
+                        ->helperText('Оптимально 50–60 символів'),
+                    Forms\Components\Textarea::make('meta_description')
+                        ->label('SEO Description')
+                        ->maxLength(160)
+                        ->rows(2)
+                        ->helperText('Оптимально 150–160 символів'),
+                    Forms\Components\RichEditor::make('description')
+                        ->label('Опис марки')
+                        ->helperText('SEO-текст на сторінці марки.'),
+                ]),
         ]);
     }
 

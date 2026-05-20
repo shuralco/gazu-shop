@@ -3,10 +3,12 @@
 @php
     // Pretty-URL contexts (/novynky, /khity, /akcii) have правильні title
     // замість generic 'Каталог'. Перевіряємо query string що ставить роут.
+    $carSeo = $carSeo ?? null;
     $contextTitle = null;
     if (request('new') == 1) { $contextTitle = 'Новинки'; }
     elseif (request('hits') == 1) { $contextTitle = 'Хіти продажу'; }
     elseif (request('promo') == 1) { $contextTitle = 'Акції та знижки'; }
+    elseif ($carSeo && ! empty($carSeo['contextTitle'])) { $contextTitle = $carSeo['contextTitle']; }
     $title = $category->title ?? ($searchQuery ? 'Пошук: '.$searchQuery : ($contextTitle ?? 'Каталог'));
     $crumbs = [['Головна', route('gazu.home')]];
     if ($category) {
@@ -24,7 +26,7 @@
     }
 @endphp
 
-@section('title', $title . ' — GAZU')
+@section('title', ($carSeo && ! empty($carSeo['metaTitle']) ? $carSeo['metaTitle'] : $title . ' — GAZU'))
 
 {{-- OG image: перший товар з listing або category fallback --}}
 @php
@@ -75,11 +77,15 @@
     @endphp
     <script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
-@section('description', $category && $category->meta_description
-    ? $category->meta_description
-    : ($category
-        ? 'Купити '.$category->title.' для китайських авто (BYD, Chery, Geely, Haval). У наявності '.\plural_uk_count($totalCount, 'товар', 'товари', 'товарів').'. Доставка Новою Поштою, гарантія.'
-        : 'Каталог автозапчастин · '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').' · доставка по Україні'))
+@section('description', $carSeo && ! empty($carSeo['metaDescription'])
+    ? $carSeo['metaDescription']
+    : ($carSeo && ! empty($carSeo['contextTitle'])
+        ? $carSeo['contextTitle'].' — оригінали та аналоги. У наявності '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').'. Доставка по Україні, гарантія.'
+        : ($category && $category->meta_description
+            ? $category->meta_description
+            : ($category
+                ? 'Купити '.$category->title.' для китайських авто (BYD, Chery, Geely, Haval). У наявності '.\plural_uk_count($totalCount, 'товар', 'товари', 'товарів').'. Доставка Новою Поштою, гарантія.'
+                : 'Каталог автозапчастин · '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').' · доставка по Україні'))))
 
 @section('content')
     <div class="gazu-container">
@@ -90,6 +96,8 @@
                 <h1 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0">{{ $title }}</h1>
                 @if($category && ($category->description ?? false))
                     <div class="text-sm text-[var(--gazu-graphite)] mt-1.5 max-w-xl gazu-prose">{!! $category->description !!}</div>
+                @elseif($carSeo && ! empty($carSeo['description']))
+                    <div class="text-sm text-[var(--gazu-graphite)] mt-1.5 max-w-xl gazu-prose">{!! $carSeo['description'] !!}</div>
                 @elseif($searchQuery)
                     <p class="text-sm text-[var(--gazu-graphite)] mt-1.5">Знайдено {{ plural_uk_count($totalCount, 'товар', 'товари', 'товарів') }}</p>
                 @endif
