@@ -47,12 +47,16 @@
             $slug = $node['slug'] ?? null;
             $children = $node['children'] ?? [];
             $photoPath = $slug ? public_path("img/categories/{$slug}.webp") : null;
+            // ?v=filemtime — cache-bust коли фото підмінюють (asset кеш max-age 7д).
+            $photoUrl = ($photoPath && is_file($photoPath))
+                ? asset("img/categories/{$slug}.webp").'?v='.@filemtime($photoPath)
+                : null;
             $cats[] = [
                 'name'   => $node['label'] ?? '—',
                 'count'  => $node['count'] ?? 0,
                 'icon'   => $iconBySlug[$slug] ?? $defaultIcon,
                 'accent' => $accents[$i % count($accents)],
-                'photo'  => ($photoPath && is_file($photoPath)) ? asset("img/categories/{$slug}.webp") : null,
+                'photo'  => $photoUrl,
                 'url'    => $slug ? url('/'.$slug) : route('gazu.catalog'),
                 'subs'   => array_slice(array_map(fn ($c) => [
                     'label' => $c['label'] ?? '',
@@ -62,7 +66,9 @@
         }
     }
     if (empty($cats)) {
-        $photo = fn ($s) => is_file(public_path("img/categories/{$s}.webp")) ? asset("img/categories/{$s}.webp") : null;
+        $photo = fn ($s) => is_file(public_path("img/categories/{$s}.webp"))
+            ? asset("img/categories/{$s}.webp").'?v='.@filemtime(public_path("img/categories/{$s}.webp"))
+            : null;
         $cats = [
             ['name' => 'Двигун', 'count' => 8420, 'icon' => $iconBySlug['engine'], 'accent' => $accents[0], 'photo' => $photo('engine'), 'url' => route('gazu.catalog'), 'subs' => []],
             ['name' => 'Гальма', 'count' => 3180, 'icon' => $iconBySlug['brakes'], 'accent' => $accents[1], 'photo' => $photo('brakes'), 'url' => route('gazu.catalog'), 'subs' => []],
