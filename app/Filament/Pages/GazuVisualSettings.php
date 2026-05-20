@@ -142,6 +142,8 @@ class GazuVisualSettings extends Page implements HasForms
         ],
 
         // Header
+        'gazu_logo' => null,            // null → стандартний GZ-знак
+        'gazu_brand_name' => 'GAZU',
         'gazu_phone' => '0 800 75 10 24',
         'gazu_phone_subtitle' => 'безкоштовно по Україні',
         'gazu_total_sku' => 50000,
@@ -291,6 +293,25 @@ class GazuVisualSettings extends Page implements HasForms
                 Forms\Components\Tabs\Tab::make('Шапка')
                     ->icon('heroicon-o-phone')
                     ->schema([
+                        Forms\Components\Section::make('Логотип')
+                            ->description('Завантажте власний логотип. Якщо не задано — показується стандартний знак GAZU (GZ).')
+                            ->schema([
+                                Forms\Components\FileUpload::make('gazu_logo')
+                                    ->label('Логотип сайту')
+                                    ->helperText('PNG/SVG/WEBP з прозорим фоном, бажано висотою ≥ 60px. Показується у шапці та футері.')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('branding')
+                                    ->visibility('public')
+                                    ->imageEditor()
+                                    ->maxSize(1024)
+                                    ->acceptedFileTypes(['image/png', 'image/svg+xml', 'image/webp', 'image/jpeg']),
+                                Forms\Components\TextInput::make('gazu_brand_name')
+                                    ->label('Назва бренду')
+                                    ->placeholder('GAZU')
+                                    ->helperText('Використовується в alt-тексті лого та як текст, якщо лого не завантажено.'),
+                            ])
+                            ->columns(1),
                         Forms\Components\TextInput::make('gazu_phone')
                             ->label('Телефон')
                             ->placeholder('0 800 75 10 24'),
