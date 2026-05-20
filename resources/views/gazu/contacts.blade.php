@@ -59,13 +59,26 @@
         </div>
 
         <div>
+            @php
+                // Карта з адмінки: gazu_contacts_map може бути або повним <iframe>
+                // embed-кодом Google Maps, або просто URL для src.
+                $mapRaw = trim((string) ($s['gazu_contacts_map'] ?? ''));
+                $mapIsIframe = \Illuminate\Support\Str::contains($mapRaw, '<iframe');
+                $mapIsUrl = $mapRaw !== '' && \Illuminate\Support\Str::startsWith($mapRaw, 'http');
+            @endphp
             <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-5" style="height: 420px;">
-                <div class="w-full h-full bg-[var(--gazu-mist)] gazu-grid-pattern flex items-center justify-center">
-                    <div class="text-center text-[var(--gazu-graphite)]">
-                        <x-gazu.icon name="location" size="40" stroke="var(--gazu-blue)"/>
-                        <div class="text-sm mt-2">Карта {{ count($offices) }} відділень</div>
+                @if($mapIsIframe)
+                    <div class="w-full h-full gazu-map-embed">{!! $mapRaw !!}</div>
+                @elseif($mapIsUrl)
+                    <iframe src="{{ $mapRaw }}" class="w-full h-full" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen title="Карта"></iframe>
+                @else
+                    <div class="w-full h-full bg-[var(--gazu-mist)] gazu-grid-pattern flex items-center justify-center">
+                        <div class="text-center text-[var(--gazu-graphite)]">
+                            <x-gazu.icon name="location" size="40" stroke="var(--gazu-blue)"/>
+                            <div class="text-sm mt-2">Карта {{ count($offices) }} відділень</div>
+                        </div>
                     </div>
-                </div>
+                @endif
             </div>
 
             <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6">

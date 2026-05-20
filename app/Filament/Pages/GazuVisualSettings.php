@@ -113,6 +113,7 @@ class GazuVisualSettings extends Page implements HasForms
         ],
 
         // Contacts
+        'gazu_contacts_map' => null,            // Google Maps iframe embed або URL
         'gazu_contacts_email' => 'support@gazu.ua',
         'gazu_contacts_telegram' => '@gazu_support',
         'gazu_contacts_viber' => '+380 67 123 45 67',
@@ -577,6 +578,11 @@ class GazuVisualSettings extends Page implements HasForms
                         Forms\Components\TextInput::make('gazu_contacts_email')->label('Email')->email(),
                         Forms\Components\TextInput::make('gazu_contacts_telegram')->label('Telegram username'),
                         Forms\Components\TextInput::make('gazu_contacts_viber')->label('Viber номер'),
+                        Forms\Components\Textarea::make('gazu_contacts_map')
+                            ->label('Карта (Google Maps)')
+                            ->rows(3)
+                            ->helperText('Вставте embed-код <iframe …> з Google Maps (Поділитися → Вставити карту) або просто URL. Порожньо → заглушка.')
+                            ->columnSpanFull(),
                         Forms\Components\Repeater::make('gazu_contacts_offices')
                             ->label('Відділення')
                             ->schema([
