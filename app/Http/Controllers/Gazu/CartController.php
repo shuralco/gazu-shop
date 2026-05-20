@@ -54,6 +54,64 @@ class CartController extends Controller
         return back()->with('cart_message', $msg);
     }
 
+    /**
+     * Full cart contents as JSON for the slide-in mini-cart drawer.
+     * Returns each line (id, title, slug, price, qty, lineTotal, image, warehouse)
+     * + aggregate totals. Image resolution mirrors cart/index.blade.php:
+     * real product image → part-image webp pool (deterministic by product id) → null.
+     */
+    public function contents(Request $request)
+    {
+        $cart = Cart::getCart();
+        $kinds = ['filter', 'pad', 'shock', 'bulb', 'oil', 'spark', 'bearing', 'wiper'];
+
+        $items = [];
+        foreach ($cart as $key => $item) {
+            $productId = (int) (is_numeric($key) ? $key : explode('_', (string) $key)[0]);
+            $title = is_array($item['title'] ?? null) ? ($item['title']['uk'] ?? '—') : ($item['title'] ?? '—');
+            $slug = is_array($item['slug'] ?? null) ? ($item['slug']['uk'] ?? null) : ($item['slug'] ?? null);
+            $price = (float) ($item['price'] ?? 0);
+            $qty = (int) ($item['quantity'] ?? 1);
+
+            // Image: stored image first, else deterministic part-image webp.
+            $image = null;
+            $stored = $item['image'] ?? null;
+            if ($stored) {
+                $image = \Illuminate\Support\Str::startsWith($stored, 'http') ? $stored : asset('storage/'.$stored);
+            } else {
+                $kind = $kinds[$productId % count($kinds)];
+                $dir = public_path("img/parts/{$kind}");
+                $files = is_dir($dir) ? glob($dir.'/*.webp') : [];
+                sort($files);
+                if (! empty($files)) {
+                    $image = asset("img/parts/{$kind}/".basename($files[$productId % count($files)]));
+                } elseif (is_file(public_path("img/parts/{$kind}.webp"))) {
+                    $image = asset("img/parts/{$kind}.webp");
+                }
+            }
+
+            $items[] = [
+                'key'       => (string) $key,
+                'id'        => $productId,
+                'title'     => $title,
+                'slug'      => $slug,
+                'url'       => $slug ? url('/'.$slug) : null,
+                'price'     => $price,
+                'qty'       => $qty,
+                'lineTotal' => $price * $qty,
+                'image'     => $image,
+            ];
+        }
+
+        return response()->json([
+            'ok'       => true,
+            'items'    => $items,
+            'count'    => Cart::getCartQuantityItems(),
+            'qtyTotal' => Cart::getCartQuantityTotal(),
+            'total'    => Cart::getCartTotal(),
+        ]);
+    }
+
     public function update(Request $request)
     {
         $request->validate([

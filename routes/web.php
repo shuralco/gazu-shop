@@ -61,6 +61,7 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/cart/empty', [$c, 'emptyCart'])->name('cart.empty');
 
     $cart = \App\Http\Controllers\Gazu\CartController::class;
+    Route::get('/cart/contents', [$cart, 'contents'])->name('cart.contents');
     Route::middleware('throttle:60,1')->group(function () use ($cart) {
         Route::post('/cart/add',    [$cart, 'add'])->name('cart.add');
         Route::post('/cart/update', [$cart, 'update'])->name('cart.update');

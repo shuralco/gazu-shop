@@ -327,49 +327,159 @@
     </template>
 </div>
 
-{{-- Mini-cart drawer — slides in from right on cart-updated event --}}
+{{-- Mini-cart drawer — slides in from right on cart-updated event.
+     Lists every cart line with image/title/price, qty-stepper (+/−) and remove.
+     All mutations hit the cart endpoints + re-fetch /cart/contents → live totals. --}}
 <div x-data="{
         open: false,
+        loading: false,
+        busy: {},
+        items: [],
         count: 0, qtyTotal: 0, total: 0,
+        _csrf() { return document.querySelector('meta[name=csrf-token]')?.content || ''; },
         init() {
-            window.addEventListener('cart-updated', (e) => {
-                if (e.detail) {
-                    this.count = e.detail.count || 0;
-                    this.qtyTotal = e.detail.qtyTotal || 0;
-                    this.total = e.detail.total || 0;
-                }
-                this.open = true;
-                clearTimeout(this._t);
-                this._t = setTimeout(() => this.open = false, 4500);
-            });
+            window.addEventListener('cart-updated', () => { this.openAndLoad(); });
         },
-        money(v){ return new Intl.NumberFormat('uk-UA').format(v) + ' ₴'; }
+        openAndLoad() {
+            this.open = true;
+            clearTimeout(this._t);
+            this.fetchContents();
+        },
+        async fetchContents() {
+            this.loading = true;
+            try {
+                const r = await fetch('{{ route('gazu.cart.contents') }}', { headers: { 'Accept': 'application/json' } });
+                const d = await r.json();
+                this.items = d.items || [];
+                this.count = d.count || 0;
+                this.qtyTotal = d.qtyTotal || 0;
+                this.total = d.total || 0;
+            } catch (e) { /* keep stale */ }
+            this.loading = false;
+        },
+        async setQty(item, qty) {
+            if (qty < 1 || this.busy[item.id]) return;
+            this.busy[item.id] = true;
+            try {
+                await fetch('{{ route('gazu.cart.update') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': this._csrf() },
+                    body: JSON.stringify({ product_id: item.id, quantity: qty }),
+                });
+                await this.fetchContents();
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: this.count, qtyTotal: this.qtyTotal, total: this.total, _internal: true } }));
+            } catch (e) {}
+            this.busy[item.id] = false;
+        },
+        async removeItem(item) {
+            if (this.busy[item.id]) return;
+            this.busy[item.id] = true;
+            try {
+                await fetch('{{ route('gazu.cart.remove') }}', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': this._csrf() },
+                    body: JSON.stringify({ product_id: item.id }),
+                });
+                await this.fetchContents();
+                window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: this.count, qtyTotal: this.qtyTotal, total: this.total, _internal: true } }));
+            } catch (e) {}
+            this.busy[item.id] = false;
+        },
+        money(v){ return new Intl.NumberFormat('uk-UA').format(Math.round(v)) + ' ₴'; }
      }"
      x-show="open" x-cloak
      @click.outside="open = false"
      @keydown.escape.window="open = false"
-     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[380px] bg-white border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
+     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[400px] bg-white border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
      :data-open="open ? '1' : '0'"
      role="dialog" aria-label="Кошик">
-    <div class="flex items-center justify-between p-4 border-b border-[var(--gazu-line)]">
+
+    {{-- Header --}}
+    <div class="flex items-center justify-between p-4 border-b border-[var(--gazu-line)] shrink-0">
         <div class="flex items-center gap-2">
             <x-gazu.icon name="cart" size="20"/>
-            <span class="font-semibold">Додано в кошик</span>
+            <span class="font-semibold">Кошик</span>
+            <span class="text-xs text-[var(--gazu-graphite)]" x-show="count" x-text="'· ' + qtyTotal + ' шт.'"></span>
         </div>
         <button type="button" @click="open = false" class="w-8 h-8 rounded-md hover:bg-[var(--gazu-mist)] flex items-center justify-center" aria-label="Закрити">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
         </button>
     </div>
-    <div class="flex-1 p-4">
-        <div class="bg-[var(--gazu-mist)] rounded-lg p-4 text-center">
-            <div class="text-sm text-[var(--gazu-graphite)]">Усього в кошику</div>
-            <div class="gazu-display text-3xl font-semibold mt-1" x-text="qtyTotal + ' шт.'"></div>
-            <div class="gazu-mono text-lg mt-1" x-text="money(total)"></div>
+
+    {{-- Items list --}}
+    <div class="flex-1 overflow-y-auto p-3">
+        {{-- Empty --}}
+        <div x-show="!loading && items.length === 0" class="h-full flex flex-col items-center justify-center text-center px-6 py-10">
+            <div class="w-14 h-14 rounded-full bg-[var(--gazu-mist)] flex items-center justify-center mb-3 text-[var(--gazu-blue)]">
+                <x-gazu.icon name="cart" size="24"/>
+            </div>
+            <div class="font-medium text-[var(--gazu-ink)] mb-1">Кошик порожній</div>
+            <div class="text-xs text-[var(--gazu-graphite)]">Додайте товари з каталогу</div>
+        </div>
+
+        {{-- Skeleton while first load --}}
+        <div x-show="loading && items.length === 0" class="space-y-3">
+            <template x-for="i in 3" :key="i">
+                <div class="flex gap-3 animate-pulse">
+                    <div class="w-16 h-16 rounded-md bg-[var(--gazu-mist)] shrink-0"></div>
+                    <div class="flex-1 space-y-2 py-1"><div class="h-3 bg-[var(--gazu-mist)] rounded w-3/4"></div><div class="h-3 bg-[var(--gazu-mist)] rounded w-1/3"></div></div>
+                </div>
+            </template>
+        </div>
+
+        {{-- Lines --}}
+        <div class="space-y-3" x-show="items.length">
+            <template x-for="item in items" :key="item.key">
+                <div class="flex gap-3 pb-3 border-b border-[var(--gazu-line)] last:border-0 transition-opacity" :class="busy[item.id] ? 'opacity-50' : ''">
+                    {{-- Image --}}
+                    <a :href="item.url || '#'" class="w-16 h-16 rounded-md bg-[var(--gazu-paper)] border border-[var(--gazu-line)] shrink-0 overflow-hidden flex items-center justify-center no-underline">
+                        <template x-if="item.image">
+                            <img :src="item.image" :alt="item.title" class="w-full h-full object-cover" loading="lazy">
+                        </template>
+                        <template x-if="!item.image">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gazu-line-2)" stroke-width="1.5"><path d="m3 7 9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/></svg>
+                        </template>
+                    </a>
+                    {{-- Body --}}
+                    <div class="flex-1 min-w-0">
+                        <a :href="item.url || '#'" class="block text-[13px] font-medium text-[var(--gazu-ink)] leading-snug no-underline hover:text-[var(--gazu-blue)] line-clamp-2" x-text="item.title"></a>
+                        <div class="flex items-center justify-between mt-2">
+                            {{-- Qty stepper --}}
+                            <div class="inline-flex items-center border border-[var(--gazu-line)] rounded-md">
+                                <button type="button" @click="setQty(item, item.qty - 1)" :disabled="item.qty <= 1 || busy[item.id]"
+                                        class="w-8 h-8 flex items-center justify-center text-[var(--gazu-ink)] disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[var(--gazu-mist)]" aria-label="Менше">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14"/></svg>
+                                </button>
+                                <span class="w-8 text-center text-[13px] font-medium gazu-mono" x-text="item.qty"></span>
+                                <button type="button" @click="setQty(item, item.qty + 1)" :disabled="busy[item.id]"
+                                        class="w-8 h-8 flex items-center justify-center text-[var(--gazu-ink)] disabled:opacity-40 hover:bg-[var(--gazu-mist)]" aria-label="Більше">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+                                </button>
+                            </div>
+                            {{-- Line total --}}
+                            <div class="gazu-display font-bold text-[var(--gazu-ink)] text-[14px] whitespace-nowrap" x-text="money(item.lineTotal)"></div>
+                        </div>
+                    </div>
+                    {{-- Remove --}}
+                    <button type="button" @click="removeItem(item)" :disabled="busy[item.id]"
+                            class="w-7 h-7 shrink-0 self-start rounded-md text-[var(--gazu-graphite)] hover:text-[var(--gazu-danger)] hover:bg-[var(--gazu-danger-bg)] flex items-center justify-center transition-colors" aria-label="Видалити">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>
+                    </button>
+                </div>
+            </template>
         </div>
     </div>
-    <div class="p-4 border-t border-[var(--gazu-line)] flex gap-2">
-        <button type="button" @click="open = false" class="flex-1 py-2.5 border border-[var(--gazu-line-2)] rounded-md text-sm font-medium hover:bg-[var(--gazu-mist)]">Продовжити</button>
-        <a wire:navigate href="{{ route('gazu.cart') }}" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
+
+    {{-- Footer --}}
+    <div class="border-t border-[var(--gazu-line)] p-4 shrink-0" x-show="items.length">
+        <div class="flex items-baseline justify-between mb-3">
+            <span class="text-sm text-[var(--gazu-graphite)]">Разом</span>
+            <span class="gazu-display text-2xl font-bold text-[var(--gazu-ink)]" x-text="money(total)"></span>
+        </div>
+        <div class="flex gap-2">
+            <button type="button" @click="open = false" class="flex-1 py-2.5 border border-[var(--gazu-line-2)] rounded-md text-sm font-medium hover:bg-[var(--gazu-mist)]">Продовжити</button>
+            <a wire:navigate href="{{ route('gazu.cart') }}" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
+        </div>
     </div>
 </div>
 

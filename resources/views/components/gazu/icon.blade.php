@@ -24,7 +24,7 @@
         'car'      => '<path d="M3 14h18l-2-7H5l-2 7Z"/><path d="M3 14v4h2v-2"/><path d="M21 14v4h-2v-2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',
         'wrench'   => '<path d="M14.7 6.3a4 4 0 0 1 5 5L9 22l-7-7L12.7 4.3a4 4 0 0 1 2-1Z"/>',
         'box'      => '<path d="m3 7 9-4 9 4-9 4-9-4Z"/><path d="M3 7v10l9 4 9-4V7"/><path d="M12 11v10"/>',
-        'return'   => '<path d="M3 7v6h6"/><path d="M3 13a9 9 0 1 0 3-7"/>',
+        'return'   => '<path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 9 8 9"/>',
         'chat'     => '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z"/>',
         'plus'     => '<path d="M12 5v14M5 12h14"/>',
         'minus'    => '<path d="M5 12h14"/>',
