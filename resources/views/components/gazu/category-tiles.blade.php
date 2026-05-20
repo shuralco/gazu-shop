@@ -46,11 +46,13 @@
         foreach (array_slice($tree, 0, 8) as $i => $node) {
             $slug = $node['slug'] ?? null;
             $children = $node['children'] ?? [];
+            $photoPath = $slug ? public_path("img/categories/{$slug}.webp") : null;
             $cats[] = [
                 'name'   => $node['label'] ?? '—',
                 'count'  => $node['count'] ?? 0,
                 'icon'   => $iconBySlug[$slug] ?? $defaultIcon,
                 'accent' => $accents[$i % count($accents)],
+                'photo'  => ($photoPath && is_file($photoPath)) ? asset("img/categories/{$slug}.webp") : null,
                 'url'    => $slug ? url('/'.$slug) : route('gazu.catalog'),
                 'subs'   => array_slice(array_map(fn ($c) => [
                     'label' => $c['label'] ?? '',
@@ -60,15 +62,16 @@
         }
     }
     if (empty($cats)) {
+        $photo = fn ($s) => is_file(public_path("img/categories/{$s}.webp")) ? asset("img/categories/{$s}.webp") : null;
         $cats = [
-            ['name' => 'Двигун', 'count' => 8420, 'icon' => $iconBySlug['engine'], 'accent' => $accents[0], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Гальма', 'count' => 3180, 'icon' => $iconBySlug['brakes'], 'accent' => $accents[1], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Підвіска', 'count' => 4920, 'icon' => $iconBySlug['suspension'], 'accent' => $accents[2], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Електрика', 'count' => 6210, 'icon' => $iconBySlug['electrics'], 'accent' => $accents[3], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Трансмісія', 'count' => 2840, 'icon' => $iconBySlug['transmission'], 'accent' => $accents[4], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Мастила', 'count' => 1560, 'icon' => $iconBySlug['fluids'], 'accent' => $accents[5], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Кузов', 'count' => 980, 'icon' => $iconBySlug['body'], 'accent' => $accents[6], 'url' => route('gazu.catalog'), 'subs' => []],
-            ['name' => 'Аксесуари', 'count' => 420, 'icon' => $iconBySlug['accessories'], 'accent' => $accents[7], 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Двигун', 'count' => 8420, 'icon' => $iconBySlug['engine'], 'accent' => $accents[0], 'photo' => $photo('engine'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Гальма', 'count' => 3180, 'icon' => $iconBySlug['brakes'], 'accent' => $accents[1], 'photo' => $photo('brakes'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Підвіска', 'count' => 4920, 'icon' => $iconBySlug['suspension'], 'accent' => $accents[2], 'photo' => $photo('suspension'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Електрика', 'count' => 6210, 'icon' => $iconBySlug['electrics'], 'accent' => $accents[3], 'photo' => $photo('electrics'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Трансмісія', 'count' => 2840, 'icon' => $iconBySlug['transmission'], 'accent' => $accents[4], 'photo' => $photo('transmission'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Мастила', 'count' => 1560, 'icon' => $iconBySlug['fluids'], 'accent' => $accents[5], 'photo' => $photo('fluids'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Кузов', 'count' => 980, 'icon' => $iconBySlug['body'], 'accent' => $accents[6], 'photo' => $photo('body'), 'url' => route('gazu.catalog'), 'subs' => []],
+            ['name' => 'Аксесуари', 'count' => 420, 'icon' => $iconBySlug['accessories'], 'accent' => $accents[7], 'photo' => $photo('accessories'), 'url' => route('gazu.catalog'), 'subs' => []],
         ];
     }
 @endphp
@@ -93,19 +96,26 @@
                class="gazu-cat-tile group relative aspect-square rounded-2xl no-underline text-white overflow-hidden cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_24px_50px_-20px_rgba(14,27,44,0.45)]"
                style="background: linear-gradient(135deg, {{ $c['accent'] }} 0%, color-mix(in srgb, {{ $c['accent'] }} 70%, #0E1B2C) 100%);">
 
-                {{-- Subtle dot pattern overlay (carbon-fiber feel) --}}
-                <div class="absolute inset-0 opacity-[0.08]"
-                     style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 12px 12px;"></div>
-
-                {{-- Big glyph in corner — auto-parts iconic look (multi-element SVG) --}}
-                <svg class="absolute -bottom-3 -right-3 w-32 h-32 sm:w-40 sm:h-40 text-white/20 group-hover:text-white/30 transition-colors"
-                     viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
-                    {!! $c['icon'] !!}
-                </svg>
+                @if(! empty($c['photo']))
+                    {{-- Photographic background (Pexels) — zoom-in on hover --}}
+                    <img src="{{ $c['photo'] }}" alt="{{ $c['name'] }}" loading="lazy" decoding="async"
+                         class="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110">
+                    {{-- Dark gradient overlay: transparent top → accent-tinted dark bottom, для читабельності назви --}}
+                    <div class="absolute inset-0"
+                         style="background: linear-gradient(to top, color-mix(in srgb, {{ $c['accent'] }} 55%, #0A1422) 0%, rgba(10,20,34,0.55) 38%, rgba(10,20,34,0.15) 70%, rgba(10,20,34,0.30) 100%);"></div>
+                @else
+                    {{-- Fallback: dot pattern + big glyph коли фото немає --}}
+                    <div class="absolute inset-0 opacity-[0.08]"
+                         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 12px 12px;"></div>
+                    <svg class="absolute -bottom-3 -right-3 w-32 h-32 sm:w-40 sm:h-40 text-white/20 group-hover:text-white/30 transition-colors"
+                         viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+                        {!! $c['icon'] !!}
+                    </svg>
+                @endif
 
                 {{-- Bottom: title + subcategories slide-up on hover --}}
                 <div class="absolute inset-x-0 bottom-0 p-4">
-                    <div class="gazu-display text-[18px] sm:text-[22px] font-semibold leading-tight mb-1">{{ $c['name'] }}</div>
+                    <div class="gazu-display text-[18px] sm:text-[22px] font-semibold leading-tight mb-1" style="text-shadow: 0 1px 8px rgba(10,20,34,0.55);">{{ $c['name'] }}</div>
 
                     @if(! empty($c['subs']))
                         <div class="gazu-cat-subs flex flex-wrap gap-1 mt-2 opacity-90 transition-all duration-300 max-h-0 group-hover:max-h-24 overflow-hidden">
