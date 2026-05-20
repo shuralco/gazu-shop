@@ -90,6 +90,7 @@ class InfoPageResource extends Resource
                 Tables\Columns\TextColumn::make('updated_at')->label('Оновлено')->dateTime('d.m.Y H:i')->sortable(),
             ])
             ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('open')

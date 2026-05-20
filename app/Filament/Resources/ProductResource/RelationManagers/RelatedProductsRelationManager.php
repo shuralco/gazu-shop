@@ -123,6 +123,7 @@ class RelatedProductsRelationManager extends RelationManager
                 Tables\Actions\AttachAction::make()
                     ->label('Додати товар'),
             ])
+            ->reorderable('sort_order')
             ->defaultSort('pivot_sort_order');
     }
 }

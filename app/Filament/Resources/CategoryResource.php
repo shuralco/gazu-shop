@@ -310,6 +310,7 @@ class CategoryResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\SelectFilter::make('parent_id')
                     ->label('Parent Category')

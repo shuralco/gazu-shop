@@ -100,6 +100,7 @@ class LoyaltyTierResource extends Resource
                     ->label('Порядок')
                     ->sortable(),
             ])
+            ->reorderable('sort_order')
             ->filters([
                 //
             ])

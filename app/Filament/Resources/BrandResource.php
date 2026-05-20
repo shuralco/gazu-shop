@@ -130,6 +130,7 @@ class BrandResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Активні')

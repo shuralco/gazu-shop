@@ -50,6 +50,7 @@ class EnginesRelationManager extends RelationManager
                 Tables\Columns\IconColumn::make('is_active')->boolean(),
             ])
             ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->headerActions([Tables\Actions\CreateAction::make()])
             ->actions([
                 Tables\Actions\EditAction::make(),

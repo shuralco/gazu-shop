@@ -47,6 +47,7 @@ class ModelsRelationManager extends RelationManager
                 Tables\Columns\IconColumn::make('is_active')->label('Активна')->boolean(),
             ])
             ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])

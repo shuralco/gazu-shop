@@ -93,6 +93,7 @@ class CarMakeResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')->label('Активна')->boolean(),
             ])
             ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')->label('Активна'),
             ])

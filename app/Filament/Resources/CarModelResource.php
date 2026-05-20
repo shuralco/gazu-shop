@@ -74,6 +74,7 @@ class CarModelResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')->boolean(),
             ])
             ->defaultSort('make_id')
+            ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\SelectFilter::make('make_id')
                     ->label('Марка')

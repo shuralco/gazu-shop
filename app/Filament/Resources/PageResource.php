@@ -328,6 +328,7 @@ class PageResource extends Resource
                     ->toggleable(),
             ])
             ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Активна')
