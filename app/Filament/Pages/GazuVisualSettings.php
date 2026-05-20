@@ -144,6 +144,14 @@ class GazuVisualSettings extends Page implements HasForms
         // Header
         'gazu_logo' => null,            // null → стандартний GZ-знак
         'gazu_brand_name' => 'GAZU',
+
+        // Trust-бейджі в картці товару (під кнопкою «Додати в кошик»).
+        // {date} у title → автоматично підставляється завтрашня дата.
+        'gazu_product_trust' => [
+            ['icon' => 'truck',  'title' => 'Доставка завтра, {date}', 'subtitle' => 'Замовте сьогодні до 16:00 · Нова Пошта'],
+            ['icon' => 'shield', 'title' => 'Гарантія 12 місяців',     'subtitle' => 'Повернення коштів при дефекті'],
+            ['icon' => 'return', 'title' => '14 днів на повернення',   'subtitle' => 'Без пояснення причин'],
+        ],
         'gazu_phone' => '0 800 75 10 24',
         'gazu_phone_subtitle' => 'безкоштовно по Україні',
         'gazu_total_sku' => 50000,
@@ -360,7 +368,7 @@ class GazuVisualSettings extends Page implements HasForms
                     ->icon('heroicon-o-shield-check')
                     ->schema([
                         Forms\Components\Repeater::make('gazu_trust_items')
-                            ->label('Пункти')
+                            ->label('Пункти (головна сторінка)')
                             ->helperText('4 рекомендовано. Іконки з власним дизайном: truck, shield, return, wrench, headset')
                             ->schema([
                                 Forms\Components\Grid::make(3)->schema([
@@ -373,6 +381,25 @@ class GazuVisualSettings extends Page implements HasForms
                                     ])->required(),
                                     Forms\Components\TextInput::make('title')->label('Заголовок')->required(),
                                     Forms\Components\TextInput::make('desc')->label('Опис')->required(),
+                                ]),
+                            ])
+                            ->defaultItems(0)
+                            ->columnSpanFull(),
+
+                        Forms\Components\Repeater::make('gazu_product_trust')
+                            ->label('Бейджі в картці товару')
+                            ->helperText('Показуються під кнопкою «Додати в кошик». Токен {date} у заголовку → завтрашня дата.')
+                            ->schema([
+                                Forms\Components\Grid::make(3)->schema([
+                                    Forms\Components\Select::make('icon')->label('Іконка')->options([
+                                        'truck' => '🚚 truck',
+                                        'shield' => '🛡 shield',
+                                        'return' => '↩ return',
+                                        'wrench' => '🔧 wrench',
+                                        'headset' => '🎧 headset',
+                                    ])->required(),
+                                    Forms\Components\TextInput::make('title')->label('Заголовок')->required(),
+                                    Forms\Components\TextInput::make('subtitle')->label('Підпис'),
                                 ]),
                             ])
                             ->defaultItems(0)

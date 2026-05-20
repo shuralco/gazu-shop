@@ -164,29 +164,34 @@
          слухає подію `gazu:one-click` — окремий inline-модал більше не
          потрібен. --}}
 
+    @php
+        // Trust-бейджі з налаштувань (gazu_product_trust) із fallback на дефолт.
+        // Токен {date} у заголовку → завтрашня дата.
+        $trustBadges = $gazuSettings['gazu_product_trust'] ?? [
+            ['icon' => 'truck',  'title' => 'Доставка завтра, {date}', 'subtitle' => 'Замовте сьогодні до 16:00 · Нова Пошта'],
+            ['icon' => 'shield', 'title' => 'Гарантія 12 місяців',     'subtitle' => 'Повернення коштів при дефекті'],
+            ['icon' => 'return', 'title' => '14 днів на повернення',   'subtitle' => 'Без пояснення причин'],
+        ];
+        $tomorrow = now()->addDay()->format('d.m');
+    @endphp
+    @if(! empty($trustBadges))
     <div class="mt-4 p-3.5 bg-[var(--gazu-mist)] rounded-lg flex flex-col gap-2.5">
-        <div class="flex gap-2.5 items-start">
-            <x-gazu.icon name="truck" size="18" stroke="var(--gazu-blue)" class="shrink-0"/>
-            <div>
-                <div class="text-[13px] font-medium text-[var(--gazu-ink)]">Доставка завтра, {{ now()->addDay()->format('d.m') }}</div>
-                <div class="text-[11px] text-[var(--gazu-graphite)]">Замовте сьогодні до 16:00 · Нова Пошта</div>
+        @foreach($trustBadges as $badge)
+            @php
+                $bTitle = str_replace('{date}', $tomorrow, (string) ($badge['title'] ?? ''));
+                $bSub = $badge['subtitle'] ?? '';
+                $bIcon = $badge['icon'] ?? 'shield';
+            @endphp
+            <div class="flex gap-2.5 items-start">
+                <x-gazu.icon :name="$bIcon" size="18" stroke="var(--gazu-blue)" class="shrink-0"/>
+                <div>
+                    <div class="text-[13px] font-medium text-[var(--gazu-ink)]">{{ $bTitle }}</div>
+                    @if($bSub)<div class="text-[11px] text-[var(--gazu-graphite)]">{{ $bSub }}</div>@endif
+                </div>
             </div>
-        </div>
-        <div class="flex gap-2.5 items-start">
-            <x-gazu.icon name="shield" size="18" stroke="var(--gazu-blue)" class="shrink-0"/>
-            <div>
-                <div class="text-[13px] font-medium text-[var(--gazu-ink)]">Гарантія 12 місяців</div>
-                <div class="text-[11px] text-[var(--gazu-graphite)]">Повернення коштів при дефекті</div>
-            </div>
-        </div>
-        <div class="flex gap-2.5 items-start">
-            <x-gazu.icon name="return" size="18" stroke="var(--gazu-blue)" class="shrink-0"/>
-            <div>
-                <div class="text-[13px] font-medium text-[var(--gazu-ink)]">14 днів на повернення</div>
-                <div class="text-[11px] text-[var(--gazu-graphite)]">Без пояснення причин</div>
-            </div>
-        </div>
+        @endforeach
     </div>
+    @endif
 
     <div class="mt-4 p-3 border border-dashed border-[var(--gazu-line-2)] rounded-lg flex gap-2.5 items-center">
         <x-gazu.icon name="chat" size="20" stroke="var(--gazu-blue)" class="shrink-0"/>
