@@ -152,6 +152,7 @@ class GazuVisualSettings extends Page implements HasForms
             ['icon' => 'shield', 'title' => 'Гарантія 12 місяців',     'subtitle' => 'Повернення коштів при дефекті'],
             ['icon' => 'return', 'title' => '14 днів на повернення',   'subtitle' => 'Без пояснення причин'],
         ],
+        'gazu_default_warranty' => '12 місяців',  // дефолт для картки товару без specs
         'gazu_phone' => '0 800 75 10 24',
         'gazu_phone_subtitle' => 'безкоштовно по Україні',
         'gazu_total_sku' => 50000,
@@ -320,6 +321,10 @@ class GazuVisualSettings extends Page implements HasForms
                                     ->helperText('Використовується в alt-тексті лого та як текст, якщо лого не завантажено.'),
                             ])
                             ->columns(1),
+                        Forms\Components\TextInput::make('gazu_default_warranty')
+                            ->label('Гарантія за замовчуванням')
+                            ->placeholder('12 місяців')
+                            ->helperText('Показується в характеристиках товару, якщо для нього не задано власні specifications.'),
                         Forms\Components\TextInput::make('gazu_phone')
                             ->label('Телефон')
                             ->placeholder('0 800 75 10 24'),

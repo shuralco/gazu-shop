@@ -33,7 +33,7 @@
             ['Виробник', $brand ?: '—', false],
             ['Артикул', $oem ?: '—', true],
             ['Стан', $condition, false],
-            ['Гарантія', '12 місяців', false],
+            ['Гарантія', $gazuSettings['gazu_default_warranty'] ?? '12 місяців', false],
         ];
     }
 

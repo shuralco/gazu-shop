@@ -43,6 +43,9 @@
                             $reviews = is_object($p) ? (int)($p->reviews ?? 0) : (int)($p['reviews'] ?? 0);
                             $fits = is_object($p) ? ($p->fits ?? '') : ($p['fits'] ?? '');
                             $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
+                            $warranty = $gazuSettings['gazu_default_warranty'] ?? '12 місяців';
+                            $analogsArr = is_object($p) ? ($p->analogs ?? null) : ($p['analogs'] ?? null);
+                            $analogsCount = is_array($analogsArr) ? count($analogsArr) : 0;
                         @endphp
                         <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
                             <a wire:navigate href="{{ $url }}" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center" style="aspect-ratio:1;">
@@ -65,8 +68,7 @@
                                 <a wire:navigate href="{{ $url }}" class="gazu-display text-[17px] font-semibold text-[var(--gazu-ink)] no-underline">{{ $name }}</a>
                                 <div class="flex gap-3.5 text-xs text-[var(--gazu-graphite)] flex-wrap">
                                     <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Артикул:</span> <span class="gazu-mono text-[var(--gazu-ink)]">{{ $oem }}</span></span>
-                                    <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Гарантія:</span> 12 міс</span>
-                                    <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Країна:</span> Німеччина</span>
+                                    <span class="whitespace-nowrap"><span class="text-[var(--gazu-muted)]">Гарантія:</span> {{ $warranty }}</span>
                                 </div>
                                 @if($fits)
                                     <div class="text-xs text-[var(--gazu-graphite)] px-2.5 py-2 bg-[var(--gazu-mist)] rounded flex gap-2">
@@ -77,7 +79,7 @@
                                 <div class="flex gap-2.5 mt-1">
                                     <button type="button" class="bg-transparent border-0 p-0 text-[var(--gazu-blue)] text-xs cursor-pointer">Технічні характеристики</button>
                                     <span class="text-[var(--gazu-line-2)]">·</span>
-                                    <button type="button" class="bg-transparent border-0 p-0 text-[var(--gazu-blue)] text-xs cursor-pointer">Аналоги (8)</button>
+                                    <button type="button" class="bg-transparent border-0 p-0 text-[var(--gazu-blue)] text-xs cursor-pointer">Аналоги{{ $analogsCount ? ' ('.$analogsCount.')' : '' }}</button>
                                     <span class="text-[var(--gazu-line-2)]">·</span>
                                     <button type="button" class="bg-transparent border-0 p-0 text-[var(--gazu-blue)] text-xs cursor-pointer">Інструкція</button>
                                 </div>
