@@ -129,6 +129,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // СТО page removed (Etap 91). Legacy 301 → home для backward compat у Google index.
     Route::get('/sto', fn () => redirect('/', 301))->name('sto');
     Route::get('/blog', [$c, 'blog'])->name('blog');
+    // Рубрика блогу — має йти ПЕРЕД /blog/{slug}, щоб не перехоплювалось як стаття.
+    Route::get('/blog/rubryka/{categorySlug}', fn (string $categorySlug) => app($c)->blog(null, $categorySlug))->name('blog.category');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
     Route::get('/contacts', [$c, 'contacts'])->name('contacts');
     Route::get('/search', [$c, 'search'])->name('search');

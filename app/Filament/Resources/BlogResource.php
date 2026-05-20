@@ -75,6 +75,25 @@ class BlogResource extends Resource
                             ->imageEditor()
                             ->maxSize(4096)
                             ->columnSpanFull(),
+                        Forms\Components\Grid::make(3)->schema([
+                            Forms\Components\Select::make('blog_category_id')
+                                ->label('Рубрика')
+                                ->relationship('blogCategory', 'name')
+                                ->searchable()
+                                ->preload()
+                                ->createOptionForm([
+                                    Forms\Components\TextInput::make('name')->label('Назва')->required(),
+                                    Forms\Components\TextInput::make('slug')->label('Slug')->required(),
+                                ])
+                                ->createOptionUsing(fn (array $data) => \App\Models\BlogCategory::create($data + ['is_active' => true])->id),
+                            Forms\Components\TextInput::make('author')
+                                ->label('Автор')
+                                ->placeholder('Команда GAZU'),
+                            Forms\Components\DateTimePicker::make('published_at')
+                                ->label('Дата публікації')
+                                ->helperText('Порожньо → дата створення')
+                                ->seconds(false),
+                        ]),
                         Forms\Components\Textarea::make('excerpt')
                             ->label('Короткий опис (анонс)')
                             ->helperText('1–2 речення для картки у списку блогу.')
@@ -83,9 +102,14 @@ class BlogResource extends Resource
                         Forms\Components\RichEditor::make('content')
                             ->label('Текст статті')
                             ->columnSpanFull(),
-                        Forms\Components\Toggle::make('is_active')
-                            ->label('Опубліковано')
-                            ->default(true),
+                        Forms\Components\Grid::make(2)->schema([
+                            Forms\Components\Toggle::make('is_active')
+                                ->label('Опубліковано')
+                                ->default(true),
+                            Forms\Components\Toggle::make('is_featured')
+                                ->label('Рекомендована (на головній блогу)')
+                                ->default(false),
+                        ]),
                     ]),
                 Forms\Components\Tabs\Tab::make('SEO')
                     ->icon('heroicon-o-globe-alt')
@@ -103,13 +127,18 @@ class BlogResource extends Resource
             ->columns([
                 Tables\Columns\ImageColumn::make('og_image')->label('Обкладинка')->disk('public')->height(40),
                 Tables\Columns\TextColumn::make('title')->label('Заголовок')->searchable()->limit(50)->sortable(),
-                Tables\Columns\TextColumn::make('slug')->label('URL')->fontFamily('mono')->limit(30)->toggleable(),
+                Tables\Columns\TextColumn::make('blogCategory.name')->label('Рубрика')->badge()->toggleable(),
+                Tables\Columns\IconColumn::make('is_featured')->label('Реком.')->boolean()->toggleable(),
                 Tables\Columns\IconColumn::make('is_active')->label('Опубл.')->boolean(),
-                Tables\Columns\TextColumn::make('created_at')->label('Дата')->date('d.m.Y')->sortable(),
+                Tables\Columns\TextColumn::make('views')->label('👁')->sortable()->toggleable(),
+                Tables\Columns\TextColumn::make('published_at')->label('Дата')->date('d.m.Y')->sortable()->placeholder('—'),
             ])
             ->defaultSort('created_at', 'desc')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')->label('Опубліковано'),
+                Tables\Filters\SelectFilter::make('blog_category_id')
+                    ->label('Рубрика')
+                    ->relationship('blogCategory', 'name'),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),

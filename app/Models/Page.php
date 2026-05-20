@@ -45,6 +45,11 @@ class Page extends Model
         'icon',
         'og_image',
         'og_type',
+        'blog_category_id',
+        'author',
+        'published_at',
+        'views',
+        'is_featured',
     ];
 
     protected $casts = [
@@ -54,7 +59,33 @@ class Page extends Model
         'show_in_menu' => 'boolean',
         'show_in_footer' => 'boolean',
         'sort_order' => 'integer',
+        'is_featured' => 'boolean',
+        'published_at' => 'datetime',
+        'views' => 'integer',
     ];
+
+    /** Blog category (рубрика) — only meaningful for template=blog_post. */
+    public function blogCategory(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(BlogCategory::class, 'blog_category_id');
+    }
+
+    /** Estimated reading time in minutes from the content (~200 words/min). */
+    public function getReadingMinutesAttribute(): int
+    {
+        $raw = $this->getTranslation('content', 'uk', false) ?: ($this->content ?? '');
+        $plain = trim(strip_tags((string) $raw));
+        // Unicode-aware word count — str_word_count ignores Cyrillic.
+        $words = $plain !== '' ? preg_match_all('/[\pL\pN]+/u', $plain) : 0;
+
+        return max(1, (int) ceil($words / 200));
+    }
+
+    /** Public publish date — prefers published_at, falls back to created_at. */
+    public function getPublishedDateAttribute(): ?\Illuminate\Support\Carbon
+    {
+        return $this->published_at ?? $this->created_at;
+    }
 
     protected static function boot(): void
     {

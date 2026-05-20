@@ -724,31 +724,64 @@ class StoreController extends Controller
         return view('gazu.sto', ['activeNav' => 'sto']);
     }
 
-    public function blog(?string $slug = null)
+    public function blog(?string $slug = null, ?string $categorySlug = null)
     {
         if ($slug) {
             $page = \App\Models\Page::query()
                 ->where('is_active', true)
+                ->with('blogCategory')
                 ->where(function ($q) use ($slug) {
                     $q->where('slug->uk', $slug)->orWhere('slug->en', $slug)->orWhere('slug', $slug);
                 })
                 ->first();
             if (! $page) abort(404);
 
+            // Перегляди (не блокуючи рендер).
+            if (\Schema::hasColumn('pages', 'views')) {
+                try { $page->increment('views'); } catch (\Throwable $e) {}
+            }
+
+            // Схожі статті — з тієї ж рубрики, інакше останні.
+            $related = \App\Models\Page::query()
+                ->where('is_active', true)
+                ->where('template', 'blog_post')
+                ->where('id', '!=', $page->id)
+                ->when($page->blog_category_id, fn ($q) => $q->where('blog_category_id', $page->blog_category_id))
+                ->orderByDesc('id')
+                ->limit(3)
+                ->get();
+
             return view('gazu.blog-show', [
                 'page' => $page,
+                'related' => $related,
                 'activeNav' => 'blog',
             ]);
         }
 
+        $categories = \App\Models\BlogCategory::query()
+            ->where('is_active', true)
+            ->withCount(['posts as posts_count' => fn ($q) => $q->where('is_active', true)])
+            ->orderBy('sort_order')
+            ->get();
+
+        $activeCategory = $categorySlug
+            ? $categories->first(fn ($c) => $c->slug === $categorySlug)
+            : null;
+
         $posts = \App\Models\Page::query()
             ->where('is_active', true)
+            ->with('blogCategory')
             ->when(\Schema::hasColumn('pages', 'template'), fn ($q) => $q->where('template', 'blog_post'))
+            ->when($activeCategory, fn ($q) => $q->where('blog_category_id', $activeCategory->id))
+            ->orderByDesc(\Schema::hasColumn('pages', 'is_featured') ? 'is_featured' : 'id')
             ->orderByDesc('id')
-            ->paginate(12);
+            ->paginate(12)
+            ->withQueryString();
 
         return view('gazu.blog', [
             'posts' => $posts,
+            'categories' => $categories,
+            'activeCategory' => $activeCategory,
             'activeNav' => 'blog',
         ]);
     }
