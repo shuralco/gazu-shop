@@ -23,6 +23,23 @@ return new class extends Migration
         // Copy is_verified to is_verified_purchase
         DB::table('reviews')->where('is_verified', true)->update(['is_verified_purchase' => true]);
 
+        // Drop any composite index referencing is_approved first — sqlite refuses
+        // to drop a column still referenced by an index.
+        foreach ([
+            'reviews_product_id_is_approved_index',
+            'reviews_is_approved_index',
+            'idx_reviews_is_approved',
+            'idx_reviews_approved',
+            'reviews_product_approved_date_idx',
+            'reviews_approved_date_idx',
+        ] as $idx) {
+            try {
+                Schema::table('reviews', fn (Blueprint $table) => $table->dropIndex($idx));
+            } catch (\Throwable $e) {
+                // index may not exist on this connection — ignore
+            }
+        }
+
         Schema::table('reviews', function (Blueprint $table) {
             $table->dropColumn(['is_approved', 'is_verified']);
             $table->index('status');

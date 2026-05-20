@@ -27,6 +27,13 @@ return new class extends Migration
 
     private function convertToTranslatable(string $table, array $columns): void
     {
+        // MySQL-only data migration (SHOW INDEX / JSON_QUOTE / MODIFY LONGTEXT).
+        // On sqlite (testing) there's no legacy string data to convert and the
+        // columns work as TEXT, so skip cleanly.
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         foreach ($columns as $column) {
             // Drop indexes on this column
             $indexes = DB::select("SHOW INDEX FROM `{$table}` WHERE Column_name = ?", [$column]);
@@ -56,6 +63,10 @@ return new class extends Migration
 
     private function revertFromTranslatable(string $table, array $columns): void
     {
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         foreach ($columns as $column) {
             // Extract uk value from JSON
             DB::statement("
