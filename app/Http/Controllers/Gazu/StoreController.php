@@ -209,7 +209,13 @@ class StoreController extends Controller
             return \App\Models\CarMake::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
-                ->get(['id', 'slug', 'name'])
+                ->get(['id', 'slug', 'name', 'logo_path'])
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'slug' => $m->slug,
+                    'name' => $m->name,
+                    'logo' => $m->logo_url,
+                ])
                 ->toArray();
         });
 
@@ -1161,7 +1167,13 @@ class StoreController extends Controller
             return \App\Models\CarMake::query()
                 ->where('is_active', true)
                 ->orderBy('sort_order')
-                ->get(['id', 'slug', 'name'])
+                ->get(['id', 'slug', 'name', 'logo_path'])
+                ->map(fn ($m) => [
+                    'id' => $m->id,
+                    'slug' => $m->slug,
+                    'name' => $m->name,
+                    'logo' => $m->logo_url,
+                ])
                 ->all();
         });
         return response()->json(['items' => $items]);

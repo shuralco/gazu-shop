@@ -41,9 +41,16 @@ class CarMakeResource extends Resource
                 ->required()
                 ->maxLength(60)
                 ->unique(CarMake::class, 'slug', ignoreRecord: true),
-            Forms\Components\TextInput::make('logo_path')
-                ->label('Шлях до лого (опц.)')
-                ->maxLength(255),
+            Forms\Components\FileUpload::make('logo_path')
+                ->label('Логотип марки')
+                ->helperText('PNG/SVG/WEBP з прозорим фоном. Показується у підборі по авто на головній та в каталозі.')
+                ->image()
+                ->disk('public')
+                ->directory('car-makes')
+                ->visibility('public')
+                ->imageEditor()
+                ->maxSize(1024)
+                ->acceptedFileTypes(['image/png', 'image/svg+xml', 'image/webp', 'image/jpeg']),
             Forms\Components\TextInput::make('sort_order')
                 ->label('Порядок')
                 ->numeric()
@@ -59,6 +66,7 @@ class CarMakeResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('sort_order')->label('#')->sortable(),
+                Tables\Columns\ImageColumn::make('logo_path')->label('Лого')->disk('public')->height(28),
                 Tables\Columns\TextColumn::make('name')->label('Назва')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('slug')->label('Slug')->fontFamily('mono')->copyable(),
                 Tables\Columns\TextColumn::make('models_count')
