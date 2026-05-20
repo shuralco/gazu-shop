@@ -46,11 +46,15 @@
         foreach (array_slice($tree, 0, 8) as $i => $node) {
             $slug = $node['slug'] ?? null;
             $children = $node['children'] ?? [];
-            $photoPath = $slug ? public_path("img/categories/{$slug}.webp") : null;
-            // ?v=filemtime — cache-bust коли фото підмінюють (asset кеш max-age 7д).
-            $photoUrl = ($photoPath && is_file($photoPath))
-                ? asset("img/categories/{$slug}.webp").'?v='.@filemtime($photoPath)
-                : null;
+            // Пріоритет: admin-завантажене зображення категорії → Pexels-фото за slug.
+            $photoUrl = $node['image'] ?? null;
+            if (! $photoUrl) {
+                $photoPath = $slug ? public_path("img/categories/{$slug}.webp") : null;
+                // ?v=filemtime — cache-bust коли фото підмінюють (asset кеш max-age 7д).
+                $photoUrl = ($photoPath && is_file($photoPath))
+                    ? asset("img/categories/{$slug}.webp").'?v='.@filemtime($photoPath)
+                    : null;
+            }
             $cats[] = [
                 'name'   => $node['label'] ?? '—',
                 'count'  => $node['count'] ?? 0,

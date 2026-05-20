@@ -124,6 +124,7 @@ class Category extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'meta_keywords' => 'array',
     ];
 
     public function scopeActive(Builder $query): Builder

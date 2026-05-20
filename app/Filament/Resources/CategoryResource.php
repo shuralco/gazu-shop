@@ -51,6 +51,29 @@ class CategoryResource extends Resource
                                     ->searchable()
                                     ->default(0)
                                     ->columnSpan(1),
+                                Forms\Components\TextInput::make('sort_order')
+                                    ->label('Порядок сортування')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->columnSpan(1),
+                                Forms\Components\Toggle::make('is_active')
+                                    ->label('Активна')
+                                    ->default(true)
+                                    ->columnSpan(1),
+                                Forms\Components\FileUpload::make('image')
+                                    ->label('Зображення категорії')
+                                    ->helperText('Показується на плитці категорії на головній. PNG/JPG/WEBP. Якщо не задано — використовується стандартне фото.')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('categories')
+                                    ->visibility('public')
+                                    ->imageEditor()
+                                    ->maxSize(2048)
+                                    ->columnSpanFull(),
+                                Forms\Components\RichEditor::make('description')
+                                    ->label('Опис категорії')
+                                    ->helperText('SEO-текст, що виводиться на сторінці категорії. Покращує релевантність у пошуку.')
+                                    ->columnSpanFull(),
                             ])
                             ->columns(2),
 
@@ -100,7 +123,7 @@ class CategoryResource extends Resource
 
                                                     $titleTemplate = \App\Models\DisplaySetting::get('seo_category_title_template', '%s | SimpleShop');
                                                     $seoTitle = sprintf($titleTemplate, $title);
-                                                    $set('seo_title', $seoTitle);
+                                                    $set('meta_title', $seoTitle);
 
                                                     \Filament\Notifications\Notification::make()
                                                         ->title('Title згенеровано')
@@ -130,7 +153,7 @@ class CategoryResource extends Resource
 
                                                     $descriptionTemplate = \App\Models\DisplaySetting::get('seo_category_description_template', 'Великий вибір товарів у категорії %s. Швидка доставка по Україні. Гарантія якості.');
                                                     $seoDescription = sprintf($descriptionTemplate, $title);
-                                                    $set('seo_description', $seoDescription);
+                                                    $set('meta_description', $seoDescription);
 
                                                     \Filament\Notifications\Notification::make()
                                                         ->title('Description згенеровано')
@@ -165,7 +188,7 @@ class CategoryResource extends Resource
                                                         'каталог',
                                                         'україна',
                                                     ];
-                                                    $set('seo_keywords', $keywords);
+                                                    $set('meta_keywords', $keywords);
 
                                                     \Filament\Notifications\Notification::make()
                                                         ->title('Keywords згенеровано')
@@ -204,12 +227,12 @@ class CategoryResource extends Resource
                                             // Генеруємо SEO title
                                             $titleTemplate = \App\Models\DisplaySetting::get('seo_category_title_template', '%s | SimpleShop');
                                             $seoTitle = sprintf($titleTemplate, $title);
-                                            $set('seo_title', $seoTitle);
+                                            $set('meta_title', $seoTitle);
 
                                             // Генеруємо SEO description
                                             $descriptionTemplate = \App\Models\DisplaySetting::get('seo_category_description_template', 'Великий вибір товарів у категорії %s. Швидка доставка по Україні. Гарантія якості.');
                                             $seoDescription = sprintf($descriptionTemplate, $title);
-                                            $set('seo_description', $seoDescription);
+                                            $set('meta_description', $seoDescription);
 
                                             // Генеруємо keywords
                                             $keywords = [
@@ -219,7 +242,7 @@ class CategoryResource extends Resource
                                                 'каталог',
                                                 'україна',
                                             ];
-                                            $set('seo_keywords', $keywords);
+                                            $set('meta_keywords', $keywords);
 
                                             \Filament\Notifications\Notification::make()
                                                 ->title('Всі SEO поля згенеровано')
@@ -235,18 +258,18 @@ class CategoryResource extends Resource
                                     ->alphaDash()
                                     ->helperText('SEO дружній URL для категорії. Автоматично генерується при збереженні якщо порожній. Це поле перекладається для кожної мови.'),
 
-                                Forms\Components\TextInput::make('seo_title')
+                                Forms\Components\TextInput::make('meta_title')
                                     ->label('SEO Заголовок')
                                     ->maxLength(60)
                                     ->helperText('Оптимальна довжина: 50-60 символів'),
 
-                                Forms\Components\Textarea::make('seo_description')
+                                Forms\Components\Textarea::make('meta_description')
                                     ->label('SEO Опис')
                                     ->maxLength(155)
                                     ->helperText('Оптимальна довжина: 150-160 символів')
                                     ->rows(3),
 
-                                Forms\Components\TagsInput::make('seo_keywords')
+                                Forms\Components\TagsInput::make('meta_keywords')
                                     ->label('SEO Ключові слова')
                                     ->helperText('Натисніть Enter після введення кожного слова'),
                             ]),

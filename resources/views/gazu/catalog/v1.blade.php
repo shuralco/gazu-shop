@@ -88,8 +88,8 @@
         <div class="flex items-end justify-between mb-5 flex-wrap gap-2">
             <div>
                 <h1 class="gazu-display text-4xl font-semibold text-[var(--gazu-ink)] m-0">{{ $title }}</h1>
-                @if($category && $category->description ?? false)
-                    <p class="text-sm text-[var(--gazu-graphite)] mt-1.5 max-w-xl">{{ $category->description }}</p>
+                @if($category && ($category->description ?? false))
+                    <div class="text-sm text-[var(--gazu-graphite)] mt-1.5 max-w-xl gazu-prose">{!! $category->description !!}</div>
                 @elseif($searchQuery)
                     <p class="text-sm text-[var(--gazu-graphite)] mt-1.5">Знайдено {{ plural_uk_count($totalCount, 'товар', 'товари', 'товарів') }}</p>
                 @endif

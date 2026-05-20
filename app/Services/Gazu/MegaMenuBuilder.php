@@ -188,6 +188,11 @@ class MegaMenuBuilder
         }
 
         $slug = (string) ($root->slug ?? '');
+        // Admin-uploaded category image (public disk) → root-relative URL.
+        $img = $root->image ?? null;
+        $imageUrl = $img
+            ? (\Illuminate\Support\Str::startsWith($img, ['http://', 'https://', '/']) ? $img : asset('storage/'.ltrim($img, '/')))
+            : null;
         return [
             // `id` must be unique per root — use slug, not iconKey (which can
             // collide when two roots fall through to the same fallback icon).
@@ -196,6 +201,7 @@ class MegaMenuBuilder
             'slug'  => $slug,
             'label' => $titleStr,
             'count' => $count,
+            'image' => $imageUrl,
             'groups'=> $groups,
         ];
     }
