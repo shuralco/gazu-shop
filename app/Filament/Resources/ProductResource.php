@@ -293,75 +293,6 @@ class ProductResource extends Resource
                                     ->columns(2),
                             ]),
 
-                        Forms\Components\Tabs\Tab::make('Варіанти')
-                            ->icon('heroicon-o-squares-2x2')
-                            ->schema([
-                                Forms\Components\Repeater::make('options')
-                                    ->relationship('options')
-                                    ->schema([
-                                        Forms\Components\TextInput::make('name')
-                                            ->required()
-                                            ->label('Назва опції')
-                                            ->placeholder('Колір, Розмір, Пам\'ять...'),
-
-                                        Forms\Components\Select::make('type')
-                                            ->options([
-                                                'select' => 'Список',
-                                                'color' => 'Колір',
-                                                'button' => 'Кнопка',
-                                            ])
-                                            ->default('select')
-                                            ->label('Тип'),
-
-                                        Forms\Components\TextInput::make('sort_order')
-                                            ->numeric()
-                                            ->default(0)
-                                            ->label('Порядок'),
-
-                                        Forms\Components\Toggle::make('is_active')
-                                            ->default(true)
-                                            ->label('Активна'),
-
-                                        Forms\Components\Repeater::make('values')
-                                            ->relationship('values')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('value')
-                                                    ->required()
-                                                    ->label('Значення'),
-
-                                                Forms\Components\ColorPicker::make('color_hex')
-                                                    ->label('Колір'),
-
-                                                Forms\Components\TextInput::make('price_modifier')
-                                                    ->numeric()
-                                                    ->default(0)
-                                                    ->prefix('₴')
-                                                    ->label('Модифікатор ціни'),
-
-                                                Forms\Components\Toggle::make('is_active')
-                                                    ->default(true)
-                                                    ->label('Активне'),
-                                            ])
-                                            ->columns(4)
-                                            ->label('Значення опції')
-                                            ->addActionLabel('Додати значення')
-                                            ->collapsible()
-                                            ->defaultItems(0)
-                                            ->columnSpanFull(),
-                                    ])
-                                    ->columns(4)
-                                    ->label('Опції товару')
-                                    ->addActionLabel('Додати опцію')
-                                    ->collapsible()
-                                    ->defaultItems(0)
-                                    ->columnSpanFull(),
-
-                                Forms\Components\Placeholder::make('variants_info')
-                                    ->label('')
-                                    ->content('Після збереження опцій перейдіть до таблиці "Варіанти товару" нижче та натисніть "Генерувати варіанти" для автоматичного створення всіх комбінацій.')
-                                    ->columnSpanFull(),
-                            ]),
-
                         Forms\Components\Tabs\Tab::make('Медіа')
                             ->icon('heroicon-o-photo')
                             ->schema([
@@ -935,7 +866,6 @@ class ProductResource extends Resource
     {
         return [
             RelationManagers\InventoryRelationManager::class,
-            RelationManagers\VariantsRelationManager::class,
             RelationManagers\RelatedProductsRelationManager::class,
             RelationManagers\GroupPricesRelationManager::class,
             RelationManagers\FiltersRelationManager::class,
