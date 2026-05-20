@@ -84,7 +84,7 @@
         </div>
     </div>
     <div class="border-t border-[#1A2740] gazu-container py-5 flex items-center gap-6 text-xs text-[#5A6573] flex-wrap">
-        <span>© {{ date('Y') }} GAZU. Всі права захищені.</span>
+        <span>© {{ date('Y') }} {{ $s['gazu_brand_name'] ?? 'GAZU' }}. Всі права захищені.</span>
         <span class="flex-1"></span>
         @foreach(array_filter(array_map('trim', explode(',', $payments))) as $pay)
             <span>{{ $pay }}</span>

@@ -18,7 +18,7 @@
                     {{ $heroTitle1 }}<br>{!! $heroTitle2Html !!}
                 </h1>
                 <p class="text-[15px] sm:text-[16px] text-[var(--gazu-graphite)] leading-relaxed mt-5 max-w-md">
-                    BYD, Chery, Geely, Haval, Great Wall, JAC, MG, VW. У наявності 1278+ оригінальних запчастин і перевірених аналогів. Доставка 1-3 дні по Україні.
+                    {{ $s['gazu_hero_description'] ?? 'BYD, Chery, Geely, Haval, Great Wall, JAC, MG, VW. У наявності 1278+ оригінальних запчастин і перевірених аналогів. Доставка 1-3 дні по Україні.' }}
                 </p>
 
                 {{-- Primary CTA buttons --}}
