@@ -66,10 +66,11 @@ class GazuMenuComposer
             try {
                 return \App\Models\CarMake::query()
                     ->when(\Schema::hasColumn('car_makes', 'is_active'), fn ($q) => $q->where('is_active', true))
+                    ->when(\Schema::hasColumn('car_makes', 'sort_order'), fn ($q) => $q->orderBy('sort_order'))
                     ->orderBy('name')
                     ->limit(12)
-                    ->get(['id', 'name', 'slug'])
-                    ->map(fn ($m) => ['name' => (string) $m->name, 'slug' => (string) $m->slug])
+                    ->get(['id', 'name', 'slug', 'logo_path'])
+                    ->map(fn ($m) => ['name' => (string) $m->name, 'slug' => (string) $m->slug, 'logo' => $m->logo_url])
                     ->filter(fn ($m) => $m['name'] && $m['slug'])
                     ->values()
                     ->all();

@@ -134,10 +134,13 @@
                 <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase font-semibold mb-2">Марки</div>
                 <div class="flex flex-col gap-0.5">
                     @foreach($cars as $c)
-                        @php $name = is_array($c) ? ($c['name'] ?? '') : (string) $c; $slug = is_array($c) ? ($c['slug'] ?? \Illuminate\Support\Str::slug($name)) : \Illuminate\Support\Str::slug($name); @endphp
+                        @php $name = is_array($c) ? ($c['name'] ?? '') : (string) $c; $slug = is_array($c) ? ($c['slug'] ?? \Illuminate\Support\Str::slug($name)) : \Illuminate\Support\Str::slug($name); $logo = is_array($c) ? ($c['logo'] ?? null) : null; @endphp
                         @if($name && $slug)
                             <a wire:navigate href="{{ route('gazu.catalog.by-make', ['make' => $slug]) }}"
                                class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs hover:bg-[var(--gazu-mist)]">
+                                <span class="w-6 h-6 rounded overflow-hidden inline-flex items-center justify-center shrink-0 {{ $logo ? '' : 'bg-[var(--gazu-mist)] text-[10px] gazu-mono font-bold text-[var(--gazu-blue)]' }}">
+                                    @if($logo)<img src="{{ $logo }}" alt="{{ $name }}" class="w-full h-full object-cover" loading="lazy">@else{{ mb_substr($name, 0, 2) }}@endif
+                                </span>
                                 <span class="flex-1">{{ $name }}</span>
                             </a>
                         @endif
@@ -243,10 +246,14 @@
                                 $name = (string) $name;
                                 $slug = is_array($c) ? ((string) ($c['slug'] ?? '')) : '';
                                 if ($slug === '' && $name !== '') $slug = \Illuminate\Support\Str::slug($name);
+                                $logo = is_array($c) ? ($c['logo'] ?? null) : null;
                             @endphp
                             @if($name && $slug)
                                 <a wire:navigate href="{{ route('gazu.catalog.by-make', ['make' => $slug]) }}"
                                    class="flex items-center gap-2 px-2 py-1.5 rounded no-underline text-[var(--gazu-ink)] text-xs hover:bg-[var(--gazu-mist)]">
+                                    <span class="w-6 h-6 rounded overflow-hidden inline-flex items-center justify-center shrink-0 {{ $logo ? '' : 'bg-[var(--gazu-mist)] text-[10px] gazu-mono font-bold text-[var(--gazu-blue)]' }}">
+                                        @if($logo)<img src="{{ $logo }}" alt="{{ $name }}" class="w-full h-full object-cover" loading="lazy">@else{{ mb_substr($name, 0, 2) }}@endif
+                                    </span>
                                     <span class="flex-1">{{ $name }}</span>
                                 </a>
                             @endif
