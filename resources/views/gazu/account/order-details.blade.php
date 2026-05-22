@@ -139,7 +139,9 @@
             {{-- Actions --}}
             <div class="flex gap-2 flex-wrap">
                 <a wire:navigate href="{{ route('gazu.account') }}" class="gazu-btn-outline no-underline">← Усі замовлення</a>
-                @if($needsPayment)
+                {{-- Кнопку оплати приховано, доки не підключено платіжний шлюз
+                     (увімкнути: DisplaySetting gazu_payment_enabled = true). --}}
+                @if($needsPayment && \App\Models\DisplaySetting::get('gazu_payment_enabled', false))
                     <a href="{{ route('gazu.order.payment', ['order' => $order->id]) }}" class="gazu-btn-primary no-underline">💳 Перейти до оплати</a>
                 @endif
                 <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Замовити ще</a>

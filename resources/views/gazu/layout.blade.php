@@ -63,13 +63,20 @@
                                     method: 'POST',
                                     headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': window.GAZU_CSRF },
                                     body: JSON.stringify({ ids: [...guest] })
-                                }).then(function () {
+                                }).then(function (r) { return r.json(); }).then(function (d) {
+                                    if (! d || ! d.ok) { emit(); return; }   // не чистимо localStorage якщо merge не вдався
                                     guest.forEach(function (id) { window.GAZU_WISHLIST_IDS.add(id); });
                                     try { localStorage.removeItem(LS_KEY); } catch (e) {}
+                                    // Сторінка /wishlist рендериться сервером ДО merge → reload щоб
+                                    // показати щойно перенесені товари.
+                                    if (location.pathname.indexOf('wishlist') !== -1 || location.pathname.indexOf('obrane') !== -1) {
+                                        location.reload(); return;
+                                    }
                                     emit();
-                                }).catch(function () {});
+                                }).catch(function () { emit(); });
+                            } else {
+                                emit();
                             }
-                            emit();
                         })
                         .catch(function () {});
                 } else {

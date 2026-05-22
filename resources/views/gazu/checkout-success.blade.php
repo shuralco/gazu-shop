@@ -139,8 +139,9 @@
                 && $order->payment_status !== 'paid';
         @endphp
 
+        @php $paymentEnabled = \App\Models\DisplaySetting::get('gazu_payment_enabled', false); @endphp
         <div class="flex gap-2 justify-center flex-wrap">
-            @if($needsPayment)
+            @if($needsPayment && $paymentEnabled)
                 @auth
                     <a wire:navigate href="{{ route('gazu.order.payment', ['order' => $order->id]) }}"
                        class="gazu-btn-primary no-underline">
@@ -162,7 +163,11 @@
 
         @if($needsPayment)
             <div class="mt-4 text-xs text-[var(--gazu-graphite)] max-w-md mx-auto">
-                Замовлення оформлено, але не оплачено. Натисніть «Перейти до оплати», щоб завершити платіж через WayForPay/LiqPay/Monobank.
+                @if($paymentEnabled)
+                    Замовлення оформлено, але не оплачено. Натисніть «Перейти до оплати», щоб завершити платіж.
+                @else
+                    Замовлення прийнято. Менеджер зв'яжеться з вами для підтвердження та оплати.
+                @endif
             </div>
         @endif
     </div>
