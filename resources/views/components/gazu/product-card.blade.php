@@ -50,20 +50,11 @@
                 x-init="if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true;
                         window.addEventListener('gazu:wishlist-ids-loaded', () => { if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true; });"
                 @click.prevent="
-                    if (busy) return;
-                    busy = true;
-                    fetch('{{ route('gazu.wishlist.toggle') }}', {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
-                        body: new URLSearchParams({ product_id: '{{ $productId }}' })
-                    }).then(r => r.json()).then(d => {
-                        if (d.ok) {
-                            active = d.in_wishlist;
-                            if (active) { burst = true; setTimeout(() => burst = false, 600); }
-                            window.gazuToast && window.gazuToast(active ? 'Додано в обране ❤' : 'Видалено з обраного', active ? 'success' : 'info');
-                        } else if (d.redirect) { window.location = d.redirect; }
-                    }).catch(() => { window.location = '{{ route('gazu.auth') }}'; })
-                      .finally(() => { busy = false; });
+                    if (busy) return; busy = true;
+                    Promise.resolve(window.gazuWishlistToggle({{ (int) $productId }})).then(inWl => {
+                        active = inWl;
+                        if (active) { burst = true; setTimeout(() => burst = false, 600); }
+                    }).finally(() => { busy = false; });
                 "
                 :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
                 :class="active ? 'text-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] hover:text-[var(--gazu-danger)]'"

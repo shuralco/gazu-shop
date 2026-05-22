@@ -118,6 +118,7 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     $wish = \App\Http\Controllers\Gazu\WishlistController::class;
     Route::get('/wishlist', [$wish, 'index'])->name('wishlist');
     Route::post('/wishlist/toggle', [$wish, 'toggle'])->name('wishlist.toggle');
+    Route::post('/wishlist/merge', [$wish, 'merge'])->name('wishlist.merge');
     Route::get('/api/wishlist/ids', [$wish, 'ids'])->name('wishlist.ids');
 
     // Callback request (footer popup, throttled).

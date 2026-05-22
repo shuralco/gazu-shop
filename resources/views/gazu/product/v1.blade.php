@@ -228,10 +228,7 @@
                                         window.addEventListener('gazu:wishlist-ids-loaded', () => { if (window.GAZU_WISHLIST_IDS && window.GAZU_WISHLIST_IDS.has({{ (int) $productId }})) active = true; });"
                                 @click.prevent.stop="
                                     if (busy) return; busy = true;
-                                    fetch('{{ route('gazu.wishlist.toggle') }}', { method: 'POST', headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' }, body: new URLSearchParams({ product_id: '{{ $productId }}' }) })
-                                      .then(r => r.json()).then(d => { if (d.ok) { active = d.in_wishlist; window.gazuToast && window.gazuToast(active ? 'Додано в обране ❤' : 'Видалено з обраного', active ? 'success' : 'info'); } else if (d.redirect) { window.location = d.redirect; } })
-                                      .catch(() => { window.location = '{{ route('gazu.auth') }}'; })
-                                      .finally(() => busy = false);"
+                                    Promise.resolve(window.gazuWishlistToggle({{ (int) $productId }})).then(inWl => { active = inWl; }).finally(() => busy = false);"
                                 :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
                                 :class="active ? 'text-[var(--gazu-danger)] border-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] border-[var(--gazu-line)] hover:text-[var(--gazu-danger)]'"
                                 class="absolute top-3.5 right-3.5 w-9 h-9 border bg-white rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors z-[2]">

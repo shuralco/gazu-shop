@@ -62,6 +62,36 @@ class WishlistController extends Controller
         return back()->with('flash_message', $added ? 'Додано в обране ❤' : 'Видалено з обраного');
     }
 
+    /**
+     * Merge гостьового wishlist (з localStorage) у акаунт після логіну.
+     * Приймає масив product_id; додає відсутні. Idempotent.
+     */
+    public function merge(Request $request)
+    {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['ok' => false], 401);
+        }
+
+        $ids = collect($request->input('ids', []))
+            ->map(fn ($v) => (int) $v)
+            ->filter()
+            ->unique()
+            ->take(200)
+            ->all();
+
+        if (! empty($ids)) {
+            // Тільки існуючі активні товари.
+            $valid = Product::whereIn('id', $ids)->where('is_active', true)->pluck('id')->all();
+            if (! empty($valid)) {
+                $user->wishlistProducts()->syncWithoutDetaching($valid);
+            }
+        }
+
+        $count = \DB::table('wishlists')->where('user_id', $user->id)->count();
+        return response()->json(['ok' => true, 'count' => $count]);
+    }
+
     public function index(Request $request)
     {
         $user = $request->user();

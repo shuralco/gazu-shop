@@ -146,14 +146,14 @@
         {{-- Actions — compact on mobile (9×9), full from sm: up (11×11).
              ml-auto pushes them to the right edge of row 1 on mobile. --}}
         <div class="flex items-center gap-1 shrink-0 ml-auto lg:ml-0">
-            <a wire:navigate href="{{ route('gazu.wishlist') }}" title="Обране" aria-label="Список обраних товарів" class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
+            @php $wlc = auth()->check() ? \DB::table('wishlists')->where('user_id', auth()->id())->count() : 0; @endphp
+            <a wire:navigate href="{{ route('gazu.wishlist') }}" title="Обране" aria-label="Список обраних товарів"
+               x-data="{ count: {{ (int) $wlc }} }"
+               x-on:gazu:wishlist-changed.window="count = $event.detail.count"
+               x-init="$nextTick(() => { if (window.GAZU_WISHLIST_IDS) count = window.GAZU_WISHLIST_IDS.size; })"
+               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="heart" size="20"/>
-                @auth
-                    @php $wlc = \DB::table('wishlists')->where('user_id', auth()->id())->count(); @endphp
-                    @if($wlc > 0)
-                        <span class="absolute -top-1 -right-1 bg-[var(--gazu-danger)] text-white rounded-full min-w-[18px] h-[18px] text-[11px] font-semibold flex items-center justify-center px-1">{{ $wlc }}</span>
-                    @endif
-                @endauth
+                <span x-show="count > 0" x-cloak class="absolute -top-1 -right-1 bg-[var(--gazu-danger)] text-white rounded-full min-w-[18px] h-[18px] text-[11px] font-semibold flex items-center justify-center px-1" x-text="count"></span>
             </a>
             <a wire:navigate href="{{ auth()->check() ? route('gazu.account') : route('gazu.auth') }}"
                title="{{ auth()->check() ? auth()->user()->name : 'Вхід / Реєстрація' }}"

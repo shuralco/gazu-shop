@@ -30,20 +30,87 @@
             if (tokenInput) tokenInput.value = window.GAZU_CSRF;
         }, true);
 
-        // Wishlist client-side hydration: HTML кешований ResponseCache → server-side
-        // $inWishlist неконсистентний для різних users. JS витягує справжні wishlist
-        // ids поточного user і dispatch event щоб кожна product-card оновила heart-state.
+        // Wishlist: гість зберігає в localStorage (без авторизації), залогінений —
+        // на сервері. Перегляд /wishlist потребує логіну. window.gazuWishlistToggle()
+        // — єдина точка для всіх сердечок.
         (function () {
+            window.GAZU_AUTH = {{ auth()->check() ? 'true' : 'false' }};
             window.GAZU_WISHLIST_IDS = new Set();
-            function loadIds() {
-                fetch('{{ route('gazu.wishlist.ids') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
-                    .then(function (r) { return r.ok ? r.json() : { ids: [] }; })
-                    .then(function (d) {
-                        window.GAZU_WISHLIST_IDS = new Set((d.ids || []).map(Number));
-                        window.dispatchEvent(new CustomEvent('gazu:wishlist-ids-loaded'));
-                    })
-                    .catch(function () {});
+            var LS_KEY = 'gazu_wishlist';
+
+            function lsGet() {
+                try { return new Set((JSON.parse(localStorage.getItem(LS_KEY) || '[]') || []).map(Number)); }
+                catch (e) { return new Set(); }
             }
+            function lsSet(set) {
+                try { localStorage.setItem(LS_KEY, JSON.stringify([...set])); } catch (e) {}
+            }
+            function emit() {
+                window.dispatchEvent(new CustomEvent('gazu:wishlist-ids-loaded'));
+                window.dispatchEvent(new CustomEvent('gazu:wishlist-changed', { detail: { count: window.GAZU_WISHLIST_IDS.size } }));
+            }
+
+            function loadIds() {
+                if (window.GAZU_AUTH) {
+                    fetch('{{ route('gazu.wishlist.ids') }}', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                        .then(function (r) { return r.ok ? r.json() : { ids: [] }; })
+                        .then(function (d) {
+                            window.GAZU_WISHLIST_IDS = new Set((d.ids || []).map(Number));
+                            // Merge будь-яких гостьових айтемів у акаунт (одноразово після логіну).
+                            var guest = lsGet();
+                            if (guest.size) {
+                                fetch('{{ route('gazu.wishlist.merge') }}', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': window.GAZU_CSRF },
+                                    body: JSON.stringify({ ids: [...guest] })
+                                }).then(function () {
+                                    guest.forEach(function (id) { window.GAZU_WISHLIST_IDS.add(id); });
+                                    try { localStorage.removeItem(LS_KEY); } catch (e) {}
+                                    emit();
+                                }).catch(function () {});
+                            }
+                            emit();
+                        })
+                        .catch(function () {});
+                } else {
+                    window.GAZU_WISHLIST_IDS = lsGet();
+                    emit();
+                }
+            }
+
+            // Єдина точка toggling для всіх сердечок. Повертає Promise<bool inWishlist>.
+            window.gazuWishlistToggle = function (pid) {
+                pid = Number(pid);
+                if (window.GAZU_AUTH) {
+                    return fetch('{{ route('gazu.wishlist.toggle') }}', {
+                        method: 'POST',
+                        headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
+                        body: new URLSearchParams({ product_id: String(pid) })
+                    }).then(function (r) { return r.json(); }).then(function (d) {
+                        if (d.ok) {
+                            if (d.in_wishlist) window.GAZU_WISHLIST_IDS.add(pid); else window.GAZU_WISHLIST_IDS.delete(pid);
+                            window.dispatchEvent(new CustomEvent('gazu:wishlist-changed', { detail: { count: window.GAZU_WISHLIST_IDS.size } }));
+                            window.gazuToast && window.gazuToast(d.in_wishlist ? 'Додано в обране ❤' : 'Видалено з обраного', d.in_wishlist ? 'success' : 'info');
+                            return d.in_wishlist;
+                        }
+                        return window.GAZU_WISHLIST_IDS.has(pid);
+                    });
+                }
+                // Гість — localStorage
+                var set = lsGet();
+                var added;
+                if (set.has(pid)) { set.delete(pid); added = false; } else { set.add(pid); added = true; }
+                lsSet(set);
+                window.GAZU_WISHLIST_IDS = set;
+                window.dispatchEvent(new CustomEvent('gazu:wishlist-changed', { detail: { count: set.size } }));
+                if (added) {
+                    window.gazuToast && window.gazuToast('Збережено в обране · увійдіть, щоб переглянути', 'info', { action: { label: 'Увійти', href: '{{ route('gazu.auth') }}' } });
+                } else {
+                    window.gazuToast && window.gazuToast('Видалено з обраного', 'info');
+                }
+                return Promise.resolve(added);
+            };
+
             if (document.readyState !== 'loading') loadIds();
             else document.addEventListener('DOMContentLoaded', loadIds);
             document.addEventListener('livewire:navigated', loadIds);
@@ -320,6 +387,9 @@
             <svg x-show="t.type === 'error'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg>
             <svg x-show="t.type === 'info'" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
             <span class="text-sm font-medium" x-text="t.message"></span>
+            <template x-if="t.action">
+                <a :href="t.action.href" class="ml-1 text-sm font-semibold underline underline-offset-2 text-white whitespace-nowrap" x-text="t.action.label"></a>
+            </template>
             <button type="button" @click="dismiss(t.id)" class="ml-2 bg-transparent border-0 text-white/80 hover:text-white cursor-pointer" aria-label="Закрити">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
             </button>
