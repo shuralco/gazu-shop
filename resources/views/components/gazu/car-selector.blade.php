@@ -108,9 +108,9 @@
                         :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]'"
                         class="gazu-tile-in flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[56px]">
                     <div class="w-9 h-9 rounded-md inline-flex items-center justify-center shrink-0 overflow-hidden"
-                         :class="(item.logo && activeLevel() === 'make') ? 'bg-white border border-[var(--gazu-line)]' : 'bg-[var(--gazu-mist)]'">
+                         :class="(item.logo && activeLevel() === 'make') ? '' : 'bg-[var(--gazu-mist)]'">
                         <template x-if="item.logo && activeLevel() === 'make'">
-                            <img :src="item.logo" :alt="item.name" class="w-full h-full object-contain p-1" loading="lazy">
+                            <img :src="item.logo" :alt="item.name" class="w-full h-full object-cover" loading="lazy">
                         </template>
                         <template x-if="!(item.logo && activeLevel() === 'make')">
                             <span class="text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase" x-text="itemBadge(item)"></span>
