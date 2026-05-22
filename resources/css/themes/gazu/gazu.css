@@ -135,11 +135,18 @@ html.gazu, body.gazu {
     .gazu-grid-list > *:nth-child(3) { border-left: 1px solid var(--gazu-line) !important; padding-left: 20px !important; border-top: 0; padding-top: 0; }
 }
 
-.gazu-grid-hero-vin { display: grid; gap: 48px; grid-template-columns: 1fr; align-items: center; }
+/* align-items: start (не center) — інакше колонки ре-центруються по вертикалі
+   коли висота car-selector змінюється між кроками вибору → блок «скаче». */
+.gazu-grid-hero-vin { display: grid; gap: 48px; grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 1024px) { .gazu-grid-hero-vin { grid-template-columns: 1.2fr 1fr; } }
 
-.gazu-grid-hero-picker { display: grid; gap: 60px; grid-template-columns: 1fr; align-items: center; }
+.gazu-grid-hero-picker { display: grid; gap: 60px; grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 1024px) { .gazu-grid-hero-picker { grid-template-columns: 1fr 1.1fr; } }
+
+/* Стабільна зона вибору авто — резервує місце під плитки, щоб блок не стрибав
+   при перемиканні кроків (марка → модель → двигун) з різною к-стю плиток. */
+.gazu-selector-step { min-height: 184px; }
+@media (min-width: 1024px) { .gazu-selector-step { min-height: 208px; } }
 
 .gazu-grid-product-tabs { display: grid; gap: 28px; grid-template-columns: 1fr; }
 @media (min-width: 768px) { .gazu-grid-product-tabs { grid-template-columns: 1.1fr 1fr; } }

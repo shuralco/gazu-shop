@@ -85,9 +85,10 @@
         </template>
     </div>
 
-    {{-- Active step tile grid — auto height (підлаштовується під 8/4/2 tiles),
-         min-h тільки для loading skeleton щоб не стрибало під час fetch. --}}
-    <div x-show="activeLevel()" class="flex flex-col" :class="loading ? 'min-h-[120px]' : ''">
+    {{-- Active step tile grid. Стабільний min-height резервує місце під ~3 ряди
+         плиток, щоб блок не «скакав» при переході між кроками (8 марок → 2 моделі
+         → 3 двигуни) та під час fetch. --}}
+    <div x-show="activeLevel()" class="flex flex-col gazu-selector-step">
         {{-- Loading skeleton --}}
         <div x-show="loading" x-cloak class="grid grid-cols-2 gap-2 flex-1">
             <template x-for="i in 4" :key="i">
