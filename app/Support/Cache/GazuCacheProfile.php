@@ -24,6 +24,9 @@ class GazuCacheProfile extends BaseCacheProfile
     protected array $excludedPathPrefixes = [
         'admin', 'cart', 'checkout', 'account', 'login', 'register', 'logout',
         'api', 'storage', 'livewire', 'sanctum', 'horizon', 'telescope',
+        // User-specific — ніколи не кешувати (інакше guest empty-state «протікає»
+        // авторизованим або навпаки).
+        'wishlist', 'obrane', 'kabinet', 'zamovlennya', 'garazh',
     ];
 
     public function shouldCacheRequest(Request $request): bool
