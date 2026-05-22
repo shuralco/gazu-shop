@@ -201,7 +201,7 @@
                 ];
             @endphp
             <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
-                <div class="aspect-square bg-white shadow-[0_1px_0_0_var(--gazu-line)] rounded-2xl relative overflow-hidden cursor-zoom-in group/main"
+                <div class="aspect-square bg-white rounded-lg relative overflow-hidden cursor-zoom-in group/main"
                      @click="zoom = true" title="Натисніть щоб збільшити">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
                     @foreach($variants as $i => $seed)
@@ -278,9 +278,9 @@
                     @foreach($variants as $i => $seed)
                         <button type="button"
                                 @click="idx = {{ $i }}" @mouseover="idx = {{ $i }}"
-                                :class="idx === {{ $i }} ? 'border-[var(--gazu-ink)] ring-2 ring-[var(--gazu-blue)]/20' : 'border-[var(--gazu-line)] hover:border-[var(--gazu-graphite)]'"
-                                class="aspect-square bg-[var(--gazu-paper)] rounded-md border-2 p-1.5 cursor-pointer transition-all flex items-center justify-center">
-                            <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
+                                :class="idx === {{ $i }} ? 'ring-2 ring-[var(--gazu-blue)] ring-offset-1' : 'opacity-80 hover:opacity-100'"
+                                class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden cursor-pointer transition-all">
+                            <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit class="w-full h-full object-cover"/>
                         </button>
                     @endforeach
                 </div>
