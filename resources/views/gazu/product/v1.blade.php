@@ -48,7 +48,9 @@
                 ->limit(100)
                 ->get();
             foreach ($engines as $eng) {
-                $makeName  = $eng->model->make->name ?? '—';
+                $makeModel = $eng->model->make ?? null;
+                $makeName  = $makeModel->name ?? '—';
+                $makeLogo  = $makeModel?->logo_url;
                 $modelName = $eng->model->name ?? '—';
                 $years = '';
                 if (! empty($eng->model->year_from) || ! empty($eng->model->year_to)) {
@@ -56,7 +58,7 @@
                     $years = trim($years, '–') ?: '—';
                 }
                 $engineLabel = trim(($eng->label ?? '') . ' ' . ($eng->code ?? ''));
-                $compat[] = [$makeName, $modelName, $years ?: '—', $engineLabel ?: '—'];
+                $compat[] = [$makeName, $modelName, $years ?: '—', $engineLabel ?: '—', $makeLogo];
             }
         } catch (\Throwable $e) { /* relation might not exist on mock $p */ }
     }
@@ -66,7 +68,7 @@
         if (is_array($rawCompat) && ! empty($rawCompat)) {
             foreach ($rawCompat as $row) {
                 if (is_array($row)) {
-                    $compat[] = [$row['make'] ?? '—', $row['model'] ?? '—', $row['years'] ?? '—', $row['engine'] ?? '—'];
+                    $compat[] = [$row['make'] ?? '—', $row['model'] ?? '—', $row['years'] ?? '—', $row['engine'] ?? '—', null];
                 }
             }
         }
@@ -504,7 +506,14 @@
                                     <tbody>
                                         @foreach($compat as $r)
                                             <tr class="border-t border-[var(--gazu-line)]">
-                                                <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">{{ $r[0] }}</td>
+                                                <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">
+                                                    <span class="inline-flex items-center gap-2">
+                                                        <span class="w-6 h-6 rounded overflow-hidden inline-flex items-center justify-center shrink-0 {{ ($r[4] ?? null) ? '' : 'bg-[var(--gazu-mist)] text-[9px] gazu-mono text-[var(--gazu-blue)]' }}">
+                                                            @if($r[4] ?? null)<img src="{{ $r[4] }}" alt="{{ $r[0] }}" class="w-full h-full object-cover" loading="lazy">@else{{ mb_substr($r[0], 0, 2) }}@endif
+                                                        </span>
+                                                        <span>{{ $r[0] }}</span>
+                                                    </span>
+                                                </td>
                                                 <td class="px-3.5 py-3 text-[var(--gazu-ink)]">{{ $r[1] }}</td>
                                                 <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[2] }}</td>
                                                 <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[3] }}</td>
