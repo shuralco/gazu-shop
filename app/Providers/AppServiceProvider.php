@@ -109,6 +109,8 @@ class AppServiceProvider extends ServiceProvider
         $this->registerViewComposers();
 
         \App\Support\ModuleDiscovery::bootModuleResources($this->app);
+
+        \App\Support\ThemeDiscovery::bootActiveTheme($this->app);
     }
 
     /**

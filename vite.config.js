@@ -7,7 +7,7 @@ export default defineConfig({
         laravel({
             input: [
                 'resources/css/app.css',
-                'resources/css/themes/gazu/gazu.css',
+                'themes/gazu/resources/css/gazu.css',
                 'resources/js/app.js',
             ],
             refresh: true,

@@ -1,11 +1,12 @@
-/* GAZU — separate Tailwind entry (does NOT touch resources/css/app.css).
-   Used only for /gazu/* pages via @vite('resources/css/themes/gazu/gazu.css'). */
+/* GAZU theme — separate Tailwind entry (does NOT touch resources/css/app.css).
+   Loaded via @vite('themes/gazu/resources/css/gazu.css'). */
 
 @import 'tailwindcss';
 @import './tokens.css';
 
-@source '../../../views/gazu/**/*.blade.php';
-@source '../../../views/components/gazu/**/*.blade.php';
+@source '../../../../resources/views/gazu/**/*.blade.php';
+@source '../../../../resources/views/components/gazu/**/*.blade.php';
+@source '../views/**/*.blade.php';
 
 @theme {
     --color-gazu-ink:        #0E1B2C;
