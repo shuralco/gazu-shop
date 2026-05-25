@@ -1,0 +1,26 @@
+{
+    "name": "loyalty",
+    "label": "Програма лояльності",
+    "description": "Бонусні бали, рівні клієнтів, історія транзакцій, нарахування у дні народження, експірація балів.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "requires_modules": [],
+    "composer_packages": [],
+    "providers": [],
+    "filament_resources": [
+        "App\\Filament\\Resources\\LoyaltyTierResource",
+        "App\\Filament\\Resources\\LoyaltyTransactionResource"
+    ],
+    "filament_pages": [],
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "loyalty",
+    "routes": "routes/web.php",
+    "translations_path": "resources/lang",
+    "settings_schema": {
+        "default_rate": { "type": "int", "default": 1 },
+        "min_redemption": { "type": "int", "default": 50 }
+    },
+    "enabled_by_default": true
+}

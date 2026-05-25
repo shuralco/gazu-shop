@@ -1,0 +1,21 @@
+{
+    "name": "auto_parts_seed",
+    "label": "Auto-parts demo каталог",
+    "description": "Готовий пакет з категоріями, брендами, товарами автозапчастин (seeders). Запуск: php artisan db:seed --class=AutoPartsSeeder",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "requires_modules": [],
+    "composer_packages": [],
+    "providers": [],
+    "filament_resources": [],
+    "filament_pages": [],
+    "migrations_path": "database/migrations",
+    "seeders_path": "database/seeders",
+    "views_path": "resources/views",
+    "views_namespace": "auto_parts_seed",
+    "routes": "routes/web.php",
+    "translations_path": "resources/lang",
+    "settings_schema": {},
+    "enabled_by_default": false
+}
