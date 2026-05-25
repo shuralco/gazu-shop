@@ -51,9 +51,9 @@ class AdminPanelProvider extends PanelProvider
                 \App\Filament\Pages\DemoCatalogGenerator::class,
             ], $this->collectModulePages()))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([
+            ->widgets(array_merge([
                 Widgets\AccountWidget::class,
-            ])
+            ], $this->collectModuleWidgets()))
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -92,6 +92,14 @@ class AdminPanelProvider extends PanelProvider
     private function collectModulePages(): array
     {
         return $this->collectModuleClasses('filament_pages');
+    }
+
+    /**
+     * @return array<int, class-string>
+     */
+    private function collectModuleWidgets(): array
+    {
+        return $this->collectModuleClasses('filament_widgets');
     }
 
     /**

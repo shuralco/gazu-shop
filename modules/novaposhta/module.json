@@ -1,0 +1,31 @@
+{
+    "name": "novaposhta",
+    "label": "Нова Пошта",
+    "description": "Повна інтеграція з API Нової Пошти: TTN, сканлисти, трекінг, селектор відділень, webhooks, авто-detect.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "requires_modules": [],
+    "composer_packages": [],
+    "providers": [],
+    "filament_resources": [
+        "App\\Filament\\Resources\\NpShipmentResource",
+        "App\\Filament\\Resources\\NpScanSheetResource",
+        "App\\Filament\\Resources\\NpApiLogResource",
+        "App\\Filament\\Resources\\NpWebhookLogResource"
+    ],
+    "filament_pages": [
+        "App\\Filament\\Pages\\NovaPoshtaSettings"
+    ],
+    "filament_widgets": [
+        "App\\Filament\\Widgets\\NovaPoshtaStatsWidget",
+        "App\\Filament\\Widgets\\NovaPoshtaWidget"
+    ],
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "novaposhta",
+    "routes": "routes/web.php",
+    "translations_path": "resources/lang",
+    "settings_schema": {},
+    "enabled_by_default": true
+}
