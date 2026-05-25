@@ -50,6 +50,10 @@ WORKDIR /var/www/html
 # Copy composer files first for better layer caching
 COPY composer.json composer.lock ./
 
+# composer.json has classmap: ["modules/"] for plugin-style modular system
+# (see modules/README.md). The dir must exist at install time even if empty.
+RUN mkdir -p modules
+
 # Install dependencies (without scripts since app files aren't copied yet)
 RUN composer install --no-dev --optimize-autoloader --no-interaction --no-scripts
 
@@ -69,6 +73,11 @@ RUN mkdir -p storage/logs \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage \
     && chmod -R 775 /var/www/html/bootstrap/cache
+
+# Regenerate classmap — modules/ classmap was scanned in earlier step when
+# the dir was empty (placeholder). Now that real modules/* files are present,
+# we need a fresh classmap so module classes (App\Models\NpShipment, etc.) resolve.
+RUN composer dump-autoload --no-dev --optimize --no-scripts
 
 # Run post-install scripts (package:discover, etc.) and publish Filament assets
 RUN composer run-script post-autoload-dump --no-interaction \

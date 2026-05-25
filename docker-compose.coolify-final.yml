@@ -42,6 +42,10 @@ services:
       - ./vendor:/var/www/html/vendor
       - ./composer.json:/var/www/html/composer.json:ro
       - ./composer.lock:/var/www/html/composer.lock:ro
+      # Plugin-system folders — bind-mounted so local edits show without rebuild
+      - ./modules:/var/www/html/modules
+      - ./themes:/var/www/html/themes
+      - ./presets:/var/www/html/presets
       - app_storage:/var/www/html/storage/app
       - app_logs:/var/www/html/storage/logs
     depends_on:

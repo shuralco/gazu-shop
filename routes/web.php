@@ -227,12 +227,8 @@ Route::post('/webhooks/monobank', [\App\Http\Controllers\WebhookController::clas
     ->name('webhooks.monobank')
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
-Route::post('/api/np-webhook', \App\Http\Controllers\NpWebhookController::class)
-    ->name('webhooks.np')
-    ->withoutMiddleware([
-        \App\Http\Middleware\VerifyCsrfToken::class,
-        \Illuminate\Foundation\Http\Middleware\ValidateCsrfToken::class,
-    ]);
+// /api/np-webhook route moved to modules/novaposhta/routes/web.php
+// (auto-loaded when novaposhta module is enabled)
 
 // Filament admin
 require __DIR__.'/admin.php';
