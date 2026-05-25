@@ -69,8 +69,30 @@ class ChineseAutoPartsSeeder extends Seeder
         $this->command->warn('→ Truncating demo data (inventory → products → categories → brands)…');
         DB::transaction(function () {
             Inventory::query()->delete();
-            DB::table('order_products')->whereIn('product_id', Product::query()->pluck('id'))->delete();
-            DB::table('reviews')->whereIn('product_id', Product::query()->pluck('id'))->delete();
+            // FK-dependent rows pointing at products. Some tables were added after
+            // this seeder shipped (multi_warehouse: inventory_transfer_items),
+            // so check existence first to stay forward-compatible.
+            $productIds = Product::query()->pluck('id');
+            foreach ([
+                'inventory_transfer_items',
+                'order_products',
+                'reviews',
+                'wishlist',
+                'wishlists',
+                'coupon_usages',
+                'product_filter',
+                'product_filter_value',
+                'product_group_prices',
+                'product_variants',
+                'product_skus',
+                'product_images',
+                'stock_notifications',
+            ] as $table) {
+                if (\Illuminate\Support\Facades\Schema::hasTable($table)
+                    && \Illuminate\Support\Facades\Schema::hasColumn($table, 'product_id')) {
+                    DB::table($table)->whereIn('product_id', $productIds)->delete();
+                }
+            }
             Product::query()->delete();
             // Reset parent_id refs before deletion (SQLite-safe self-FK).
             Category::query()->update(['parent_id' => null]);

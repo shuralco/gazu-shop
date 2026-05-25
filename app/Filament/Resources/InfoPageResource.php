@@ -82,7 +82,7 @@ class InfoPageResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')->label('Заголовок')->searchable()->limit(40),
-                Tables\Columns\TextColumn::make('slug')->label('URL')->fontFamily('mono')->formatStateUsing(fn ($s) => "/{$s}")->copyable(),
+                Tables\Columns\TextColumn::make('slug')->label('URL')->fontFamily('mono')->formatStateUsing(fn ($state) => "/{$state}")->copyable(),
                 Tables\Columns\IconColumn::make('is_active')->label('Активна')->boolean(),
                 Tables\Columns\IconColumn::make('show_in_footer')->label('Футер')->boolean(),
                 Tables\Columns\IconColumn::make('show_in_topbar')->label('Топ-бар')->boolean(),

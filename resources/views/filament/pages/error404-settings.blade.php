@@ -1,8 +1,8 @@
 <x-filament-panels::page>
     <x-filament-panels::form wire:submit="save">
         {{ $this->form }}
-        
-        <x-filament-panels::form.actions>
+
+        <x-filament-panels::form.actions :actions="[]">
             <x-filament::button type="submit">
                 Зберегти налаштування
             </x-filament::button>
