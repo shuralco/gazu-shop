@@ -44,12 +44,12 @@ class AdminPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->resources($this->collectModuleResources())
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
-            ->pages([
+            ->pages(array_merge([
                 \App\Filament\Pages\Dashboard::class,
                 \App\Filament\Pages\ThemeSettings::class,
                 \App\Filament\Pages\ModuleSettings::class,
                 \App\Filament\Pages\DemoCatalogGenerator::class,
-            ])
+            ], $this->collectModulePages()))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets([
                 Widgets\AccountWidget::class,
@@ -83,18 +83,34 @@ class AdminPanelProvider extends PanelProvider
      */
     private function collectModuleResources(): array
     {
-        $resources = [];
+        return $this->collectModuleClasses('filament_resources');
+    }
+
+    /**
+     * @return array<int, class-string>
+     */
+    private function collectModulePages(): array
+    {
+        return $this->collectModuleClasses('filament_pages');
+    }
+
+    /**
+     * @return array<int, class-string>
+     */
+    private function collectModuleClasses(string $manifestKey): array
+    {
+        $classes = [];
         foreach (\App\Support\ModuleDiscovery::manifests() as $name => $manifest) {
             if (! \App\Support\ModuleManager::for($name)->enabled()) {
                 continue;
             }
-            foreach ($manifest['filament_resources'] ?? [] as $resource) {
-                if (is_string($resource) && class_exists($resource)) {
-                    $resources[] = $resource;
+            foreach ($manifest[$manifestKey] ?? [] as $class) {
+                if (is_string($class) && class_exists($class)) {
+                    $classes[] = $class;
                 }
             }
         }
 
-        return $resources;
+        return $classes;
     }
 }

@@ -1,0 +1,20 @@
+{
+    "name": "comparison",
+    "label": "Порівняння товарів",
+    "description": "Кнопка «порівняти», окрема сторінка зі списком та характеристиками.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "requires_modules": [],
+    "composer_packages": [],
+    "providers": [],
+    "filament_resources": [],
+    "filament_pages": [],
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "comparison",
+    "routes": "routes/web.php",
+    "translations_path": "resources/lang",
+    "settings_schema": {},
+    "enabled_by_default": true
+}
