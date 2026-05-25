@@ -15,6 +15,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        \App\Support\ModuleDiscovery::registerProviders($this->app);
+
         $this->app->singleton(\App\Services\Integrations\IntegrationManager::class, function () {
             $manager = new \App\Services\Integrations\IntegrationManager();
 
@@ -56,6 +58,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Custom Livewire synthesizer for models with HasTranslations
         \Livewire\Livewire::propertySynthesizer(\App\Livewire\Synthesizers\TranslatableModelSynth::class);
+
+        // Auto-invalidate ModuleManager cache when modules toggle from UI/CLI.
+        if (class_exists(\App\Models\Module::class)) {
+            \App\Models\Module::observe(\App\Observers\ModuleObserver::class);
+        }
 
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderNotificationObserver::class);
@@ -100,6 +107,8 @@ class AppServiceProvider extends ServiceProvider
         $this->configureRateLimiting();
 
         $this->registerViewComposers();
+
+        \App\Support\ModuleDiscovery::bootModuleResources($this->app);
     }
 
     /**

@@ -1,0 +1,24 @@
+{
+    "name": "example",
+    "label": "Приклад модуля",
+    "description": "Шаблон для нового модуля. Скопіюй цю папку, переназви, заповни manifest.",
+    "version": "0.1.0",
+    "author": "SimpleShop Team",
+    "engine": ">=2.0",
+    "requires_modules": [],
+    "composer_packages": [],
+
+    "providers": [],
+
+    "filament_resources": [],
+
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "example",
+    "routes": "routes/web.php",
+    "translations_path": "resources/lang",
+
+    "settings_schema": {},
+
+    "enabled_by_default": false
+}

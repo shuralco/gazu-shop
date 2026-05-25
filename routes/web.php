@@ -94,20 +94,15 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/account', fn () => redirect('/kabinet', 301));
     Route::get('/account/orders/{order}', fn ($o) => redirect("/kabinet/zamovlennya/{$o}", 301));
     Route::get('/orders/{order}/payment', fn ($o) => redirect("/zamovlennya/{$o}/oplata", 301));
-    Route::get('/garage', fn () => redirect('/garazh', 301));
+
+    // /garazh routes moved to modules/gazu_garage/routes/web.php
+    // Auto-loaded via ModuleDiscovery when module is enabled.
 
     Route::middleware('auth')->group(function () use ($c) {
         // Canonical UA URLs.
         Route::get('/kabinet', [$c, 'account'])->name('account');
         Route::get('/kabinet/zamovlennya/{order}', [$c, 'orderDetails'])->name('account.order');
         Route::get('/zamovlennya/{order}/oplata', [$c, 'orderPayment'])->name('order.payment');
-
-        $garage = \App\Http\Controllers\Gazu\GarageController::class;
-        Route::get('/garazh', [$garage, 'index'])->name('garage');
-        Route::post('/garazh', [$garage, 'store'])->name('garage.store');
-        Route::post('/garazh/{car}', [$garage, 'update'])->name('garage.update');
-        Route::post('/garazh/{car}/primary', [$garage, 'makePrimary'])->name('garage.primary');
-        Route::delete('/garazh/{car}', [$garage, 'destroy'])->name('garage.destroy');
     });
 
     // Brands: /brand (index), /brand/{slug} (specific). /brendy* — 301 legacy redirect.

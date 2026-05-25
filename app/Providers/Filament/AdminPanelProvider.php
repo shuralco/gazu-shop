@@ -42,6 +42,7 @@ class AdminPanelProvider extends PanelProvider
                 'Система',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
+            ->resources($this->collectModuleResources())
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
                 \App\Filament\Pages\Dashboard::class,
@@ -71,5 +72,29 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['uk', 'en']),
             ]);
+    }
+
+    /**
+     * Filament resources declared by modules/* /module.json — only for modules
+     * currently enabled. This is how modular Filament resources opt-in to
+     * the admin panel without being in app_path('Filament/Resources').
+     *
+     * @return array<int, class-string>
+     */
+    private function collectModuleResources(): array
+    {
+        $resources = [];
+        foreach (\App\Support\ModuleDiscovery::manifests() as $name => $manifest) {
+            if (! \App\Support\ModuleManager::for($name)->enabled()) {
+                continue;
+            }
+            foreach ($manifest['filament_resources'] ?? [] as $resource) {
+                if (is_string($resource) && class_exists($resource)) {
+                    $resources[] = $resource;
+                }
+            }
+        }
+
+        return $resources;
     }
 }
