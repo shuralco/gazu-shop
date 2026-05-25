@@ -38,9 +38,7 @@
         {{ $this->form }}
 
         <div class="flex gap-3">
-            @foreach ($this->getFormActions() as $action)
-                {{ $action }}
-            @endforeach
+            <x-filament::button type="submit">Зберегти</x-filament::button>
         </div>
     </form>
 

@@ -41,8 +41,8 @@ class CacheManagement extends Page
     {
         $cacheDir = storage_path('framework/cache/data');
         $viewCacheDir = storage_path('framework/views');
-        $configCacheFile = bootstrap_path('cache/config.php');
-        $routeCacheFile = bootstrap_path('cache/routes-v7.php');
+        $configCacheFile = base_path('bootstrap/cache/config.php');
+        $routeCacheFile = base_path('bootstrap/cache/routes-v7.php');
 
         // Redis stats (gracefully handle missing connection)
         $redisInfo = null;
@@ -307,8 +307,17 @@ class CacheManagement extends Page
     private function getDirectorySize(string $directory): int
     {
         $size = 0;
-        if (File::exists($directory)) {
-            foreach (File::allFiles($directory) as $file) $size += $file->getSize();
+        if (! File::exists($directory)) {
+            return 0;
+        }
+        // Race-safe: view/cache dirs get files created/deleted during scan.
+        // stat() throws on deleted files — skip rather than crash the page.
+        foreach (File::allFiles($directory) as $file) {
+            try {
+                $size += $file->getSize();
+            } catch (\Throwable) {
+                continue;
+            }
         }
         return $size;
     }
