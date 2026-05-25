@@ -1,166 +1,328 @@
-# Theme System
+# Themes — Developer Guide
 
-> SimpleShop підтримує кілька візуальних тем поверх єдиного core. Активна тема — це CSS-файл токенів, що завантажується перед усіма іншими стилями.
+Themes are the **visual layer** of SimpleShop. They control CSS tokens (colors,
+fonts, spacing) and can override any storefront blade view. The same modules
+work under any theme — themes only touch presentation, not business logic.
 
----
+This doc supersedes the older draft (which described the pre-modular tokens
+approach). For the 30-second overview, see [ARCHITECTURE.md](ARCHITECTURE.md).
 
-## 1. Архітектура
+## Anatomy of a theme
 
 ```
-resources/css/
-  ├── app.css                  # Імпортує @import './tokens/{theme}.css'
-  ├── components.css           # Спільні компоненти, читають var(--token)
-  └── tokens/
-      ├── brutal.css           # Тема за замовчуванням
-      └── auto-parts.css       # Автозапчастини (приклад)
+themes/gazu/
+├── theme.json                  # ① manifest
+├── README.md
+└── resources/
+    ├── css/
+    │   ├── gazu.css            # ② Tailwind 4 entry — Vite input
+    │   └── tokens.css          # design tokens (--color-*, --font-*, ...)
+    ├── js/                     # optional theme-scoped JS
+    └── views/                  # ③ blade overrides
+        └── gazu/               # mirrors core resources/views/gazu/
+            ├── layout.blade.php
+            ├── home/
+            ├── catalog/
+            └── ...
 ```
 
-Кожен файл `tokens/*.css` — це `@theme {}` блок Tailwind 4 з фіксованим набором CSS-змінних. Усі компоненти у `app.css`/`components.css` використовують `var(--…)` замість літералів.
+## ① The manifest (`theme.json`)
 
----
+```json
+{
+  "name": "gazu",
+  "label": "GAZU brutal-style (auto-parts)",
+  "description": "Темний акцент + жирні display fonts. Оптимізовано для автозапчастин.",
+  "version": "1.0.0",
+  "author": "Lionex",
+  "engine": ">=2.0",
+  "parent": null,
 
-## 2. Перемикання тем
+  "vite_inputs": [
+    "themes/gazu/resources/css/gazu.css"
+  ],
+  "views_path": "resources/views",
+  "css_entry": "themes/gazu/resources/css/gazu.css",
+
+  "tokens": {
+    "primary": "#0a0f1a",
+    "accent": "#ffd200",
+    "ink": "#0a0f1a",
+    "graphite": "#3a3f4a",
+    "paper": "#f7f7f5"
+  }
+}
+```
+
+### Field reference
+
+| Field | Required | What it does |
+|---|---|---|
+| `name` | yes | Unique identifier; matches folder name |
+| `label` | yes | Human label for admin UI |
+| `description` | yes | One-line summary |
+| `version` | yes | Semver |
+| `engine` | recommended | Required engine version |
+| `parent` | optional | Name of theme to inherit from (NYI — currently no inheritance) |
+| `vite_inputs` | yes | Paths added to `vite.config.js` input array (must be there too) |
+| `views_path` | optional | Relative to theme root; default `resources/views` |
+| `css_entry` | yes | The CSS file the storefront layout loads via `@vite()` |
+| `tokens` | optional | Static token values (used for runtime injection, future) |
+
+## ② CSS — Tailwind 4 entry
+
+Each theme has its OWN Tailwind build, completely independent of `resources/css/app.css`
+(which is the admin/Filament side). This means:
+
+- Theme CSS never accidentally bleeds into admin.
+- Multiple themes can ship with different Tailwind configs.
+- You can use `@source` to control which views Tailwind scans.
+
+Example `themes/gazu/resources/css/gazu.css`:
+
+```css
+@import 'tailwindcss';
+@import './tokens.css';
+
+@source '../../../../resources/views/gazu/**/*.blade.php';
+@source '../../../../resources/views/components/gazu/**/*.blade.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+  --color-ink:      #0a0f1a;
+  --color-graphite: #3a3f4a;
+  --color-paper:    #f7f7f5;
+  --color-accent:   #ffd200;
+
+  --font-display: 'Archivo Black', sans-serif;
+  --font-body:    'Inter Tight', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+
+  --radius-sm:   2px;
+  --radius-card: 14px;
+}
+
+/* Theme-specific component styles */
+.gazu-btn-primary { /* ... */ }
+```
+
+The `@source` directives tell Tailwind 4 where to scan for class usage.
+Paths are relative to the CSS file location.
+
+## ③ Blade view overrides
+
+Theme views go under `themes/{name}/resources/views/`. The engine **prepends**
+this directory to Laravel's view finder at boot, so:
+
+```php
+view('gazu.layout')
+//   ↓
+// 1. themes/gazu/resources/views/gazu/layout.blade.php  ← if exists, win
+// 2. resources/views/gazu/layout.blade.php              ← fallback
+```
+
+You can override **any** view by mirroring its path. To customize the homepage
+hero in your theme without touching core:
 
 ```bash
-# Показати доступні
-php artisan theme:use --list
-
-# Перемкнути
-php artisan theme:use auto-parts
-npm run build         # обов'язково перебудувати CSS після
-
-# Назад
-php artisan theme:use brutal
-npm run build
+mkdir -p themes/mytheme/resources/views/gazu/home
+cp resources/views/gazu/home/hero.blade.php themes/mytheme/resources/views/gazu/home/
+# edit your copy
 ```
 
-Команда `theme:use` редагує одну строку `@import './tokens/X.css'` у `resources/css/app.css`. Перебудова Vite вшиває нові значення в `public/build/assets/app-*.css`.
+The original stays as the default; your theme's copy wins when this theme is active.
 
----
+## Adding a theme to Vite
 
-## 3. Контракт CSS-змінних
+Theme CSS files must be listed in `vite.config.js` input array so Laravel
+Vite can build them:
 
-Кожна тема **зобов'язана** оголошувати весь нижче набір змінних у `@theme {}`:
-
-### Typography
-```
---font-display
---font-body
---font-weight-bold
---font-weight-display
-```
-
-### Кольори (палітра)
-```
---color-fg              текст за замовчуванням
---color-bg              фон сторінки
---color-card            фон карток
---color-brand           основний акцент бренду
---color-accent          вторинний акцент (badge, CTA)
---color-muted           приглушений текст
---color-success         green-700
---color-danger          red-700
---color-warning         amber-700
---color-info            blue-700
---color-surface-muted   приглушений фон секції
---color-surface-divider колір розділювачів
+```javascript
+laravel({
+    input: [
+        'resources/css/app.css',
+        'themes/gazu/resources/css/gazu.css',
+        'themes/cosmetics/resources/css/cosmetics.css',  // ← add new theme here
+        'resources/js/app.js',
+    ],
+    refresh: true,
+}),
 ```
 
-### Бордери
-```
---border-thin           1px subtle
---border-strong         2px бренд
---border-thick          3px brutal
---border-color-strong
---border-color-subtle
+Then `npm run build` — produces compiled CSS in `public/build/assets/` for each
+input. The layout decides which one to load via `@vite()`:
+
+```blade
+{{-- resources/views/gazu/layout.blade.php --}}
+@vite([\App\Support\ThemeManager::cssEntry() ?: 'themes/gazu/resources/css/gazu.css'])
 ```
 
-### Радіуси
-```
---radius-sm             повсюдні елементи (input, button)
---radius-card           картки, panels
---radius-pill           pill-кнопки, badges
-```
+`ThemeManager::cssEntry()` reads from the active theme's `theme.json` so the
+correct CSS file loads based on which theme is active.
 
-### Тіні
-```
---shadow-btn-rest       спокій
---shadow-btn-hover      :hover
---shadow-btn-active     :active
---shadow-card-elevated  картка з елевацією
---shadow-input-focus    focus-ring
-```
+## Switching themes
 
-### Spacing scale
-```
---gap-xs  --gap-sm  --gap-md  --gap-lg  --gap-xl  --gap-2xl
-```
+### Via Filament UI
 
-### Hero / pattern
-```
---pattern-hero-color
---pattern-hero-opacity
---pattern-grid-line-color
---pattern-grid-size
---pattern-stripes-size
-```
+`/admin/theme-settings` — dropdown of installed themes. Persists via
+`DisplaySetting::set('active_theme', $name)`. Cache invalidates immediately.
 
-### Scrollbar / Z-index (службові)
-```
---scrollbar-track-bg, --scrollbar-thumb-bg, --scrollbar-thumb-hover-bg, --scrollbar-width
---z-toast, --z-progress-bar, --z-modal, --z-dropdown
-```
-
----
-
-## 4. Створення нової теми
+### Via CLI
 
 ```bash
-# 1. Скопіюйте brutal.css як шаблон
-cp resources/css/tokens/brutal.css resources/css/tokens/my-theme.css
-
-# 2. Відредагуйте значення (зберігаючи усі змінні з контракту)
-
-# 3. Активуйте
-php artisan theme:use my-theme
-npm run build
-
-# 4. Перевірте візуально
+php artisan theme:set gazu        # switch active theme
+npm run build                     # rebuild Vite if you also changed CSS
 ```
 
-**Best practices:**
-- Дотримуйтесь контракту змінних з §3 — будь-який `var(--missing)` =fallback на default
-- Тестуйте на product-page, cart, checkout, blog — всі секції
-- Перевіряйте на light + dark prefers-color-scheme якщо актуально
-- Filament admin **ізольований** і не зачіпається — admin завжди має свій вигляд
+### Via ENV
 
----
+`.env`:
 
-## 5. Поточні теми
+```ini
+THEME=gazu
+```
 
-### `brutal` (default)
-- Pure black/white контраст
-- Sharp corners (radius=0)
-- 3D box-shadow `0 6px 0 #000` для кнопок
-- Inter font, weight 900 для display
-- Hero pattern: жирні чорні смуги 40px
+ENV is fallback only — DB toggle (via UI) wins.
 
-### `auto-parts`
-- Slate-900 текст на slate-50 фоні
-- Blue-700 brand + orange-600 accent
-- Rounded corners (radius=4–8px)
-- Soft elevation shadows
-- Roboto Condensed для display, weight 800
-- Hero pattern: blue grid 24px, opacity 0.04
+### Programmatically
 
----
+```php
+\App\Support\ThemeManager::setActive('cosmetics');
+```
 
-## 6. Що залишається статичним між темами
+## Creating a new theme
 
-- HTML-структура blade-templates
-- Livewire-компоненти (логіка)
-- Filament admin (ізольована тема)
-- JavaScript (`public/assets/js/*.js`)
-- Multi-locale (uk/en) — теми не локалізовані
+Currently no `make:theme` artisan (planned). Manual steps:
 
-Для переходу на нову тему НЕ потрібно міняти код PHP/Livewire/Blade — лише `tokens/*.css`.
+```bash
+mkdir -p themes/cosmetics/resources/{css,views,js}
+cp themes/gazu/theme.json themes/cosmetics/theme.json
+# edit cosmetics/theme.json — name, label, css_entry, tokens
+cp themes/gazu/resources/css/gazu.css themes/cosmetics/resources/css/cosmetics.css
+# tweak tokens / styles
+```
+
+Add the new CSS input to `vite.config.js`:
+
+```diff
+  input: [
+      'resources/css/app.css',
+      'themes/gazu/resources/css/gazu.css',
++     'themes/cosmetics/resources/css/cosmetics.css',
+      'resources/js/app.js',
+  ],
+```
+
+Update `themes/cosmetics/theme.json`:
+
+```json
+{
+  "name": "cosmetics",
+  "label": "Cosmetics / Beauty Shop",
+  "css_entry": "themes/cosmetics/resources/css/cosmetics.css",
+  "tokens": {
+    "primary": "#ff6b9d",
+    "accent": "#fbf7f4"
+  }
+}
+```
+
+Then:
+
+```bash
+npm run build
+php artisan theme:set cosmetics
+```
+
+Visit `/` — should now render with cosmetics CSS. View overrides are optional;
+absent ones fall back to defaults.
+
+## View finder order
+
+```
+view('gazu.layout')
+     ↓
+1. themes/{active}/resources/views/gazu/layout.blade.php   ← active theme
+2. resources/views/gazu/layout.blade.php                   ← core default
+```
+
+For module views (`view('loyalty::tier')`), namespaces are checked separately:
+
+```
+view('loyalty::tier')
+     ↓
+1. registered namespace 'loyalty' →
+   modules/loyalty/resources/views/tier.blade.php
+```
+
+Themes can override namespaced views by registering the same namespace from
+a deeper location, but this is **not currently wired up** in `ThemeDiscovery`.
+(See "Limitations" below.)
+
+## Tokens (CSS variables)
+
+The current pattern is to define tokens via Tailwind 4's `@theme` directive
+in the theme's CSS entry. These become available globally as CSS variables:
+
+```css
+/* themes/gazu/resources/css/gazu.css */
+@theme {
+  --color-ink: #0a0f1a;
+}
+```
+
+Then in any view:
+
+```css
+.my-thing { color: var(--color-ink); }
+```
+
+Or use Tailwind utilities — Tailwind 4 auto-generates `text-ink`, `bg-ink`,
+`border-ink` etc. from `--color-ink`.
+
+The `tokens` block in `theme.json` is **descriptive only** right now (read by
+`ThemeManager::tokens()`). It's not auto-injected into CSS. The actual values
+live in the CSS file. (Future Phase 3+: auto-inject from JSON into a generated
+`:root {}` block.)
+
+## Best practices
+
+- **Tokens, not hex.** Reference everything via `var(--color-*)` in custom
+  CSS so themes can override cleanly.
+- **Tailwind utilities over custom CSS.** Stay in Tailwind 4 land as much as
+  possible — the `@theme` block makes utility generation token-aware.
+- **Override sparingly.** A theme that copies 80 blade files is hard to
+  maintain. Prefer overriding just `layout.blade.php`, `home/*`, `partials/*`.
+- **One CSS per theme.** Don't try to share CSS files between themes; if you
+  need shared base, use Tailwind's `@layer base` and `@theme` defaults in core
+  `app.css`.
+
+## Limitations / NYI
+
+- **No view-overlay for blade components** (`<x-gazu.breadcrumbs>`). These are
+  shared `resources/views/components/gazu/` files. To customize per-theme,
+  you'd need `Blade::anonymousComponentPath()` registration per theme — not
+  done yet.
+- **No parent/child theme inheritance** despite the `parent` field in manifest.
+- **Tokens block is descriptive only** — not auto-injected as `:root {}`.
+- **No `make:theme` artisan** — copy gazu manually for now.
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| 500: "Unable to locate file in Vite manifest" | `npm run build` not run after theme/css change | `npm run build` |
+| Theme dropdown empty in `/admin/theme-settings` | `themes/*/theme.json` missing | Create manifest |
+| View renders core version, not theme version | Cached view OR theme path wrong | `php artisan view:clear` + check `themes/{n}/resources/views/...` |
+| `theme:set` succeeds but no visual change | Browser CSS cached, OR theme has no overrides yet | Hard refresh, OR add overrides |
+| `npm run build` fails on missing `@source` path | Wrong relative depth | Count: theme CSS is at depth 3 in `themes/{n}/resources/css/` |
+
+## Reference
+
+- `app/Support/ThemeManager.php` — active theme resolution
+- `app/Support/ThemeDiscovery.php` — view-finder prepend
+- `app/Console/Commands/ThemeSetCommand.php` — `theme:set` CLI
+- `app/Filament/Pages/ThemeSettings.php` — admin dropdown
+- `config/themes.php` — default theme fallback
+- `vite.config.js` — list theme CSS inputs here
+- `themes/gazu/theme.json` — reference manifest
