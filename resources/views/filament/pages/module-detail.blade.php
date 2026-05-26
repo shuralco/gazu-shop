@@ -369,14 +369,181 @@ $actionLabels = [
     </section>
   </div>
 
-  {{-- ─── RAW MANIFEST ─── --}}
-  <details class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 group">
-    <summary class="cursor-pointer px-5 py-3 text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors flex items-center gap-2 select-none rounded-lg">
-      <x-filament::icon icon="heroicon-o-chevron-right" class="w-3.5 h-3.5 group-open:rotate-90 transition-transform" />
-      module.json
-    </summary>
-    <pre class="px-5 pb-4 text-[11px] text-gray-700 dark:text-gray-400 overflow-x-auto font-mono leading-relaxed"><code>{{ json_encode($info['raw_manifest'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</code></pre>
-  </details>
+  {{-- ─── DEBUG TOGGLE ─── --}}
+  <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+    <div class="px-5 py-3 flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2.5">
+        <x-filament::icon icon="heroicon-o-bug-ant" class="w-4 h-4 text-gray-400" />
+        <div>
+          <div class="text-[13px] font-semibold text-gray-900 dark:text-white">Debug info</div>
+          <div class="text-[11px] text-gray-500 dark:text-gray-400">Файли · routes · DB tables · hooks · env. Підвантажується при потребі.</div>
+        </div>
+      </div>
+      <button type="button" wire:click="toggleDebug"
+        wire:loading.attr="disabled" wire:target="toggleDebug"
+        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors disabled:opacity-40">
+        <svg wire:loading wire:target="toggleDebug" class="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+        @if($showDebug)
+          <x-filament::icon icon="heroicon-o-eye-slash" class="w-3.5 h-3.5" />
+          <span>Сховати</span>
+        @else
+          <x-filament::icon icon="heroicon-o-eye" class="w-3.5 h-3.5" />
+          <span>Показати</span>
+        @endif
+      </button>
+    </div>
+
+    @if($showDebug)
+      @php $debug = $this->getDebugInfo(); @endphp
+      <div class="border-t border-gray-200 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
+
+        {{-- 1. File tree --}}
+        <details open class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            Файлове дерево
+            <span class="text-gray-400 ml-1">{{ $debug['file_tree_total'] }}</span>
+            @if($debug['file_tree_total'] === 40)<span class="ml-1 text-[10px] text-amber-600">(showing first 40)</span>@endif
+          </summary>
+          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
+            <div class="font-mono text-[11px] leading-relaxed text-gray-700 dark:text-gray-300 space-y-0.5">
+              @foreach($debug['file_tree'] as $f)
+                <div class="truncate">{{ $f }}</div>
+              @endforeach
+            </div>
+          </div>
+        </details>
+
+        {{-- 2. Routes --}}
+        <details class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            Routes зареєстровано
+            <span class="text-gray-400 ml-1">{{ count($debug['routes']) }}</span>
+          </summary>
+          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
+            @if(empty($debug['routes']))
+              <p class="text-[11px] text-gray-500">Жодного route не зареєстровано через цей модуль.</p>
+            @else
+              <div class="space-y-1 font-mono text-[11px]">
+                @foreach($debug['routes'] as $r)
+                  <div class="flex items-center gap-2">
+                    <span class="shrink-0 w-16 text-gray-500">{{ $r['method'] }}</span>
+                    <span class="flex-1 truncate text-gray-900 dark:text-gray-100">{{ $r['uri'] }}</span>
+                    <span class="shrink-0 text-gray-400">{{ $r['name'] }}</span>
+                  </div>
+                @endforeach
+              </div>
+            @endif
+          </div>
+        </details>
+
+        {{-- 3. DB Tables --}}
+        <details class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            DB-таблиці + кількість рядків
+            <span class="text-gray-400 ml-1">{{ count($debug['table_counts']) }}</span>
+          </summary>
+          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
+            @if(empty($debug['table_counts']))
+              <p class="text-[11px] text-gray-500">Таблиць з ім'ям, що містить «{{ $info['key'] }}», не знайдено.</p>
+            @else
+              <div class="font-mono text-[11px] space-y-0.5">
+                @foreach($debug['table_counts'] as $table => $count)
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-900 dark:text-gray-100">{{ $table }}</span>
+                    <span class="text-gray-500 tabular-nums">{{ $count }} rows</span>
+                  </div>
+                @endforeach
+              </div>
+            @endif
+          </div>
+        </details>
+
+        {{-- 4. Hook listeners --}}
+        <details class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            Hooks listeners (global)
+            <span class="text-gray-400 ml-1">{{ count($debug['hook_listeners']) }}</span>
+          </summary>
+          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
+            @if(empty($debug['hook_listeners']))
+              <p class="text-[11px] text-gray-500">Жодного слухача не зареєстровано через Hooks API.</p>
+            @else
+              <div class="font-mono text-[11px] space-y-0.5">
+                @foreach($debug['hook_listeners'] as $event => $count)
+                  <div class="flex items-center justify-between">
+                    <span class="text-gray-900 dark:text-gray-100">{{ $event }}</span>
+                    <span class="text-gray-500 tabular-nums">{{ $count }} listener{{ $count === 1 ? '' : 's' }}</span>
+                  </div>
+                @endforeach
+              </div>
+            @endif
+          </div>
+        </details>
+
+        {{-- 5. PHP class loaded check --}}
+        <details class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            PHP class_exists перевірка
+          </summary>
+          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30 space-y-2 text-[11px] font-mono">
+            @foreach(['providers' => 'Providers', 'resources' => 'Filament resources'] as $field => $label)
+              @if(! empty($debug['php_class_loaded_check'][$field]))
+                <div>
+                  <div class="text-gray-500 mb-1">{{ $label }}</div>
+                  @foreach($debug['php_class_loaded_check'][$field] as $check)
+                    <div class="flex items-center gap-2">
+                      <span class="shrink-0 w-3">
+                        @if($check['exists'])
+                          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full block"></span>
+                        @else
+                          <span class="w-1.5 h-1.5 bg-rose-500 rounded-full block"></span>
+                        @endif
+                      </span>
+                      <span class="text-gray-900 dark:text-gray-100 break-all">{{ $check['class'] }}</span>
+                    </div>
+                  @endforeach
+                </div>
+              @endif
+            @endforeach
+            <div class="pt-2 border-t border-gray-200 dark:border-gray-800">
+              <span class="text-gray-500">Composer classmap matches:</span>
+              <span class="text-gray-900 dark:text-gray-100 ml-2">{{ $debug['composer_classmap_check']['matches'] ?? '?' }}</span>
+            </div>
+          </div>
+        </details>
+
+        {{-- 6. ENV vars --}}
+        <details class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            ENV
+          </summary>
+          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30 font-mono text-[11px] space-y-0.5">
+            @foreach($debug['env_vars'] as $envKey => $envVal)
+              <div class="flex items-baseline gap-2">
+                <span class="text-gray-500 w-44 shrink-0">{{ $envKey }}</span>
+                <span class="text-gray-900 dark:text-gray-100">{{ $envVal === null ? '(unset)' : var_export($envVal, true) }}</span>
+              </div>
+            @endforeach
+          </div>
+        </details>
+
+        {{-- 7. Raw manifest --}}
+        <details class="group">
+          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
+            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
+            module.json (raw)
+          </summary>
+          <pre class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30 text-[11px] text-gray-700 dark:text-gray-400 overflow-x-auto font-mono leading-relaxed"><code>{{ json_encode($debug['manifest'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</code></pre>
+        </details>
+      </div>
+    @endif
+  </section>
 
   {{-- BACK --}}
   <a href="{{ route('filament.admin.pages.modules') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">

@@ -34,6 +34,8 @@ class ModuleDetail extends Page
 
     public string $moduleKey = '';
 
+    public bool $showDebug = false;
+
     /**
      * @var array<string,mixed>
      */
@@ -319,5 +321,119 @@ class ModuleDetail extends Page
             ->success(fn () => $exitCode === 0)
             ->danger(fn () => $exitCode !== 0)
             ->send();
+    }
+
+    public function toggleDebug(): void
+    {
+        $this->showDebug = ! $this->showDebug;
+    }
+
+    /**
+     * Deep debug payload — only loaded when user opts in (showDebug=true).
+     * Includes filesystem tree, registered routes for module, Hooks listeners,
+     * DB row counts for module-related tables, env state.
+     *
+     * @return array<string,mixed>
+     */
+    public function getDebugInfo(): array
+    {
+        if (! $this->showDebug) {
+            return [];
+        }
+
+        $key = $this->moduleKey;
+        $manifest = ModuleDiscovery::manifests()[$key] ?? [];
+        $modulePath = base_path("modules/{$key}");
+
+        // File tree (limited depth)
+        $fileTree = [];
+        if (File::isDirectory($modulePath)) {
+            $fileTree = collect(File::allFiles($modulePath))
+                ->map(fn ($f) => str_replace($modulePath.'/', '', $f->getPathname()))
+                ->sort()
+                ->values()
+                ->take(40)
+                ->all();
+        }
+
+        // Registered routes matching this module
+        $routes = collect(Route::getRoutes())
+            ->filter(fn ($r) => str_contains((string) $r->getActionName(), "modules/{$key}/")
+                || str_contains((string) $r->getActionName(), "modules\\".str_replace('_', '', $key)."\\"))
+            ->map(fn ($r) => [
+                'method' => implode('|', $r->methods()),
+                'uri' => '/'.$r->uri(),
+                'name' => $r->getName() ?? '—',
+                'action' => str_replace(base_path(), '', $r->getActionName()),
+            ])
+            ->values()
+            ->all();
+
+        // DB row count for module tables (heuristic — tables starting with module key)
+        $tableCounts = [];
+        try {
+            $tables = \DB::select('SHOW TABLES');
+            $col = 'Tables_in_'.\DB::getDatabaseName();
+            $likeKey = str_replace('_', '', $key);
+            foreach ($tables as $t) {
+                $name = $t->{$col} ?? null;
+                if ($name && (str_contains($name, $key) || str_contains($name, $likeKey))) {
+                    try {
+                        $tableCounts[$name] = \DB::table($name)->count();
+                    } catch (\Throwable) {
+                        $tableCounts[$name] = 'ERR';
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            $tableCounts = ['note' => 'не вдалось перерахувати'];
+        }
+
+        // Hooks listeners (from Laravel Event system; filter by hooks.X events)
+        $hookListeners = [];
+        try {
+            $events = app('events');
+            $reflection = new \ReflectionObject($events);
+            if ($reflection->hasProperty('listeners')) {
+                $prop = $reflection->getProperty('listeners');
+                $prop->setAccessible(true);
+                $all = $prop->getValue($events);
+                foreach ($all as $event => $listeners) {
+                    if (str_starts_with($event, 'hooks.')) {
+                        $hookListeners[$event] = count($listeners);
+                    }
+                }
+            }
+        } catch (\Throwable) {
+            $hookListeners = ['note' => 'reflection unavailable'];
+        }
+
+        // Env vars
+        $envVars = [
+            'MODULE_'.strtoupper($key) => env('MODULE_'.strtoupper($key)),
+            'APP_ENV' => env('APP_ENV'),
+            'APP_DEBUG' => env('APP_DEBUG'),
+        ];
+
+        return [
+            'file_tree' => $fileTree,
+            'file_tree_total' => count($fileTree),
+            'routes' => $routes,
+            'table_counts' => $tableCounts,
+            'hook_listeners' => $hookListeners,
+            'env_vars' => $envVars,
+            'manifest' => $manifest,
+            'php_class_loaded_check' => [
+                'providers' => collect($manifest['providers'] ?? [])->map(fn ($c) => ['class' => $c, 'exists' => class_exists($c)])->all(),
+                'resources' => collect($manifest['filament_resources'] ?? [])->map(fn ($c) => ['class' => $c, 'exists' => class_exists($c)])->all(),
+            ],
+            'composer_classmap_check' => (function () use ($key) {
+                $autoloadFile = base_path('vendor/composer/autoload_classmap.php');
+                if (! File::exists($autoloadFile)) return ['note' => 'no classmap'];
+                $contents = File::get($autoloadFile);
+                $count = substr_count($contents, "modules/{$key}/");
+                return ['matches' => $count];
+            })(),
+        ];
     }
 }
