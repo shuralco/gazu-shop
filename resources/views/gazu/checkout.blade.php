@@ -724,7 +724,8 @@
                           x-text="shippingLabel">розрахунок при отриманні</span>
                 </div>
 
-                {{-- Промокод --}}
+                {{-- Промокод (тільки якщо модуль coupons УВімкнено) --}}
+                @if(module('coupons')->enabled())
                 <div class="my-3 pt-3 border-t border-[var(--gazu-line)]">
                     <template x-if="couponCode && discount > 0">
                         <div class="flex justify-between items-center mb-2">
@@ -756,6 +757,7 @@
                         </div>
                     </template>
                 </div>
+                @endif
 
                 <div class="h-px bg-[var(--gazu-line)] my-3"></div>
                 <div class="flex justify-between items-baseline">

@@ -276,7 +276,8 @@
                 </template>
             </div>
 
-            {{-- Promo code input --}}
+            {{-- Promo code input (тільки якщо модуль coupons УВімкнено) --}}
+            @if(module('coupons')->enabled())
             <div class="my-3 pt-3 border-t border-[var(--gazu-line)]"
                  x-data="{
                     open: false, code: '', busy: false, applied: null,
@@ -322,6 +323,7 @@
                     </template>
                 </div>
             </div>
+            @endif
 
             <div class="flex justify-between items-baseline mb-4 pt-3 border-t border-[var(--gazu-line)]">
                 <span class="text-[var(--gazu-ink)] font-medium">До сплати</span>

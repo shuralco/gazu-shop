@@ -147,7 +147,8 @@
     if (! empty($brand)) {
         $jsonldProduct['brand'] = ['@type' => 'Brand', 'name' => $brand];
     }
-    if ($rating > 0 && $reviews > 0) {
+    // SEO мікророзмітка з aggregateRating — тільки якщо reviews модуль УВімкнено
+    if (module('reviews')->enabled() && $rating > 0 && $reviews > 0) {
         $jsonldProduct['aggregateRating'] = [
             '@type' => 'AggregateRating',
             'ratingValue' => (string) $rating,
@@ -288,9 +289,14 @@
             {{-- Right-hand side: product title spanning the two columns below it --}}
             <div>
                 <h1 class="gazu-display text-[28px] sm:text-[32px] font-semibold text-[var(--gazu-ink)] m-0 leading-tight">{{ $name }}</h1>
-                @if($rating > 0 || $reviews > 0 || $soldCount > 0)
+                @php
+                    // Reviews/rating показуються тільки якщо модуль reviews УВімкнено.
+                    // soldCount — це окрема метрика (не reviews-модуль), не гейтиться.
+                    $showReviews = module('reviews')->enabled();
+                @endphp
+                @if(($showReviews && ($rating > 0 || $reviews > 0)) || $soldCount > 0)
                     <div class="flex items-center gap-1 whitespace-nowrap mt-2">
-                        @if($rating > 0)
+                        @if($showReviews && $rating > 0)
                             <div class="flex gap-px text-[var(--gazu-warn)]">
                                 @for($i = 1; $i <= 5; $i++)
                                     <x-gazu.icon name="star" size="12" fill="{{ $i <= floor($rating) ? 'var(--gazu-warn)' : 'none' }}" stroke="var(--gazu-warn)"/>
@@ -298,8 +304,8 @@
                             </div>
                         @endif
                         <span class="text-xs text-[var(--gazu-graphite)]">
-                            @if($rating > 0){{ number_format($rating, 1) }}@endif
-                            @if($reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
+                            @if($showReviews && $rating > 0){{ number_format($rating, 1) }}@endif
+                            @if($showReviews && $reviews > 0) · {{ $reviews }} {{ \plural_uk_count($reviews, 'відгук', 'відгуки', 'відгуків') }}@endif
                             @if($soldCount > 0) · {{ $soldCount }} продано @endif
                         </span>
                     </div>
