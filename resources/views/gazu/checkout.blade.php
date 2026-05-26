@@ -80,9 +80,14 @@
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-white">2</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Доставка</h3>
                 </div>
+                @php
+                    // Default shipping method = first option in the list,
+                    // so the form doesn't preselect a disabled provider.
+                    $defaultShippingMethod = $shippingOptions[0][0] ?? 'pickup';
+                @endphp
                 <div class="grid gap-2 pl-11"
                      x-data="{
-                         method: @js(old('shipping_method', 'novaposhta')),
+                         method: @js(old('shipping_method', $defaultShippingMethod)),
                          city: @js(old('shipping_city', '')),
                          cityRef: @js(old('shipping_city_ref', '')),
                          warehouse: @js(old('shipping_warehouse', '')),
@@ -215,11 +220,25 @@
                                  });
                              },
                      }">
-                    @foreach([
-                        ['novaposhta', 'Нова Пошта', 'Відділення / Поштомат / Курʼєр НП — 1-3 дні'],
-                        ['ukrposhta', 'УкрПошта', 'Відділення / адреса · 3-5 днів, дешевше'],
-                        ['pickup', 'Самовивіз з магазину', 'Безкоштовно'],
-                    ] as [$key, $label, $desc])
+                    @php
+                        // Build shipping options gated by module state.
+                        // pickup is always available (no module — it's core).
+                        $shippingOptions = [];
+                        if (module('novaposhta')->enabled()) {
+                            $shippingOptions[] = ['novaposhta', 'Нова Пошта', 'Відділення / Поштомат / Курʼєр НП — 1-3 дні'];
+                        }
+                        if (module('ukrposhta')->enabled()) {
+                            $shippingOptions[] = ['ukrposhta', 'УкрПошта', 'Відділення / адреса · 3-5 днів, дешевше'];
+                        }
+                        if (module('rozetka_delivery')->enabled()) {
+                            $shippingOptions[] = ['rozetka_delivery', 'Rozetka Delivery', 'Доставка через відділення Rozetka'];
+                        }
+                        if (module('meest_express')->enabled()) {
+                            $shippingOptions[] = ['meest_express', 'Meest Express', 'Доставка Meest — від 1 дня'];
+                        }
+                        $shippingOptions[] = ['pickup', 'Самовивіз з магазину', 'Безкоштовно'];
+                    @endphp
+                    @foreach($shippingOptions as [$key, $label, $desc])
                         <label class="flex items-center gap-3 p-3 border rounded-md cursor-pointer"
                                :class="method === '{{ $key }}' ? 'border-[var(--gazu-ink)] bg-[var(--gazu-paper)]' : 'border-[var(--gazu-line)]'">
                             <input type="radio" name="shipping_method" value="{{ $key }}" x-model="method" class="sr-only">
@@ -631,7 +650,7 @@
                     discount: {{ (int) ($appliedCoupon['discount'] ?? 0) }},
                     couponCode: @js($appliedCoupon['code'] ?? ''),
                     shippingCost: null,
-                    shippingMethod: 'novaposhta',
+                    shippingMethod: @js($defaultShippingMethod),
                     promoOpen: false,
                     promoBusy: false,
                     promoInput: '',
