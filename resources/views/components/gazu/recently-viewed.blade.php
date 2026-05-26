@@ -24,7 +24,7 @@
             <a :href="p.url" wire:navigate class="bg-white border border-[var(--gazu-line)] rounded-lg p-3 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.18)] transition-all flex flex-col gap-2">
                 <div class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden flex items-center justify-center">
                     <template x-if="p.image">
-                        <img :src="p.image" :alt="p.name" class="w-full h-full object-cover">
+                        <img :src="p.image" :alt="p.name" loading="lazy" decoding="async" class="w-full h-full object-cover">
                     </template>
                     <template x-if="!p.image">
                         <div class="text-[var(--gazu-line-2)] text-xs">GAZU</div>

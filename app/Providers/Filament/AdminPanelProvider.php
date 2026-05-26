@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'Продажі',
                 'Доставка та оплата',
                 'Контент та SEO',
+                'Налаштування',
                 'Система',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

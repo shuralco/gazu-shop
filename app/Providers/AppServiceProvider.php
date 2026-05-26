@@ -52,8 +52,23 @@ class AppServiceProvider extends ServiceProvider
         // (Traefik / Caddy / nginx). Without this, Vite-rendered <link href>
         // and asset() helpers emit http:// — browsers then block mixed
         // content or follow the 302 to https (CSS sometimes fails to apply).
+        // Українська локалізація для Carbon (diffForHumans, format()) — щоб
+        // "2 hours ago" → "2 години тому", "Monday" → "Понеділок" тощо.
+        \Carbon\Carbon::setLocale('uk');
+
         if (str_starts_with((string) config('app.url'), 'https://')) {
             \Illuminate\Support\Facades\URL::forceScheme('https');
+        }
+
+        // Pin asset URL root to APP_URL so nginx's X-Forwarded-Port=80 (it listens
+        // on :80 inside the container while host maps 8089→80) doesn't strip the
+        // port from generated asset URLs. Without this, @vite() emits
+        // http://localhost/build/... and the browser fetches port 80 (dead).
+        // Only force-root in HTTP requests where the host actually matches APP_URL —
+        // through tunnels we want the tunnel host preserved.
+        $appUrl = (string) config('app.url');
+        if ($appUrl && request()->getHost() === parse_url($appUrl, PHP_URL_HOST)) {
+            \Illuminate\Support\Facades\URL::forceRootUrl($appUrl);
         }
 
         // Custom Livewire synthesizer for models with HasTranslations
