@@ -296,33 +296,55 @@ class ProductResource extends Resource
                         Forms\Components\Tabs\Tab::make('Медіа')
                             ->icon('heroicon-o-photo')
                             ->schema([
-                                Forms\Components\Group::make([
-                                    Forms\Components\FileUpload::make('image')
-                                        ->label('Головне зображення')
-                                        ->image()
-                                        ->imageEditor()
-                                        ->imageCropAspectRatio('16:9')
-                                        ->imageResizeMode('cover')
-                                        ->imageResizeTargetWidth('800')
-                                        ->imageResizeTargetHeight('450')
-                                        ->maxSize(5120)
-                                        ->directory('products/main')
-                                        ->visibility('public')
-                                        ->moveFiles(),
+                                Forms\Components\Section::make('Головне зображення')
+                                    ->description('Велике фото на product page та list. 16:9, до 5 MB.')
+                                    ->collapsible()
+                                    ->schema([
+                                        Forms\Components\FileUpload::make('image')
+                                            ->hiddenLabel()
+                                            ->image()
+                                            ->imageEditor()
+                                            ->imageCropAspectRatio('16:9')
+                                            ->imageResizeMode('cover')
+                                            ->imageResizeTargetWidth('1200')
+                                            ->imageResizeTargetHeight('675')
+                                            ->maxSize(5120)
+                                            ->directory('products/main')
+                                            ->visibility('public')
+                                            ->moveFiles()
+                                            ->panelLayout('grid')
+                                            ->imagePreviewHeight('200'),
+                                    ])->columnSpanFull(),
 
-                                    Forms\Components\FileUpload::make('gallery_images')
-                                        ->label('Галерея зображень')
-                                        ->image()
-                                        ->imageEditor()
-                                        ->multiple()
-                                        ->maxFiles(10)
-                                        ->maxSize(5120)
-                                        ->directory('products/gallery')
-                                        ->visibility('public')
-                                        ->reorderable()
-                                        ->appendFiles()
-                                        ->helperText('Максимум 10 зображень. Автоматично оптимізуються'),
-                                ])->columnSpanFull(),
+                                Forms\Components\Section::make('Галерея зображень')
+                                    ->description('Drag-and-drop для зміни порядку · клік для редагування · хрестик для видалення.')
+                                    ->collapsible()
+                                    ->schema([
+                                        Forms\Components\FileUpload::make('gallery_images')
+                                            ->hiddenLabel()
+                                            ->image()
+                                            ->imageEditor()
+                                            ->imageEditorAspectRatios([
+                                                null,
+                                                '1:1',
+                                                '4:3',
+                                                '16:9',
+                                            ])
+                                            ->multiple()
+                                            ->maxFiles(12)
+                                            ->maxSize(5120)
+                                            ->directory('products/gallery')
+                                            ->visibility('public')
+                                            ->reorderable()
+                                            ->appendFiles()
+                                            ->panelLayout('grid')
+                                            ->imagePreviewHeight('140')
+                                            ->loadingIndicatorPosition('center')
+                                            ->removeUploadedFileButtonPosition('right')
+                                            ->uploadButtonPosition('left')
+                                            ->uploadProgressIndicatorPosition('center')
+                                            ->helperText('До 12 зображень · WebP/JPG/PNG до 5 MB · перетягуй щоб змінити порядок'),
+                                    ])->columnSpanFull(),
                             ]),
 
                         Forms\Components\Tabs\Tab::make('SEO')
@@ -716,27 +738,24 @@ class ProductResource extends Resource
                     ->label('Фото')
                     ->size(56)
                     ->extraImgAttributes(['class' => 'rounded-lg ring-1 ring-black/5 object-cover bg-gradient-to-br from-gray-50 to-gray-100'])
-                    // Generate a per-product placeholder SVG inline when image is null:
-                    // monogram (first 2 letters) on a colored background derived from sku/slug hash.
+                    // Use PartImage helper — same chain as storefront:
+                    // explicit image → kind-pool webp → monogram SVG.
                     ->getStateUsing(function ($record) {
-                        if ($record->image) {
-                            return $record->image;
-                        }
-                        $seed = (string) ($record->sku ?: $record->slug ?: $record->id);
-                        $title = is_array($record->title) ? ($record->title['uk'] ?? '') : (string) $record->title;
-                        // Extract initials — first letter of first two words
-                        $words = preg_split('/\s+/u', trim($title));
-                        $initials = mb_strtoupper(
-                            mb_substr($words[0] ?? '·', 0, 1).
-                            mb_substr($words[1] ?? '', 0, 1)
+                        $categoryTitle = $record->category
+                            ? (is_array($record->category->title)
+                                ? ($record->category->title['uk'] ?? '')
+                                : (string) $record->category->title)
+                            : null;
+                        $kind = \App\Support\PartImage::kindFromCategory($categoryTitle);
+                        $title = is_array($record->title)
+                            ? ($record->title['uk'] ?? '')
+                            : (string) $record->title;
+                        return \App\Support\PartImage::resolve(
+                            explicit: $record->image,
+                            kind: $kind,
+                            seed: $record->id,
+                            title: $title,
                         );
-                        // Deterministic hue from seed
-                        $hue = hexdec(substr(md5($seed), 0, 6)) % 360;
-                        $svg = sprintf(
-                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56"><rect width="56" height="56" fill="hsl(%d,40%%,92%%)"/><text x="50%%" y="50%%" font-family="Inter,sans-serif" font-size="20" font-weight="600" text-anchor="middle" dominant-baseline="central" fill="hsl(%d,35%%,38%%)">%s</text></svg>',
-                            $hue, $hue, htmlspecialchars($initials, ENT_QUOTES | ENT_XML1)
-                        );
-                        return 'data:image/svg+xml;base64,'.base64_encode($svg);
                     })
                     ->checkFileExistence(false),
                 Tables\Columns\TextInputColumn::make('title')
