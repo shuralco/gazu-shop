@@ -159,6 +159,12 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
         ->whereNumber('id')
         ->name('api.products.snapshot');
 
+    // Options-based variant lookup: ?option_value_ids[]=1&option_value_ids[]=2
+    // Повертає той самий shape, що /snapshot.
+    Route::get('/api/products/{id}/variant-by-options', [\App\Http\Controllers\Gazu\ProductSnapshotController::class, 'variantByOptions'])
+        ->whereNumber('id')
+        ->name('api.products.variant-by-options');
+
     Route::get('/404', [$c, 'notFound'])->name('404');
     // /m/{page} — test mobile page, доступний тільки в debug режимі
     Route::get('/m/{page}', function (\Illuminate\Http\Request $r, string $page) use ($c) {

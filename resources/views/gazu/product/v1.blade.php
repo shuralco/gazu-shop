@@ -213,12 +213,15 @@
                             <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
                         </div>
                     @endforeach
-                    {{-- AJAX variant-switch overlay: показується коли gazu:variant-switched
-                         оновлює src. Default hidden щоб не перекривати галерею. --}}
+                    {{-- AJAX variant-switch overlay. Default opacity-0 + display:none.
+                         AJAX handler ставить src+display:block, потім onload→opacity-1.
+                         Поверх gallery-grid (z-3) щоб не блокувати hover/zoom за відсутності. --}}
                     <img data-gazu-product-image
                          alt=""
-                         class="absolute inset-0 w-full h-full object-contain p-8 z-[3] hidden"
-                         onload="this.classList.remove('hidden')"/>
+                         style="display:none; opacity:0; transition: opacity .2s ease;"
+                         class="absolute inset-0 w-full h-full object-contain bg-white z-[3]"
+                         onload="this.style.opacity='1';"
+                         onerror="this.style.display='none';"/>
                     <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded z-[1]">
                         <span x-text="idx + 1">1</span> / {{ count($variants) }}
                     </div>
@@ -462,10 +465,15 @@
                         // Price (treat .gazu-product-price as the canonical hook)
                         const priceFmt = (v) => new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 0 }).format(v) + ' ₴';
                         document.querySelectorAll('[data-gazu-product-price]').forEach(el => el.textContent = priceFmt(d.price));
-                        // Main image
+                        // Main image overlay — fade-in via opacity, ховаємо якщо src падає.
                         document.querySelectorAll('[data-gazu-product-image]').forEach(el => {
-                            if (el.tagName === 'IMG') el.src = d.image;
-                            else el.style.backgroundImage = `url(${d.image})`;
+                            if (el.tagName === 'IMG') {
+                                el.style.opacity = '0';
+                                el.style.display = 'block';
+                                el.src = d.image;
+                            } else {
+                                el.style.backgroundImage = `url(${d.image})`;
+                            }
                         });
                         // Product ID across cart input + wishlist toggle + any button using product_id.
                         document.querySelectorAll('[data-gazu-product-id]').forEach(el => {
@@ -487,6 +495,103 @@
                     });
                 })();
                 </script>
+            @endif
+        @endif
+
+        {{-- Класичні опції товару (Колір / Розмір / Об'єм) — radio pills,
+             color swatches або dropdown залежно від option.type. На зміну
+             dispatch'имо gazu:variant-switched (повторно використовуємо
+             AJAX listener вище для price/image/sku/qty). --}}
+        @if(is_object($p) && $p instanceof \App\Models\Product)
+            @php
+                $productOptions = $p->options()->where('is_active', true)->orderBy('sort_order')->with(['values' => fn($q) => $q->where('is_active', true)->orderBy('sort_order')])->get();
+            @endphp
+            @if($productOptions->isNotEmpty())
+                <section class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 sm:p-5 mt-4 mb-4"
+                         x-data="{
+                            picks: {},
+                            busy: false,
+                            async sync() {
+                                const ids = Object.values(this.picks).filter(Boolean);
+                                if (ids.length === 0) return;
+                                this.busy = true;
+                                try {
+                                    const url = new URL('/api/products/{{ (int) $p->id }}/variant-by-options', window.location.origin);
+                                    ids.forEach(id => url.searchParams.append('option_value_ids[]', id));
+                                    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                                    if (!res.ok) throw new Error('http '+res.status);
+                                    const data = await res.json();
+                                    window.dispatchEvent(new CustomEvent('gazu:variant-switched', { detail: data }));
+                                } catch (e) { console.warn('[options] fetch failed', e); }
+                                finally { this.busy = false; }
+                            }
+                         }">
+                    @foreach($productOptions as $opt)
+                        <div class="mb-4 last:mb-0">
+                            <div class="flex items-baseline gap-2 mb-2">
+                                <span class="text-sm font-semibold text-[var(--gazu-ink)]">{{ $opt->name }}:</span>
+                                <span class="text-sm text-[var(--gazu-graphite)]" x-text="picks[{{ $opt->id }}] ? '{{ $opt->id }}' : ''" x-cloak></span>
+                            </div>
+
+                            @if($opt->type === 'color')
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($opt->values as $v)
+                                        <button type="button"
+                                                title="{{ $v->value }}"
+                                                @click="picks[{{ $opt->id }}] = {{ $v->id }}; sync();"
+                                                :disabled="busy"
+                                                :class="picks[{{ $opt->id }}] === {{ $v->id }} ? 'ring-2 ring-[var(--gazu-ink)] ring-offset-2' : 'ring-1 ring-[var(--gazu-line)] hover:ring-[var(--gazu-graphite)]'"
+                                                style="background-color: {{ $v->color_hex ?: '#ddd' }}"
+                                                class="w-9 h-9 rounded-full transition-all disabled:opacity-50 disabled:cursor-wait">
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @elseif($opt->type === 'image')
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($opt->values as $v)
+                                        <button type="button"
+                                                title="{{ $v->value }}"
+                                                @click="picks[{{ $opt->id }}] = {{ $v->id }}; sync();"
+                                                :disabled="busy"
+                                                :class="picks[{{ $opt->id }}] === {{ $v->id }} ? 'ring-2 ring-[var(--gazu-ink)] ring-offset-1' : 'ring-1 ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] opacity-90'"
+                                                class="w-16 h-16 rounded-md overflow-hidden bg-[var(--gazu-paper)] transition-all disabled:opacity-50 disabled:cursor-wait">
+                                            @if($v->image)
+                                                <img src="{{ \Illuminate\Support\Str::startsWith($v->image, ['http','/']) ? $v->image : '/storage/'.$v->image }}" alt="{{ $v->value }}" class="w-full h-full object-cover"/>
+                                            @else
+                                                <span class="block w-full h-full flex items-center justify-center text-xs">{{ $v->value }}</span>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @elseif($opt->type === 'select')
+                                <select @change="picks[{{ $opt->id }}] = parseInt($event.target.value); sync();"
+                                        :disabled="busy"
+                                        class="w-full max-w-xs px-3 py-2 text-sm rounded-md border border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] focus:outline-none focus:border-[var(--gazu-ink)] disabled:opacity-50">
+                                    <option value="">— Оберіть {{ mb_strtolower($opt->name) }} —</option>
+                                    @foreach($opt->values as $v)
+                                        <option value="{{ $v->id }}">{{ $v->value }}@if($v->price_modifier != 0) ({{ $v->price_modifier > 0 ? '+' : '' }}{{ (int) $v->price_modifier }} ₴)@endif</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                {{-- type=text → radio-pills (default «класичний» вигляд) --}}
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach($opt->values as $v)
+                                        <button type="button"
+                                                @click="picks[{{ $opt->id }}] = {{ $v->id }}; sync();"
+                                                :disabled="busy"
+                                                :class="picks[{{ $opt->id }}] === {{ $v->id }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)]'"
+                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md ring-1 transition-colors disabled:opacity-50 disabled:cursor-wait">
+                                            <span>{{ $v->value }}</span>
+                                            @if($v->price_modifier != 0)
+                                                <span class="text-xs opacity-70">{{ $v->price_modifier > 0 ? '+' : '' }}{{ (int) $v->price_modifier }} ₴</span>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endforeach
+                </section>
             @endif
         @endif
 

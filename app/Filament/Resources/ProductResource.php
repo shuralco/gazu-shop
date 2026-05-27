@@ -906,6 +906,8 @@ class ProductResource extends Resource
     {
         return [
             RelationManagers\InventoryRelationManager::class,
+            RelationManagers\OptionsRelationManager::class,
+            RelationManagers\VariantsRelationManager::class,
             RelationManagers\RelatedProductsRelationManager::class,
             RelationManagers\GroupPricesRelationManager::class,
             RelationManagers\FiltersRelationManager::class,
