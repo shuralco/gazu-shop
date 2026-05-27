@@ -1148,26 +1148,33 @@ class OrderResource extends Resource
                 Tables\Columns\ImageColumn::make('product_thumbs')
                     ->label('Товари')
                     ->getStateUsing(function (Order $record): array {
-                        // Eager-load product.category to derive kind
                         $record->loadMissing('orderProducts.product.category');
+
+                        // Known seed-placeholders that don't actually exist on disk.
+                        $placeholderPaths = [
+                            '/assets/img/default-product.jpg',
+                            'assets/img/default-product.jpg',
+                        ];
+
                         return $record->orderProducts
                             ->take(4)
-                            ->map(function ($op) {
-                                if ($op->image) {
-                                    return str_starts_with($op->image, 'http') || str_starts_with($op->image, '/')
-                                        ? $op->image
-                                        : '/'.ltrim($op->image, '/');
+                            ->map(function ($op) use ($placeholderPaths) {
+                                // Prefer explicit op.image, then product.image — but ignore seed-placeholders.
+                                $candidate = $op->image ?: ($op->product?->image ?? null);
+                                if ($candidate && ! in_array($candidate, $placeholderPaths, true)) {
+                                    return str_starts_with($candidate, 'http') || str_starts_with($candidate, '/')
+                                        ? $candidate
+                                        : '/'.ltrim($candidate, '/');
                                 }
-                                // Kind from product->category (OrderProduct itself has no category)
                                 $catTitle = $op->product?->category?->title;
                                 if (is_array($catTitle)) {
                                     $catTitle = $catTitle['uk'] ?? '';
                                 }
                                 $kind = \App\Support\PartImage::kindFromCategory((string) $catTitle);
-                                $title = is_array($op->title)
-                                    ? ($op->title['uk'] ?? '')
-                                    : (string) ($op->title ?? $op->product?->title ?? '');
-                                if (is_array($title)) $title = $title['uk'] ?? '';
+                                $title = $op->title ?? $op->product?->title ?? '';
+                                if (is_array($title)) {
+                                    $title = $title['uk'] ?? '';
+                                }
                                 return \App\Support\PartImage::resolve(
                                     explicit: null,
                                     kind: $kind,
