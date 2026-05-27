@@ -152,6 +152,13 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // Recently-viewed: повертає products by ID list (для recently-viewed block)
     Route::get('/api/products/by-ids', [$c, 'apiProductsByIds'])->name('api.products.by-ids');
 
+    // Variant picker — JSON snapshot для AJAX-перемикання на картці товару
+    // (без перезавантаження сторінки). Повертає назву, ціну, картинку, slug,
+    // qty, specs для оновлення DOM.
+    Route::get('/api/products/{id}/snapshot', [\App\Http\Controllers\Gazu\ProductSnapshotController::class, 'show'])
+        ->whereNumber('id')
+        ->name('api.products.snapshot');
+
     Route::get('/404', [$c, 'notFound'])->name('404');
     // /m/{page} — test mobile page, доступний тільки в debug режимі
     Route::get('/m/{page}', function (\Illuminate\Http\Request $r, string $page) use ($c) {

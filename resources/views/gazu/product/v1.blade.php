@@ -213,6 +213,12 @@
                             <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
                         </div>
                     @endforeach
+                    {{-- AJAX variant-switch overlay: показується коли gazu:variant-switched
+                         оновлює src. Default hidden щоб не перекривати галерею. --}}
+                    <img data-gazu-product-image
+                         alt=""
+                         class="absolute inset-0 w-full h-full object-contain p-8 z-[3] hidden"
+                         onload="this.classList.remove('hidden')"/>
                     <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded z-[1]">
                         <span x-text="idx + 1">1</span> / {{ count($variants) }}
                     </div>
@@ -288,7 +294,7 @@
 
             {{-- Right-hand side: product title spanning the two columns below it --}}
             <div>
-                <h1 class="gazu-display text-[28px] sm:text-[32px] font-semibold text-[var(--gazu-ink)] m-0 leading-tight">{{ $name }}</h1>
+                <h1 data-gazu-product-title class="gazu-display text-[28px] sm:text-[32px] font-semibold text-[var(--gazu-ink)] m-0 leading-tight">{{ $name }}</h1>
                 @php
                     // Reviews/rating показуються тільки якщо модуль reviews УВімкнено.
                     // soldCount — це окрема метрика (не reviews-модуль), не гейтиться.
@@ -388,26 +394,99 @@
                 }
             @endphp
             @if(! empty($variantGroups))
-                <section class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 sm:p-5 mt-4 mb-4">
+                <section class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 sm:p-5 mt-4 mb-4"
+                         x-data="{
+                            activeId: {{ (int) $p->id }},
+                            switching: false,
+                            async switchTo(id, slug) {
+                                if (this.switching || id === this.activeId) return;
+                                this.switching = true;
+                                try {
+                                    const res = await fetch(`/api/products/${id}/snapshot`, {
+                                        headers: { 'Accept': 'application/json' }
+                                    });
+                                    if (!res.ok) throw new Error('http '+res.status);
+                                    const data = await res.json();
+                                    this.activeId = id;
+                                    window.dispatchEvent(new CustomEvent('gazu:variant-switched', { detail: data }));
+                                    if (slug) {
+                                        history.replaceState({ ...history.state, productId: id }, '', '/'+slug);
+                                    }
+                                } catch (e) {
+                                    console.warn('[variants] fetch failed', e);
+                                    if (slug) window.location.href = '/'+slug; // fallback
+                                } finally {
+                                    this.switching = false;
+                                }
+                            }
+                         }">
                     @foreach($variantGroups as $specKey => $options)
                         <div class="flex flex-wrap items-baseline gap-2 mb-3 last:mb-0">
                             <span class="text-sm text-[var(--gazu-graphite)] mr-2">{{ $specKey }}:</span>
                             @php $currentValue = (string) ($currentSpecs[$specKey] ?? ''); @endphp
                             @if($currentValue !== '')
-                                <span class="inline-flex items-center px-2.5 py-1 text-sm font-medium rounded-md bg-[var(--gazu-ink)] text-white ring-1 ring-[var(--gazu-ink)]">
+                                <button type="button"
+                                        @click="switchTo({{ (int) $p->id }}, '{{ is_array($p->slug) ? ($p->slug['uk'] ?? '') : $p->slug }}')"
+                                        :class="activeId === {{ (int) $p->id }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)]'"
+                                        class="inline-flex items-center px-2.5 py-1 text-sm font-medium rounded-md ring-1 transition-colors">
                                     {{ $currentValue }}
-                                </span>
+                                </button>
                             @endif
                             @foreach($options as $opt)
-                                <a wire:navigate href="/{{ $opt['slug'] }}"
-                                   class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-md bg-white text-[var(--gazu-ink)] ring-1 ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)] transition-colors no-underline">
+                                <button type="button"
+                                        @click="switchTo({{ (int) $opt['id'] }}, '{{ $opt['slug'] }}')"
+                                        :disabled="switching"
+                                        :class="activeId === {{ (int) $opt['id'] }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)]'"
+                                        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-md ring-1 transition-colors disabled:opacity-50 disabled:cursor-wait">
                                     <span>{{ $opt['value'] }}</span>
-                                    <span class="text-xs text-[var(--gazu-graphite)]">{{ number_format($opt['price'], 0, '.', ' ') }} ₴</span>
-                                </a>
+                                    <span class="text-xs opacity-70">{{ number_format($opt['price'], 0, '.', ' ') }} ₴</span>
+                                </button>
                             @endforeach
                         </div>
                     @endforeach
                 </section>
+
+                {{-- AJAX swap script — слухає gazu:variant-switched і оновлює
+                     ключові DOM-поля (h1, ціна, картинка, productId у buy-button)
+                     без перезавантаження сторінки. --}}
+                <script>
+                (function () {
+                    if (window.__gazuVariantSwapBound) return;
+                    window.__gazuVariantSwapBound = true;
+                    window.addEventListener('gazu:variant-switched', (e) => {
+                        const d = e.detail || {};
+                        // H1 / title
+                        document.querySelectorAll('[data-gazu-product-title]').forEach(el => el.textContent = d.title);
+                        const h1 = document.querySelector('h1');
+                        if (h1) h1.textContent = d.title;
+                        // Price (treat .gazu-product-price as the canonical hook)
+                        const priceFmt = (v) => new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 0 }).format(v) + ' ₴';
+                        document.querySelectorAll('[data-gazu-product-price]').forEach(el => el.textContent = priceFmt(d.price));
+                        // Main image
+                        document.querySelectorAll('[data-gazu-product-image]').forEach(el => {
+                            if (el.tagName === 'IMG') el.src = d.image;
+                            else el.style.backgroundImage = `url(${d.image})`;
+                        });
+                        // Product ID across cart input + wishlist toggle + any button using product_id.
+                        document.querySelectorAll('[data-gazu-product-id]').forEach(el => {
+                            el.dataset.gazuProductId = String(d.id);
+                            if (el.tagName === 'INPUT') el.value = String(d.id);
+                            if (el.dataset.productId !== undefined) el.dataset.productId = String(d.id);
+                            if (el.dataset.wishlistPid !== undefined) el.dataset.wishlistPid = String(d.id);
+                        });
+                        // Variant pill price hint update — recompute from new active.
+                        document.title = d.title + ' — GAZU';
+                        // SKU
+                        document.querySelectorAll('[data-gazu-product-sku]').forEach(el => el.textContent = d.sku || '');
+                        // Stock badge
+                        document.querySelectorAll('[data-gazu-product-stock]').forEach(el => {
+                            el.textContent = d.in_stock ? `${d.qty} в наявності` : 'Немає в наявності';
+                            el.classList.toggle('text-[var(--gazu-success)]', d.in_stock);
+                            el.classList.toggle('text-[var(--gazu-danger)]', !d.in_stock);
+                        });
+                    });
+                })();
+                </script>
             @endif
         @endif
 

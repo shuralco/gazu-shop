@@ -56,6 +56,11 @@ class FilterLandingResource extends Resource
                         ->label('Активна')
                         ->default(true),
 
+                    Forms\Components\Toggle::make('show_applied_filters')
+                        ->label('Показувати застосовані фільтри на сторінці')
+                        ->helperText('Покаже chip-и з категорією, брендом та фільтрами під H1 (як в адмінці)')
+                        ->default(true),
+
                     Forms\Components\TextInput::make('sort_order')
                         ->numeric()
                         ->default(0),

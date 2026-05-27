@@ -29,10 +29,25 @@
         @endif
     </header>
 
-    {{-- APPLIED FILTERS chips --}}
-    @if($appliedFilters->count() > 0)
+    {{-- APPLIED FILTERS chips (toggle-able per landing) --}}
+    @php
+        $hasAnyApplied = ($appliedFilters->count() > 0) || $landing->category || $landing->brand;
+    @endphp
+    @if($landing->show_applied_filters && $hasAnyApplied)
         <div class="mb-5 flex flex-wrap items-center gap-2 text-sm">
             <span class="text-[var(--gazu-graphite)]">Фільтри:</span>
+            @if($landing->category)
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--gazu-ink)]/5 ring-1 ring-[var(--gazu-line)] text-[var(--gazu-ink)]">
+                    <span class="text-xs text-[var(--gazu-graphite)]">Категорія:</span>
+                    <span class="font-medium">{{ is_array($landing->category->title) ? ($landing->category->title['uk'] ?? '') : $landing->category->title }}</span>
+                </span>
+            @endif
+            @if($landing->brand)
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[var(--gazu-ink)]/5 ring-1 ring-[var(--gazu-line)] text-[var(--gazu-ink)]">
+                    <span class="text-xs text-[var(--gazu-graphite)]">Бренд:</span>
+                    <span class="font-medium">{{ is_array($landing->brand->name) ? ($landing->brand->name['uk'] ?? '') : $landing->brand->name }}</span>
+                </span>
+            @endif
             @foreach($appliedFilters as $f)
                 @php
                     $g = $f->filterGroup;
@@ -46,18 +61,6 @@
                     <span class="font-medium">{{ $fTitle }}</span>
                 </span>
             @endforeach
-            @if($landing->category)
-                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-[var(--gazu-ink)]/5 ring-1 ring-[var(--gazu-line)] text-[var(--gazu-ink)]">
-                    <span class="text-xs text-[var(--gazu-graphite)]">Категорія:</span>
-                    <span class="font-medium ml-1">{{ is_array($landing->category->title) ? ($landing->category->title['uk'] ?? '') : $landing->category->title }}</span>
-                </span>
-            @endif
-            @if($landing->brand)
-                <span class="inline-flex items-center px-2.5 py-1 rounded-md bg-[var(--gazu-ink)]/5 ring-1 ring-[var(--gazu-line)] text-[var(--gazu-ink)]">
-                    <span class="text-xs text-[var(--gazu-graphite)]">Бренд:</span>
-                    <span class="font-medium ml-1">{{ is_array($landing->brand->name) ? ($landing->brand->name['uk'] ?? '') : $landing->brand->name }}</span>
-                </span>
-            @endif
         </div>
     @endif
 

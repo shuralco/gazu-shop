@@ -34,9 +34,19 @@
         q: 1,
         warehouseId: {{ $defaultWh ? (int) $defaultWh : 'null' }},
         stocks: {{ \Illuminate\Support\Js::from($stocksJs) }},
-        get price() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].price : {{ (float) $defaultPrice }}; },
+        // AJAX variant-switching state — overrides take priority over per-warehouse stock.
+        currentProductId: {{ (int) $productId }},
+        overridePrice: null,
+        overrideQty: null,
+        get price() {
+            if (this.overridePrice !== null) return this.overridePrice;
+            return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].price : {{ (float) $defaultPrice }};
+        },
         get compareAt() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].compare : null; },
-        get available() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].qty : {{ (int) $qty }}; },
+        get available() {
+            if (this.overrideQty !== null) return this.overrideQty;
+            return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].qty : {{ (int) $qty }};
+        },
         fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); },
         adding: false,
         async addToCart() {
@@ -47,14 +57,13 @@
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json' },
                     body: new URLSearchParams({
-                        product_id: '{{ $productId }}',
+                        product_id: String(this.currentProductId),
                         quantity: this.q,
-                        warehouse_id: this.warehouseId || '',
+                        warehouse_id: this.overrideQty !== null ? '' : (this.warehouseId || ''),
                     })
                 });
                 const d = await r.json();
                 if (d.ok) {
-                    // Drawer (right side) — єдиний feedback на додавання. Toast прибрано.
                     window.dispatchEvent(new CustomEvent('cart-updated', { detail: { count: d.count, qtyTotal: d.qtyTotal, total: d.total } }));
                 } else {
                     window.gazuToast && window.gazuToast(d.message || 'Не вдалося додати', 'error');
@@ -64,7 +73,14 @@
             } finally { this.adding = false; }
         }
      }"
-     @warehouse-selected.window="warehouseId = $event.detail.id">
+     @warehouse-selected.window="warehouseId = $event.detail.id; overridePrice = null; overrideQty = null;"
+     @gazu:variant-switched.window="
+        currentProductId = $event.detail.id;
+        overridePrice = $event.detail.price;
+        overrideQty = $event.detail.qty;
+        warehouseId = null;
+        q = 1;
+     ">
     {{-- Price + quantity stepper on a single row — compact, so it sits neatly
          under the warehouse selector on mobile and reads as one "pick qty → see
          price" unit. Quantity lives in the buy-panel x-data scope, so it can sit
@@ -72,7 +88,7 @@
     <div class="flex items-end justify-between gap-3 mb-4">
         <div class="min-w-0">
             <span class="gazu-display font-bold text-[var(--gazu-ink)] leading-none gazu-mono" style="font-size: 36px; font-variant-numeric: tabular-nums; display: inline-flex; align-items: baseline; gap: .2em;">
-                <span x-text="fmt(price * q)" style="display:inline-block;text-align:left">{{ $priceFmt }}</span><span class="text-xl font-medium text-[var(--gazu-graphite)]">₴</span>
+                <span data-gazu-product-price x-text="fmt(price * q)" style="display:inline-block;text-align:left">{{ $priceFmt }}</span><span class="text-xl font-medium text-[var(--gazu-graphite)]">₴</span>
             </span>
             <div class="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
                 <template x-if="compareAt && compareAt > price">
@@ -117,7 +133,7 @@
 
     <form action="{{ route('gazu.cart.add') }}" method="POST" @submit.prevent="addToCart">
         @csrf
-        <input type="hidden" name="product_id" value="{{ $productId }}">
+        <input type="hidden" name="product_id" :value="currentProductId" data-gazu-product-id="{{ $productId }}">
         <input type="hidden" name="quantity" :value="q">
         <input type="hidden" name="warehouse_id" :value="warehouseId">
 

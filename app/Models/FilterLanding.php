@@ -12,12 +12,13 @@ class FilterLanding extends Model
         'slug', 'title', 'h1', 'meta_title', 'meta_description',
         'intro_html', 'outro_html',
         'category_id', 'brand_id', 'filter_ids',
-        'is_active', 'sort_order', 'views_count',
+        'is_active', 'show_applied_filters', 'sort_order', 'views_count',
     ];
 
     protected $casts = [
         'filter_ids' => 'array',
         'is_active' => 'bool',
+        'show_applied_filters' => 'bool',
         'sort_order' => 'int',
         'views_count' => 'int',
     ];
