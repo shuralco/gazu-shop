@@ -715,8 +715,29 @@ class ProductResource extends Resource
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Фото')
                     ->size(56)
-                    ->extraImgAttributes(['class' => 'rounded-lg ring-1 ring-black/5 object-cover bg-gray-50'])
-                    ->defaultImageUrl(asset('assets/img/placeholder.svg'))
+                    ->extraImgAttributes(['class' => 'rounded-lg ring-1 ring-black/5 object-cover bg-gradient-to-br from-gray-50 to-gray-100'])
+                    // Generate a per-product placeholder SVG inline when image is null:
+                    // monogram (first 2 letters) on a colored background derived from sku/slug hash.
+                    ->getStateUsing(function ($record) {
+                        if ($record->image) {
+                            return $record->image;
+                        }
+                        $seed = (string) ($record->sku ?: $record->slug ?: $record->id);
+                        $title = is_array($record->title) ? ($record->title['uk'] ?? '') : (string) $record->title;
+                        // Extract initials — first letter of first two words
+                        $words = preg_split('/\s+/u', trim($title));
+                        $initials = mb_strtoupper(
+                            mb_substr($words[0] ?? '·', 0, 1).
+                            mb_substr($words[1] ?? '', 0, 1)
+                        );
+                        // Deterministic hue from seed
+                        $hue = hexdec(substr(md5($seed), 0, 6)) % 360;
+                        $svg = sprintf(
+                            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 56 56"><rect width="56" height="56" fill="hsl(%d,40%%,92%%)"/><text x="50%%" y="50%%" font-family="Inter,sans-serif" font-size="20" font-weight="600" text-anchor="middle" dominant-baseline="central" fill="hsl(%d,35%%,38%%)">%s</text></svg>',
+                            $hue, $hue, htmlspecialchars($initials, ENT_QUOTES | ENT_XML1)
+                        );
+                        return 'data:image/svg+xml;base64,'.base64_encode($svg);
+                    })
                     ->checkFileExistence(false),
                 Tables\Columns\TextInputColumn::make('title')
                     ->label('Назва')
