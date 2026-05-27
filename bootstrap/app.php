@@ -48,4 +48,19 @@ return Application::configure(basePath: dirname(__DIR__))
         $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
             return $request->is('api/*') || $request->expectsJson();
         });
+
+        // Stale Livewire snapshots — client references a component that no
+        // longer exists server-side (e.g. widget from a disabled module).
+        // Return a Livewire-shaped payload that triggers full page reload
+        // instead of bubbling up as 500.
+        $exceptions->render(function (\Livewire\Exceptions\ComponentNotFoundException $e, \Illuminate\Http\Request $request) {
+            if ($request->is('livewire/*') || $request->expectsJson() || $request->isMethod('POST')) {
+                return response()->json([
+                    'effects' => [
+                        'redirect' => $request->headers->get('Referer') ?: url('/admin'),
+                    ],
+                    'serverMemo' => [],
+                ], 200)->header('X-Livewire-Reload', 'stale-component');
+            }
+        });
     })->create();
