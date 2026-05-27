@@ -348,6 +348,69 @@
             <x-gazu.compat-check :product-id="$p->id"/>
         @endif
 
+        {{-- 4E: Variants picker — Розетка-стиль "виберіть обʼєм/розмір/тип".
+             Показує related-products згруповані по тій характеристиці, що відрізняється
+             від поточного товару. Клік на pill → перехід на варіант. --}}
+        @if(is_object($p) && $p instanceof \App\Models\Product && method_exists($p, 'relatedProducts'))
+            @php
+                $currentSpecs = is_array($p->specifications) ? $p->specifications : (json_decode((string) $p->specifications, true) ?: []);
+                $variants = $p->relatedProducts()
+                    ->where('related_products.type', 'related')
+                    ->limit(50)
+                    ->get(['products.id', 'products.title', 'products.slug', 'products.price', 'products.specifications', 'products.image']);
+
+                // Group variants by the spec key that differs from current
+                $variantGroups = [];
+                foreach ($variants as $v) {
+                    $vs = is_array($v->specifications) ? $v->specifications : (json_decode((string) $v->specifications, true) ?: []);
+                    if (! is_array($vs)) continue;
+                    foreach ($currentSpecs as $k => $curVal) {
+                        if (! isset($vs[$k])) continue;
+                        if ((string) $vs[$k] !== (string) $curVal) {
+                            $variantGroups[$k][] = [
+                                'id' => $v->id,
+                                'value' => (string) $vs[$k],
+                                'slug' => is_array($v->slug) ? ($v->slug['uk'] ?? '') : (string) $v->slug,
+                                'price' => $v->price,
+                            ];
+                            break; // one differing spec per variant
+                        }
+                    }
+                }
+                // Dedupe values per group
+                foreach ($variantGroups as $k => $list) {
+                    $seen = [];
+                    $variantGroups[$k] = array_values(array_filter($list, function ($v) use (&$seen) {
+                        if (isset($seen[$v['value']])) return false;
+                        $seen[$v['value']] = true;
+                        return true;
+                    }));
+                }
+            @endphp
+            @if(! empty($variantGroups))
+                <section class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 sm:p-5 mt-4 mb-4">
+                    @foreach($variantGroups as $specKey => $options)
+                        <div class="flex flex-wrap items-baseline gap-2 mb-3 last:mb-0">
+                            <span class="text-sm text-[var(--gazu-graphite)] mr-2">{{ $specKey }}:</span>
+                            @php $currentValue = (string) ($currentSpecs[$specKey] ?? ''); @endphp
+                            @if($currentValue !== '')
+                                <span class="inline-flex items-center px-2.5 py-1 text-sm font-medium rounded-md bg-[var(--gazu-ink)] text-white ring-1 ring-[var(--gazu-ink)]">
+                                    {{ $currentValue }}
+                                </span>
+                            @endif
+                            @foreach($options as $opt)
+                                <a wire:navigate href="/{{ $opt['slug'] }}"
+                                   class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-md bg-white text-[var(--gazu-ink)] ring-1 ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)] transition-colors no-underline">
+                                    <span>{{ $opt['value'] }}</span>
+                                    <span class="text-xs text-[var(--gazu-graphite)]">{{ number_format($opt['price'], 0, '.', ' ') }} ₴</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endforeach
+                </section>
+            @endif
+        @endif
+
         @php
                     $analogList = ($analogs ?? null) instanceof \Illuminate\Support\Collection
                         ? $analogs : collect();
