@@ -210,6 +210,10 @@ class ModuleDetail extends Page
             ->success(fn () => empty($report['errors']))
             ->warning(fn () => ! empty($report['errors']))
             ->send();
+
+        // Force full page reload — drops stale Livewire snapshots that
+        // would reference now-missing widgets/resources from this module.
+        $this->redirect(url("/admin/modules/view?key={$key}"), navigate: false);
     }
 
     public function saveSettings(): void

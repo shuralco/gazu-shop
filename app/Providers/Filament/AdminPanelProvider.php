@@ -72,7 +72,29 @@ class AdminPanelProvider extends PanelProvider
             ->plugins([
                 \Filament\SpatieLaravelTranslatablePlugin::make()
                     ->defaultLocales(['uk', 'en']),
-            ]);
+            ])
+            // Inject JS that auto-recovers from stale Livewire snapshots.
+            // If Livewire requests a component name that no longer exists
+            // server-side (deleted widget, disabled module), force a full
+            // page reload so the browser drops the snapshot.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn () => <<<'HTML'
+                    <script>
+                    document.addEventListener('livewire:init', () => {
+                        Livewire.hook('request', ({ fail }) => {
+                            fail(({ status, content, preventDefault }) => {
+                                if (status === 500 && content && content.includes('ComponentNotFoundException')) {
+                                    preventDefault();
+                                    console.warn('[livewire] component not found server-side — reloading');
+                                    window.location.reload();
+                                }
+                            });
+                        });
+                    });
+                    </script>
+                HTML
+            );
     }
 
     /**
@@ -114,9 +136,13 @@ class AdminPanelProvider extends PanelProvider
                 continue;
             }
             foreach ($manifest[$manifestKey] ?? [] as $class) {
-                if (is_string($class) && class_exists($class)) {
-                    $classes[] = $class;
+                // Defensive: only include if class actually resolves.
+                // Prevents Filament panel boot from crashing on broken
+                // manifests / partially-removed module files.
+                if (! is_string($class) || ! class_exists($class)) {
+                    continue;
                 }
+                $classes[] = $class;
             }
         }
 

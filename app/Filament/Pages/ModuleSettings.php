@@ -191,6 +191,12 @@ class ModuleSettings extends Page
             ->body(implode("\n", $bodyParts))
             ->success()
             ->send();
+
+        // CRITICAL: Force full page reload to drop any stale Livewire snapshots
+        // that reference widgets/resources from the just-toggled module.
+        // Without this — opening dashboard after disable throws
+        // ComponentNotFoundException for widgets that no longer exist.
+        $this->redirect(request()->header('Referer') ?: url('/admin/modules'), navigate: false);
     }
 
     public function saveModuleSettings(string $key): void

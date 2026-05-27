@@ -44,6 +44,16 @@ class MegaMenuEditor extends Page
 
     public string $promoUrl = '/specials';
 
+    // Footer settings
+    public string $footerAbout = '';
+
+    /** @var list<array{title:string,links:list<array{label:string,url:string}>}> */
+    public array $footerColumns = [];
+
+    public string $footerPayments = '';
+
+    public string $footerCopyright = '';
+
     public function mount(): void
     {
         // Load horizontal menu items
@@ -81,6 +91,82 @@ class MegaMenuEditor extends Page
         $this->promoSubtitle = (string) (DisplaySetting::get('main_mega_menu_promo_subtitle', '') ?: '');
         $this->promoButton = (string) (DisplaySetting::get('main_mega_menu_promo_button', 'ПЕРЕГЛЯНУТИ ВСІ') ?: '');
         $this->promoUrl = (string) (DisplaySetting::get('main_mega_menu_promo_url', '/specials') ?: '/specials');
+
+        // Footer
+        $this->footerAbout = (string) (DisplaySetting::get('gazu_footer_about', '') ?: '');
+        $storedColumns = DisplaySetting::get('gazu_footer_columns', null);
+        if ($storedColumns) {
+            if (is_string($storedColumns)) {
+                $storedColumns = json_decode($storedColumns, true) ?? [];
+            }
+            $this->footerColumns = is_array($storedColumns) ? array_values($storedColumns) : [];
+        }
+        $this->footerPayments = (string) (DisplaySetting::get('gazu_footer_payments', 'Visa, Mastercard, Apple Pay, Google Pay') ?: '');
+        $this->footerCopyright = (string) (DisplaySetting::get('gazu_footer_copyright', '© '.date('Y').' GAZU. Усі права захищено.') ?: '');
+    }
+
+    // --- Footer editor methods ---
+
+    public function addFooterColumn(): void
+    {
+        $this->footerColumns[] = ['title' => 'Нова колонка', 'links' => []];
+    }
+
+    public function removeFooterColumn(int $colIndex): void
+    {
+        unset($this->footerColumns[$colIndex]);
+        $this->footerColumns = array_values($this->footerColumns);
+    }
+
+    public function addFooterLink(int $colIndex): void
+    {
+        if (! isset($this->footerColumns[$colIndex])) {
+            return;
+        }
+        $this->footerColumns[$colIndex]['links'][] = ['label' => 'Нове посилання', 'url' => '/'];
+    }
+
+    public function removeFooterLink(int $colIndex, int $linkIndex): void
+    {
+        if (! isset($this->footerColumns[$colIndex]['links'][$linkIndex])) {
+            return;
+        }
+        unset($this->footerColumns[$colIndex]['links'][$linkIndex]);
+        $this->footerColumns[$colIndex]['links'] = array_values($this->footerColumns[$colIndex]['links']);
+    }
+
+    /**
+     * Стартовий футер з 3 колонками: Каталог · Інформація · Контакти.
+     */
+    public function generateFooterDefaults(): void
+    {
+        $this->footerColumns = [
+            ['title' => 'Каталог', 'links' => [
+                ['label' => 'Усі товари', 'url' => '/catalog'],
+                ['label' => 'Акції', 'url' => '/akcii'],
+                ['label' => 'Хіти продажів', 'url' => '/khity'],
+                ['label' => 'Новинки', 'url' => '/novynky'],
+                ['label' => 'Бренди', 'url' => '/brand'],
+            ]],
+            ['title' => 'Інформація', 'links' => [
+                ['label' => 'Про нас', 'url' => '/about'],
+                ['label' => 'Доставка та оплата', 'url' => '/dostavka'],
+                ['label' => 'Гарантія', 'url' => '/garantia'],
+                ['label' => 'Повернення', 'url' => '/povernennya'],
+                ['label' => 'FAQ', 'url' => '/faq'],
+                ['label' => 'Блог', 'url' => '/blog'],
+            ]],
+            ['title' => 'Контакти', 'links' => [
+                ['label' => 'Контакти', 'url' => '/contacts'],
+                ['label' => 'Гурт та СТО', 'url' => '/wholesale'],
+                ['label' => 'Кабінет', 'url' => '/kabinet'],
+            ]],
+        ];
+
+        Notification::make()
+            ->title('Футер заповнено стандартними колонками')
+            ->success()
+            ->send();
     }
 
     public function getCategories(): array
@@ -440,6 +526,12 @@ class MegaMenuEditor extends Page
         cache()->forget('header_main_config');
         DisplaySetting::flushHeaderCache();
 
-        Notification::make()->success()->title('Меню збережено')->send();
+        // Footer
+        DisplaySetting::set('gazu_footer_about', $this->footerAbout);
+        DisplaySetting::set('gazu_footer_columns', $this->footerColumns);
+        DisplaySetting::set('gazu_footer_payments', $this->footerPayments);
+        DisplaySetting::set('gazu_footer_copyright', $this->footerCopyright);
+
+        Notification::make()->success()->title('Меню + футер збережено')->send();
     }
 }
