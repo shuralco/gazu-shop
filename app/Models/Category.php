@@ -222,4 +222,39 @@ class Category extends Model
     {
         return (bool) $this->is_active;
     }
+
+    /**
+     * Breadcrumb-style path: "Двигун → Фільтри → Оливні".
+     * Used in admin table to show where the category lives in the tree.
+     */
+    public function getFullPathAttribute(): string
+    {
+        $titles = [];
+        $node = $this;
+        $maxDepth = 6; // guard against cyclic self-FK
+        while ($node && $maxDepth-- > 0) {
+            $title = is_array($node->title)
+                ? ($node->title['uk'] ?? $node->title['en'] ?? '')
+                : (string) $node->title;
+            $titles[] = $title;
+            $node = $node->parent_id ? $node->parent : null;
+        }
+
+        return implode(' → ', array_reverse(array_filter($titles)));
+    }
+
+    /**
+     * Depth in the tree: 0 = root, 1 = child of root, 2 = grandchild.
+     */
+    public function getDepthAttribute(): int
+    {
+        $depth = 0;
+        $node = $this;
+        while ($node && $node->parent_id && $depth < 10) {
+            $node = $node->parent;
+            $depth++;
+        }
+
+        return $depth;
+    }
 }

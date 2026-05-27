@@ -281,46 +281,95 @@ class CategoryResource extends Resource
     {
         return $table
             ->columns([
+                // Tree-style title — indent by depth + tree-branch glyph
                 Tables\Columns\TextColumn::make('title')
-                    ->label('Назва')
+                    ->label('Категорія')
                     ->searchable()
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->formatStateUsing(function ($state, $record) {
+                        $depth = $record->depth ?? 0;
+                        $indent = str_repeat('  ', $depth);
+                        $prefix = $depth > 0 ? '└─ ' : '';
+                        $title = is_array($state) ? ($state['uk'] ?? $state['en'] ?? '') : $state;
+                        return $indent.$prefix.$title;
+                    })
+                    ->html()
+                    ->extraAttributes(['class' => 'font-mono whitespace-pre']),
+
+                // Full breadcrumb path (для children — щоб зразу видно куди веде)
+                Tables\Columns\TextColumn::make('full_path')
+                    ->label('Шлях у дереві')
+                    ->color('gray')
+                    ->size('sm')
+                    ->limit(60)
+                    ->tooltip(fn ($record) => $record->full_path)
+                    ->getStateUsing(fn ($record) => $record->full_path),
+
                 Tables\Columns\TextColumn::make('slug')
-                    ->label('Посилання')
-                    ->searchable()
-                    ->color('gray'),
-                Tables\Columns\TextColumn::make('parent.title')
-                    ->label('Батьківська категорія')
-                    ->badge()
-                    ->color('success')
-                    ->default('Коренева категорія'),
+                    ->label('URL')
+                    ->fontFamily('mono')
+                    ->size('xs')
+                    ->color('gray')
+                    ->formatStateUsing(fn ($state) => '/'.(is_array($state) ? ($state['uk'] ?? '') : $state))
+                    ->copyable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                Tables\Columns\IconColumn::make('parent_id')
+                    ->label('Тип')
+                    ->boolean()
+                    ->trueIcon('heroicon-o-arrow-turn-down-right')
+                    ->falseIcon('heroicon-o-folder')
+                    ->trueColor('gray')
+                    ->falseColor('success')
+                    ->tooltip(fn ($record) => $record->parent_id ? 'Підкатегорія' : 'Коренева'),
+
                 Tables\Columns\TextColumn::make('products_count')
                     ->counts('products')
-                    ->label('Товари')
+                    ->label('Товарів')
                     ->badge()
-                    ->color('primary'),
+                    ->color(fn ($state) => $state > 0 ? 'primary' : 'gray')
+                    ->sortable(),
+
                 Tables\Columns\TextColumn::make('children_count')
                     ->counts('children')
-                    ->label('Підкатегорії')
+                    ->label('Підкатегорій')
                     ->badge()
-                    ->color('warning'),
+                    ->color(fn ($state) => $state > 0 ? 'warning' : 'gray')
+                    ->sortable(),
+
+                Tables\Columns\IconColumn::make('is_active')
+                    ->label('Активна')
+                    ->boolean(),
+
                 Tables\Columns\TextColumn::make('created_at')
-                    ->dateTime()
+                    ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->reorderable('sort_order')
             ->filters([
+                Tables\Filters\Filter::make('roots_only')
+                    ->label('Лише кореневі')
+                    ->query(fn ($query) => $query->whereNull('parent_id')->orWhere('parent_id', 0))
+                    ->toggle(),
+
+                Tables\Filters\Filter::make('children_only')
+                    ->label('Лише підкатегорії')
+                    ->query(fn ($query) => $query->whereNotNull('parent_id')->where('parent_id', '!=', 0))
+                    ->toggle(),
+
                 Tables\Filters\SelectFilter::make('parent_id')
-                    ->label('Parent Category')
-                    ->options(function () {
-                        return Category::query()
-                            ->where('parent_id', 0)
-                            ->pluck('title', 'id')
-                            ->prepend('All Categories', null)
-                            ->prepend('Root Categories Only', 0);
-                    }),
+                    ->label('Належить до батька')
+                    ->relationship('parent', 'title')
+                    ->searchable()
+                    ->preload(),
+
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Статус')
+                    ->placeholder('Усі')
+                    ->trueLabel('Лише активні')
+                    ->falseLabel('Лише вимкнені'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
@@ -344,8 +393,16 @@ class CategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            ->defaultSort('parent_id')
-            ->striped();
+            // Sort: roots first → then children grouped under parent → then by sort_order
+            ->defaultSort('parent_id', 'asc')
+            ->modifyQueryUsing(fn ($query) => $query
+                ->with('parent.parent.parent')
+                ->orderByRaw('COALESCE(parent_id, 0)')
+                ->orderBy('sort_order')
+                ->orderBy('id')
+            )
+            ->striped()
+            ->paginated([25, 50, 100, 'all']);
     }
 
     public static function getRelations(): array
