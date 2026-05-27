@@ -42,14 +42,27 @@ class CategoryResource extends Resource
                                     ->columnSpanFull(),
                                 Forms\Components\Select::make('parent_id')
                                     ->label('Батьківська категорія')
-                                    ->options(function () {
-                                        return Category::query()
-                                            ->where('parent_id', 0)
-                                            ->pluck('title', 'id')
-                                            ->prepend('Немає батьківської', 0);
+                                    ->options(function ($record) {
+                                        // Show all categories with their full breadcrumb path —
+                                        // "Двигун", "Двигун → Фільтри" etc. — so admin sees
+                                        // exactly where each option lives in the tree.
+                                        // Translatable `title` field stored as JSON, so we
+                                        // can't pluck() directly — would render as JSON string.
+                                        $query = Category::query()
+                                            ->where('is_active', true)
+                                            ->with('parent.parent');
+                                        // Prevent self-parenting on edit
+                                        if ($record && $record->id) {
+                                            $query->where('id', '!=', $record->id);
+                                        }
+                                        return $query->get()
+                                            ->sortBy('full_path')
+                                            ->mapWithKeys(fn ($c) => [$c->id => $c->full_path])
+                                            ->prepend('— Коренева категорія —', '');
                                     })
                                     ->searchable()
-                                    ->default(0)
+                                    ->placeholder('— Коренева категорія —')
+                                    ->dehydrateStateUsing(fn ($state) => $state === '' || $state === '0' ? null : $state)
                                     ->columnSpan(1),
                                 Forms\Components\TextInput::make('sort_order')
                                     ->label('Порядок сортування')
