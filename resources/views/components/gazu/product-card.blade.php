@@ -18,9 +18,13 @@
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
-    $qty = is_object($p) ? (int) ($p->qty ?? $p->quantity ?? 0) : (int) ($p['qty'] ?? 0);
-    $rating = is_object($p) ? (float) ($p->rating ?? 0) : (float) ($p['rating'] ?? 0);
-    $reviews = is_object($p) ? (int) ($p->reviews ?? $p->reviews_count ?? 0) : (int) ($p['reviews'] ?? 0);
+    // $p->reviews може бути HasMany Collection (Eloquent) — захищаємось.
+    $rawQty = is_object($p) ? ($p->qty ?? $p->quantity ?? 0) : ($p['qty'] ?? 0);
+    $qty = is_numeric($rawQty) ? (int) $rawQty : 0;
+    $rawRating = is_object($p) ? ($p->rating ?? 0) : ($p['rating'] ?? 0);
+    $rating = is_numeric($rawRating) ? (float) $rawRating : 0.0;
+    $rawReviews = is_object($p) ? ($p->reviews_count ?? $p->reviews ?? 0) : ($p['reviews'] ?? 0);
+    $reviews = is_numeric($rawReviews) ? (int) $rawReviews : 0;
     $fits = is_object($p) ? ($p->fits ?? null) : ($p['fits'] ?? null);
     $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
     $productId = is_object($p) ? ($p->id ?? null) : ($p['id'] ?? null);

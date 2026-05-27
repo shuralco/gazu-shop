@@ -1148,6 +1148,8 @@ class OrderResource extends Resource
                 Tables\Columns\ImageColumn::make('product_thumbs')
                     ->label('Товари')
                     ->getStateUsing(function (Order $record): array {
+                        // Eager-load product.category to derive kind
+                        $record->loadMissing('orderProducts.product.category');
                         return $record->orderProducts
                             ->take(4)
                             ->map(function ($op) {
@@ -1156,18 +1158,21 @@ class OrderResource extends Resource
                                         ? $op->image
                                         : '/'.ltrim($op->image, '/');
                                 }
-                                // Kind-aware fallback (real webp from public/img/parts/<kind>/)
-                                $catTitle = $op->category?->title;
+                                // Kind from product->category (OrderProduct itself has no category)
+                                $catTitle = $op->product?->category?->title;
                                 if (is_array($catTitle)) {
                                     $catTitle = $catTitle['uk'] ?? '';
                                 }
-                                $kind = \App\Support\PartImage::kindFromCategory($catTitle);
-                                $title = is_array($op->title) ? ($op->title['uk'] ?? '') : (string) $op->title;
+                                $kind = \App\Support\PartImage::kindFromCategory((string) $catTitle);
+                                $title = is_array($op->title)
+                                    ? ($op->title['uk'] ?? '')
+                                    : (string) ($op->title ?? $op->product?->title ?? '');
+                                if (is_array($title)) $title = $title['uk'] ?? '';
                                 return \App\Support\PartImage::resolve(
                                     explicit: null,
                                     kind: $kind,
                                     seed: $op->product_id ?: $op->id,
-                                    title: $title,
+                                    title: (string) $title,
                                 );
                             })
                             ->all();

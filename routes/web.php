@@ -128,6 +128,11 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // Рубрика блогу — має йти ПЕРЕД /blog/{slug}, щоб не перехоплювалось як стаття.
     Route::get('/blog/rubryka/{categorySlug}', fn (string $categorySlug) => app($c)->blog(null, $categorySlug))->name('blog.category');
     Route::get('/blog/{slug}', [$c, 'blog'])->name('blog.show');
+
+    // SEO landing pages built from filter combinations (admin-configurable).
+    // Example URLs: /lp/filtri-oliv-bosch-dlya-bydy, /lp/akumulyatory-12v-60ah
+    Route::get('/lp/{slug}', [\App\Http\Controllers\Gazu\FilterLandingController::class, 'show'])
+        ->name('landing.show');
     Route::get('/contacts', [$c, 'contacts'])->name('contacts');
     Route::get('/search', [$c, 'search'])->name('search');
     Route::get('/api/search/suggest', [$c, 'searchSuggest'])->name('search.suggest');
