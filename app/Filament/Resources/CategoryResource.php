@@ -315,15 +315,6 @@ class CategoryResource extends Resource
                     ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\IconColumn::make('parent_id')
-                    ->label('Тип')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-arrow-turn-down-right')
-                    ->falseIcon('heroicon-o-folder')
-                    ->trueColor('gray')
-                    ->falseColor('success')
-                    ->tooltip(fn ($record) => $record->parent_id ? 'Підкатегорія' : 'Коренева'),
-
                 Tables\Columns\TextColumn::make('products_count')
                     ->counts('products')
                     ->label('Товарів')
