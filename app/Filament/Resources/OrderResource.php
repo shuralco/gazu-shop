@@ -1137,17 +1137,39 @@ class OrderResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->label('№ Замовлення')
+                    ->label('')
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->icon('heroicon-o-hashtag')
+                    ->iconPosition('before')
+                    ->color('primary')
+                    ->copyable()
+                    ->tooltip('Номер замовлення'),
                 Tables\Columns\ImageColumn::make('product_thumbs')
                     ->label('Товари')
                     ->getStateUsing(function (Order $record): array {
                         return $record->orderProducts
                             ->take(4)
-                            ->map(fn ($op) => $op->image
-                                ? (str_starts_with($op->image, '/') ? $op->image : '/'.ltrim($op->image, '/'))
-                                : asset('assets/img/placeholder.svg'))
+                            ->map(function ($op) {
+                                if ($op->image) {
+                                    return str_starts_with($op->image, 'http') || str_starts_with($op->image, '/')
+                                        ? $op->image
+                                        : '/'.ltrim($op->image, '/');
+                                }
+                                // Kind-aware fallback (real webp from public/img/parts/<kind>/)
+                                $catTitle = $op->category?->title;
+                                if (is_array($catTitle)) {
+                                    $catTitle = $catTitle['uk'] ?? '';
+                                }
+                                $kind = \App\Support\PartImage::kindFromCategory($catTitle);
+                                $title = is_array($op->title) ? ($op->title['uk'] ?? '') : (string) $op->title;
+                                return \App\Support\PartImage::resolve(
+                                    explicit: null,
+                                    kind: $kind,
+                                    seed: $op->product_id ?: $op->id,
+                                    title: $title,
+                                );
+                            })
                             ->all();
                     })
                     ->stacked()
@@ -1156,36 +1178,31 @@ class OrderResource extends Resource
                     ->size(40)
                     ->extraImgAttributes(['class' => 'rounded-md ring-2 ring-white object-cover bg-gray-50'])
                     ->checkFileExistence(false),
+                // Менеджер — toggleable hidden by default (не обов'язково за вимогою)
                 Tables\Columns\ImageColumn::make('user.avatar')
                     ->label('Менеджер')
                     ->circular()
                     ->size(30)
                     ->defaultImageUrl(asset('assets/images/default-avatar.svg'))
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('user.name')
                     ->label('Імʼя менеджера')
                     ->searchable()
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('customer_name')
-                    ->label('Контактне імʼя')
+                    ->label('Імʼя')
                     ->getStateUsing(function (Order $record): string {
                         $parts = [];
-
-                        // Прізвище
                         if ($record->last_name) {
                             $parts[] = $record->last_name;
                         }
-
-                        // Ім'я (перша літера + крапка)
                         if ($record->first_name) {
                             $parts[] = mb_substr($record->first_name, 0, 1, 'UTF-8').'.';
                         }
-
-                        // По батькові (перша літера + крапка)
                         if ($record->middle_name) {
                             $parts[] = mb_substr($record->middle_name, 0, 1, 'UTF-8').'.';
                         }
-
                         return implode(' ', $parts) ?: 'Не вказано';
                     })
                     ->searchable(query: function (Builder $query, string $search): Builder {
@@ -1198,18 +1215,17 @@ class OrderResource extends Resource
                     ->sortable(query: function (Builder $query, string $direction): Builder {
                         return $query->orderBy('last_name', $direction)
                             ->orderBy('first_name', $direction);
-                    })
-                    ->toggleable(),
+                    }),
                 Tables\Columns\TextColumn::make('email')
                     ->label('Пошта')
                     ->searchable()
                     ->copyable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('phone')
                     ->label('Телефон')
                     ->searchable()
                     ->copyable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('shipping_provider')
                     ->label('Доставка')
                     ->formatStateUsing(function (?string $state): string {
@@ -1227,7 +1243,7 @@ class OrderResource extends Resource
                         'pickup' => 'success',
                         default => 'gray',
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('shipping_method')
                     ->label('Спосіб')
                     ->formatStateUsing(function (?string $state): string {
@@ -1239,7 +1255,7 @@ class OrderResource extends Resource
 
                         return $method ? $method->name : $state;
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Статус')
                     ->formatStateUsing(fn (string $state): string => match ($state) {
@@ -1282,7 +1298,7 @@ class OrderResource extends Resource
 
                         return $gateway ? $gateway->name : $state;
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('total')
                     ->label('Сума')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ' ').' грн')
@@ -1290,8 +1306,8 @@ class OrderResource extends Resource
                     ->weight('bold')
                     ->color('success'),
                 Tables\Columns\TextColumn::make('created_at')
-                    ->label('Дата замовлення')
-                    ->dateTime()
+                    ->label('Дата')
+                    ->dateTime('d.m.Y H:i')
                     ->sortable(),
             ])
             ->filters([
