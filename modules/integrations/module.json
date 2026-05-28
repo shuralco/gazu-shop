@@ -1,0 +1,6 @@
+{ "name": "integrations", "label": "Інтеграції (загальна панель)",
+  "description": "IntegrationsPage + IntegrationConfigPage — список усіх 3rd-party інтеграцій.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2", "providers": [],
+  "filament_pages": ["App\\Filament\\Pages\\IntegrationsPage","App\\Filament\\Pages\\IntegrationConfigPage"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "integrations", "routes": "routes/web.php",
+  "enabled_by_default": true }

@@ -1,0 +1,7 @@
+{ "name": "theme_settings", "label": "Theme + Visual Settings",
+  "description": "ThemeSettings + GazuVisualSettings Filament Pages + HeaderService + theme:set command.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+  "providers": ["Modules\\ThemeSettings\\ThemeSettingsServiceProvider"],
+  "filament_pages": ["App\\Filament\\Pages\\ThemeSettings","App\\Filament\\Pages\\GazuVisualSettings"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "theme_settings", "routes": "routes/web.php",
+  "enabled_by_default": true }

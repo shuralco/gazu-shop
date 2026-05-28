@@ -1,0 +1,6 @@
+{ "name": "fiscal_checkbox", "label": "Фіскалізація — Checkbox",
+  "description": "Checkbox API + open/close shift commands. Український фіскальний оператор.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+  "providers": ["Modules\\FiscalCheckbox\\FiscalCheckboxServiceProvider"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "fiscal_checkbox", "routes": "routes/web.php",
+  "enabled_by_default": false }

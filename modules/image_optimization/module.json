@@ -1,0 +1,6 @@
+{ "name": "image_optimization", "label": "Оптимізація зображень",
+  "description": "TinyPng API + Media model + images:optimize command.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+  "providers": ["Modules\\ImageOptimization\\ImageOptimizationServiceProvider"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "image_optimization", "routes": "routes/web.php",
+  "enabled_by_default": false }

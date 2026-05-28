@@ -1,0 +1,6 @@
+{ "name": "cache_manager", "label": "Управління кешем",
+  "description": "CacheManagement + CacheSettings Filament Pages + CacheOptimizationService + CacheService.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2", "providers": [],
+  "filament_pages": ["App\\Filament\\Pages\\CacheManagement","App\\Filament\\Pages\\CacheSettings"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "cache_manager", "routes": "routes/web.php",
+  "enabled_by_default": true }

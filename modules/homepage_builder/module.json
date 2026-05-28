@@ -1,0 +1,6 @@
+{ "name": "homepage_builder", "label": "Конструктор головної + Мега-меню",
+  "description": "HomepageBuilder Filament Page + MegaMenuEditor + MegaMenuBuilder service + HomepageModule model.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2", "providers": [],
+  "filament_pages": ["App\\Filament\\Pages\\HomepageBuilder","App\\Filament\\Pages\\MegaMenuEditor"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "homepage_builder", "routes": "routes/web.php",
+  "enabled_by_default": true }

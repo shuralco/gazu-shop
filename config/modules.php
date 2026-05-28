@@ -218,4 +218,46 @@ return [
         'requires' => [],
     ],
 
+    'homepage_builder' => [
+        'name' => 'Конструктор головної',
+        'description' => 'HomepageBuilder + MegaMenuEditor + HomepageModule + MegaMenuBuilder service.',
+        'enabled' => env('MODULE_HOMEPAGE_BUILDER', true),
+        'requires' => [],
+    ],
+
+    'theme_settings' => [
+        'name' => 'Theme + Visual Settings',
+        'description' => 'ThemeSettings + GazuVisualSettings + HeaderService + theme:set command.',
+        'enabled' => env('MODULE_THEME_SETTINGS', true),
+        'requires' => [],
+    ],
+
+    'cache_manager' => [
+        'name' => 'Управління кешем',
+        'description' => 'CacheManagement + CacheSettings Filament Pages + 2 Services.',
+        'enabled' => env('MODULE_CACHE_MANAGER', true),
+        'requires' => [],
+    ],
+
+    'integrations_panel' => [
+        'name' => 'Інтеграції (загальна панель)',
+        'description' => 'IntegrationsPage + IntegrationConfigPage — список 3rd-party інтеграцій.',
+        'enabled' => env('MODULE_INTEGRATIONS_PANEL', true),
+        'requires' => [],
+    ],
+
+    'fiscal_checkbox' => [
+        'name' => 'Фіскалізація Checkbox',
+        'description' => 'Український фіскальний оператор Checkbox + open/close shift commands.',
+        'enabled' => env('MODULE_FISCAL_CHECKBOX', false),
+        'requires' => [],
+    ],
+
+    'image_optimization' => [
+        'name' => 'Оптимізація зображень',
+        'description' => 'TinyPng API + Media model + images:optimize command.',
+        'enabled' => env('MODULE_IMAGE_OPTIMIZATION', false),
+        'requires' => [],
+    ],
+
 ];
