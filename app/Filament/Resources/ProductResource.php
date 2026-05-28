@@ -904,20 +904,26 @@ class ProductResource extends Resource
 
     public static function getRelations(): array
     {
-        $relations = [
-            RelationManagers\OptionsRelationManager::class,
-            RelationManagers\VariantsRelationManager::class,
-        ];
+        $relations = [];
 
         // Inventory tab — частина модуля multi_warehouse.
         if (module('multi_warehouse')->enabled()) {
-            array_unshift($relations, RelationManagers\InventoryRelationManager::class);
+            $relations[] = RelationManagers\InventoryRelationManager::class;
         }
 
-        // Related products RelManager — частина модуля related_products.
-        // Клас зареєстровано через composer classmap на modules/related_products/src/Filament/...
-        if (module('related_products')->enabled() && class_exists(RelationManagers\RelatedProductsRelationManager::class)) {
-            $relations[] = RelationManagers\RelatedProductsRelationManager::class;
+        // Options/Variants/Related — частина модуля related_products.
+        // Всі 3 класи живуть у modules/related_products/src/Filament/...
+        // (composer classmap резолвить namespace).
+        if (module('related_products')->enabled()) {
+            if (class_exists(RelationManagers\OptionsRelationManager::class)) {
+                $relations[] = RelationManagers\OptionsRelationManager::class;
+            }
+            if (class_exists(RelationManagers\VariantsRelationManager::class)) {
+                $relations[] = RelationManagers\VariantsRelationManager::class;
+            }
+            if (class_exists(RelationManagers\RelatedProductsRelationManager::class)) {
+                $relations[] = RelationManagers\RelatedProductsRelationManager::class;
+            }
         }
 
         $relations[] = RelationManagers\GroupPricesRelationManager::class;

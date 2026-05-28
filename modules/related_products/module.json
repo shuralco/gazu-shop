@@ -1,16 +1,19 @@
 {
     "name": "related_products",
     "label": "Пов'язані товари (варіанти)",
-    "description": "Variant picker на картці товару (Розетка-стиль), AJAX-перемикання, RelationManager в адмінці, авто-зв'язування за характеристиками.",
-    "version": "1.0.0",
+    "description": "Variant picker на картці товару (Розетка-стиль), AJAX-перемикання, RelationManager в адмінці, авто-зв'язування за характеристиками, SEO-лендинги з фільтрів, опції товарів (Колір/Розмір/Об'єм).",
+    "version": "1.1.0",
     "author": "Lionex",
     "engine": ">=2.0",
+    "php": ">=8.2",
     "requires_modules": [],
     "composer_packages": [],
     "providers": [
         "Modules\\RelatedProducts\\RelatedProductsServiceProvider"
     ],
-    "filament_resources": [],
+    "filament_resources": [
+        "App\\Filament\\Resources\\FilterLandingResource"
+    ],
     "filament_pages": [],
     "migrations_path": "database/migrations",
     "views_path": "resources/views",

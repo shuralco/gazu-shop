@@ -1,15 +1,18 @@
 {
     "name": "gazu_garage",
     "label": "Гараж користувача (GAZU)",
-    "description": "Користувацька модель UserCar: збереження своїх авто, primary-авто, фільтр «Ваш автомобіль» у каталозі та «Підходить для X» на product page. Off за замовч.",
-    "version": "1.0.0",
+    "description": "Користувацька модель UserCar: збереження своїх авто, primary-авто, фільтр «Ваш автомобіль» у каталозі та «Підходить для X» на product page. Включає Filament CRUD для довідника авто (Make/Model/Engine).",
+    "version": "1.1.0",
     "author": "Lionex",
     "engine": ">=2.0",
+    "php": ">=8.2",
     "requires_modules": [],
     "composer_packages": [],
     "providers": [],
     "filament_resources": [
-        "App\\Filament\\Resources\\UserCarResource"
+        "App\\Filament\\Resources\\UserCarResource",
+        "App\\Filament\\Resources\\CarMakeResource",
+        "App\\Filament\\Resources\\CarModelResource"
     ],
     "migrations_path": "database/migrations",
     "views_path": "resources/views",
