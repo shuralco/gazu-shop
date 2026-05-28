@@ -6,10 +6,13 @@ use App\Models\Module;
 use App\Support\ModuleDiscovery;
 use App\Support\ModuleManager;
 use App\Support\Modules\ModuleActivityLogger;
+use App\Support\Modules\ModuleInstaller;
 use App\Support\Modules\ModuleLifecycleRunner;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Artisan;
+use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
+use Livewire\WithFileUploads;
 
 /**
  * Admin UI to toggle modules + edit per-module settings without CLI.
@@ -20,6 +23,8 @@ use Illuminate\Support\Facades\Artisan;
  */
 class ModuleSettings extends Page
 {
+    use WithFileUploads;
+
     protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
     protected static ?string $navigationGroup = 'Налаштування';
@@ -38,6 +43,12 @@ class ModuleSettings extends Page
      * @var array<string,array<string,mixed>>  key → settings array
      */
     public array $settings = [];
+
+    /** Uploaded ZIP for `installFromZip` action. */
+    public $installZip = null;
+
+    /** Force-overwrite existing module of the same name. */
+    public bool $installForce = false;
 
     public static function canAccess(): bool
     {
@@ -197,6 +208,75 @@ class ModuleSettings extends Page
         // Without this — opening dashboard after disable throws
         // ComponentNotFoundException for widgets that no longer exist.
         $this->redirect(request()->header('Referer') ?: url('/admin/modules'), navigate: false);
+    }
+
+    /**
+     * Install a module from an uploaded ZIP file. Triggered from the
+     * "Завантажити модуль" form in the page header.
+     */
+    public function installFromZip(): void
+    {
+        if (! $this->installZip instanceof TemporaryUploadedFile) {
+            Notification::make()->title('Спочатку оберіть ZIP-файл')->warning()->send();
+            return;
+        }
+
+        try {
+            $result = ModuleInstaller::installFromZip($this->installZip, $this->installForce);
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Помилка встановлення')
+                ->body($e->getMessage())
+                ->danger()
+                ->persistent()
+                ->send();
+            return;
+        }
+
+        // Persist module record so /admin/modules toggle works immediately.
+        Module::updateOrCreate(['key' => $result['key']], [
+            'enabled' => false, // safe default — admin вирішує
+            'enabled_at' => null,
+        ]);
+
+        ModuleActivityLogger::log($result['key'], 'installed_from_zip', [
+            'action' => $result['action'],
+            'version' => $result['version'],
+            'force' => $this->installForce,
+        ]);
+
+        ModuleManager::clearCache();
+
+        $this->installZip = null;
+        $this->installForce = false;
+
+        Notification::make()
+            ->title("✓ Модуль «{$result['key']}» {$result['action']}")
+            ->body('Тепер відкрий деталі модуля і натисни «Увімкнути».')
+            ->success()
+            ->send();
+
+        $this->redirect(url('/admin/modules'), navigate: false);
+    }
+
+    /**
+     * Export a module as a downloadable ZIP archive.
+     * Used by the "Експорт" action on each module card.
+     */
+    public function exportModule(string $key)
+    {
+        try {
+            $archive = ModuleInstaller::exportToZip($key);
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Помилка експорту')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+            return null;
+        }
+
+        return response()->download($archive, basename($archive))->deleteFileAfterSend();
     }
 
     public function saveModuleSettings(string $key): void

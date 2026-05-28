@@ -19,6 +19,63 @@
     </div>
   </header>
 
+  {{-- ─── INSTALL FROM ZIP ─── --}}
+  <section x-data="{ open: false }" class="border border-dashed border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+    <button type="button" @click="open = !open"
+            class="w-full flex items-center justify-between px-4 py-3 bg-gray-50 dark:bg-gray-900/60 hover:bg-gray-100 dark:hover:bg-gray-900 transition-colors cursor-pointer">
+      <div class="flex items-center gap-2.5">
+        <x-filament::icon icon="heroicon-o-arrow-up-tray" class="w-4 h-4 text-gray-500" />
+        <span class="text-[13px] font-semibold text-gray-700 dark:text-gray-300">Встановити модуль з .zip</span>
+      </div>
+      <x-filament::icon icon="heroicon-o-chevron-down" class="w-4 h-4 text-gray-400 transition-transform" x-bind:class="open ? 'rotate-180' : ''" />
+    </button>
+    <div x-show="open" x-cloak x-transition.opacity class="p-4 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800">
+      <div class="space-y-3 max-w-2xl">
+        <div>
+          <input type="file"
+                 wire:model="installZip"
+                 accept=".zip"
+                 class="block w-full text-sm text-gray-700 dark:text-gray-300
+                        file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0
+                        file:text-[12px] file:font-medium
+                        file:bg-gray-900 dark:file:bg-white file:text-white dark:file:text-gray-900
+                        hover:file:bg-gray-800 dark:hover:file:bg-gray-100 cursor-pointer"/>
+          <p class="mt-1.5 text-[11px] text-gray-500">
+            Очікується ZIP з <code class="font-mono">module.json</code> у корені (або у єдиній обгортковій папці). Ліміт: 10&nbsp;MB.
+          </p>
+        </div>
+
+        @if($installZip)
+          <div class="flex items-center gap-2 text-[12px] text-gray-600 dark:text-gray-400 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-md px-3 py-2">
+            <x-filament::icon icon="heroicon-o-document-arrow-up" class="w-4 h-4 text-emerald-600" />
+            Файл готовий до встановлення
+          </div>
+        @endif
+
+        <label class="flex items-center gap-2 text-[12px] text-gray-600 dark:text-gray-400 cursor-pointer">
+          <input type="checkbox" wire:model="installForce"
+                 class="rounded border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white focus:ring-gray-900 dark:focus:ring-white"/>
+          Перезаписати, якщо модуль вже встановлено
+        </label>
+
+        <div class="flex items-center gap-2 pt-1">
+          <button type="button" wire:click="installFromZip"
+                  wire:loading.attr="disabled" wire:target="installFromZip,installZip"
+                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-wait">
+            <span wire:loading.remove wire:target="installFromZip">Встановити</span>
+            <span wire:loading wire:target="installFromZip">Встановлюю…</span>
+          </button>
+          @if($installZip)
+            <button type="button" wire:click="$set('installZip', null)"
+                    class="text-[12px] text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+              Скасувати
+            </button>
+          @endif
+        </div>
+      </div>
+    </div>
+  </section>
+
   {{-- ─── GROUPS ─── --}}
   @foreach($this->getGroupedModules() as $groupKey => $group)
     <section>
@@ -90,6 +147,17 @@
                   Деталі
                   <x-filament::icon icon="heroicon-o-arrow-up-right" class="w-3 h-3 group-hover/details:translate-x-0.5 group-hover/details:-translate-y-0.5 transition-transform" />
                 </a>
+
+                @if($m['in_modules_dir'] ?? false)
+                  <button type="button"
+                          wire:click="exportModule('{{ $m['key'] }}')"
+                          wire:loading.attr="disabled" wire:target="exportModule('{{ $m['key'] }}')"
+                          title="Завантажити модуль як ZIP"
+                          class="text-[12px] text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-wait">
+                    <x-filament::icon icon="heroicon-o-arrow-down-tray" class="w-3 h-3" />
+                    .zip
+                  </button>
+                @endif
 
                 <div class="ml-auto">
                   @if($m['enabled'])
