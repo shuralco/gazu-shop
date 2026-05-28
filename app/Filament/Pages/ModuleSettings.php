@@ -143,6 +143,30 @@ class ModuleSettings extends Page
                     ->send();
                 return;
             }
+
+            // Dependency auto-resolver — рекурсивно enable всіх що цей модуль потребує.
+            // Якщо вимкнений required module існує — каскадно enable його ПЕРШИМ.
+            $requires = ModuleManager::for($key)->requires();
+            $missingDeps = [];
+            foreach ($requires as $depKey) {
+                if (! ModuleManager::for($depKey)->exists()) {
+                    $missingDeps[] = $depKey;
+                    continue;
+                }
+                if (! ModuleManager::for($depKey)->enabled()) {
+                    // Recursive enable перед поточним.
+                    $this->toggleModule($depKey, true, cascade: false, rollbackMigrations: false);
+                }
+            }
+            if (! empty($missingDeps)) {
+                Notification::make()
+                    ->title("Бракує модулів-залежностей для «{$key}»")
+                    ->body('Не встановлено: '.implode(', ', $missingDeps).'. Завантажте їх через ZIP installer.')
+                    ->danger()
+                    ->persistent()
+                    ->send();
+                return;
+            }
         }
 
         // Disable + dependent handling. Cascade=true → каскадно disable

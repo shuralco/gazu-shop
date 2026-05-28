@@ -9,6 +9,13 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 */
 
+// Emergency safe-mode endpoint — OUTSIDE any group щоб працювало навіть
+// якщо група middleware/views зламані модулями. Token-protected.
+//   URL: /safe-mode?token={sha1(APP_KEY).substr(0,16)}
+Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trigger'])
+    ->withoutMiddleware(['web'])
+    ->middleware('throttle:10,1');
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
