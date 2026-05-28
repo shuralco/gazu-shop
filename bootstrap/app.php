@@ -63,4 +63,41 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 200)->header('X-Livewire-Reload', 'stale-component');
             }
         });
+
+        // Stale CSRF token (419 «Page Expired») — найчастіше: вкладка логіну/
+        // адмінки була відкрита довго, сесія в Redis протермінувалась (TTL 120хв)
+        // або ротувалась, токен у Livewire-snapshot застарів. Без обробки
+        // юзер бачить мертвий 419 (тупик). Тут — graceful recovery.
+        //
+        // ВАЖЛИВО: Laravel у prepareException() конвертує TokenMismatchException
+        // → HttpException(419) ДО render-callbacks. Тому ловимо саме 419-HttpException,
+        // а не TokenMismatchException (той ніколи не доходить до callback).
+        $exceptions->render(function (\Symfony\Component\HttpKernel\Exception\HttpExceptionInterface $e, \Illuminate\Http\Request $request) {
+            if ($e->getStatusCode() !== 419) {
+                return null; // не CSRF — хай рендериться штатно
+            }
+
+            // Livewire-запит (Filament login теж сюди): reload-payload зі свіжим токеном.
+            if ($request->is('livewire/*') || $request->hasHeader('X-Livewire')) {
+                return response()->json([
+                    'effects' => [
+                        'redirect' => $request->headers->get('Referer') ?: url()->current(),
+                    ],
+                    'serverMemo' => [],
+                ], 200)->header('X-Livewire-Reload', 'stale-csrf');
+            }
+
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Сесія застаріла, оновіть сторінку.'], 419);
+            }
+
+            // Звичайний POST форми — редирект назад (GET згенерує свіжий токен).
+            // Fallback без Referer: /admin/login для адмінки, інакше головна.
+            $fallback = str_starts_with(trim($request->path(), '/'), 'admin')
+                ? url('/admin/login')
+                : url('/');
+            return redirect()
+                ->to($request->headers->get('Referer') ?: $fallback)
+                ->with('error', 'Сесія застаріла — спробуйте ще раз.');
+        });
     })->create();
