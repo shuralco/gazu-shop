@@ -1,0 +1,9 @@
+{
+    "name": "wishlist",
+    "label": "Список бажань",
+    "description": "Збереження товарів у вибране для авторизованих + гостьовий через localStorage. Merge при логіні.",
+    "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+    "providers": [], "filament_resources": [],
+    "migrations_path": "database/migrations", "views_namespace": "wishlist", "routes": "routes/web.php",
+    "enabled_by_default": true
+}

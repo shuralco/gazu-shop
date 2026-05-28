@@ -1,0 +1,9 @@
+{
+    "name": "stock_notifications",
+    "label": "Сповіщення про надходження",
+    "description": "Користувач підписується на email-сповіщення коли товар буде в наявності.",
+    "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+    "providers": [], "filament_resources": [],
+    "migrations_path": "database/migrations", "views_namespace": "stock_notifications", "routes": "routes/web.php",
+    "enabled_by_default": true
+}

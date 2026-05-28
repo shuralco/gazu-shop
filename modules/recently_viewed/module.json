@@ -1,0 +1,9 @@
+{
+    "name": "recently_viewed",
+    "label": "Нещодавно переглянуті",
+    "description": "Service що зберігає 8 останніх переглянутих товарів у session.",
+    "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+    "providers": [], "filament_resources": [],
+    "migrations_path": "database/migrations", "views_namespace": "recently_viewed", "routes": "routes/web.php",
+    "enabled_by_default": true
+}

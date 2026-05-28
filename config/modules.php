@@ -169,4 +169,32 @@ return [
         'requires' => [],
     ],
 
+    'wishlist' => [
+        'name' => 'Список бажань',
+        'description' => 'Wishlist для users + guest localStorage, merge при логіні.',
+        'enabled' => env('MODULE_WISHLIST', true),
+        'requires' => [],
+    ],
+
+    'stock_notifications' => [
+        'name' => 'Сповіщення про надходження',
+        'description' => 'Підписка на email коли товар буде в наявності.',
+        'enabled' => env('MODULE_STOCK_NOTIFICATIONS', true),
+        'requires' => [],
+    ],
+
+    'cms_pages' => [
+        'name' => 'CMS-сторінки',
+        'description' => 'Editable Page model + Resource (storage для blog статей теж).',
+        'enabled' => env('MODULE_CMS_PAGES', true),
+        'requires' => [],
+    ],
+
+    'recently_viewed' => [
+        'name' => 'Нещодавно переглянуті',
+        'description' => 'Service для збереження 8 останніх товарів у session.',
+        'enabled' => env('MODULE_RECENTLY_VIEWED', true),
+        'requires' => [],
+    ],
+
 ];
