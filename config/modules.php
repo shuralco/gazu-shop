@@ -113,4 +113,11 @@ return [
         'requires' => [],
     ],
 
+    'related_products' => [
+        'name' => 'Пов\'язані товари (варіанти)',
+        'description' => 'Variant picker на картці товару, AJAX-перемикання, RelationManager в адмінці, авто-зв\'язування за характеристиками (Rozetka-стиль).',
+        'enabled' => env('MODULE_RELATED_PRODUCTS', true),
+        'requires' => [],
+    ],
+
 ];

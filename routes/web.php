@@ -152,18 +152,9 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     // Recently-viewed: повертає products by ID list (для recently-viewed block)
     Route::get('/api/products/by-ids', [$c, 'apiProductsByIds'])->name('api.products.by-ids');
 
-    // Variant picker — JSON snapshot для AJAX-перемикання на картці товару
-    // (без перезавантаження сторінки). Повертає назву, ціну, картинку, slug,
-    // qty, specs для оновлення DOM.
-    Route::get('/api/products/{id}/snapshot', [\App\Http\Controllers\Gazu\ProductSnapshotController::class, 'show'])
-        ->whereNumber('id')
-        ->name('api.products.snapshot');
-
-    // Options-based variant lookup: ?option_value_ids[]=1&option_value_ids[]=2
-    // Повертає той самий shape, що /snapshot.
-    Route::get('/api/products/{id}/variant-by-options', [\App\Http\Controllers\Gazu\ProductSnapshotController::class, 'variantByOptions'])
-        ->whereNumber('id')
-        ->name('api.products.variant-by-options');
+    // Variant picker AJAX endpoints живуть у модулі `related_products`.
+    // Файл: modules/related_products/routes/web.php (підключається
+    // через ModuleDiscovery, якщо модуль увімкнено).
 
     Route::get('/404', [$c, 'notFound'])->name('404');
     // /m/{page} — test mobile page, доступний тільки в debug режимі

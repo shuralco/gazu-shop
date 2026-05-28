@@ -7,10 +7,13 @@
     "engine": ">=2.0",
     "requires_modules": [],
     "composer_packages": [],
-    "providers": [],
+    "providers": [
+        "Modules\\MultiWarehouse\\MultiWarehouseServiceProvider"
+    ],
     "filament_resources": [
         "App\\Filament\\Resources\\MerchantWarehouseResource",
-        "App\\Filament\\Resources\\InventoryTransferResource"
+        "App\\Filament\\Resources\\InventoryTransferResource",
+        "App\\Filament\\Resources\\ReceivingOrderResource"
     ],
     "filament_pages": [],
     "migrations_path": "database/migrations",

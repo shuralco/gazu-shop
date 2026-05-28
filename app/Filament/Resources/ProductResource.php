@@ -904,14 +904,26 @@ class ProductResource extends Resource
 
     public static function getRelations(): array
     {
-        return [
-            RelationManagers\InventoryRelationManager::class,
+        $relations = [
             RelationManagers\OptionsRelationManager::class,
             RelationManagers\VariantsRelationManager::class,
-            RelationManagers\RelatedProductsRelationManager::class,
-            RelationManagers\GroupPricesRelationManager::class,
-            RelationManagers\FiltersRelationManager::class,
         ];
+
+        // Inventory tab — частина модуля multi_warehouse.
+        if (module('multi_warehouse')->enabled()) {
+            array_unshift($relations, RelationManagers\InventoryRelationManager::class);
+        }
+
+        // Related products RelManager — частина модуля related_products.
+        // Клас зареєстровано через composer classmap на modules/related_products/src/Filament/...
+        if (module('related_products')->enabled() && class_exists(RelationManagers\RelatedProductsRelationManager::class)) {
+            $relations[] = RelationManagers\RelatedProductsRelationManager::class;
+        }
+
+        $relations[] = RelationManagers\GroupPricesRelationManager::class;
+        $relations[] = RelationManagers\FiltersRelationManager::class;
+
+        return $relations;
     }
 
     public static function getPages(): array
