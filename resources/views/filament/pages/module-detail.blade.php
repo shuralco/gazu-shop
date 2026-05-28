@@ -44,31 +44,37 @@ $actionLabels = [
       @endif
     </div>
 
-    <div class="flex gap-2 shrink-0">
-      <button type="button" wire:click="clearModuleCache"
+    <div class="flex items-center gap-2 shrink-0">
+      {{-- Нативні Filament-кнопки: гарантовано стилізовані admin-CSS.
+           Сирі Tailwind-утиліти (bg-gray-900/text-white) у admin НЕ компілюються
+           → кнопка ставала біле-на-білому (невидима). --}}
+      <x-filament::icon-button
+        icon="heroicon-o-arrow-path"
+        wire:click="clearModuleCache"
         wire:loading.attr="disabled" wire:target="clearModuleCache"
-        title="Очистити кеш"
-        class="inline-flex items-center justify-center w-9 h-9 rounded-md border border-gray-200 dark:border-gray-700 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-40">
-        <x-filament::icon icon="heroicon-o-arrow-path" class="w-4 h-4" wire:loading.class="animate-spin" wire:target="clearModuleCache" />
-      </button>
+        label="Очистити кеш"
+        color="gray"
+        size="lg" />
+
       @if($info['enabled'])
-        <button type="button"
+        <x-filament::button
           wire:click="toggleModule"
           wire:confirm="Вимкнути модуль «{{ $info['name'] }}»? Дані залишаються у БД."
           wire:loading.attr="disabled" wire:target="toggleModule"
-          class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-40">
-          <svg wire:loading wire:target="toggleModule" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+          color="danger"
+          icon="heroicon-o-power">
           <span wire:loading.remove wire:target="toggleModule">Вимкнути</span>
           <span wire:loading wire:target="toggleModule">Вимикаю…</span>
-        </button>
+        </x-filament::button>
       @else
-        <button type="button" wire:click="toggleModule"
+        <x-filament::button
+          wire:click="toggleModule"
           wire:loading.attr="disabled" wire:target="toggleModule"
-          class="inline-flex items-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-colors disabled:opacity-40">
-          <svg wire:loading wire:target="toggleModule" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
+          color="primary"
+          icon="heroicon-o-bolt">
           <span wire:loading.remove wire:target="toggleModule">Увімкнути</span>
           <span wire:loading wire:target="toggleModule">Вмикаю…</span>
-        </button>
+        </x-filament::button>
       @endif
     </div>
   </header>
