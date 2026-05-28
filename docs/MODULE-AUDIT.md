@@ -1,16 +1,46 @@
 # Module System — Audit & Migration Plan
 
-> Аудит core-артефактів що ще не перенесені у модулі + план переносу.
-> Версія: 2026-05-28
+> Аудит core-артефактів + план переносу.
+> Версія: 2026-05-28 — **REFACTOR ЗАВЕРШЕНО (Sprint 1-11)**
 
-## Виконавчий резюме
+## ✅ Статус: модуляризацію завершено
 
-15 модулів зареєстровано, 12 активні. **Існуюча модулярна архітектура працює**:
+**39 модулів** зареєстровано. Великий refactor (Sprint 1-11) переніс
+~120 артефактів з `app/` у відповідні модулі. Фінальні метрики:
+
+| Метрика | До | Після | Зміна |
+|---|---|---|---|
+| Модулів | 15 | **39** | +160% |
+| Core моделей | 45 | **13** | −71% |
+| Core Filament Resources | 26 | **8** | −69% |
+| Core Filament Pages | 22 | **4** | −82% |
+| Core Gazu Controllers | 7 | **4** | −43% |
+| Core Services (top-level) | ~16 | **4** | −75% |
+
+**Verified:** 32 модулі × disable+enable = 0 failures. Всі regression URL 200.
+
+Інфраструктура модульної системи (працює):
 - ZIP installer/exporter з compatibility matrix
 - Hook API + 10 lifecycle events + Blade `@hookAction`
-- CLI + web safe-mode emergency disable
+- CLI (`module:install/uninstall/preview/export/safe-mode`) + web safe-mode
 - Transactional install + auto-backup + dry-run preview
 - Dependency auto-resolver + cascade disable
+
+### Що залишилось у core (правильно — це справді ядро)
+
+- **Models (13):** Product, Brand, Category, Filter, FilterGroup, Order,
+  OrderProduct, User, UserAddress, Module, ModuleActivityLog, DisplaySetting, ShopSettings
+- **Filament Resources (8):** Brand, Category, FilterGroup, Filter, Order,
+  Product, ShopSettings, User
+- **Filament Pages (4):** Dashboard, ModuleSettings, ModuleDetail, ShopSettings
+- **Gazu Controllers (4):** Store, Cart, Checkout, Auth
+- **Services (4):** AddressService, PricingService, TransliterationService, UrlRouterService
+
+Це checkout/auth/catalog/order — переносити не треба.
+
+---
+
+> Нижче — оригінальний план (історичний, виконано).
 
 Але багато логіки що **належить конкретним фічам** ще живе в `app/`. Цей документ — план переносу.
 
