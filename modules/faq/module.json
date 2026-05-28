@@ -1,0 +1,14 @@
+{
+    "name": "faq",
+    "label": "FAQ — Часті питання",
+    "description": "Сторінка частих питань з admin CRUD.",
+    "version": "1.0.0",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+    "providers": [],
+    "filament_resources": ["App\\Filament\\Resources\\FaqPageResource"],
+    "migrations_path": "database/migrations",
+    "views_namespace": "faq",
+    "routes": "routes/web.php",
+    "enabled_by_default": true
+}

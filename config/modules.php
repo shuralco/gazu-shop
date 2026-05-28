@@ -134,4 +134,39 @@ return [
         'requires' => [],
     ],
 
+    'faq' => [
+        'name' => 'FAQ — Часті питання',
+        'description' => 'Сторінка частих питань з admin CRUD.',
+        'enabled' => env('MODULE_FAQ', true),
+        'requires' => [],
+    ],
+
+    'info_pages' => [
+        'name' => 'Інфо-сторінки',
+        'description' => 'about/delivery/warranty/privacy/terms/careers/certificates/offer.',
+        'enabled' => env('MODULE_INFO_PAGES', true),
+        'requires' => [],
+    ],
+
+    'email_templates' => [
+        'name' => 'Email-шаблони',
+        'description' => 'Editable email templates для order/shipment/registration notifications.',
+        'enabled' => env('MODULE_EMAIL_TEMPLATES', true),
+        'requires' => [],
+    ],
+
+    'callback' => [
+        'name' => 'Замовити дзвінок',
+        'description' => 'Форма callback-запиту з phone + name + admin CRUD.',
+        'enabled' => env('MODULE_CALLBACK', true),
+        'requires' => [],
+    ],
+
+    'blog' => [
+        'name' => 'Блог',
+        'description' => 'Статті блогу + категорії. Маршрути /blog, /blog/rubryka/{slug}.',
+        'enabled' => env('MODULE_BLOG', true),
+        'requires' => [],
+    ],
+
 ];

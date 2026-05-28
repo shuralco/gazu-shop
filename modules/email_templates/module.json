@@ -1,0 +1,14 @@
+{
+    "name": "email_templates",
+    "label": "Email-шаблони",
+    "description": "Editable email templates для order/shipment/registration notifications.",
+    "version": "1.0.0",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+    "providers": [],
+    "filament_resources": ["App\\Filament\\Resources\\EmailTemplateResource"],
+    "migrations_path": "database/migrations",
+    "views_namespace": "email_templates",
+    "routes": "routes/web.php",
+    "enabled_by_default": true
+}

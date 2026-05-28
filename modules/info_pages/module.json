@@ -1,0 +1,14 @@
+{
+    "name": "info_pages",
+    "label": "Інфо-сторінки (about/delivery/warranty/...)",
+    "description": "Service-сторінки: about, delivery, warranty, privacy, terms, careers, certificates, offer.",
+    "version": "1.0.0",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+    "providers": [],
+    "filament_resources": ["App\\Filament\\Resources\\InfoPageResource"],
+    "migrations_path": "database/migrations",
+    "views_namespace": "info_pages",
+    "routes": "routes/web.php",
+    "enabled_by_default": true
+}

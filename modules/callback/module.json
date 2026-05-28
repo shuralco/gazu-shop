@@ -1,0 +1,14 @@
+{
+    "name": "callback",
+    "label": "Замовити дзвінок",
+    "description": "Форма callback-запиту з phone + name → admin CRUD + Telegram notify.",
+    "version": "1.0.0",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+    "providers": [],
+    "filament_resources": ["App\\Filament\\Resources\\CallbackRequestResource"],
+    "migrations_path": "database/migrations",
+    "views_namespace": "callback",
+    "routes": "routes/web.php",
+    "enabled_by_default": true
+}
