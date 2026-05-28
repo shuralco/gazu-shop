@@ -1,0 +1,36 @@
+{
+    "name": "shipping_core",
+    "label": "Доставка — ядро",
+    "description": "Фундамент для всіх shipping-провайдерів (Нова Пошта, УкрПошта, Meest, Rozetka Delivery). Містить базові моделі: Shipment, ShippingMethod, ShippingProvider, ShippingRate, ShippingZone, ShippingWarehouse, TrackingUpdate, ShippingApiLog + ShippingOrchestrator/Splitter Services + Filament Resources.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+
+    "requires_modules": [],
+    "composer_packages": [],
+
+    "providers": [],
+
+    "filament_resources": [
+        "App\\Filament\\Resources\\ShippingMethodResource",
+        "App\\Filament\\Resources\\ShippingProviderResource",
+        "App\\Filament\\Resources\\ShippingWarehouseResource"
+    ],
+    "filament_pages": [],
+
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "shipping_core",
+    "routes": "routes/web.php",
+
+    "settings_schema": {
+        "default_zone": {
+            "type": "string",
+            "default": "ukraine",
+            "label": "Зона за замовчуванням"
+        }
+    },
+
+    "enabled_by_default": true
+}

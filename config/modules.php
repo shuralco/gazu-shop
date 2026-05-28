@@ -127,4 +127,11 @@ return [
         'requires' => [],
     ],
 
+    'shipping_core' => [
+        'name' => 'Доставка — ядро',
+        'description' => 'Базові shipping моделі/services (Shipment, ShippingMethod, Provider, Zone, Warehouse) — фундамент для НП/УП/Meest модулів.',
+        'enabled' => env('MODULE_SHIPPING_CORE', true),
+        'requires' => [],
+    ],
+
 ];
