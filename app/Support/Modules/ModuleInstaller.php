@@ -203,6 +203,120 @@ class ModuleInstaller
         return $archivePath;
     }
 
+    /**
+     * Uninstall a module. Two modes:
+     *
+     *   purgeData=false (default) — soft uninstall:
+     *     1. delete modules/{name}/ directory
+     *     2. refresh autoload + clear caches
+     *     DB tables/data залишаються — переустановка з тим самим іменем
+     *     відновить доступ до старих даних.
+     *
+     *   purgeData=true — hard uninstall:
+     *     1. rollback module migrations (drops tables)
+     *     2. delete modules table row + activity log
+     *     3. delete modules/{name}/ directory
+     *     4. refresh autoload
+     *
+     * @return array{mode: string, files_removed: int, tables_dropped: ?int}
+     */
+    public static function uninstall(string $moduleName, bool $purgeData = false): array
+    {
+        if (! preg_match(self::MODULE_NAME_PATTERN, $moduleName)) {
+            throw new RuntimeException("Невалідне ім'я модуля: «{$moduleName}».");
+        }
+
+        $targetDir = base_path('modules/'.$moduleName);
+        if (! is_dir($targetDir)) {
+            throw new RuntimeException("Модуль не знайдено: modules/{$moduleName}");
+        }
+
+        // Refuse if enabled — admin must disable first to trigger
+        // proper lifecycle disable() hooks.
+        $enabled = (bool) optional(\DB::table('modules')->where('key', $moduleName)->first())->enabled;
+        if ($enabled) {
+            throw new RuntimeException("Спершу вимкніть модуль «{$moduleName}», потім видаляйте.");
+        }
+
+        // Refuse if other enabled modules depend on this one.
+        $dependents = self::activeDependentsOf($moduleName);
+        if (! empty($dependents)) {
+            throw new RuntimeException(
+                "Від «{$moduleName}» залежать активні модулі: ".implode(', ', $dependents).
+                '. Спочатку вимкніть їх.'
+            );
+        }
+
+        $tablesDropped = null;
+
+        if ($purgeData) {
+            // Rollback all migrations in this module — drops the tables.
+            $migPath = $targetDir.'/database/migrations';
+            if (is_dir($migPath)) {
+                $output = new \Symfony\Component\Console\Output\BufferedOutput();
+                Artisan::call('migrate:rollback', [
+                    '--path' => 'modules/'.$moduleName.'/database/migrations',
+                    '--force' => true,
+                ], $output);
+                // crude count: lines containing "Rolling back" or "Rolled back"
+                $tablesDropped = substr_count($output->fetch(), "\n");
+            }
+
+            // Drop DB-level state.
+            \DB::table('modules')->where('key', $moduleName)->delete();
+            if (\Schema::hasTable('module_activity_logs')) {
+                \DB::table('module_activity_logs')->where('module_key', $moduleName)->delete();
+            }
+        }
+
+        // Delete folder.
+        $fileCount = self::countFiles($targetDir);
+        File::deleteDirectory($targetDir);
+
+        // Refresh autoload — composer-classmap now no longer points to
+        // the (deleted) module classes.
+        self::refreshAutoload();
+        ModuleDiscovery::clearCache();
+
+        return [
+            'mode' => $purgeData ? 'hard' : 'soft',
+            'files_removed' => $fileCount,
+            'tables_dropped' => $tablesDropped,
+        ];
+    }
+
+    /**
+     * Names of modules that (a) require $moduleName AND (b) are currently enabled.
+     *
+     * @return array<int,string>
+     */
+    private static function activeDependentsOf(string $moduleName): array
+    {
+        $dependents = [];
+        foreach (ModuleDiscovery::manifests() as $key => $manifest) {
+            if (! in_array($moduleName, $manifest['requires_modules'] ?? [], true)) continue;
+            $enabled = (bool) optional(\DB::table('modules')->where('key', $key)->first())->enabled;
+            if ($enabled) $dependents[] = $key;
+        }
+        return $dependents;
+    }
+
+    private static function countFiles(string $dir): int
+    {
+        $count = 0;
+        try {
+            $iter = new \RecursiveIteratorIterator(
+                new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS)
+            );
+            foreach ($iter as $f) {
+                if ($f->isFile()) $count++;
+            }
+        } catch (\Throwable $e) {
+            // ignore — just report what we counted
+        }
+        return $count;
+    }
+
     private static function readManifestFromZip(ZipArchive $zip): string
     {
         // Try root-level module.json first

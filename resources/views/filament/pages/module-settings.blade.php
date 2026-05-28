@@ -89,7 +89,8 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         @foreach($group['modules'] as $m)
-          <article class="group relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm transition-all flex flex-col">
+          <article class="group relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm transition-all flex flex-col"
+                   x-data="{ showDelete: false, deleteMode: 'soft' }">
 
             {{-- Status dot (top-left absolute) --}}
             <div class="absolute top-3 right-3">
@@ -157,6 +158,15 @@
                     <x-filament::icon icon="heroicon-o-arrow-down-tray" class="w-3 h-3" />
                     .zip
                   </button>
+
+                  @if(! $m['enabled'])
+                    <button type="button"
+                            @click="showDelete = true; deleteMode = 'soft'"
+                            title="Видалити модуль"
+                            class="text-[12px] text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1">
+                      <x-filament::icon icon="heroicon-o-trash" class="w-3 h-3" />
+                    </button>
+                  @endif
                 @endif
 
                 <div class="ml-auto">
@@ -176,6 +186,51 @@
                       Увімкнути
                     </button>
                   @endif
+                </div>
+              </div>
+            </div>
+
+            {{-- Confirm-видалення modal --}}
+            <div x-show="showDelete" x-cloak
+                 @keydown.escape.window="showDelete = false"
+                 class="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4"
+                 @click.self="showDelete = false">
+              <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-xl max-w-md w-full p-5" @click.stop>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">Видалити «{{ $m['name'] }}»?</h3>
+                <p class="text-[12px] text-gray-500 dark:text-gray-400 mb-4">
+                  Оберіть тип видалення. <code class="font-mono">{{ $m['key'] }}</code>
+                </p>
+
+                <div class="space-y-2.5 mb-4">
+                  <label class="flex items-start gap-2.5 p-3 rounded-md border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 cursor-pointer transition-colors"
+                         :class="deleteMode === 'soft' ? 'bg-gray-50 dark:bg-gray-800/60 border-gray-300 dark:border-gray-700' : ''">
+                    <input type="radio" x-model="deleteMode" value="soft" class="mt-0.5"/>
+                    <div class="flex-1">
+                      <div class="text-[13px] font-medium text-gray-900 dark:text-gray-100">Лише файли</div>
+                      <div class="text-[11px] text-gray-500">Видалити папку <code class="font-mono">modules/{{ $m['key'] }}/</code>. Дані в БД залишаться — reinstall відновить доступ.</div>
+                    </div>
+                  </label>
+                  <label class="flex items-start gap-2.5 p-3 rounded-md border border-gray-200 dark:border-gray-800 hover:border-red-300 dark:hover:border-red-800 cursor-pointer transition-colors"
+                         :class="deleteMode === 'hard' ? 'bg-red-50 dark:bg-red-900/20 border-red-300 dark:border-red-700' : ''">
+                    <input type="radio" x-model="deleteMode" value="hard" class="mt-0.5"/>
+                    <div class="flex-1">
+                      <div class="text-[13px] font-medium text-red-700 dark:text-red-400">Файли + дані</div>
+                      <div class="text-[11px] text-gray-500">Rollback migrations (drop tables) + видалення з БД. <strong class="text-red-600">Необоротна дія.</strong></div>
+                    </div>
+                  </label>
+                </div>
+
+                <div class="flex items-center justify-end gap-2">
+                  <button type="button" @click="showDelete = false"
+                          class="px-3 py-1.5 text-[12px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                    Скасувати
+                  </button>
+                  <button type="button"
+                          @click="$wire.call('uninstallModule', '{{ $m['key'] }}', deleteMode); showDelete = false"
+                          :class="deleteMode === 'hard' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'"
+                          class="px-3 py-1.5 text-[12px] font-medium rounded transition-colors">
+                    <span x-text="deleteMode === 'hard' ? 'Видалити повністю' : 'Видалити папку'"></span>
+                  </button>
                 </div>
               </div>
             </div>

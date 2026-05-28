@@ -260,6 +260,42 @@ class ModuleSettings extends Page
     }
 
     /**
+     * Permanently uninstall a module. Confirmation handled in the view via
+     * Alpine modal — controller just receives `key` and `mode` ('soft'|'hard').
+     */
+    public function uninstallModule(string $key, string $mode = 'soft'): void
+    {
+        $purge = $mode === 'hard';
+        try {
+            $report = ModuleInstaller::uninstall($key, $purge);
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Не вдалося видалити')
+                ->body($e->getMessage())
+                ->danger()
+                ->persistent()
+                ->send();
+            return;
+        }
+
+        ModuleActivityLogger::log($key, $purge ? 'purged' : 'uninstalled', [
+            'files_removed' => $report['files_removed'] ?? 0,
+            'tables_dropped' => $report['tables_dropped'] ?? null,
+        ]);
+        ModuleManager::clearCache();
+
+        Notification::make()
+            ->title($purge ? "✓ Повністю видалено «{$key}»" : "✓ Папку модуля «{$key}» видалено")
+            ->body($purge
+                ? "Файли ({$report['files_removed']}) + БД дані стерто. Reinstall створить чистий модуль."
+                : "Файли ({$report['files_removed']}) видалено. Дані в БД залишилися — reinstall відновить доступ.")
+            ->success()
+            ->send();
+
+        $this->redirect(url('/admin/modules'), navigate: false);
+    }
+
+    /**
      * Export a module as a downloadable ZIP archive.
      * Used by the "Експорт" action on each module card.
      */
