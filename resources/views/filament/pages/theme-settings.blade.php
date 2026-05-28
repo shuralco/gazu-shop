@@ -29,7 +29,7 @@
                             <div class="flex items-center gap-2">
                                 <h3 class="text-lg font-bold capitalize">{{ str_replace('-', ' ', $theme) }}</h3>
                                 @if($isActive)
-                                    <span class="px-2 py-0.5 text-xs font-bold bg-success-500 text-white rounded">АКТИВНА</span>
+                                    <x-filament::badge color="success">АКТИВНА</x-filament::badge>
                                 @endif
                             </div>
                             <p class="text-xs text-gray-500 mt-1 font-mono">tokens/{{ $theme }}.css</p>
@@ -59,13 +59,15 @@
                     </div>
 
                     @if(! $isActive)
-                        <button
+                        <x-filament::button
                             type="button"
                             wire:click="activateTheme('{{ $theme }}')"
-                            class="w-full px-4 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded font-medium transition-colors"
+                            color="primary"
+                            icon="heroicon-o-swatch"
+                            class="w-full"
                         >
                             Активувати
-                        </button>
+                        </x-filament::button>
                     @else
                         <div class="text-center text-sm text-gray-500">Поточна тема</div>
                     @endif

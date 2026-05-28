@@ -68,30 +68,30 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Категорії без SEO:</span>
-                        <span class="px-2 py-1 text-xs font-medium rounded {{ $stats['missing_categories'] > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                        <x-filament::badge :color="$stats['missing_categories'] > 0 ? 'danger' : 'success'">
                             {{ $stats['missing_categories'] }}
-                        </span>
+                        </x-filament::badge>
                     </div>
-                    
+
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Товари без SEO:</span>
-                        <span class="px-2 py-1 text-xs font-medium rounded {{ $stats['missing_products'] > 0 ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800' }}">
+                        <x-filament::badge :color="$stats['missing_products'] > 0 ? 'danger' : 'success'">
                             {{ $stats['missing_products'] }}
-                        </span>
+                        </x-filament::badge>
                     </div>
 
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">🇺🇦 Українські записи:</span>
-                        <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                        <x-filament::badge color="info">
                             {{ $stats['ukrainian_records'] }}
-                        </span>
+                        </x-filament::badge>
                     </div>
 
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">🇬🇧 Англійські записи:</span>
-                        <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+                        <x-filament::badge color="success">
                             {{ $stats['english_records'] }}
-                        </span>
+                        </x-filament::badge>
                     </div>
                 </div>
             </div>
@@ -102,23 +102,21 @@
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
                         <span class="text-sm text-gray-600">Sitemap кешовано:</span>
-                        <span class="px-2 py-1 text-xs font-medium rounded {{ $stats['sitemap_cached'] ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                        <x-filament::badge :color="$stats['sitemap_cached'] ? 'success' : 'warning'">
                             {{ $stats['sitemap_cached'] ? '✅ Так' : '⏳ Ні' }}
-                        </span>
+                        </x-filament::badge>
                     </div>
 
                     <div class="mt-4">
-                        <a href="/sitemap.xml" target="_blank" class="inline-flex items-center px-3 py-2 text-sm font-medium text-blue-600 bg-blue-100 rounded-md hover:bg-blue-200">
-                            <x-heroicon-o-arrow-top-right-on-square class="w-4 h-4 mr-1"/>
+                        <x-filament::button tag="a" href="/sitemap.xml" target="_blank" color="info" icon="heroicon-o-arrow-top-right-on-square">
                             Переглянути Sitemap
-                        </a>
+                        </x-filament::button>
                     </div>
 
                     <div class="mt-2">
-                        <a href="/robots.txt" target="_blank" class="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-md hover:bg-gray-200">
-                            <x-heroicon-o-arrow-top-right-on-square class="w-4 h-4 mr-1"/>
+                        <x-filament::button tag="a" href="/robots.txt" target="_blank" color="gray" icon="heroicon-o-arrow-top-right-on-square">
                             Переглянути robots.txt
-                        </a>
+                        </x-filament::button>
                     </div>
                 </div>
             </div>

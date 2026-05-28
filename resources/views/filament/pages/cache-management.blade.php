@@ -5,20 +5,25 @@
         {{-- Live system status --}}
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             @php
+                // color → Filament badge palette (green→success, red→danger, gray→gray)
                 $cards = [
                     ['label' => 'Cache driver',       'value' => $stats['cache_driver']],
                     ['label' => 'Response store',     'value' => $stats['response_cache_driver']],
-                    ['label' => 'Octane (Swoole)',    'value' => $stats['octane_active'] ? 'Активний' : 'Не доступний', 'color' => $stats['octane_active'] ? 'green' : 'red'],
-                    ['label' => 'OPcache',            'value' => $stats['opcache_enabled'] ? 'УВІМК' : 'ВИМК',        'color' => $stats['opcache_enabled'] ? 'green' : 'red'],
-                    ['label' => 'Config cached',      'value' => $stats['config_cached'] ? 'YES' : 'NO',              'color' => $stats['config_cached'] ? 'green' : 'gray'],
-                    ['label' => 'Routes cached',      'value' => $stats['routes_cached'] ? 'YES' : 'NO',              'color' => $stats['routes_cached'] ? 'green' : 'gray'],
+                    ['label' => 'Octane (Swoole)',    'value' => $stats['octane_active'] ? 'Активний' : 'Не доступний', 'color' => $stats['octane_active'] ? 'success' : 'danger'],
+                    ['label' => 'OPcache',            'value' => $stats['opcache_enabled'] ? 'УВІМК' : 'ВИМК',        'color' => $stats['opcache_enabled'] ? 'success' : 'danger'],
+                    ['label' => 'Config cached',      'value' => $stats['config_cached'] ? 'YES' : 'NO',              'color' => $stats['config_cached'] ? 'success' : 'gray'],
+                    ['label' => 'Routes cached',      'value' => $stats['routes_cached'] ? 'YES' : 'NO',              'color' => $stats['routes_cached'] ? 'success' : 'gray'],
                 ];
             @endphp
             @foreach ($cards as $c)
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
                     <div class="text-[10px] uppercase tracking-wider text-gray-500 dark:text-gray-400">{{ $c['label'] }}</div>
-                    <div class="text-sm font-semibold mt-1 {{ ($c['color'] ?? null) === 'green' ? 'text-green-600' : (($c['color'] ?? null) === 'red' ? 'text-red-600' : 'text-gray-900 dark:text-gray-100') }}">
-                        {{ $c['value'] }}
+                    <div class="mt-1">
+                        @if (isset($c['color']))
+                            <x-filament::badge :color="$c['color']">{{ $c['value'] }}</x-filament::badge>
+                        @else
+                            <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $c['value'] }}</div>
+                        @endif
                     </div>
                 </div>
             @endforeach

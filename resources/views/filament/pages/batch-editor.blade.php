@@ -105,13 +105,9 @@
             {{-- Row 1: Save + Selected count + Column settings --}}
             <div class="flex items-center justify-between mb-2">
                 <div class="flex items-center gap-3">
-                    <button wire:click="saveChanges" class="fi-btn fi-btn-size-sm inline-flex items-center gap-1.5 rounded-lg bg-success-600 hover:bg-success-500 text-white px-4 py-2 text-sm font-medium shadow-sm transition">
-                        <x-heroicon-m-check class="h-4 w-4" />
+                    <x-filament::button wire:click="saveChanges" color="success" icon="heroicon-m-check" size="sm" :badge="count($editedData) > 0 ? count($editedData) : null">
                         Зберегти
-                        @if(count($editedData) > 0)
-                        <span class="bg-white/20 rounded-full px-2 py-0.5 text-xs">{{ count($editedData) }}</span>
-                        @endif
-                    </button>
+                    </x-filament::button>
                     @if(count($selectedIds) > 0)
                     <span class="text-xs text-gray-500 dark:text-gray-400">Вибрано: <strong class="text-primary-600 dark:text-primary-400">{{ count($selectedIds) }}</strong></span>
                     @endif
@@ -119,10 +115,9 @@
 
                 {{-- Column visibility dropdown --}}
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="inline-flex items-center gap-1.5 rounded-lg bg-gray-100 dark:bg-white/5 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-white/10 transition">
-                        <x-heroicon-m-view-columns class="h-4 w-4" />
+                    <x-filament::button @click="open = !open" color="gray" icon="heroicon-m-view-columns" size="sm">
                         Колонки
-                    </button>
+                    </x-filament::button>
                     <div x-show="open" @click.away="open = false" x-cloak x-transition
                          class="absolute right-0 mt-1 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-lg ring-1 ring-gray-950/5 dark:ring-white/10 p-2 z-50 max-h-80 overflow-y-auto">
                         @foreach($this->getAvailableColumns() as $key => $label)
@@ -140,66 +135,34 @@
                 <span class="text-xs text-gray-400 dark:text-gray-500 font-medium flex-shrink-0 mr-1">ДII:</span>
 
                 {{-- Pricing group --}}
-                <button wire:click="$set('showPriceModal', true)" class="inline-flex items-center gap-1 rounded-md bg-primary-50 dark:bg-primary-400/10 text-primary-600 dark:text-primary-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-primary-100 dark:hover:bg-primary-400/20 transition">
-                    <x-heroicon-m-currency-dollar class="h-3.5 w-3.5" /> Ціна
-                </button>
-                <button wire:click="$set('showSaleModal', true)" class="inline-flex items-center gap-1 rounded-md bg-warning-50 dark:bg-warning-400/10 text-warning-600 dark:text-warning-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-warning-100 dark:hover:bg-warning-400/20 transition">
-                    <x-heroicon-m-tag class="h-3.5 w-3.5" /> Акція
-                </button>
-                <button wire:click="removeSale" wire:confirm="Зняти акцію з вибраних товарів?" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-arrow-uturn-left class="h-3.5 w-3.5" /> Зняти
-                </button>
-                <button wire:click="$set('showGroupPriceModal', true)" class="inline-flex items-center gap-1 rounded-md bg-success-50 dark:bg-success-400/10 text-success-600 dark:text-success-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-success-100 dark:hover:bg-success-400/20 transition">
-                    <x-heroicon-m-user-group class="h-3.5 w-3.5" /> Гуртові
-                </button>
+                <x-filament::button wire:click="$set('showPriceModal', true)" color="primary" icon="heroicon-m-currency-dollar" size="xs" class="flex-shrink-0">Ціна</x-filament::button>
+                <x-filament::button wire:click="$set('showSaleModal', true)" color="warning" icon="heroicon-m-tag" size="xs" class="flex-shrink-0">Акція</x-filament::button>
+                <x-filament::button wire:click="removeSale" wire:confirm="Зняти акцію з вибраних товарів?" color="gray" icon="heroicon-m-arrow-uturn-left" size="xs" class="flex-shrink-0">Зняти</x-filament::button>
+                <x-filament::button wire:click="$set('showGroupPriceModal', true)" color="success" icon="heroicon-m-user-group" size="xs" class="flex-shrink-0">Гуртові</x-filament::button>
 
                 <span class="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0"></span>
 
                 {{-- Content group --}}
-                <button wire:click="$set('showStatusModal', true)" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-eye class="h-3.5 w-3.5" /> Статус
-                </button>
-                <button wire:click="$set('showCategoryModal', true)" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-folder class="h-3.5 w-3.5" /> Категорія
-                </button>
-                <button wire:click="$set('showBrandModal', true)" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-building-storefront class="h-3.5 w-3.5" /> Бренд
-                </button>
-                <button wire:click="$set('showFilterModal', true)" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-funnel class="h-3.5 w-3.5" /> Фільтри
-                </button>
+                <x-filament::button wire:click="$set('showStatusModal', true)" color="gray" icon="heroicon-m-eye" size="xs" class="flex-shrink-0">Статус</x-filament::button>
+                <x-filament::button wire:click="$set('showCategoryModal', true)" color="gray" icon="heroicon-m-folder" size="xs" class="flex-shrink-0">Категорія</x-filament::button>
+                <x-filament::button wire:click="$set('showBrandModal', true)" color="gray" icon="heroicon-m-building-storefront" size="xs" class="flex-shrink-0">Бренд</x-filament::button>
+                <x-filament::button wire:click="$set('showFilterModal', true)" color="gray" icon="heroicon-m-funnel" size="xs" class="flex-shrink-0">Фільтри</x-filament::button>
 
                 <span class="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0"></span>
 
                 {{-- SEO & Tools group --}}
-                <button wire:click="$set('showSeoModal', true)" class="inline-flex items-center gap-1 rounded-md bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-purple-100 dark:hover:bg-purple-400/20 transition">
-                    <x-heroicon-m-magnifying-glass class="h-3.5 w-3.5" /> SEO
-                </button>
-                <button wire:click="$set('showSearchReplaceModal', true)" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-magnifying-glass class="h-3.5 w-3.5" /> Пошук
-                </button>
-                <button wire:click="$set('showWeightModal', true)" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-scale class="h-3.5 w-3.5" /> Вага
-                </button>
-                <button wire:click="duplicateSelected" wire:confirm="Дублювати вибрані товари?" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-document-duplicate class="h-3.5 w-3.5" /> Копія
-                </button>
-                <button wire:click="openVariantModal" class="inline-flex items-center gap-1 rounded-md bg-indigo-50 dark:bg-indigo-400/10 text-indigo-600 dark:text-indigo-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-indigo-100 dark:hover:bg-indigo-400/20 transition">
-                    <x-heroicon-m-squares-plus class="h-3.5 w-3.5" /> Варіанти
-                </button>
+                <x-filament::button wire:click="$set('showSeoModal', true)" color="info" icon="heroicon-m-magnifying-glass" size="xs" class="flex-shrink-0">SEO</x-filament::button>
+                <x-filament::button wire:click="$set('showSearchReplaceModal', true)" color="gray" icon="heroicon-m-magnifying-glass" size="xs" class="flex-shrink-0">Пошук</x-filament::button>
+                <x-filament::button wire:click="$set('showWeightModal', true)" color="gray" icon="heroicon-m-scale" size="xs" class="flex-shrink-0">Вага</x-filament::button>
+                <x-filament::button wire:click="duplicateSelected" wire:confirm="Дублювати вибрані товари?" color="gray" icon="heroicon-m-document-duplicate" size="xs" class="flex-shrink-0">Копія</x-filament::button>
+                <x-filament::button wire:click="openVariantModal" color="info" icon="heroicon-m-squares-plus" size="xs" class="flex-shrink-0">Варіанти</x-filament::button>
 
                 <span class="w-px h-5 bg-gray-200 dark:bg-gray-700 flex-shrink-0"></span>
 
                 {{-- Import/Export/Delete group --}}
-                <button wire:click="openImportModal" class="inline-flex items-center gap-1 rounded-md bg-purple-50 dark:bg-purple-400/10 text-purple-600 dark:text-purple-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-purple-100 dark:hover:bg-purple-400/20 transition">
-                    <x-heroicon-m-arrow-up-tray class="h-3.5 w-3.5" /> Імпорт
-                </button>
-                <button wire:click="exportSelected" class="inline-flex items-center gap-1 rounded-md bg-gray-50 dark:bg-gray-400/10 text-gray-600 dark:text-gray-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-gray-100 dark:hover:bg-gray-400/20 transition">
-                    <x-heroicon-m-arrow-down-tray class="h-3.5 w-3.5" /> Експорт
-                </button>
-                <button wire:click="deleteSelected" wire:confirm="Видалити вибрані товари? Цю дію не можна скасувати!" class="inline-flex items-center gap-1 rounded-md bg-danger-50 dark:bg-danger-400/10 text-danger-600 dark:text-danger-400 px-2.5 py-1.5 text-xs font-medium flex-shrink-0 hover:bg-danger-100 dark:hover:bg-danger-400/20 transition">
-                    <x-heroicon-m-trash class="h-3.5 w-3.5" /> Видалити
-                </button>
+                <x-filament::button wire:click="openImportModal" color="info" icon="heroicon-m-arrow-up-tray" size="xs" class="flex-shrink-0">Імпорт</x-filament::button>
+                <x-filament::button wire:click="exportSelected" color="gray" icon="heroicon-m-arrow-down-tray" size="xs" class="flex-shrink-0">Експорт</x-filament::button>
+                <x-filament::button wire:click="deleteSelected" wire:confirm="Видалити вибрані товари? Цю дію не можна скасувати!" color="danger" icon="heroicon-m-trash" size="xs" class="flex-shrink-0">Видалити</x-filament::button>
             </div>
         </div>
 
@@ -452,8 +415,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showPriceModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="previewPrice" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Попередній перегляд</button>
+                    <x-filament::button wire:click="$set('showPriceModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="previewPrice" color="primary">Попередній перегляд</x-filament::button>
                 </div>
             </div>
         </div>
@@ -478,9 +441,9 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="removeSale" class="rounded-lg px-4 py-2 text-sm font-medium text-danger-600 hover:bg-danger-50 dark:text-danger-400 dark:hover:bg-danger-400/10">Зняти акцію</button>
-                    <button wire:click="$set('showSaleModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="previewSale" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Попередній перегляд</button>
+                    <x-filament::button wire:click="removeSale" color="danger" outlined>Зняти акцію</x-filament::button>
+                    <x-filament::button wire:click="$set('showSaleModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="previewSale" color="primary">Попередній перегляд</x-filament::button>
                 </div>
             </div>
         </div>
@@ -514,8 +477,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showGroupPriceModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="previewGroupPrice" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Попередній перегляд</button>
+                    <x-filament::button wire:click="$set('showGroupPriceModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="previewGroupPrice" color="primary">Попередній перегляд</x-filament::button>
                 </div>
             </div>
         </div>
@@ -544,8 +507,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showStatusModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="applyStatus" wire:confirm="Змінити статус для {{ count($selectedIds) }} товарів?" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showStatusModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="applyStatus" wire:confirm="Змінити статус для {{ count($selectedIds) }} товарів?" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -566,8 +529,8 @@
                     </select>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showCategoryModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="applyCategory" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showCategoryModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="applyCategory" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -594,8 +557,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showBrandModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="applyBrand" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showBrandModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="applyBrand" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -634,8 +597,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showFilterModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="applyFilters" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showFilterModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="applyFilters" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -678,8 +641,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showSearchReplaceModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="previewSR" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Знайти</button>
+                    <x-filament::button wire:click="$set('showSearchReplaceModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="previewSR" color="primary">Знайти</x-filament::button>
                 </div>
             </div>
         </div>
@@ -701,8 +664,8 @@
                     </div>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showWeightModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="applyWeight" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showWeightModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="applyWeight" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -715,7 +678,8 @@
                 {{-- Header --}}
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white">Імпорт CSV</h3>
-                    <button wire:click="$set('showImportModal', false)" class="text-gray-400 hover:text-gray-900 dark:hover:text-white text-xl" aria-label="Закрити">&times;</button>
+                    {{-- close icon-button: сирий &times; з text-gray-400 ламався на hover --}}
+                    <x-filament::icon-button icon="heroicon-m-x-mark" wire:click="$set('showImportModal', false)" label="Закрити" color="gray" />
                 </div>
 
                 {{-- Step indicators --}}
@@ -839,14 +803,10 @@
 
                     {{-- Actions --}}
                     <div class="flex items-center justify-between pt-2">
-                        <button wire:click="resetImport" class="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">
-                            <x-heroicon-m-arrow-left class="h-4 w-4" /> Назад
-                        </button>
-                        <button wire:click="executeImport" wire:confirm="Імпортувати {{ $importTotalRows }} рядків?"
-                            class="inline-flex items-center gap-1.5 rounded-lg bg-success-600 px-6 py-2 text-sm font-bold text-white hover:bg-success-500 shadow-sm transition">
-                            <x-heroicon-m-arrow-up-tray class="h-4 w-4" />
+                        <x-filament::button wire:click="resetImport" color="gray" icon="heroicon-m-arrow-left" size="sm">Назад</x-filament::button>
+                        <x-filament::button wire:click="executeImport" wire:confirm="Імпортувати {{ $importTotalRows }} рядків?" color="success" icon="heroicon-m-arrow-up-tray">
                             Імпортувати ({{ $importTotalRows }} рядків)
-                        </button>
+                        </x-filament::button>
                     </div>
                 </div>
                 @endif
@@ -888,12 +848,8 @@
 
                     {{-- Actions --}}
                     <div class="flex items-center justify-between pt-2">
-                        <button wire:click="resetImport" class="inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">
-                            <x-heroicon-m-arrow-path class="h-4 w-4" /> Імпортувати ще
-                        </button>
-                        <button wire:click="$set('showImportModal', false)" class="inline-flex items-center gap-1.5 rounded-lg bg-primary-600 px-6 py-2 text-sm font-bold text-white hover:bg-primary-500 shadow-sm transition">
-                            Закрити
-                        </button>
+                        <x-filament::button wire:click="resetImport" color="gray" icon="heroicon-m-arrow-path" size="sm">Імпортувати ще</x-filament::button>
+                        <x-filament::button wire:click="$set('showImportModal', false)" color="primary">Закрити</x-filament::button>
                     </div>
                 </div>
                 @endif
@@ -947,8 +903,8 @@
                     @endif
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showSeoModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">СКАСУВАТИ</button>
-                    <button wire:click="applySeoMeta" wire:confirm="Оновити SEO для {{ count($selectedIds) }} товарів?" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">ЗАСТОСУВАТИ</button>
+                    <x-filament::button wire:click="$set('showSeoModal', false)" color="gray">СКАСУВАТИ</x-filament::button>
+                    <x-filament::button wire:click="applySeoMeta" wire:confirm="Оновити SEO для {{ count($selectedIds) }} товарів?" color="primary">ЗАСТОСУВАТИ</x-filament::button>
                 </div>
             </div>
         </div>
@@ -1007,11 +963,11 @@
                 @endif
 
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showVariantModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
+                    <x-filament::button wire:click="$set('showVariantModal', false)" color="gray">Скасувати</x-filament::button>
                     @if(!empty($variantPreview) && collect($variantPreview)->sum('new') > 0)
-                    <button wire:click="generateVariants" wire:confirm="Згенерувати {{ collect($variantPreview)->sum('new') }} варіантів?" class="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
+                    <x-filament::button wire:click="generateVariants" wire:confirm="Згенерувати {{ collect($variantPreview)->sum('new') }} варіантів?" color="info">
                         Генерувати ({{ collect($variantPreview)->sum('new') }})
-                    </button>
+                    </x-filament::button>
                     @endif
                 </div>
             </div>
@@ -1058,25 +1014,15 @@
         {{-- Categories Toolbar --}}
         <div class="fi-section rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
             <div class="flex flex-wrap items-center gap-2">
-                <button wire:click="saveCategoryChanges" class="inline-flex items-center gap-1.5 rounded-lg bg-success-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-success-500 transition relative">
-                    <x-heroicon-m-check class="h-4 w-4" />
+                <x-filament::button wire:click="saveCategoryChanges" color="success" icon="heroicon-m-check" size="sm" :badge="count($editedCategoryData) > 0 ? count($editedCategoryData) : null" badge-color="danger">
                     Зберегти зміни
-                    @if(count($editedCategoryData) > 0)
-                        <span class="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-danger-500 text-[10px] font-bold text-white">{{ count($editedCategoryData) }}</span>
-                    @endif
-                </button>
+                </x-filament::button>
 
                 <span class="h-6 w-px bg-gray-300 dark:bg-white/10"></span>
 
-                <button wire:click="batchActivateCategories" class="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 transition">
-                    <x-heroicon-m-eye class="h-4 w-4" /> Активувати
-                </button>
-                <button wire:click="batchDeactivateCategories" class="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 transition">
-                    <x-heroicon-m-eye-slash class="h-4 w-4" /> Деактивувати
-                </button>
-                <button wire:click="$set('showParentCategoryModal', true)" class="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 transition">
-                    <x-heroicon-m-folder class="h-4 w-4" /> Змінити батьківську
-                </button>
+                <x-filament::button wire:click="batchActivateCategories" color="gray" icon="heroicon-m-eye" size="sm">Активувати</x-filament::button>
+                <x-filament::button wire:click="batchDeactivateCategories" color="gray" icon="heroicon-m-eye-slash" size="sm">Деактивувати</x-filament::button>
+                <x-filament::button wire:click="$set('showParentCategoryModal', true)" color="gray" icon="heroicon-m-folder" size="sm">Змінити батьківську</x-filament::button>
 
                 @if(count($selectedIds) > 0)
                     <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
@@ -1121,9 +1067,7 @@
                                 <td class="px-2 py-1.5 text-xs text-gray-500 dark:text-gray-400 font-mono hidden md:table-cell">{{ $category->slug }}</td>
                                 <td class="px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400">
                                     @if($category->parent)
-                                        <span class="inline-flex items-center rounded-md bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/30">
-                                            {{ $category->parent->title }}
-                                        </span>
+                                        <x-filament::badge color="primary">{{ $category->parent->title }}</x-filament::badge>
                                     @else
                                         <span class="text-gray-400">--</span>
                                     @endif
@@ -1177,8 +1121,8 @@
                     </select>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showParentCategoryModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="applyParentCategory" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showParentCategoryModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="applyParentCategory" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -1209,12 +1153,8 @@
         {{-- Orders Toolbar --}}
         <div class="fi-section rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
             <div class="flex flex-wrap items-center gap-2">
-                <button wire:click="$set('showOrderStatusModal', true)" class="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 transition">
-                    <x-heroicon-m-arrow-path class="h-4 w-4" /> Змінити статус
-                </button>
-                <button wire:click="exportOrders" class="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-200 dark:bg-white/5 dark:text-gray-300 dark:hover:bg-white/10 transition">
-                    <x-heroicon-m-arrow-down-tray class="h-4 w-4" /> Експорт CSV
-                </button>
+                <x-filament::button wire:click="$set('showOrderStatusModal', true)" color="gray" icon="heroicon-m-arrow-path" size="sm">Змінити статус</x-filament::button>
+                <x-filament::button wire:click="exportOrders" color="gray" icon="heroicon-m-arrow-down-tray" size="sm">Експорт CSV</x-filament::button>
 
                 @if(count($selectedIds) > 0)
                     <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
@@ -1257,11 +1197,11 @@
                                 <td class="px-2 py-1.5">
                                     @php
                                         $statusColors = [
-                                            'pending' => 'bg-yellow-50 text-yellow-700 ring-yellow-600/20 dark:bg-yellow-400/10 dark:text-yellow-400 dark:ring-yellow-400/30',
-                                            'processing' => 'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-400 dark:ring-blue-400/30',
-                                            'shipped' => 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-400/10 dark:text-purple-400 dark:ring-purple-400/30',
-                                            'delivered' => 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400 dark:ring-green-400/30',
-                                            'cancelled' => 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-400 dark:ring-red-400/30',
+                                            'pending' => 'warning',
+                                            'processing' => 'info',
+                                            'shipped' => 'primary',
+                                            'delivered' => 'success',
+                                            'cancelled' => 'danger',
                                         ];
                                         $statusLabels = [
                                             'pending' => 'Очікує',
@@ -1270,11 +1210,11 @@
                                             'delivered' => 'Доставлено',
                                             'cancelled' => 'Скасовано',
                                         ];
-                                        $sc = $statusColors[$order->status] ?? 'bg-gray-50 text-gray-700 ring-gray-600/20';
+                                        $sc = $statusColors[$order->status] ?? 'gray';
                                     @endphp
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $sc }}">
+                                    <x-filament::badge :color="$sc">
                                         {{ $statusLabels[$order->status] ?? $order->status }}
-                                    </span>
+                                    </x-filament::badge>
                                 </td>
                                 <td class="px-2 py-1.5 text-xs text-gray-500 dark:text-gray-400 hidden md:table-cell">{{ $order->payment_status ?? '--' }}</td>
                                 <td class="px-2 py-1.5 text-xs text-gray-500 dark:text-gray-400">{{ $order->created_at?->format('d.m.Y H:i') }}</td>
@@ -1312,8 +1252,8 @@
                     </select>
                 </div>
                 <div class="mt-6 flex justify-end gap-3">
-                    <button wire:click="$set('showOrderStatusModal', false)" class="rounded-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5">Скасувати</button>
-                    <button wire:click="batchChangeOrderStatus" class="rounded-lg bg-primary-600 px-4 py-2 text-sm font-semibold text-white hover:bg-primary-500">Застосувати</button>
+                    <x-filament::button wire:click="$set('showOrderStatusModal', false)" color="gray">Скасувати</x-filament::button>
+                    <x-filament::button wire:click="batchChangeOrderStatus" color="primary">Застосувати</x-filament::button>
                 </div>
             </div>
         </div>
@@ -1327,12 +1267,8 @@
         {{-- Reviews Toolbar --}}
         <div class="fi-section rounded-xl bg-white p-3 shadow-sm ring-1 ring-gray-950/5 dark:bg-gray-900 dark:ring-white/10">
             <div class="flex flex-wrap items-center gap-2">
-                <button wire:click="batchApproveReviews" class="inline-flex items-center gap-1 rounded-lg bg-success-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-success-500 transition">
-                    <x-heroicon-m-check-circle class="h-4 w-4" /> Схвалити всі вибрані
-                </button>
-                <button wire:click="batchRejectReviews" wire:confirm="Видалити вибрані відгуки назавжди?" class="inline-flex items-center gap-1 rounded-lg bg-danger-600 px-3 py-2 text-xs font-semibold text-white shadow-sm hover:bg-danger-500 transition">
-                    <x-heroicon-m-trash class="h-4 w-4" /> Видалити вибрані
-                </button>
+                <x-filament::button wire:click="batchApproveReviews" color="success" icon="heroicon-m-check-circle" size="sm">Схвалити всі вибрані</x-filament::button>
+                <x-filament::button wire:click="batchRejectReviews" wire:confirm="Видалити вибрані відгуки назавжди?" color="danger" icon="heroicon-m-trash" size="sm">Видалити вибрані</x-filament::button>
 
                 @if(count($selectedIds) > 0)
                     <span class="ml-auto text-xs text-gray-500 dark:text-gray-400">
@@ -1368,9 +1304,7 @@
                                 <td class="px-2 py-1.5 text-xs text-gray-500 dark:text-gray-400 font-mono">{{ $review->id }}</td>
                                 <td class="px-2 py-1.5 text-xs text-gray-700 dark:text-gray-300">
                                     @if($review->product)
-                                        <span class="inline-flex items-center rounded-md bg-primary-50 px-2 py-1 text-xs font-medium text-primary-700 ring-1 ring-inset ring-primary-600/20 dark:bg-primary-400/10 dark:text-primary-400 dark:ring-primary-400/30">
-                                            {{ Str::limit($review->product->title, 40) }}
-                                        </span>
+                                        <x-filament::badge color="primary">{{ Str::limit($review->product->title, 40) }}</x-filament::badge>
                                     @else
                                         <span class="text-gray-400">--</span>
                                     @endif
@@ -1390,17 +1324,11 @@
                                 <td class="px-2 py-1.5 text-xs text-gray-600 dark:text-gray-400">{{ Str::limit($review->comment, 80) }}</td>
                                 <td class="px-2 py-1.5 text-center">
                                     @if($review->status === 'approved')
-                                        <span class="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 dark:bg-green-400/10 dark:text-green-400">
-                                            <x-heroicon-m-check class="h-3 w-3" />
-                                        </span>
+                                        <x-filament::badge color="success" icon="heroicon-m-check" />
                                     @elseif($review->status === 'pending')
-                                        <span class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 dark:bg-yellow-400/10 dark:text-yellow-400">
-                                            <x-heroicon-m-clock class="h-3 w-3" />
-                                        </span>
+                                        <x-filament::badge color="warning" icon="heroicon-m-clock" />
                                     @else
-                                        <span class="inline-flex items-center rounded-full bg-red-50 px-2 py-1 text-xs font-medium text-red-700 dark:bg-red-400/10 dark:text-red-400">
-                                            <x-heroicon-m-x-mark class="h-3 w-3" />
-                                        </span>
+                                        <x-filament::badge color="danger" icon="heroicon-m-x-mark" />
                                     @endif
                                 </td>
                             </tr>
@@ -1446,27 +1374,25 @@
                                 <td class="px-3 py-2">
                                     @php
                                         $actionColors = [
-                                            'price_change' => 'bg-blue-50 text-blue-700 ring-blue-600/20 dark:bg-blue-400/10 dark:text-blue-400',
-                                            'sale' => 'bg-orange-50 text-orange-700 ring-orange-600/20 dark:bg-orange-400/10 dark:text-orange-400',
-                                            'status' => 'bg-green-50 text-green-700 ring-green-600/20 dark:bg-green-400/10 dark:text-green-400',
-                                            'category' => 'bg-purple-50 text-purple-700 ring-purple-600/20 dark:bg-purple-400/10 dark:text-purple-400',
-                                            'search_replace' => 'bg-indigo-50 text-indigo-700 ring-indigo-600/20 dark:bg-indigo-400/10 dark:text-indigo-400',
-                                            'delete' => 'bg-red-50 text-red-700 ring-red-600/20 dark:bg-red-400/10 dark:text-red-400',
-                                            'import' => 'bg-teal-50 text-teal-700 ring-teal-600/20 dark:bg-teal-400/10 dark:text-teal-400',
+                                            'price_change' => 'info',
+                                            'sale' => 'warning',
+                                            'status' => 'success',
+                                            'category' => 'primary',
+                                            'search_replace' => 'info',
+                                            'delete' => 'danger',
+                                            'import' => 'success',
                                         ];
-                                        $ac = $actionColors[$logItem->action_type] ?? 'bg-gray-50 text-gray-700 ring-gray-600/20 dark:bg-gray-400/10 dark:text-gray-400';
+                                        $ac = $actionColors[$logItem->action_type] ?? 'gray';
                                     @endphp
-                                    <span class="inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset {{ $ac }}">
+                                    <x-filament::badge :color="$ac">
                                         {{ $logItem->action_type }}
-                                    </span>
+                                    </x-filament::badge>
                                 </td>
                                 <td class="px-3 py-2 text-xs text-gray-700 dark:text-gray-300">{{ $logItem->description }}</td>
                                 <td class="px-3 py-2 text-center text-xs font-semibold text-gray-700 dark:text-gray-300">{{ $logItem->affected_count }}</td>
                                 <td class="px-3 py-2 text-center">
                                     @if($logItem->rolled_back)
-                                        <span class="inline-flex items-center rounded-full bg-yellow-50 px-2 py-1 text-xs font-medium text-yellow-700 dark:bg-yellow-400/10 dark:text-yellow-400">
-                                            Скасовано
-                                        </span>
+                                        <x-filament::badge color="warning">Скасовано</x-filament::badge>
                                     @elseif(!empty($logItem->changes_data))
                                         <x-filament::icon-button
                                             icon="heroicon-m-arrow-uturn-left"
@@ -1484,7 +1410,7 @@
                             @if(!empty($logItem->affected_ids))
                             <tr wire:key="log-detail-{{ $logItem->id }}" x-data="{ showIds: false }">
                                 <td colspan="6" class="px-3 py-0">
-                                    <button @click="showIds = !showIds" class="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 py-1">
+                                    <button @click="showIds = !showIds" class="text-xs text-primary-600 dark:text-primary-400 hover:underline py-1">
                                         <span x-text="showIds ? '&#9650; Сховати ID' : '&#9660; Показати ID (' + {{ count($logItem->affected_ids) }} + ')'"></span>
                                     </button>
                                     <div x-show="showIds" x-cloak class="pb-2 text-xs text-gray-500 dark:text-gray-400 font-mono">
@@ -1542,12 +1468,12 @@
                     </tbody>
                 </table>
                 <div class="flex gap-3">
-                    <button wire:click="confirmAndApply" wire:confirm="Застосувати зміни для {{ count($previewData) }} товарів? Цю дію можна скасувати через журнал." class="rounded-lg bg-green-600 text-white px-6 py-2 text-sm font-bold hover:bg-green-700 transition">
+                    <x-filament::button wire:click="confirmAndApply" wire:confirm="Застосувати зміни для {{ count($previewData) }} товарів? Цю дію можна скасувати через журнал." color="success">
                         ЗАСТОСУВАТИ ({{ count($previewData) }})
-                    </button>
-                    <button wire:click="cancelPreview" class="rounded-lg border border-gray-300 dark:border-white/10 px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/5 transition">
+                    </x-filament::button>
+                    <x-filament::button wire:click="cancelPreview" color="gray">
                         СКАСУВАТИ
-                    </button>
+                    </x-filament::button>
                 </div>
             </div>
         </div>

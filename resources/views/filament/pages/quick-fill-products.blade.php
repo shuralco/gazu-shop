@@ -18,22 +18,25 @@
         {{ $this->form }}
 
         <div class="flex flex-wrap gap-2 sticky bottom-0 bg-white dark:bg-gray-900 py-3 border-t border-gray-200 dark:border-gray-700 -mx-4 px-4 z-10">
-            <button type="button"
-                    wire:click="saveAll"
-                    wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-success-600 hover:bg-success-700 text-white rounded-md font-medium text-sm disabled:opacity-60">
-                <x-filament::icon icon="heroicon-o-check" class="h-4 w-4"/>
+            <x-filament::button
+                wire:click="saveAll"
+                wire:loading.attr="disabled"
+                wire:target="saveAll"
+                color="success"
+                icon="heroicon-o-check">
                 <span wire:loading.remove wire:target="saveAll">Зберегти всі товари</span>
                 <span wire:loading wire:target="saveAll">Збереження…</span>
-            </button>
+            </x-filament::button>
 
             <span class="flex-1"></span>
 
-            <a href="{{ \App\Filament\Resources\ProductResource::getUrl('index') }}"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-md font-medium text-sm">
-                <x-filament::icon icon="heroicon-o-arrow-top-right-on-square" class="h-4 w-4"/>
+            <x-filament::button
+                tag="a"
+                href="{{ \App\Filament\Resources\ProductResource::getUrl('index') }}"
+                color="gray"
+                icon="heroicon-o-arrow-top-right-on-square">
                 До списку товарів
-            </a>
+            </x-filament::button>
         </div>
 
         <div class="rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-200 dark:border-gray-700 text-xs">

@@ -1,25 +1,21 @@
 <x-filament-panels::page>
     {{-- Tab Navigation --}}
-    <div class="flex flex-wrap gap-2 border-b border-gray-200 dark:border-gray-700 pb-3 mb-6">
+    <x-filament::tabs class="mb-6">
         @foreach ([
             'products' => ['Генератор товарів', 'heroicon-o-cube'],
             'enrichment' => ['Збагачення товарів', 'heroicon-o-paint-brush'],
             'api_settings' => ['Налаштування API', 'heroicon-o-cog-6-tooth'],
             'history' => ['Історія', 'heroicon-o-clock'],
         ] as $tab => [$label, $icon])
-            <button
+            <x-filament::tabs.item
                 wire:click="$set('activeTab', '{{ $tab }}')"
-                @class([
-                    'inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150',
-                    'bg-primary-600 text-white shadow-sm' => $activeTab === $tab,
-                    'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800' => $activeTab !== $tab,
-                ])
+                :active="$activeTab === $tab"
+                :icon="$icon"
             >
-                <x-dynamic-component :component="$icon" class="w-5 h-5" />
                 {{ $label }}
-            </button>
+            </x-filament::tabs.item>
         @endforeach
-    </div>
+    </x-filament::tabs>
 
     {{-- ═══════════════════════════════════════════════════════════════ --}}
     {{-- TAB 1: PRODUCT GENERATOR                                       --}}
@@ -96,24 +92,19 @@
 
                 {{-- Buttons --}}
                 <div class="flex flex-wrap items-center gap-3 mt-5">
-                    <button wire:click="handleGeneratePrompt"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">
-                        <x-heroicon-o-document-text class="w-5 h-5" />
+                    <x-filament::button wire:click="handleGeneratePrompt" color="primary" icon="heroicon-o-document-text">
                         Згенерувати промт
-                    </button>
+                    </x-filament::button>
 
                     @if ($this->isApiConfigured)
-                        <button wire:click="handleGenerateViaApi"
-                                wire:loading.attr="disabled"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-50 transition-colors">
-                            <span wire:loading.remove wire:target="handleGenerateViaApi">
-                                <x-heroicon-o-sparkles class="w-5 h-5" />
-                            </span>
-                            <span wire:loading wire:target="handleGenerateViaApi">
-                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                            </span>
+                        <x-filament::button
+                            wire:click="handleGenerateViaApi"
+                            wire:loading.attr="disabled"
+                            wire:target="handleGenerateViaApi"
+                            color="info"
+                            icon="heroicon-o-sparkles">
                             Згенерувати через API
-                        </button>
+                        </x-filament::button>
                     @endif
                 </div>
             </div>
@@ -123,11 +114,14 @@
                 <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Згенерований промт</h3>
-                        <button onclick="navigator.clipboard.writeText(document.getElementById('prompt-text').value); this.textContent='Скопійовано!'; setTimeout(() => this.textContent='Копіювати', 2000)"
-                                class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-500/10 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors">
-                            <x-heroicon-o-clipboard-document class="w-4 h-4" />
+                        <x-filament::button
+                            x-data
+                            x-on:click="navigator.clipboard.writeText(document.getElementById('prompt-text').value); const l=$el.querySelector('.fi-btn-label'); if(l){const o=l.textContent; l.textContent='Скопійовано!'; setTimeout(() => l.textContent=o, 2000);}"
+                            size="sm"
+                            color="primary"
+                            icon="heroicon-o-clipboard-document">
                             Копіювати
-                        </button>
+                        </x-filament::button>
                     </div>
                     <textarea id="prompt-text" readonly rows="12"
                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-xs font-mono shadow-sm">{{ $generatedPrompt }}</textarea>
@@ -144,11 +138,9 @@
                     <textarea wire:model="generatedJson" rows="10" placeholder='Вставте JSON відповідь від AI сюди...'
                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-xs font-mono shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
                     <div class="flex items-center gap-3 mt-3">
-                        <button wire:click="handleParseJson"
-                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors">
-                            <x-heroicon-o-code-bracket class="w-5 h-5" />
+                        <x-filament::button wire:click="handleParseJson" color="info" icon="heroicon-o-code-bracket">
                             Розпарсити JSON
-                        </button>
+                        </x-filament::button>
                     </div>
                 </div>
             @endif
@@ -160,18 +152,15 @@
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
                             Попередній перегляд ({{ count($previewProducts) }} товарів)
                         </h3>
-                        <button wire:click="handleImportProducts"
-                                wire:loading.attr="disabled"
-                                wire:confirm="Імпортувати {{ count($previewProducts) }} товарів у базу даних?"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700 disabled:opacity-50 transition-colors">
-                            <span wire:loading.remove wire:target="handleImportProducts">
-                                <x-heroicon-o-arrow-down-tray class="w-5 h-5" />
-                            </span>
-                            <span wire:loading wire:target="handleImportProducts">
-                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                            </span>
+                        <x-filament::button
+                            wire:click="handleImportProducts"
+                            wire:loading.attr="disabled"
+                            wire:target="handleImportProducts"
+                            wire:confirm="Імпортувати {{ count($previewProducts) }} товарів у базу даних?"
+                            color="success"
+                            icon="heroicon-o-arrow-down-tray">
                             Імпортувати все
-                        </button>
+                        </x-filament::button>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -214,20 +203,21 @@
                                         </td>
                                         <td class="py-3 px-3 text-center">
                                             @if (!empty($product['is_hit']))
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-500/10 text-orange-800 dark:text-orange-300">Хіт</span>
+                                                <x-filament::badge color="warning">Хіт</x-filament::badge>
                                             @endif
                                         </td>
                                         <td class="py-3 px-3 text-center">
                                             @if (!empty($product['is_new']))
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-300">New</span>
+                                                <x-filament::badge color="success">New</x-filament::badge>
                                             @endif
                                         </td>
                                         <td class="py-3 px-3 text-right">
-                                            <button wire:click="removePreviewProduct({{ $index }})"
-                                                    class="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                                                    title="Видалити">
-                                                <x-heroicon-o-trash class="w-4 h-4" />
-                                            </button>
+                                            <x-filament::icon-button
+                                                icon="heroicon-o-trash"
+                                                wire:click="removePreviewProduct({{ $index }})"
+                                                label="Видалити"
+                                                color="danger"
+                                                size="sm" />
                                         </td>
                                     </tr>
                                 @endforeach
@@ -289,25 +279,20 @@
 
                 {{-- Buttons --}}
                 <div class="flex flex-wrap items-center gap-3 mt-5">
-                    <button wire:click="handleEnrichPrompt"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors">
-                        <x-heroicon-o-document-text class="w-5 h-5" />
+                    <x-filament::button wire:click="handleEnrichPrompt" color="primary" icon="heroicon-o-document-text">
                         Згенерувати промт
-                    </button>
+                    </x-filament::button>
 
                     @if ($this->isApiConfigured)
-                        <button wire:click="handleEnrichViaApi"
-                                wire:loading.attr="disabled"
-                                wire:confirm="Застосувати збагачення через API до {{ count($enrichProductIds) }} товарів?"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-violet-600 rounded-lg hover:bg-violet-700 disabled:opacity-50 transition-colors">
-                            <span wire:loading.remove wire:target="handleEnrichViaApi">
-                                <x-heroicon-o-sparkles class="w-5 h-5" />
-                            </span>
-                            <span wire:loading wire:target="handleEnrichViaApi">
-                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                            </span>
+                        <x-filament::button
+                            wire:click="handleEnrichViaApi"
+                            wire:loading.attr="disabled"
+                            wire:target="handleEnrichViaApi"
+                            wire:confirm="Застосувати збагачення через API до {{ count($enrichProductIds) }} товарів?"
+                            color="info"
+                            icon="heroicon-o-sparkles">
                             Застосувати через API
-                        </button>
+                        </x-filament::button>
                     @endif
                 </div>
             </div>
@@ -317,11 +302,14 @@
                 <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Промт для збагачення</h3>
-                        <button onclick="navigator.clipboard.writeText(document.getElementById('enrich-prompt-text').value); this.textContent='Скопійовано!'; setTimeout(() => this.textContent='Копіювати', 2000)"
-                                class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-500/10 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-500/20 transition-colors">
-                            <x-heroicon-o-clipboard-document class="w-4 h-4" />
+                        <x-filament::button
+                            x-data
+                            x-on:click="navigator.clipboard.writeText(document.getElementById('enrich-prompt-text').value); const l=$el.querySelector('.fi-btn-label'); if(l){const o=l.textContent; l.textContent='Скопійовано!'; setTimeout(() => l.textContent=o, 2000);}"
+                            size="sm"
+                            color="primary"
+                            icon="heroicon-o-clipboard-document">
                             Копіювати
-                        </button>
+                        </x-filament::button>
                     </div>
                     <textarea id="enrich-prompt-text" readonly rows="12"
                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-xs font-mono shadow-sm">{{ $enrichPrompt }}</textarea>
@@ -335,11 +323,9 @@
                     <textarea wire:model="enrichJson" rows="8" placeholder='Вставте JSON відповідь від AI...'
                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-xs font-mono shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
                     <div class="flex items-center gap-3 mt-3">
-                        <button wire:click="handleApplyEnrichJson"
-                                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700 transition-colors">
-                            <x-heroicon-o-check class="w-5 h-5" />
+                        <x-filament::button wire:click="handleApplyEnrichJson" color="success" icon="heroicon-o-check">
                             Застосувати до товару
-                        </button>
+                        </x-filament::button>
                     </div>
                 </div>
             @endif
@@ -428,24 +414,19 @@
 
                 {{-- Action Buttons --}}
                 <div class="flex flex-wrap items-center gap-3 mt-6">
-                    <button wire:click="handleSaveApiSettings"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700 transition-colors">
-                        <x-heroicon-o-check class="w-5 h-5" />
+                    <x-filament::button wire:click="handleSaveApiSettings" color="success" icon="heroicon-o-check">
                         Зберегти налаштування
-                    </button>
+                    </x-filament::button>
 
                     @if ($apiProvider !== 'none')
-                        <button wire:click="handleTestConnection"
-                                wire:loading.attr="disabled"
-                                class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
-                            <span wire:loading.remove wire:target="handleTestConnection">
-                                <x-heroicon-o-signal class="w-5 h-5" />
-                            </span>
-                            <span wire:loading wire:target="handleTestConnection">
-                                <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                            </span>
+                        <x-filament::button
+                            wire:click="handleTestConnection"
+                            wire:loading.attr="disabled"
+                            wire:target="handleTestConnection"
+                            color="info"
+                            icon="heroicon-o-signal">
                             Тестувати підключення
-                        </button>
+                        </x-filament::button>
                     @endif
                 </div>
             </div>
@@ -497,9 +478,9 @@
                                         {{ $log->created_at->format('d.m.Y H:i') }}
                                     </td>
                                     <td class="py-3 px-3">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-500/10 text-blue-800 dark:text-blue-300">
+                                        <x-filament::badge color="info">
                                             {{ $log->type_label }}
-                                        </span>
+                                        </x-filament::badge>
                                     </td>
                                     <td class="py-3 px-3 text-gray-500 dark:text-gray-400">
                                         {{ $log->provider ?? 'manual' }}
@@ -512,31 +493,31 @@
                                     </td>
                                     <td class="py-3 px-3 text-center">
                                         @if ($log->products_created > 0)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-300">
+                                            <x-filament::badge color="success">
                                                 +{{ $log->products_created }}
-                                            </span>
+                                            </x-filament::badge>
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
                                     <td class="py-3 px-3 text-center">
                                         @if ($log->products_updated > 0)
-                                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-500/10 text-amber-800 dark:text-amber-300">
+                                            <x-filament::badge color="warning">
                                                 {{ $log->products_updated }}
-                                            </span>
+                                            </x-filament::badge>
                                         @else
                                             <span class="text-gray-400">-</span>
                                         @endif
                                     </td>
                                     <td class="py-3 px-3 text-center">
-                                        <span @class([
-                                            'inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium',
-                                            'bg-green-100 dark:bg-green-500/10 text-green-800 dark:text-green-300' => $log->status === 'success',
-                                            'bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-300' => $log->status === 'error',
-                                            'bg-yellow-100 dark:bg-yellow-500/10 text-yellow-800 dark:text-yellow-300' => $log->status === 'pending',
-                                        ])>
+                                        <x-filament::badge :color="match ($log->status) {
+                                            'success' => 'success',
+                                            'error' => 'danger',
+                                            'pending' => 'warning',
+                                            default => 'gray',
+                                        }">
                                             {{ $log->status }}
-                                        </span>
+                                        </x-filament::badge>
                                     </td>
                                 </tr>
                             @empty

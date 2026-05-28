@@ -16,16 +16,22 @@
     {{ $this->form }}
 
     <div class="mt-6 flex gap-2 sticky bottom-0 bg-white dark:bg-gray-900 py-3 border-t border-gray-200 dark:border-gray-700 -mx-4 px-4 z-10">
-        <button type="button" wire:click="save"
-                wire:loading.attr="disabled"
-                class="inline-flex items-center gap-2 px-4 py-2 bg-success-600 hover:bg-success-700 text-white rounded-md font-medium text-sm">
-            <x-filament::icon icon="heroicon-o-check" class="h-4 w-4"/>
+        <x-filament::button
+            type="button"
+            wire:click="save"
+            wire:loading.attr="disabled"
+            color="success"
+            icon="heroicon-o-check">
             <span wire:loading.remove>Зберегти</span>
             <span wire:loading>Збереження…</span>
-        </button>
-        <a href="/gazu" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 text-gray-900 dark:text-white rounded-md font-medium text-sm no-underline">
-            <x-filament::icon icon="heroicon-o-arrow-top-right-on-square" class="h-4 w-4"/>
+        </x-filament::button>
+        <x-filament::button
+            tag="a"
+            href="/gazu"
+            target="_blank"
+            color="gray"
+            icon="heroicon-o-arrow-top-right-on-square">
             Відкрити /gazu
-        </a>
+        </x-filament::button>
     </div>
 </x-filament-panels::page>

@@ -100,13 +100,13 @@
                             Кожна група містить основне слово та його синоніми (через кому). При пошуку будь-якого із синонімів Meilisearch знайде результати для всієї групи.
                         </p>
                     </div>
-                    <button
+                    <x-filament::button
                         wire:click="addSynonymGroup"
-                        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                        color="primary"
+                        icon="heroicon-o-plus"
                     >
-                        <x-heroicon-o-plus class="w-4 h-4" />
                         Додати групу
-                    </button>
+                    </x-filament::button>
                 </div>
 
                 <div class="space-y-3">
@@ -131,13 +131,12 @@
                                 >
                             </div>
                             <div class="pt-5">
-                                <button
+                                <x-filament::icon-button
+                                    icon="heroicon-o-trash"
                                     wire:click="removeSynonymGroup({{ $index }})"
-                                    class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"
-                                    title="Видалити групу"
-                                >
-                                    <x-heroicon-o-trash class="w-5 h-5" />
-                                </button>
+                                    color="danger"
+                                    label="Видалити групу"
+                                />
                             </div>
                         </div>
                     @empty
@@ -151,19 +150,15 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button
+                <x-filament::button
                     wire:click="saveSynonyms"
                     wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700 disabled:opacity-50 transition-colors"
+                    wire:target="saveSynonyms"
+                    color="success"
+                    icon="heroicon-o-check"
                 >
-                    <span wire:loading.remove wire:target="saveSynonyms">
-                        <x-heroicon-o-check class="w-5 h-5" />
-                    </span>
-                    <span wire:loading wire:target="saveSynonyms">
-                        <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                    </span>
                     Зберегти та переіндексувати
-                </button>
+                </x-filament::button>
                 <span wire:loading wire:target="saveSynonyms" class="text-sm text-gray-500">
                     Збереження та переіндексація...
                 </span>
@@ -195,19 +190,15 @@
             </div>
 
             <div class="flex items-center gap-3">
-                <button
+                <x-filament::button
                     wire:click="saveStopWords"
                     wire:loading.attr="disabled"
-                    class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-medium text-white bg-success-600 rounded-lg hover:bg-success-700 disabled:opacity-50 transition-colors"
+                    wire:target="saveStopWords"
+                    color="success"
+                    icon="heroicon-o-check"
                 >
-                    <span wire:loading.remove wire:target="saveStopWords">
-                        <x-heroicon-o-check class="w-5 h-5" />
-                    </span>
-                    <span wire:loading wire:target="saveStopWords">
-                        <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                    </span>
                     Зберегти та переіндексувати
-                </button>
+                </x-filament::button>
             </div>
         </div>
     @endif
@@ -274,15 +265,13 @@
                             <span class="text-xs font-mono text-gray-400 w-6 text-right">{{ $i + 1 }}.</span>
                             <span class="text-sm font-medium text-gray-900 dark:text-white flex-1">{{ $attr }}</span>
                             <div class="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
-                                <button wire:click="moveAttrUp({{ $i }})" @class(['p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700', 'invisible' => $i === 0])>
-                                    <x-heroicon-m-chevron-up class="w-4 h-4" />
-                                </button>
-                                <button wire:click="moveAttrDown({{ $i }})" @class(['p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700', 'invisible' => $i === count($searchableAttrs) - 1])>
-                                    <x-heroicon-m-chevron-down class="w-4 h-4" />
-                                </button>
-                                <button wire:click="toggleSearchableAttr('{{ $attr }}')" class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900 text-red-500" title="Видалити">
-                                    <x-heroicon-m-x-mark class="w-4 h-4" />
-                                </button>
+                                <span @class(['invisible' => $i === 0])>
+                                    <x-filament::icon-button icon="heroicon-m-chevron-up" wire:click="moveAttrUp({{ $i }})" color="gray" size="sm" label="Вгору" />
+                                </span>
+                                <span @class(['invisible' => $i === count($searchableAttrs) - 1])>
+                                    <x-filament::icon-button icon="heroicon-m-chevron-down" wire:click="moveAttrDown({{ $i }})" color="gray" size="sm" label="Вниз" />
+                                </span>
+                                <x-filament::icon-button icon="heroicon-m-x-mark" wire:click="toggleSearchableAttr('{{ $attr }}')" color="danger" size="sm" label="Видалити" />
                             </div>
                         </div>
                     @endforeach
@@ -293,9 +282,9 @@
                     <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                         <span class="text-xs text-gray-500 self-center mr-1">Додати:</span>
                         @foreach($unusedAttrs as $attr)
-                            <button wire:click="toggleSearchableAttr('{{ $attr }}')" class="text-xs px-2 py-1 rounded bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-100 dark:hover:bg-green-900/50 border border-green-200 dark:border-green-800">
-                                + {{ $attr }}
-                            </button>
+                            <x-filament::button wire:click="toggleSearchableAttr('{{ $attr }}')" color="success" size="xs" icon="heroicon-m-plus">
+                                {{ $attr }}
+                            </x-filament::button>
                         @endforeach
                     </div>
                 @endif
@@ -348,67 +337,51 @@
 
             {{-- Save Index Settings --}}
             <div class="flex justify-end">
-                <button wire:click="saveIndexSettings" wire:loading.attr="disabled"
+                <x-filament::button wire:click="saveIndexSettings" wire:loading.attr="disabled"
+                        wire:target="saveIndexSettings"
                         wire:confirm="Зберегти налаштування та переналаштувати індекс?"
-                        class="inline-flex items-center gap-2 px-6 py-3 text-sm font-semibold text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50 transition-colors">
-                    <span wire:loading.remove wire:target="saveIndexSettings">
-                        <x-heroicon-o-check class="w-5 h-5" />
-                    </span>
-                    <span wire:loading wire:target="saveIndexSettings">
-                        <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                    </span>
+                        color="primary"
+                        icon="heroicon-o-check">
                     Зберегти налаштування індексу
-                </button>
+                </x-filament::button>
             </div>
 
             {{-- Action Buttons --}}
             <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Дії з індексом</h3>
                 <div class="flex flex-wrap gap-3">
-                    <button
+                    <x-filament::button
                         wire:click="handleReindex"
                         wire:loading.attr="disabled"
+                        wire:target="handleReindex"
                         wire:confirm="Переіндексувати всі товари? Це може зайняти деякий час."
-                        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                        color="info"
+                        icon="heroicon-o-arrow-path"
                     >
-                        <span wire:loading.remove wire:target="handleReindex">
-                            <x-heroicon-o-arrow-path class="w-5 h-5" />
-                        </span>
-                        <span wire:loading wire:target="handleReindex">
-                            <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                        </span>
                         Переіндексувати
-                    </button>
+                    </x-filament::button>
 
-                    <button
+                    <x-filament::button
                         wire:click="handleClearIndex"
                         wire:loading.attr="disabled"
+                        wire:target="handleClearIndex"
                         wire:confirm="Очистити індекс? Всі документи будуть видалені."
-                        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 disabled:opacity-50 transition-colors"
+                        color="warning"
+                        icon="heroicon-o-trash"
                     >
-                        <span wire:loading.remove wire:target="handleClearIndex">
-                            <x-heroicon-o-trash class="w-5 h-5" />
-                        </span>
-                        <span wire:loading wire:target="handleClearIndex">
-                            <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                        </span>
                         Очистити індекс
-                    </button>
+                    </x-filament::button>
 
-                    <button
+                    <x-filament::button
                         wire:click="handleFullRebuild"
                         wire:loading.attr="disabled"
+                        wire:target="handleFullRebuild"
                         wire:confirm="Повністю перебудувати індекс? Індекс буде видалено та перестворено з нуля."
-                        class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                        color="danger"
+                        icon="heroicon-o-fire"
                     >
-                        <span wire:loading.remove wire:target="handleFullRebuild">
-                            <x-heroicon-o-fire class="w-5 h-5" />
-                        </span>
-                        <span wire:loading wire:target="handleFullRebuild">
-                            <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                        </span>
                         Перебудувати повністю
-                    </button>
+                    </x-filament::button>
                 </div>
             </div>
         </div>
@@ -442,30 +415,32 @@
                                         <span class="font-medium text-gray-900 dark:text-white">{{ $query->query }}</span>
                                     </td>
                                     <td class="py-3 px-4 text-center">
-                                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-500/10 text-red-800 dark:text-red-300">
+                                        <x-filament::badge color="danger" class="inline-flex">
                                             {{ $query->search_count }}
-                                        </span>
+                                        </x-filament::badge>
                                     </td>
                                     <td class="py-3 px-4 text-center text-gray-500 dark:text-gray-400">
                                         {{ $query->last_searched_at?->format('d.m.Y H:i') ?? '-' }}
                                     </td>
                                     <td class="py-3 px-4 text-right">
                                         <div class="flex items-center justify-end gap-2">
-                                            <button
+                                            <x-filament::button
                                                 wire:click="openSynonymModalForQuery({{ $query->id }})"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/10 rounded-lg hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
+                                                color="warning"
+                                                size="xs"
+                                                icon="heroicon-o-plus-circle"
                                             >
-                                                <x-heroicon-o-plus-circle class="w-4 h-4" />
                                                 Додати синонім
-                                            </button>
-                                            <button
+                                            </x-filament::button>
+                                            <x-filament::button
                                                 wire:click="ignoreZeroResultQuery({{ $query->id }})"
                                                 wire:confirm="Видалити цей запит зі списку?"
-                                                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                                                color="gray"
+                                                size="xs"
+                                                icon="heroicon-o-eye-slash"
                                             >
-                                                <x-heroicon-o-eye-slash class="w-4 h-4" />
                                                 Ігнорувати
-                                            </button>
+                                            </x-filament::button>
                                         </div>
                                     </td>
                                 </tr>
@@ -491,9 +466,7 @@
             <div class="w-full max-w-lg rounded-xl bg-white dark:bg-gray-900 p-6 shadow-xl">
                 <div class="flex items-center justify-between mb-4">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Додати синонім</h3>
-                    <button wire:click="closeSynonymModal" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                        <x-heroicon-o-x-mark class="w-5 h-5" />
-                    </button>
+                    <x-filament::icon-button icon="heroicon-o-x-mark" wire:click="closeSynonymModal" color="gray" label="Закрити" />
                 </div>
 
                 <div class="space-y-4">
@@ -520,18 +493,18 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-3 mt-6">
-                    <button
+                    <x-filament::button
                         wire:click="closeSynonymModal"
-                        class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors"
+                        color="gray"
                     >
                         Скасувати
-                    </button>
-                    <button
+                    </x-filament::button>
+                    <x-filament::button
                         wire:click="saveSynonymFromModal"
-                        class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition-colors"
+                        color="primary"
                     >
                         Зберегти та переіндексувати
-                    </button>
+                    </x-filament::button>
                 </div>
             </div>
         </div>
@@ -548,11 +521,12 @@
                     синоніми, призначення, цінову категорію, розмовні назви.
                 </p>
                 <div class="flex flex-wrap gap-3">
-                    <button wire:click="generateAiTagsPrompt" wire:loading.attr="disabled"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-purple-600 rounded-lg hover:bg-purple-700 transition-colors">
-                        <x-heroicon-o-sparkles class="w-5 h-5" />
+                    <x-filament::button wire:click="generateAiTagsPrompt" wire:loading.attr="disabled"
+                            wire:target="generateAiTagsPrompt"
+                            color="primary"
+                            icon="heroicon-o-sparkles">
                         Згенерувати промт для тегів
-                    </button>
+                    </x-filament::button>
                     <span class="text-xs text-gray-400 self-center">
                         Товарів без тегів: {{ \App\Models\Product::where('is_active', true)->where(function($q) { $q->whereNull('search_tags')->orWhere('search_tags', ''); })->count() }}
                         / Всього: {{ \App\Models\Product::where('is_active', true)->count() }}
@@ -568,11 +542,12 @@
                     Наприклад: якщо шукають "зарядка" → додасть синонім "зарядка" = "power bank, кабель, зарядний".
                 </p>
                 <div class="flex flex-wrap gap-3">
-                    <button wire:click="generateAiSynonymsPrompt" wire:loading.attr="disabled"
-                            class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 transition-colors">
-                        <x-heroicon-o-sparkles class="w-5 h-5" />
+                    <x-filament::button wire:click="generateAiSynonymsPrompt" wire:loading.attr="disabled"
+                            wire:target="generateAiSynonymsPrompt"
+                            color="warning"
+                            icon="heroicon-o-sparkles">
                         Згенерувати промт для синонімів
-                    </button>
+                    </x-filament::button>
                     <span class="text-xs text-gray-400 self-center">
                         Запитів без результатів: {{ \App\Models\SearchQuery::where('results_count', 0)->count() }}
                     </span>
@@ -598,7 +573,7 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <h3 class="text-lg font-semibold">AI генерація тегів ({{ $aiTagsTotal }} товарів)</h3>
-                    <button wire:click="$set('showAiTagsModal', false)" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <x-filament::icon-button icon="heroicon-o-x-mark" wire:click="$set('showAiTagsModal', false)" color="gray" label="Закрити" />
                 </div>
                 <div class="p-6 space-y-4">
                     {{-- Prompt --}}
@@ -611,12 +586,12 @@
 
                     {{-- API button --}}
                     @if(\App\Models\DisplaySetting::get('ai_provider', 'none') !== 'none')
-                    <button wire:click="generateAiTagsViaApi" wire:loading.attr="disabled"
-                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-                        <span wire:loading.remove wire:target="generateAiTagsViaApi"><x-heroicon-o-bolt class="w-4 h-4" /></span>
-                        <span wire:loading wire:target="generateAiTagsViaApi"><x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" /></span>
+                    <x-filament::button wire:click="generateAiTagsViaApi" wire:loading.attr="disabled"
+                            wire:target="generateAiTagsViaApi"
+                            color="success"
+                            icon="heroicon-o-bolt">
                         Згенерувати через API
-                    </button>
+                    </x-filament::button>
                     @endif
 
                     {{-- Result --}}
@@ -628,14 +603,15 @@
                     </div>
                 </div>
                 <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                    <button wire:click="$set('showAiTagsModal', false)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    <x-filament::button wire:click="$set('showAiTagsModal', false)" color="gray">
                         Скасувати
-                    </button>
-                    <button wire:click="applyAiTags" wire:loading.attr="disabled"
+                    </x-filament::button>
+                    <x-filament::button wire:click="applyAiTags" wire:loading.attr="disabled"
+                            wire:target="applyAiTags"
                             wire:confirm="Застосувати AI теги до товарів?"
-                            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
+                            color="primary">
                         Застосувати теги
-                    </button>
+                    </x-filament::button>
                 </div>
             </div>
         </div>
@@ -647,7 +623,7 @@
             <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
                     <h3 class="text-lg font-semibold">AI генерація синонімів</h3>
-                    <button wire:click="$set('showAiSynonymsModal', false)" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <x-filament::icon-button icon="heroicon-o-x-mark" wire:click="$set('showAiSynonymsModal', false)" color="gray" label="Закрити" />
                 </div>
                 <div class="p-6 space-y-4">
                     <div>
@@ -658,12 +634,12 @@
                     </div>
 
                     @if(\App\Models\DisplaySetting::get('ai_provider', 'none') !== 'none')
-                    <button wire:click="generateAiSynonymsViaApi" wire:loading.attr="disabled"
-                            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700">
-                        <span wire:loading.remove wire:target="generateAiSynonymsViaApi"><x-heroicon-o-bolt class="w-4 h-4" /></span>
-                        <span wire:loading wire:target="generateAiSynonymsViaApi"><x-heroicon-o-arrow-path class="w-4 h-4 animate-spin" /></span>
+                    <x-filament::button wire:click="generateAiSynonymsViaApi" wire:loading.attr="disabled"
+                            wire:target="generateAiSynonymsViaApi"
+                            color="success"
+                            icon="heroicon-o-bolt">
                         Згенерувати через API
-                    </button>
+                    </x-filament::button>
                     @endif
 
                     <div>
@@ -674,14 +650,15 @@
                     </div>
                 </div>
                 <div class="p-6 border-t border-gray-200 dark:border-gray-700 flex justify-end gap-3">
-                    <button wire:click="$set('showAiSynonymsModal', false)" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                    <x-filament::button wire:click="$set('showAiSynonymsModal', false)" color="gray">
                         Скасувати
-                    </button>
-                    <button wire:click="applyAiSynonyms" wire:loading.attr="disabled"
+                    </x-filament::button>
+                    <x-filament::button wire:click="applyAiSynonyms" wire:loading.attr="disabled"
+                            wire:target="applyAiSynonyms"
                             wire:confirm="Додати AI синоніми та переіндексувати?"
-                            class="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700">
+                            color="primary">
                         Застосувати синоніми
-                    </button>
+                    </x-filament::button>
                 </div>
             </div>
         </div>

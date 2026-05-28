@@ -47,9 +47,9 @@
                             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{{ $f['description'] }}</p>
                         </div>
                         @if($f['cached'])
-                            <span class="px-2 py-0.5 text-xs font-bold bg-success-500 text-white rounded shrink-0">КЕШ</span>
+                            <span class="shrink-0"><x-filament::badge color="success">КЕШ</x-filament::badge></span>
                         @else
-                            <span class="px-2 py-0.5 text-xs font-bold bg-gray-400 text-white rounded shrink-0">⌚</span>
+                            <span class="shrink-0"><x-filament::badge color="gray">⌚</x-filament::badge></span>
                         @endif
                     </div>
 
@@ -58,11 +58,14 @@
                             <input type="text" value="{{ $f['url'] }}" readonly
                                    class="flex-1 bg-transparent border-0 outline-none font-mono text-[11px] text-gray-700 dark:text-gray-300"
                                    onfocus="this.select()">
-                            <button type="button"
-                                    onclick="navigator.clipboard.writeText('{{ $f['url'] }}'); this.textContent='✓ скопійовано'; setTimeout(()=>this.textContent='Копіювати', 1500)"
-                                    class="px-2 py-1 bg-primary-600 hover:bg-primary-700 text-white rounded text-[10px] font-medium whitespace-nowrap">
+                            <x-filament::button
+                                size="xs"
+                                color="primary"
+                                icon="heroicon-o-clipboard"
+                                onclick="navigator.clipboard.writeText('{{ $f['url'] }}'); this.querySelector('.fi-btn-label').textContent='✓ скопійовано'; setTimeout(()=>this.querySelector('.fi-btn-label').textContent='Копіювати', 1500)"
+                                class="whitespace-nowrap">
                                 Копіювати
-                            </button>
+                            </x-filament::button>
                         </div>
                     </div>
 
@@ -75,25 +78,30 @@
                     </div>
 
                     <div class="flex gap-2 mt-auto">
-                        <a href="{{ $f['url'] }}" target="_blank"
-                           class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded text-sm font-medium no-underline">
-                            <x-filament::icon icon="heroicon-o-arrow-top-right-on-square" class="h-4 w-4"/>
+                        <x-filament::button
+                            tag="a"
+                            href="{{ $f['url'] }}"
+                            target="_blank"
+                            color="gray"
+                            icon="heroicon-o-arrow-top-right-on-square"
+                            class="flex-1">
                             Відкрити XML
-                        </a>
-                        <button type="button"
-                                wire:click="regenerate('{{ $f['type'] }}')"
-                                wire:loading.attr="disabled"
-                                wire:target="regenerate('{{ $f['type'] }}')"
-                                class="px-3 py-2 bg-primary-600 hover:bg-primary-700 text-white rounded text-sm font-medium disabled:opacity-60">
+                        </x-filament::button>
+                        <x-filament::button
+                            color="primary"
+                            icon="heroicon-o-arrow-path"
+                            wire:click="regenerate('{{ $f['type'] }}')"
+                            wire:loading.attr="disabled"
+                            wire:target="regenerate('{{ $f['type'] }}')">
                             <span wire:loading.remove wire:target="regenerate('{{ $f['type'] }}')">Регенерувати</span>
                             <span wire:loading wire:target="regenerate('{{ $f['type'] }}')">…</span>
-                        </button>
+                        </x-filament::button>
                         @if($f['cached'])
-                            <button type="button" wire:click="clearOne('{{ $f['type'] }}')"
-                                    title="Очистити кеш"
-                                    class="px-3 py-2 bg-danger-50 hover:bg-danger-100 dark:bg-danger-900/30 text-danger-700 rounded text-sm">
-                                <x-filament::icon icon="heroicon-o-trash" class="h-4 w-4"/>
-                            </button>
+                            <x-filament::icon-button
+                                icon="heroicon-o-trash"
+                                wire:click="clearOne('{{ $f['type'] }}')"
+                                label="Очистити кеш"
+                                color="danger"/>
                         @endif
                     </div>
                 </div>

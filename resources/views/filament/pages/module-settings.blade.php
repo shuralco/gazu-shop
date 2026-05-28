@@ -60,25 +60,23 @@
 
         <div class="flex items-center gap-2 pt-1">
           @if($installZip && ! $installPreview)
-            <button type="button" wire:click="previewInstall"
+            <x-filament::button wire:click="previewInstall"
                     wire:loading.attr="disabled" wire:target="previewInstall"
-                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
-              <x-filament::icon icon="heroicon-o-eye" class="w-3 h-3" />
+                    color="gray" size="sm" outlined icon="heroicon-o-eye">
               <span wire:loading.remove wire:target="previewInstall">Preview</span>
               <span wire:loading wire:target="previewInstall">…</span>
-            </button>
+            </x-filament::button>
           @endif
-          <button type="button" wire:click="installFromZip"
+          <x-filament::button wire:click="installFromZip"
                   wire:loading.attr="disabled" wire:target="installFromZip,installZip"
-                  class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-wait">
+                  color="primary" size="sm">
             <span wire:loading.remove wire:target="installFromZip">Встановити</span>
             <span wire:loading wire:target="installFromZip">Встановлюю…</span>
-          </button>
+          </x-filament::button>
           @if($installZip)
-            <button type="button" wire:click="$set('installZip', null); $set('installPreview', null)"
-                    class="text-[12px] text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
+            <x-filament::link tag="button" wire:click="$set('installZip', null); $set('installPreview', null)" color="gray" size="sm">
               Скасувати
-            </button>
+            </x-filament::link>
           @endif
         </div>
 
@@ -191,46 +189,42 @@
 
               {{-- Actions --}}
               <div class="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800 flex items-center gap-2">
-                <a href="{{ url('/admin/modules/view?key='.$m['key']) }}"
-                   class="text-[12px] text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-1 group/details">
+                <x-filament::link tag="a" href="{{ url('/admin/modules/view?key='.$m['key']) }}"
+                   icon="heroicon-o-arrow-up-right" icon-position="after" color="gray" size="sm">
                   Деталі
-                  <x-filament::icon icon="heroicon-o-arrow-up-right" class="w-3 h-3 group-hover/details:translate-x-0.5 group-hover/details:-translate-y-0.5 transition-transform" />
-                </a>
+                </x-filament::link>
 
                 @if($m['in_modules_dir'] ?? false)
-                  <button type="button"
+                  <x-filament::icon-button
+                          icon="heroicon-o-arrow-down-tray"
                           wire:click="exportModule('{{ $m['key'] }}')"
                           wire:loading.attr="disabled" wire:target="exportModule('{{ $m['key'] }}')"
-                          title="Завантажити модуль як ZIP"
-                          class="text-[12px] text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors inline-flex items-center gap-1 disabled:opacity-40 disabled:cursor-wait">
-                    <x-filament::icon icon="heroicon-o-arrow-down-tray" class="w-3 h-3" />
-                    .zip
-                  </button>
+                          label="Завантажити модуль як ZIP"
+                          color="gray" size="sm" />
 
                   @if(! $m['enabled'])
-                    <button type="button"
+                    <x-filament::icon-button
+                            icon="heroicon-o-trash"
                             @click="showDelete = true; deleteMode = 'soft'"
-                            title="Видалити модуль"
-                            class="text-[12px] text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors inline-flex items-center gap-1">
-                      <x-filament::icon icon="heroicon-o-trash" class="w-3 h-3" />
-                    </button>
+                            label="Видалити модуль"
+                            color="danger" size="sm" />
                   @endif
                 @endif
 
                 <div class="ml-auto">
                   @if($m['enabled'])
-                    <button type="button"
+                    <x-filament::button
                       @click="showDisable = true; rollbackMigrations = false"
-                      class="px-2.5 py-1 text-[12px] font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 hover:ring-gray-300 dark:hover:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all">
+                      color="gray" size="sm" outlined>
                       Вимкнути
-                    </button>
+                    </x-filament::button>
                   @else
-                    <button type="button"
+                    <x-filament::button
                       wire:click="toggleModule('{{ $m['key'] }}', true)"
                       wire:loading.attr="disabled" wire:target="toggleModule('{{ $m['key'] }}', true)"
-                      class="px-2.5 py-1 text-[12px] font-medium rounded bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-colors">
+                      color="primary" size="sm">
                       Увімкнути
-                    </button>
+                    </x-filament::button>
                   @endif
                 </div>
               </div>
@@ -260,16 +254,15 @@
                 </label>
 
                 <div class="flex items-center justify-end gap-2">
-                  <button type="button" @click="showDisable = false"
-                          class="px-3 py-1.5 text-[12px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                  <x-filament::button @click="showDisable = false" color="gray" size="sm" outlined>
                     Скасувати
-                  </button>
-                  <button type="button"
+                  </x-filament::button>
+                  <x-filament::button
                           @click="$wire.call('toggleModule', '{{ $m['key'] }}', false, true, rollbackMigrations); showDisable = false"
-                          :class="rollbackMigrations ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'"
-                          class="px-3 py-1.5 text-[12px] font-medium rounded transition-colors">
+                          x-bind:color="rollbackMigrations ? 'warning' : 'primary'"
+                          color="primary" size="sm">
                     <span x-text="rollbackMigrations ? 'Вимкнути + скинути дані' : 'Вимкнути'"></span>
-                  </button>
+                  </x-filament::button>
                 </div>
               </div>
             </div>
@@ -305,16 +298,15 @@
                 </div>
 
                 <div class="flex items-center justify-end gap-2">
-                  <button type="button" @click="showDelete = false"
-                          class="px-3 py-1.5 text-[12px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                  <x-filament::button @click="showDelete = false" color="gray" size="sm" outlined>
                     Скасувати
-                  </button>
-                  <button type="button"
+                  </x-filament::button>
+                  <x-filament::button
                           @click="$wire.call('uninstallModule', '{{ $m['key'] }}', deleteMode); showDelete = false"
-                          :class="deleteMode === 'hard' ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'"
-                          class="px-3 py-1.5 text-[12px] font-medium rounded transition-colors">
+                          x-bind:color="deleteMode === 'hard' ? 'danger' : 'primary'"
+                          color="primary" size="sm">
                     <span x-text="deleteMode === 'hard' ? 'Видалити повністю' : 'Видалити папку'"></span>
-                  </button>
+                  </x-filament::button>
                 </div>
               </div>
             </div>
