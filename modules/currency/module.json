@@ -1,0 +1,6 @@
+{ "name": "currency", "label": "Курси валют",
+  "description": "CurrencyService + UpdateCurrencyRates cron command.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+  "providers": ["Modules\\Currency\\CurrencyServiceProvider"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "currency", "routes": "routes/web.php",
+  "enabled_by_default": true }

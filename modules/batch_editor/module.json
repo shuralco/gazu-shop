@@ -1,0 +1,7 @@
+{ "name": "batch_editor", "label": "Batch editor (масовий редактор)",
+  "description": "Excel-стиль масове редагування товарів + CsvImportService.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+  "providers": ["Modules\\BatchEditor\\BatchEditorServiceProvider"],
+  "filament_pages": ["App\\Filament\\Pages\\BatchEditor"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "batch_editor", "routes": "routes/web.php",
+  "enabled_by_default": true }

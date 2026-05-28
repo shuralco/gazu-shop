@@ -260,4 +260,32 @@ return [
         'requires' => [],
     ],
 
+    'batch_editor' => [
+        'name' => 'Batch editor',
+        'description' => 'Excel-стиль масове редагування товарів + CsvImportService.',
+        'enabled' => env('MODULE_BATCH_EDITOR', true),
+        'requires' => [],
+    ],
+
+    'currency' => [
+        'name' => 'Курси валют',
+        'description' => 'CurrencyService + UpdateCurrencyRates cron command.',
+        'enabled' => env('MODULE_CURRENCY', true),
+        'requires' => [],
+    ],
+
+    'error_pages' => [
+        'name' => 'Налаштування 404/500',
+        'description' => 'Error404Settings Filament Page.',
+        'enabled' => env('MODULE_ERROR_PAGES', true),
+        'requires' => [],
+    ],
+
+    'telegram_notify' => [
+        'name' => 'Telegram сповіщення',
+        'description' => 'TelegramService + Telegram/ namespace + telegram:test command.',
+        'enabled' => env('MODULE_TELEGRAM_NOTIFY', true),
+        'requires' => [],
+    ],
+
 ];

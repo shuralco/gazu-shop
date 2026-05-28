@@ -1,0 +1,6 @@
+{ "name": "error_pages", "label": "Налаштування 404/500",
+  "description": "Error404Settings Filament Page — кастомні error-сторінки.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2", "providers": [],
+  "filament_pages": ["App\\Filament\\Pages\\Error404Settings"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "error_pages", "routes": "routes/web.php",
+  "enabled_by_default": true }

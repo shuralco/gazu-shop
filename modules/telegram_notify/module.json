@@ -1,0 +1,6 @@
+{ "name": "telegram_notify", "label": "Telegram сповіщення",
+  "description": "TelegramService + Telegram/ namespace (NotifyChannel) + telegram:test command.",
+  "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+  "providers": ["Modules\\TelegramNotify\\TelegramNotifyServiceProvider"],
+  "filament_resources": [], "migrations_path": "database/migrations", "views_namespace": "telegram_notify", "routes": "routes/web.php",
+  "enabled_by_default": true }
