@@ -4,6 +4,7 @@ namespace App\Support\Modules;
 
 use App\Support\Hooks;
 use App\Support\ModuleDiscovery;
+use App\Support\ModuleManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
@@ -339,9 +340,10 @@ class ModuleInstaller
         }
 
         // Refuse if enabled — admin must disable first to trigger
-        // proper lifecycle disable() hooks.
-        $enabled = (bool) optional(\DB::table('modules')->where('key', $moduleName)->first())->enabled;
-        if ($enabled) {
+        // proper lifecycle disable() hooks. Use ModuleManager (waterfall:
+        // DB → ENV → config) бо просто `modules` DB row може бути null
+        // для модулів що enabled_by_default в config/modules.php.
+        if (ModuleManager::for($moduleName)->enabled()) {
             throw new RuntimeException("Спершу вимкніть модуль «{$moduleName}», потім видаляйте.");
         }
 
