@@ -18,9 +18,9 @@ class ShopSettingsResource extends Resource
 
     protected static ?string $navigationGroup = 'Система';
 
-    protected static ?string $navigationLabel = 'Налаштування магазину';
+    protected static ?string $navigationLabel = 'Реквізити та SEO';
 
-    protected static ?string $pluralModelLabel = 'Налаштування магазину';
+    protected static ?string $pluralModelLabel = 'Реквізити та SEO';
 
     protected static ?string $modelLabel = 'Налаштування';
 

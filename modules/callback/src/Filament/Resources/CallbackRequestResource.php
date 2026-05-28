@@ -17,7 +17,7 @@ class CallbackRequestResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-phone-arrow-down-left';
 
-    protected static ?string $navigationGroup = 'Замовлення';
+    protected static ?string $navigationGroup = 'Продажі';
 
     protected static ?string $navigationLabel = 'Заявки на дзвінок';
 

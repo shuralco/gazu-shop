@@ -39,6 +39,7 @@ class AdminPanelProvider extends PanelProvider
                 'Продажі',
                 'Доставка та оплата',
                 'Контент та SEO',
+                'Аналітика',
                 'Налаштування',
                 'Система',
             ])
