@@ -90,7 +90,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
         @foreach($group['modules'] as $m)
           <article class="group relative bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:shadow-sm transition-all flex flex-col"
-                   x-data="{ showDelete: false, deleteMode: 'soft' }">
+                   x-data="{ showDelete: false, deleteMode: 'soft', showDisable: false, rollbackMigrations: false }">
 
             {{-- Status dot (top-left absolute) --}}
             <div class="absolute top-3 right-3">
@@ -172,9 +172,7 @@
                 <div class="ml-auto">
                   @if($m['enabled'])
                     <button type="button"
-                      wire:click="toggleModule('{{ $m['key'] }}', false)"
-                      wire:confirm="Вимкнути «{{ $m['name'] }}»?"
-                      wire:loading.attr="disabled" wire:target="toggleModule('{{ $m['key'] }}', false)"
+                      @click="showDisable = true; rollbackMigrations = false"
                       class="px-2.5 py-1 text-[12px] font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-inset ring-gray-200 dark:ring-gray-800 hover:ring-gray-300 dark:hover:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all">
                       Вимкнути
                     </button>
@@ -186,6 +184,44 @@
                       Увімкнути
                     </button>
                   @endif
+                </div>
+              </div>
+            </div>
+
+            {{-- Disable-confirm модал --}}
+            <div x-show="showDisable" x-cloak
+                 @keydown.escape.window="showDisable = false"
+                 class="fixed inset-0 z-[80] flex items-center justify-center bg-gray-900/60 backdrop-blur-sm p-4"
+                 @click.self="showDisable = false">
+              <div class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 shadow-xl max-w-md w-full p-5" @click.stop>
+                <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">Вимкнути «{{ $m['name'] }}»?</h3>
+                <p class="text-[12px] text-gray-500 dark:text-gray-400 mb-4">
+                  <code class="font-mono">{{ $m['key'] }}</code>
+                  @if(! empty($m['dependents']))
+                    <br><span class="text-amber-600 dark:text-amber-500">Залежать: {{ implode(', ', $m['dependents']) }} — будуть вимкнені каскадно.</span>
+                  @endif
+                </p>
+
+                <label class="flex items-start gap-2.5 p-3 rounded-md border border-gray-200 dark:border-gray-800 hover:border-amber-300 dark:hover:border-amber-700 cursor-pointer transition-colors mb-3"
+                       :class="rollbackMigrations ? 'bg-amber-50 dark:bg-amber-900/20 border-amber-300 dark:border-amber-700' : ''">
+                  <input type="checkbox" x-model="rollbackMigrations" class="mt-0.5"/>
+                  <div class="flex-1">
+                    <div class="text-[13px] font-medium text-gray-900 dark:text-gray-100">Скинути міграції (drop tables)</div>
+                    <div class="text-[11px] text-gray-500">Видалить дані модуля з БД. Без цього — дані лишаться, reinstall їх відновить.</div>
+                  </div>
+                </label>
+
+                <div class="flex items-center justify-end gap-2">
+                  <button type="button" @click="showDisable = false"
+                          class="px-3 py-1.5 text-[12px] font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded transition-colors">
+                    Скасувати
+                  </button>
+                  <button type="button"
+                          @click="$wire.call('toggleModule', '{{ $m['key'] }}', false, true, rollbackMigrations); showDisable = false"
+                          :class="rollbackMigrations ? 'bg-amber-600 hover:bg-amber-700 text-white' : 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 hover:bg-gray-800 dark:hover:bg-gray-100'"
+                          class="px-3 py-1.5 text-[12px] font-medium rounded transition-colors">
+                    <span x-text="rollbackMigrations ? 'Вимкнути + скинути дані' : 'Вимкнути'"></span>
+                  </button>
                 </div>
               </div>
             </div>

@@ -5,6 +5,7 @@ namespace App\Support\Modules;
 use App\Models\Module;
 use App\Support\ModuleDiscovery;
 use App\Support\ModuleManager;
+use App\Support\Modules\ModuleHealthCheck;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Log;
 
@@ -33,6 +34,24 @@ class ModuleLifecycleRunner
     /**
      * @return array{actions: string[], errors: string[], from_version: ?string, to_version: ?string}
      */
+    /**
+     * Health-check gate перед enable. Повертає список критичних помилок
+     * (порожній якщо все ОК — можна enable).
+     *
+     * @return list<string>
+     */
+    public static function preEnableCheck(string $key): array
+    {
+        $errors = [];
+        $checks = ModuleHealthCheck::run($key);
+        foreach ($checks as $check) {
+            if (($check['status'] ?? null) === 'error') {
+                $errors[] = ($check['label'] ?? 'check').': '.($check['detail'] ?? 'failed');
+            }
+        }
+        return $errors;
+    }
+
     public static function onEnable(string $key): array
     {
         $report = ['actions' => [], 'errors' => [], 'from_version' => null, 'to_version' => null];
@@ -41,6 +60,13 @@ class ModuleLifecycleRunner
         if (! $manifest) {
             $report['errors'][] = "Manifest not found for '{$key}'";
 
+            return $report;
+        }
+
+        // Pre-enable health gate — блокуємо якщо є критичні помилки.
+        $healthErrors = self::preEnableCheck($key);
+        if (! empty($healthErrors)) {
+            $report['errors'] = array_merge(["Health-check заблокував enable:"], $healthErrors);
             return $report;
         }
 
@@ -96,7 +122,7 @@ class ModuleLifecycleRunner
     /**
      * @return array{actions: string[], errors: string[]}
      */
-    public static function onDisable(string $key): array
+    public static function onDisable(string $key, bool $rollbackMigrations = false): array
     {
         $report = ['actions' => [], 'errors' => []];
         $manifest = ModuleDiscovery::manifests()[$key] ?? null;
@@ -107,6 +133,24 @@ class ModuleLifecycleRunner
         if ($handler) {
             self::safeCall($handler, 'disable', [], $report);
         }
+
+        // Optional: rollback migrations — DROPS module tables.
+        // Викликається коли admin вибирає "Disable з очисткою даних" у UI.
+        if ($rollbackMigrations && ! empty($manifest['migrations_path'])) {
+            $migPath = "modules/{$key}/".ltrim($manifest['migrations_path'], '/');
+            if (is_dir(base_path($migPath))) {
+                try {
+                    Artisan::call('migrate:rollback', ['--path' => $migPath, '--force' => true]);
+                    $report['actions'][] = 'migrations: rolled back (tables dropped)';
+                    // Clear installed_version so next enable re-installs cleanly.
+                    Module::where('key', $key)->update(['installed_version' => null]);
+                } catch (\Throwable $e) {
+                    $report['errors'][] = 'Rollback failed: '.$e->getMessage();
+                    Log::error("Module {$key} rollback failed", ['err' => $e->getMessage()]);
+                }
+            }
+        }
+
         ModuleManager::clearCache();
 
         return $report;

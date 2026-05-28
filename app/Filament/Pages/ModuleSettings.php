@@ -120,7 +120,7 @@ class ModuleSettings extends Page
         return array_filter($groups, fn ($g) => ! empty($g['modules']));
     }
 
-    public function toggleModule(string $key, bool $enable): void
+    public function toggleModule(string $key, bool $enable, bool $cascade = false, bool $rollbackMigrations = false): void
     {
         if (! ModuleManager::for($key)->exists()) {
             Notification::make()->title('Невідомий модуль')->danger()->send();
@@ -128,19 +128,41 @@ class ModuleSettings extends Page
             return;
         }
 
-        // Prevent disabling if other enabled modules depend on this one
+        // Pre-enable health-gate — блокуємо коли manifest broken або folder зник.
+        if ($enable) {
+            $errors = ModuleLifecycleRunner::preEnableCheck($key);
+            if (! empty($errors)) {
+                Notification::make()
+                    ->title("Не можна увімкнути «{$key}»")
+                    ->body(implode("\n", $errors))
+                    ->danger()
+                    ->persistent()
+                    ->send();
+                return;
+            }
+        }
+
+        // Disable + dependent handling. Cascade=true → каскадно disable
+        // всі залежні модулі. Інакше — блокуємо як раніше.
         if (! $enable) {
             $activeDependents = ModuleManager::all()
                 ->filter(fn ($x) => in_array($key, $x->requires(), true) && $x->enabled())
-                ->keys();
-            if ($activeDependents->isNotEmpty()) {
-                Notification::make()
-                    ->title('Не можна вимкнути')
-                    ->body("Від «{$key}» залежать активні модулі: ".$activeDependents->implode(', '))
-                    ->danger()
-                    ->send();
+                ->keys()
+                ->all();
 
-                return;
+            if (! empty($activeDependents)) {
+                if (! $cascade) {
+                    Notification::make()
+                        ->title('Потрібно каскадне вимкнення')
+                        ->body("Від «{$key}» залежать активні модулі: ".implode(', ', $activeDependents).". Запустіть з cascade=true.")
+                        ->danger()
+                        ->send();
+                    return;
+                }
+                // Cascade — recursively disable dependents first.
+                foreach ($activeDependents as $dep) {
+                    $this->toggleModule($dep, false, cascade: true, rollbackMigrations: $rollbackMigrations);
+                }
             }
         }
 
@@ -154,10 +176,10 @@ class ModuleSettings extends Page
             ]
         );
 
-        // Run lifecycle: install/upgrade/boot or disable
+        // Run lifecycle: install/upgrade/boot or disable (з опцією rollback)
         $report = $enable
             ? ModuleLifecycleRunner::onEnable($key)
-            : ModuleLifecycleRunner::onDisable($key);
+            : ModuleLifecycleRunner::onDisable($key, rollbackMigrations: $rollbackMigrations);
 
         // Log activity
         ModuleActivityLogger::log($key, $enable ? 'enabled' : 'disabled', [
