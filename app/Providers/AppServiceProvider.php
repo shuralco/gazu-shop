@@ -74,6 +74,21 @@ class AppServiceProvider extends ServiceProvider
         // Custom Livewire synthesizer for models with HasTranslations
         \Livewire\Livewire::propertySynthesizer(\App\Livewire\Synthesizers\TranslatableModelSynth::class);
 
+        // Blade directives для Hook API (модулі можуть hook'нутись у будь-яку
+        // зону layout без редагування core blade-файлів).
+        //
+        //   @hookAction('product.page.before_buy_panel', $product)
+        //     → echo's concatenated output from all listeners on the event
+        //
+        //   @hookFilter('product.price', $price, $product)
+        //     → returns transformed value (use {{ }} or assign)
+        \Illuminate\Support\Facades\Blade::directive('hookAction', function ($expression) {
+            return "<?php echo \\App\\Support\\Hooks::render({$expression}); ?>";
+        });
+        \Illuminate\Support\Facades\Blade::directive('hookFilter', function ($expression) {
+            return "<?php echo \\App\\Support\\Hooks::filter({$expression}); ?>";
+        });
+
         // Auto-invalidate ModuleManager cache when modules toggle from UI/CLI.
         if (class_exists(\App\Models\Module::class)) {
             \App\Models\Module::observe(\App\Observers\ModuleObserver::class);

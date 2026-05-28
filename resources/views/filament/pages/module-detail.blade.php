@@ -74,13 +74,14 @@ $actionLabels = [
   </header>
 
   {{-- ─── STATS GRID (no boxes, clean inline) ─── --}}
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
+  <div class="grid grid-cols-2 sm:grid-cols-5 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
     @php
       $stats = [
         ['label'=>'Файлів','value'=>$info['file_count']],
         ['label'=>'Migrations','value'=>$info['migrations_count']],
         ['label'=>'Routes','value'=>$info['registered_routes']],
         ['label'=>'Filament','value'=>count($info['filament_resources'])+count($info['filament_pages'])+count($info['filament_widgets'])],
+        ['label'=>'Hooks','value'=>count($info['hook_events'] ?? [])],
       ];
     @endphp
     @foreach($stats as $s)
@@ -335,6 +336,39 @@ $actionLabels = [
         @endif
       </div>
     </section>
+
+    {{-- HOOKS section — на які core-events модуль підписаний --}}
+    @if(! empty($info['hook_events']))
+      <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
+        <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
+          <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
+            <x-filament::icon icon="heroicon-o-bolt" class="w-4 h-4 text-amber-500" />
+            Hook subscriptions
+            <span class="text-gray-400 font-normal lowercase">— на які core-events модуль підписаний</span>
+          </h2>
+        </div>
+        <div class="p-5 text-sm">
+          <ul class="space-y-1.5">
+            @foreach($info['hook_events'] as $event)
+              @php $listeners = \App\Support\Hooks::listenersFor($event); @endphp
+              <li class="flex items-baseline gap-3 text-[12px]">
+                <code class="font-mono text-amber-700 dark:text-amber-400 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">{{ $event }}</code>
+                @php $myEntry = collect($listeners)->firstWhere('source', $info['key']); @endphp
+                @if($myEntry)
+                  <span class="text-[11px] text-gray-500">
+                    {{ $myEntry['type'] }} · priority {{ $myEntry['priority'] }}
+                  </span>
+                @endif
+              </li>
+            @endforeach
+          </ul>
+          <p class="mt-3 text-[11px] text-gray-500 leading-relaxed">
+            Модуль слухає ці події в core. Якщо вимкнути модуль — listener'и зникають,
+            core працює без них (graceful degradation).
+          </p>
+        </div>
+      </section>
+    @endif
 
     <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
       <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">

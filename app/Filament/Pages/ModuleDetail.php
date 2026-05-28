@@ -150,6 +150,7 @@ class ModuleDetail extends Page
             'disabled_at' => $dbRow?->disabled_at,
             'installed_version' => $dbRow?->installed_version,
             'raw_manifest' => $manifest,
+            'hook_events' => \App\Support\Hooks::eventsBySource($key),
         ];
     }
 

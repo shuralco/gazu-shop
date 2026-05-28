@@ -3,19 +3,18 @@
 namespace Modules\RelatedProducts;
 
 use App\Console\Commands\AutoRelateAll;
+use App\Support\Hooks;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 /**
- * Bootstraps the related_products module:
- *  - registers the products:auto-relate artisan command (lives in
- *    modules/related_products/src/Console/Commands/AutoRelateAll.php,
- *    namespace `App\Console\Commands` so the class fits the codebase
- *    convention, but it's not auto-discovered because it lives outside
- *    app/Console/Commands).
+ * Bootstraps the related_products module.
  *
- * Routes / migrations / views are wired by ModuleDiscovery from module.json.
- * Filament Resource is registered conditionally in
- * App\Filament\Resources\ProductResource::getRelations().
+ *   register(): команди (поза auto-discovery).
+ *
+ *   boot(): підписки на core hook-points. Без хука сторінка товару нічого
+ *   не знає про цей модуль — module просто реєструє listener і він
+ *   викликається з blade через @hookAction.
  */
 class RelatedProductsServiceProvider extends ServiceProvider
 {
@@ -30,7 +29,12 @@ class RelatedProductsServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        // No-op — module.json already declares views/routes/migrations,
-        // ModuleDiscovery handles those.
+        // Variants picker рендериться на сторінці товару одразу під
+        // блоком compat-check. Core blade просто має `@hookAction('product.page.variants', $p)` —
+        // модуль вирішує що рендерити (або нічого).
+        Hooks::on('product.page.variants', function ($product) {
+            if (! $product || ! is_object($product)) return null;
+            return view('related_products::variant-picker', ['p' => $product])->render();
+        }, priority: 10, source: 'related_products');
     }
 }

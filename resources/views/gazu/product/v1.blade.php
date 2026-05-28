@@ -357,12 +357,11 @@
             <x-gazu.compat-check :product-id="$p->id"/>
         @endif
 
-        {{-- 4E: Variants picker — винесено в модуль `related_products`.
-             View: modules/related_products/resources/views/variant-picker.blade.php
-             Sets up Розетка-стиль pill picker + AJAX swap. --}}
-        @if(module('related_products')->enabled() && is_object($p) && $p instanceof \App\Models\Product && method_exists($p, 'relatedProducts'))
-            @include('related_products::variant-picker', ['p' => $p])
-        @endif
+        {{-- Hook-point: модулі підписуються на 'product.page.variants' і
+             повертають HTML для рендера тут. related_products видає variant
+             picker; інші модулі можуть додати свої блоки (compatibility,
+             cross-sell, etc.) без редагування цього файлу. --}}
+        @hookAction('product.page.variants', $p)
 
         {{-- Класичні опції товару (Колір / Розмір / Об'єм) — radio pills,
              color swatches або dropdown залежно від option.type. На зміну
