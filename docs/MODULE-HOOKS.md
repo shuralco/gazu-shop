@@ -117,13 +117,35 @@ When the module is OFF, the provider doesn't load → listeners aren't registere
 | `checkout.rendering` | `Cart, ?User` | 🚧 |
 | `checkout.submitted` | `Order` | 🚧 |
 
-### Module / Theme lifecycle
+### Module / Theme lifecycle (✅ all shipped)
 
-| Hook | Payload | Status |
-|---|---|---|
-| `module.enabled` | `string $name` | ✅ via ModuleObserver |
-| `module.disabled` | `string $name` | ✅ via ModuleObserver |
-| `theme.activated` | `string $name` | 🚧 |
+Емітяться `ModuleLifecycleRunner` + `ModuleInstaller`. `core_subscriber`
+(в `App\Support\Modules\ModuleEventSubscriber`) слухає всі і робить:
+maintenance mode + Telegram alerts + Log. Третій модуль (audit/CRM) може
+слухати ті ж події без редагування core.
+
+| Hook | Payload | Status | Коли |
+|---|---|---|---|
+| `module.installing` | `(string $filename, bool $force)` | ✅ | ZIP завантажено, перед extract |
+| `module.installed` | `(string $key, array $report)` | ✅ | Успішний install (`action='installed'`/`'reinstalled'`, `backup_path?`) |
+| `module.install_failed` | `(string $filename, array $info)` | ✅ | Виняток під час install — `info.error` має message |
+| `module.enabling` | `(string $key, array $manifest)` | ✅ | Перед migrations + lifecycle.install() |
+| `module.enabled` | `(string $key, array $report)` | ✅ | Все ОК — модуль активний (`report.actions` + `to_version`) |
+| `module.enable_failed` | `(string $key, array $report)` | ✅ | Health-check/migrations/lifecycle hook упав |
+| `module.disabling` | `(string $key, array $manifest, bool $rollback)` | ✅ | Перед lifecycle.disable() |
+| `module.disabled` | `(string $key, array $report)` | ✅ | Disable завершено |
+| `module.uninstalling` | `(string $key, array $manifest)` | ✅ | Перед lifecycle.uninstall() |
+| `module.uninstalled` | `(string $key, array $report)` | ✅ | Папка видалена, опційно tables dropped |
+| `theme.activated` | `string $name` | 🚧 | |
+
+### Storefront render-points (✅ shipped)
+
+Викликаються через `@hookAction('event', $args)` у Blade — модулі можуть
+повернути HTML і він буде вставлений у вказану зону без редагування core.
+
+| Hook | Args | Location | Status |
+|---|---|---|---|
+| `product.page.variants` | `(Product $product)` | `gazu/product/v1.blade.php` під compat-check | ✅ used by `related_products` |
 
 ## Official filter hooks
 

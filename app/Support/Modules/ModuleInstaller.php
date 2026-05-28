@@ -57,6 +57,17 @@ class ModuleInstaller
             throw new RuntimeException('PHP zip extension не доступне на цьому сервері.');
         }
 
+        // Compatibility gate — читаємо manifest у preview-режимі ДО extract
+        // і перевіряємо engine/PHP/Laravel вимоги. Запобігає
+        // broken installs на несумісних версіях.
+        $preview = self::previewFromZip($file);
+        $compatErrors = self::compatibilityErrors($preview);
+        if (! empty($compatErrors)) {
+            $message = "Модуль не сумісний з цією системою:\n".implode("\n", $compatErrors);
+            Hooks::do('module.install_failed', $file->getClientOriginalName(), ['error' => $message]);
+            throw new RuntimeException($message);
+        }
+
         Hooks::do('module.installing', $file->getClientOriginalName(), $force);
 
         $tmpPath = $file->getRealPath();
@@ -90,10 +101,23 @@ class ModuleInstaller
             // 2. Detect ZIP layout — root-level files vs. wrapper-folder
             $prefix = self::detectZipPrefix($zip);
 
-            // 3. Wipe target if force-reinstall (backup за межі — нема куди).
-            // Якщо щось зламається після цього кроку, ми НЕ зможемо повернути
-            // попередню версію — admin сам має тримати ZIP-backup.
+            // 3. Auto-backup попередню версію перед wipe (тільки коли force-reinstall).
+            // Архів живе у storage/app/backups/modules/{key}-YYYYmmdd-HHiiss.zip
+            // — admin може відновити вручну якщо нова версія зламана.
+            $backupPath = null;
             if ($alreadyExists) {
+                try {
+                    $backupPath = self::exportToZip($moduleName);
+                    $backupDir = storage_path('app/backups/modules');
+                    if (! is_dir($backupDir)) File::makeDirectory($backupDir, 0755, true, true);
+                    $newBackupPath = $backupDir.'/'.basename($backupPath);
+                    @rename($backupPath, $newBackupPath);
+                    $backupPath = $newBackupPath;
+                } catch (\Throwable $e) {
+                    // Не fatal — продовжуємо install. Лог у warning.
+                    \Log::warning('[ModuleInstaller] backup failed for '.$moduleName.': '.$e->getMessage());
+                }
+
                 File::deleteDirectory($targetDir);
             }
             File::makeDirectory($targetDir, 0755, true, true);
@@ -159,6 +183,7 @@ class ModuleInstaller
             'key' => $moduleName,
             'version' => $manifest['version'] ?? null,
             'action' => $alreadyExists ? 'reinstalled' : 'installed',
+            'backup_path' => $backupPath ?? null,
         ];
 
         Hooks::do('module.installed', $moduleName, $result);
@@ -304,6 +329,7 @@ class ModuleInstaller
                 'providers' => $manifest['providers'] ?? [],
                 'hooks_listened' => $hooks,
                 'requires_modules' => $manifest['requires_modules'] ?? [],
+                'raw' => $manifest,  // повний manifest для compatibilityErrors()
             ];
         } catch (\Throwable $e) {
             $zip->close();
@@ -428,6 +454,97 @@ class ModuleInstaller
             // ignore — just report what we counted
         }
         return $count;
+    }
+
+    /**
+     * Engine version SimpleShop ставить на цьому деплої. Узгоджено з
+     * manifest field "engine" (наприклад ">=2.0"). Bump при breaking
+     * changes у Hook API / ModuleDiscovery контракті.
+     */
+    public const SHOP_ENGINE_VERSION = '2.0.0';
+
+    /**
+     * Compatibility check — порівнює required versions з actual.
+     * Manifest fields:
+     *   "engine":         "SimpleShop runtime version" (>=2.0)
+     *   "php":            "PHP version" (>=8.2)
+     *   "laravel":        "Laravel version" (>=12.0)
+     *   "requires_modules": array of module keys
+     *
+     * Повертає список помилок (порожній якщо все ОК).
+     *
+     * @param  array<string,mixed>  $preview
+     * @return list<string>
+     */
+    public static function compatibilityErrors(array $preview): array
+    {
+        $errors = [];
+
+        // Manifest у preview не включає engine/php/laravel поля напряму —
+        // прочитаємо їх з ZIP. Спершу витягнемо манest з самого preview.
+        // (Простіше — додамо raw manifest у preview output).
+        $raw = $preview['raw'] ?? null;
+        if (! is_array($raw)) {
+            // backward-compat: preview ще не include raw → пропускаємо.
+            return $errors;
+        }
+
+        if ($req = $raw['engine'] ?? null) {
+            if (! self::versionSatisfies(self::SHOP_ENGINE_VERSION, (string) $req)) {
+                $errors[] = "Engine ".self::SHOP_ENGINE_VERSION." не відповідає вимозі '{$req}'";
+            }
+        }
+        if ($req = $raw['php'] ?? null) {
+            if (! self::versionSatisfies(PHP_VERSION, (string) $req)) {
+                $errors[] = 'PHP '.PHP_VERSION." не відповідає вимозі '{$req}'";
+            }
+        }
+        if ($req = $raw['laravel'] ?? null) {
+            $laravel = \Illuminate\Foundation\Application::VERSION;
+            if (! self::versionSatisfies($laravel, (string) $req)) {
+                $errors[] = "Laravel {$laravel} не відповідає вимозі '{$req}'";
+            }
+        }
+
+        // Required modules must be installed.
+        foreach ((array) ($raw['requires_modules'] ?? []) as $dep) {
+            if (! is_dir(base_path('modules/'.$dep))) {
+                $errors[] = "Потрібен модуль '{$dep}' (не встановлено)";
+            }
+        }
+
+        return $errors;
+    }
+
+    /**
+     * Composer-style constraint matcher. Підтримує: '>=X', '<=X', '>X', '<X',
+     * '=X', '^X.Y', '~X.Y', 'X.* ' (basic), або точне число 'X.Y.Z'.
+     */
+    private static function versionSatisfies(string $actual, string $constraint): bool
+    {
+        $constraint = trim($constraint);
+        if ($constraint === '' || $constraint === '*') return true;
+
+        // ^1.2.3 → >=1.2.3 <2.0.0
+        if (str_starts_with($constraint, '^')) {
+            $base = ltrim($constraint, '^');
+            $major = (int) explode('.', $base)[0];
+            return version_compare($actual, $base, '>=') && version_compare($actual, ($major + 1).'.0.0', '<');
+        }
+        // ~1.2.3 → >=1.2.3 <1.3.0
+        if (str_starts_with($constraint, '~')) {
+            $base = ltrim($constraint, '~');
+            $parts = explode('.', $base);
+            $upperMinor = ((int) ($parts[1] ?? 0)) + 1;
+            return version_compare($actual, $base, '>=') && version_compare($actual, ($parts[0] ?? '0').'.'.$upperMinor.'.0', '<');
+        }
+        if (str_starts_with($constraint, '>=')) return version_compare($actual, trim(substr($constraint, 2)), '>=');
+        if (str_starts_with($constraint, '<=')) return version_compare($actual, trim(substr($constraint, 2)), '<=');
+        if (str_starts_with($constraint, '>'))  return version_compare($actual, trim(substr($constraint, 1)), '>');
+        if (str_starts_with($constraint, '<'))  return version_compare($actual, trim(substr($constraint, 1)), '<');
+        if (str_starts_with($constraint, '='))  return version_compare($actual, trim(substr($constraint, 1)), '=');
+        // Bare version → треба точне співпадіння major.minor
+        return version_compare($actual, $constraint, '>=');
     }
 
     private static function readManifestFromZip(ZipArchive $zip): string
