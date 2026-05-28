@@ -1,0 +1,75 @@
+<?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
+
+$__newAttributes = [];
+$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['brands' => null]));
+
+foreach ($attributes->all() as $__key => $__value) {
+    if (in_array($__key, $__propNames)) {
+        $$__key = $$__key ?? $__value;
+    } else {
+        $__newAttributes[$__key] = $__value;
+    }
+}
+
+$attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
+
+unset($__propNames);
+unset($__newAttributes);
+
+foreach (array_filter((['brands' => null]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
+    $$__key = $$__key ?? $__value;
+}
+
+$__defined_vars = get_defined_vars();
+
+foreach ($attributes->all() as $__key => $__value) {
+    if (array_key_exists($__key, $__defined_vars)) unset($$__key);
+}
+
+unset($__defined_vars, $__key, $__value); ?>
+<?php
+    // 1) Якщо явно передано — беремо. 2) Інакше з композера (gazu views). 3) Інакше з БД напряму.
+    if (! $brands) {
+        $brands = $brands ?? null;
+        try {
+            $live = \App\Models\Brand::query()
+                ->when(\Schema::hasColumn('brands', 'is_active'), fn ($q) => $q->where('is_active', true))
+                ->orderBy('sort_order')
+                ->orderBy('name')
+                ->limit(12)
+                ->pluck('name')
+                ->all();
+            if (! empty($live)) $brands = $live;
+        } catch (\Throwable) {}
+    }
+    if (empty($brands)) {
+        $brands = ['Bosch', 'Mahle', 'TRW', 'KYB', 'NGK', 'FAG', 'Osram', 'Mobil', 'Mann', 'Sachs', 'Lemförder', 'ATE'];
+    }
+    // Normalize: composer тепер passes [name, slug] dicts. Handle обидва формати.
+    $brandList = collect($brands)->map(function ($b) {
+        if (is_array($b) && isset($b['slug'])) {
+            $bn = $b['name'] ?? '';
+            if (is_array($bn)) $bn = $bn['uk'] ?? array_values($bn)[0] ?? '';
+            return ['name' => (string) $bn, 'slug' => (string) $b['slug']];
+        }
+        $name = is_array($b) ? ($b['uk'] ?? array_values($b)[0] ?? '') : (string) $b;
+        return ['name' => (string) $name, 'slug' => \Illuminate\Support\Str::slug((string) $name)];
+    })->filter(fn ($b) => $b['name'] && $b['slug'])->values()->all();
+?>
+<section class="gazu-container py-10">
+    <div class="flex items-baseline justify-between mb-5">
+        <h2 class="gazu-display text-[28px] font-semibold text-[var(--gazu-ink)] m-0"><?php echo e($gazuSettings['gazu_section_brands'] ?? 'Топ-бренди'); ?></h2>
+        <?php
+            $brandsLabel = $shopStats['brands_label'] ?? 'усі бренди';
+        ?>
+        <a wire:navigate href="<?php echo e(route('gazu.brand')); ?>" class="text-[13px] text-[var(--gazu-blue)] no-underline">Усі <?php echo e($brandsLabel); ?> →</a>
+    </div>
+    <div class="grid grid-cols-3 md:grid-cols-6 gap-2.5">
+        <?php $__currentLoopData = $brandList; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $b): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+            <a wire:navigate href="<?php echo e(route('gazu.brand', ['slug' => $b['slug']])); ?>"
+               class="bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gazu-display text-lg font-semibold text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]"
+               style="aspect-ratio: 5/2;"><?php echo e($b['name']); ?></a>
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+    </div>
+</section>
+<?php /**PATH /home/lionex/projects/gazu-shop/resources/views/components/gazu/brand-strip.blade.php ENDPATH**/ ?>
