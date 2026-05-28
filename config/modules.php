@@ -197,4 +197,25 @@ return [
         'requires' => [],
     ],
 
+    'seo' => [
+        'name' => 'SEO meta + sitemap',
+        'description' => 'SEO Resource + 4 admin Pages + 3 artisan commands.',
+        'enabled' => env('MODULE_SEO', true),
+        'requires' => [],
+    ],
+
+    'search' => [
+        'name' => 'Пошук (Meilisearch)',
+        'description' => 'SearchService + LemmatizationService + 3 commands + admin page.',
+        'enabled' => env('MODULE_SEARCH', true),
+        'requires' => [],
+    ],
+
+    'ai_content' => [
+        'name' => 'AI-генератор контенту',
+        'description' => 'AI-driven генерація описів товарів через Delengine API.',
+        'enabled' => env('MODULE_AI_CONTENT', false),
+        'requires' => [],
+    ],
+
 ];

@@ -1,0 +1,10 @@
+{
+    "name": "ai_content", "label": "AI-генератор контенту",
+    "description": "AiContentGenerator + DelengineProvider + AiContentGeneratorPage admin page.",
+    "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+    "providers": ["Modules\\AiContent\\AiContentServiceProvider"],
+    "filament_resources": [],
+    "filament_pages": ["App\\Filament\\Pages\\AiContentGeneratorPage"],
+    "migrations_path": "database/migrations", "views_namespace": "ai_content", "routes": "routes/web.php",
+    "enabled_by_default": false
+}

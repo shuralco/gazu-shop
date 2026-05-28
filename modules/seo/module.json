@@ -1,0 +1,15 @@
+{
+    "name": "seo", "label": "SEO — meta-теги/sitemap",
+    "description": "SEO meta auto-generation + 4 admin pages (Management, Templates, Limits, Sitemap) + 3 artisan commands.",
+    "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+    "providers": ["Modules\\Seo\\SeoServiceProvider"],
+    "filament_resources": ["App\\Filament\\Resources\\SeoMetaResource"],
+    "filament_pages": [
+        "App\\Filament\\Pages\\SeoManagement",
+        "App\\Filament\\Pages\\SeoTemplates",
+        "App\\Filament\\Pages\\SeoLimitsPage",
+        "App\\Filament\\Pages\\SitemapSettings"
+    ],
+    "migrations_path": "database/migrations", "views_namespace": "seo", "routes": "routes/web.php",
+    "enabled_by_default": true
+}

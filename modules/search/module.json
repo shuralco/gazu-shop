@@ -1,0 +1,10 @@
+{
+    "name": "search", "label": "Пошук (Meilisearch)",
+    "description": "SearchService + LemmatizationService + 3 commands (index/setup/tags) + SearchManagement admin page.",
+    "version": "1.0.0", "engine": ">=2.0", "php": ">=8.2",
+    "providers": ["Modules\\Search\\SearchServiceProvider"],
+    "filament_resources": ["App\\Filament\\Resources\\SearchQueryResource"],
+    "filament_pages": ["App\\Filament\\Pages\\SearchManagement"],
+    "migrations_path": "database/migrations", "views_namespace": "search", "routes": "routes/web.php",
+    "enabled_by_default": true
+}
