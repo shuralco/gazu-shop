@@ -120,4 +120,11 @@ return [
         'requires' => [],
     ],
 
+    'payments' => [
+        'name' => 'Платіжні шлюзи',
+        'description' => 'LiqPay, WayForPay, Monobank — українські gateways з admin CRUD + callback handler.',
+        'enabled' => env('MODULE_PAYMENTS', true),
+        'requires' => [],
+    ],
+
 ];

@@ -1,0 +1,36 @@
+{
+    "name": "payments",
+    "label": "Платіжні шлюзи (LiqPay/WayForPay/Monobank)",
+    "description": "Інтеграція з українськими платіжними шлюзами LiqPay, WayForPay, Monobank. Включає Payment lifecycle, callback handler, admin CRUD + налаштування ключів.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+
+    "requires_modules": [],
+    "composer_packages": [],
+
+    "providers": [],
+
+    "filament_resources": [
+        "App\\Filament\\Resources\\PaymentResource",
+        "App\\Filament\\Resources\\PaymentGatewaySettingsResource"
+    ],
+    "filament_pages": [],
+
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "payments",
+    "routes": "routes/web.php",
+
+    "settings_schema": {
+        "default_gateway": {
+            "type": "enum",
+            "default": "liqpay",
+            "enum": ["liqpay", "wayforpay", "monobank"],
+            "label": "Шлюз за замовчуванням"
+        }
+    },
+
+    "enabled_by_default": true
+}
