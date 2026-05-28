@@ -2,6 +2,7 @@
 
 namespace App\Support\Modules;
 
+use App\Support\Hooks;
 use App\Support\ModuleDiscovery;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
@@ -55,11 +56,15 @@ class ModuleInstaller
             throw new RuntimeException('PHP zip extension не доступне на цьому сервері.');
         }
 
+        Hooks::do('module.installing', $file->getClientOriginalName(), $force);
+
         $tmpPath = $file->getRealPath();
         $zip = new ZipArchive();
         if ($zip->open($tmpPath) !== true) {
             throw new RuntimeException('Не вдалося відкрити ZIP-архів.');
         }
+
+        $rollbackTargetDir = null;
 
         try {
             // 1. Find module.json (must be at root OR in a single root dir)
@@ -84,11 +89,14 @@ class ModuleInstaller
             // 2. Detect ZIP layout — root-level files vs. wrapper-folder
             $prefix = self::detectZipPrefix($zip);
 
-            // 3. Wipe target if force-reinstall
+            // 3. Wipe target if force-reinstall (backup за межі — нема куди).
+            // Якщо щось зламається після цього кроку, ми НЕ зможемо повернути
+            // попередню версію — admin сам має тримати ZIP-backup.
             if ($alreadyExists) {
                 File::deleteDirectory($targetDir);
             }
             File::makeDirectory($targetDir, 0755, true, true);
+            $rollbackTargetDir = $targetDir; // mark for cleanup if subsequent steps fail
 
             // 4. Extract entries
             for ($i = 0; $i < $zip->numFiles; $i++) {
@@ -132,6 +140,12 @@ class ModuleInstaller
             $zip->close();
         } catch (\Throwable $e) {
             $zip->close();
+            // Transactional rollback: видаляємо частково розпакований target
+            // щоб система не лишилась у напівсконфігурованому стані.
+            if ($rollbackTargetDir && is_dir($rollbackTargetDir)) {
+                File::deleteDirectory($rollbackTargetDir);
+            }
+            Hooks::do('module.install_failed', $file->getClientOriginalName(), ['error' => $e->getMessage()]);
             throw $e;
         }
 
@@ -140,11 +154,15 @@ class ModuleInstaller
 
         ModuleDiscovery::clearCache();
 
-        return [
+        $result = [
             'key' => $moduleName,
             'version' => $manifest['version'] ?? null,
             'action' => $alreadyExists ? 'reinstalled' : 'installed',
         ];
+
+        Hooks::do('module.installed', $moduleName, $result);
+
+        return $result;
     }
 
     /**
@@ -201,6 +219,95 @@ class ModuleInstaller
         $zip->close();
 
         return $archivePath;
+    }
+
+    /**
+     * Dry-run preview — показує що зробить enable модуля БЕЗ виконання.
+     * Використовується модалом перед install/enable щоб admin побачив
+     * що буде створено.
+     *
+     * @return array{module_name: ?string, version: ?string, will_create_tables: list<string>, routes: list<string>, filament_resources: list<string>, providers: list<string>, hooks_listened: list<string>, requires_modules: list<string>}
+     */
+    public static function previewFromZip(UploadedFile $file): array
+    {
+        if (! $file->isValid()) {
+            throw new RuntimeException('Файл пошкоджено.');
+        }
+        if (! extension_loaded('zip')) {
+            throw new RuntimeException('PHP zip extension не доступне.');
+        }
+        $zip = new ZipArchive();
+        if ($zip->open($file->getRealPath()) !== true) {
+            throw new RuntimeException('Не вдалося відкрити ZIP.');
+        }
+
+        try {
+            $manifestRaw = self::readManifestFromZip($zip);
+            $manifest = json_decode($manifestRaw, true);
+            if (! is_array($manifest)) {
+                throw new RuntimeException('Невалідний module.json у ZIP.');
+            }
+
+            // Scan migrations — count via CREATE TABLE statements у sql/blade.
+            $prefix = self::detectZipPrefix($zip);
+            $migPathPrefix = $prefix.($manifest['migrations_path'] ?? 'database/migrations').'/';
+            $willCreate = [];
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entry = $zip->getNameIndex($i);
+                if ($entry === false) continue;
+                if (! str_starts_with($entry, $migPathPrefix)) continue;
+                if (! str_ends_with($entry, '.php')) continue;
+                $content = $zip->getFromName($entry);
+                if (! is_string($content)) continue;
+                if (preg_match_all('/Schema::create\([\'"]([a-z0-9_]+)[\'"]/i', $content, $matches)) {
+                    $willCreate = array_merge($willCreate, $matches[1]);
+                }
+            }
+
+            // Scan routes file for route declarations.
+            $routesPath = $prefix.($manifest['routes'] ?? 'routes/web.php');
+            $routes = [];
+            $routesContent = $zip->getFromName($routesPath);
+            if (is_string($routesContent)) {
+                if (preg_match_all('/Route::(get|post|put|patch|delete|any)\s*\(\s*[\'"]([^\'"]+)[\'"]/', $routesContent, $matches)) {
+                    foreach ($matches[1] as $idx => $verb) {
+                        $routes[] = strtoupper($verb).' '.$matches[2][$idx];
+                    }
+                }
+            }
+
+            // Scan all PHP files у ZIP для Hooks::on() / addFilter() declarations.
+            $hooks = [];
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $entry = $zip->getNameIndex($i);
+                if ($entry === false || ! str_ends_with($entry, '.php')) continue;
+                $content = $zip->getFromName($entry);
+                if (! is_string($content)) continue;
+                if (preg_match_all('/Hooks::(on|addFilter)\s*\(\s*[\'"]([a-z0-9_.\-]+)[\'"]/', $content, $m)) {
+                    foreach ($m[2] as $hookName) {
+                        if (! in_array($hookName, $hooks, true)) $hooks[] = $hookName;
+                    }
+                }
+            }
+
+            $zip->close();
+
+            return [
+                'module_name' => $manifest['name'] ?? null,
+                'label' => $manifest['label'] ?? null,
+                'version' => $manifest['version'] ?? null,
+                'description' => $manifest['description'] ?? null,
+                'will_create_tables' => array_values(array_unique($willCreate)),
+                'routes' => $routes,
+                'filament_resources' => $manifest['filament_resources'] ?? [],
+                'providers' => $manifest['providers'] ?? [],
+                'hooks_listened' => $hooks,
+                'requires_modules' => $manifest['requires_modules'] ?? [],
+            ];
+        } catch (\Throwable $e) {
+            $zip->close();
+            throw $e;
+        }
     }
 
     /**
@@ -278,11 +385,15 @@ class ModuleInstaller
         self::refreshAutoload();
         ModuleDiscovery::clearCache();
 
-        return [
+        $result = [
             'mode' => $purgeData ? 'hard' : 'soft',
             'files_removed' => $fileCount,
             'tables_dropped' => $tablesDropped,
         ];
+
+        Hooks::do('module.uninstalled', $moduleName, $result);
+
+        return $result;
     }
 
     /**

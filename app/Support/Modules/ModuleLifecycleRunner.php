@@ -3,6 +3,7 @@
 namespace App\Support\Modules;
 
 use App\Models\Module;
+use App\Support\Hooks;
 use App\Support\ModuleDiscovery;
 use App\Support\ModuleManager;
 use App\Support\Modules\ModuleHealthCheck;
@@ -59,7 +60,7 @@ class ModuleLifecycleRunner
         $manifest = ModuleDiscovery::manifests()[$key] ?? null;
         if (! $manifest) {
             $report['errors'][] = "Manifest not found for '{$key}'";
-
+            Hooks::do('module.enable_failed', $key, $report);
             return $report;
         }
 
@@ -67,8 +68,11 @@ class ModuleLifecycleRunner
         $healthErrors = self::preEnableCheck($key);
         if (! empty($healthErrors)) {
             $report['errors'] = array_merge(["Health-check заблокував enable:"], $healthErrors);
+            Hooks::do('module.enable_failed', $key, $report);
             return $report;
         }
+
+        Hooks::do('module.enabling', $key, $manifest);
 
         $dbRow = Module::where('key', $key)->first();
         $installedVersion = $dbRow?->installed_version;
@@ -114,9 +118,57 @@ class ModuleLifecycleRunner
             Module::create(['key' => $key, 'enabled' => true, 'installed_version' => $manifestVersion, 'enabled_at' => now()]);
         }
 
+        // Step 7: Refresh composer autoload так щоб нові класи модуля
+        // одразу резолвились (раніше треба було manually composer dump).
+        self::refreshAutoload($report);
+
         ModuleManager::clearCache();
 
+        // Fire ALWAYS — listeners (Telegram bot, email, audit) можуть
+        // підписатись на 'module.enabled' / 'module.enable_failed'.
+        if (! empty($report['errors'])) {
+            Hooks::do('module.enable_failed', $key, $report);
+        } else {
+            Hooks::do('module.enabled', $key, $report);
+        }
+
         return $report;
+    }
+
+    /**
+     * Best-effort composer dump-autoload. Critical для модулів що додали
+     * нові класи — без цього вони не резолвляться через psr-4/classmap.
+     */
+    private static function refreshAutoload(array &$report): void
+    {
+        $composer = self::findComposerBinary();
+        if (! $composer) {
+            $report['actions'][] = 'autoload: skipped (composer not found)';
+            return;
+        }
+        $cmd = $composer.' dump-autoload --no-interaction --no-scripts 2>&1';
+        exec($cmd, $output, $exitCode);
+        if ($exitCode === 0) {
+            $report['actions'][] = 'autoload: refreshed';
+            Artisan::call('view:clear');
+            Artisan::call('filament:cache-components');
+        } else {
+            $report['actions'][] = 'autoload: failed';
+            Log::warning('[ModuleLifecycle] composer dump-autoload failed', ['exit' => $exitCode, 'output' => $output]);
+        }
+    }
+
+    private static function findComposerBinary(): ?string
+    {
+        foreach (['/usr/local/bin/composer', '/usr/bin/composer', 'composer'] as $candidate) {
+            $check = $candidate === 'composer'
+                ? trim(shell_exec('which composer 2>/dev/null') ?? '')
+                : (is_executable($candidate) ? $candidate : '');
+            if ($check && file_exists($check)) {
+                return escapeshellarg($check);
+            }
+        }
+        return null;
     }
 
     /**
@@ -129,6 +181,8 @@ class ModuleLifecycleRunner
         if (! $manifest) {
             return $report;
         }
+        Hooks::do('module.disabling', $key, $manifest, $rollbackMigrations);
+
         $handler = self::resolveHandler($manifest);
         if ($handler) {
             self::safeCall($handler, 'disable', [], $report);
@@ -153,6 +207,8 @@ class ModuleLifecycleRunner
 
         ModuleManager::clearCache();
 
+        Hooks::do('module.disabled', $key, $report);
+
         return $report;
     }
 
@@ -166,12 +222,16 @@ class ModuleLifecycleRunner
         if (! $manifest) {
             return $report;
         }
+        Hooks::do('module.uninstalling', $key, $manifest);
+
         $handler = self::resolveHandler($manifest);
         if ($handler) {
             self::safeCall($handler, 'uninstall', [], $report);
         }
         Module::where('key', $key)->update(['installed_version' => null]);
         ModuleManager::clearCache();
+
+        Hooks::do('module.uninstalled', $key, $report);
 
         return $report;
     }

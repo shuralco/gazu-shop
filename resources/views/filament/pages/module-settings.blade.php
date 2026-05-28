@@ -59,6 +59,15 @@
         </label>
 
         <div class="flex items-center gap-2 pt-1">
+          @if($installZip && ! $installPreview)
+            <button type="button" wire:click="previewInstall"
+                    wire:loading.attr="disabled" wire:target="previewInstall"
+                    class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors disabled:opacity-50">
+              <x-filament::icon icon="heroicon-o-eye" class="w-3 h-3" />
+              <span wire:loading.remove wire:target="previewInstall">Preview</span>
+              <span wire:loading wire:target="previewInstall">…</span>
+            </button>
+          @endif
           <button type="button" wire:click="installFromZip"
                   wire:loading.attr="disabled" wire:target="installFromZip,installZip"
                   class="inline-flex items-center gap-1.5 px-3 py-1.5 text-[12px] font-medium rounded bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-wait">
@@ -66,12 +75,51 @@
             <span wire:loading wire:target="installFromZip">Встановлюю…</span>
           </button>
           @if($installZip)
-            <button type="button" wire:click="$set('installZip', null)"
+            <button type="button" wire:click="$set('installZip', null); $set('installPreview', null)"
                     class="text-[12px] text-gray-500 hover:text-gray-900 dark:hover:text-gray-100">
               Скасувати
             </button>
           @endif
         </div>
+
+        {{-- Preview-результат — показує що зроблено при install --}}
+        @if($installPreview)
+          <div class="mt-3 p-3 border border-blue-200 dark:border-blue-900 bg-blue-50/40 dark:bg-blue-900/10 rounded-md text-[12px] space-y-2">
+            <div class="flex items-baseline gap-2">
+              <strong class="text-blue-900 dark:text-blue-100">{{ $installPreview['label'] ?? $installPreview['module_name'] }}</strong>
+              @if($installPreview['version'])<span class="font-mono text-blue-700 dark:text-blue-300">v{{ $installPreview['version'] }}</span>@endif
+            </div>
+            @if($installPreview['description'])
+              <p class="text-gray-600 dark:text-gray-400">{{ $installPreview['description'] }}</p>
+            @endif
+            @if(! empty($installPreview['will_create_tables']))
+              <div><span class="text-gray-500">Створить таблиці:</span>
+                @foreach($installPreview['will_create_tables'] as $t)<code class="font-mono text-[11px] px-1 mx-0.5 bg-white dark:bg-gray-900 rounded">{{ $t }}</code>@endforeach
+              </div>
+            @endif
+            @if(! empty($installPreview['routes']))
+              <div><span class="text-gray-500">Routes ({{ count($installPreview['routes']) }}):</span>
+                @foreach(array_slice($installPreview['routes'], 0, 5) as $r)<code class="font-mono text-[11px] px-1 mx-0.5 bg-white dark:bg-gray-900 rounded block mt-1">{{ $r }}</code>@endforeach
+                @if(count($installPreview['routes']) > 5)<span class="text-gray-400 text-[11px]">… +{{ count($installPreview['routes']) - 5 }}</span>@endif
+              </div>
+            @endif
+            @if(! empty($installPreview['filament_resources']))
+              <div><span class="text-gray-500">Filament Resources:</span>
+                @foreach($installPreview['filament_resources'] as $r)<code class="font-mono text-[11px] px-1 mx-0.5 bg-white dark:bg-gray-900 rounded">{{ class_basename($r) }}</code>@endforeach
+              </div>
+            @endif
+            @if(! empty($installPreview['hooks_listened']))
+              <div><span class="text-gray-500">Hooks-listeners:</span>
+                @foreach($installPreview['hooks_listened'] as $h)<code class="font-mono text-[11px] px-1 mx-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 rounded">{{ $h }}</code>@endforeach
+              </div>
+            @endif
+            @if(! empty($installPreview['requires_modules']))
+              <div><span class="text-gray-500">Потребує модулі:</span>
+                @foreach($installPreview['requires_modules'] as $r)<code class="font-mono text-[11px] px-1 mx-0.5 bg-white dark:bg-gray-900 rounded">{{ $r }}</code>@endforeach
+              </div>
+            @endif
+          </div>
+        @endif
       </div>
     </div>
   </section>

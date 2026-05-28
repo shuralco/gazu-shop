@@ -50,6 +50,9 @@ class ModuleSettings extends Page
     /** Force-overwrite existing module of the same name. */
     public bool $installForce = false;
 
+    /** Dry-run preview results (populated by previewInstall action). */
+    public ?array $installPreview = null;
+
     public static function canAccess(): bool
     {
         return auth()->user()?->is_admin === true;
@@ -230,6 +233,26 @@ class ModuleSettings extends Page
         // Without this — opening dashboard after disable throws
         // ComponentNotFoundException for widgets that no longer exist.
         $this->redirect(request()->header('Referer') ?: url('/admin/modules'), navigate: false);
+    }
+
+    /**
+     * Dry-run preview — показує що буде створено перед install (без зміни сайту).
+     */
+    public function previewInstall(): void
+    {
+        if (! $this->installZip instanceof TemporaryUploadedFile) {
+            Notification::make()->title('Спочатку оберіть ZIP-файл')->warning()->send();
+            return;
+        }
+        try {
+            $this->installPreview = ModuleInstaller::previewFromZip($this->installZip);
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Preview failed')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+        }
     }
 
     /**

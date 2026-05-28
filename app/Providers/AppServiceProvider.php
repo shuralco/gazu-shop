@@ -89,6 +89,10 @@ class AppServiceProvider extends ServiceProvider
             return "<?php echo \\App\\Support\\Hooks::filter({$expression}); ?>";
         });
 
+        // Core subscriber на module.* lifecycle events — maintenance mode + notifications.
+        // Інші модулі/інтеграції можуть теж зареєструвати listener-и на ці події.
+        \App\Support\Modules\ModuleEventSubscriber::register();
+
         // Auto-invalidate ModuleManager cache when modules toggle from UI/CLI.
         if (class_exists(\App\Models\Module::class)) {
             \App\Models\Module::observe(\App\Observers\ModuleObserver::class);
