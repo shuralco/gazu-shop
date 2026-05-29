@@ -247,12 +247,15 @@ class ProductResource extends Resource
                                             ->minValue(0)
                                             ->default(0)
                                             ->rules([
-                                                function () {
-                                                    return function (string $attribute, $value, \Closure $fail) {
-                                                        if ($value > 0 && $value <= request()->get('price')) {
-                                                            $fail('Стара ціна має бути більшою за поточну ціну або дорівнювати 0');
-                                                        }
-                                                    };
+                                                // Стара ціна = 0 (без знижки) АБО більша за поточну ціну.
+                                                // Читаємо price з live form-стану (Get) — у Livewire
+                                                // request()->get('price') завжди null, тож правило раніше
+                                                // ніколи не спрацьовувало.
+                                                fn (Get $get) => function (string $attribute, $value, \Closure $fail) use ($get) {
+                                                    $price = (float) $get('price');
+                                                    if ((float) $value > 0 && (float) $value <= $price) {
+                                                        $fail('Стара ціна має бути більшою за поточну ціну або дорівнювати 0');
+                                                    }
                                                 },
                                             ])
                                             ->helperText('0 = без старої ціни, або більша за поточну ціну')
