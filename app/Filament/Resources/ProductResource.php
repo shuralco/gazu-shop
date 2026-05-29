@@ -120,7 +120,11 @@ class ProductResource extends Resource
                                         Forms\Components\TextInput::make('sku')
                                             ->label('Код товару')
                                             ->unique(ignoreRecord: true)
-                                            ->alphaDash()
+                                            // OEM/каталожні коди часто з пробілами/крапками/слешами
+                                            // (напр. "E73 914 731 I-PVK", "06A 115 561 B") — alphaDash
+                                            // блокував пробіли й валив збереження. Дозволяємо ці символи.
+                                            ->rule('regex:/^[A-Za-z0-9\s\-\.\/_+]+$/')
+                                            ->validationMessages(['regex' => 'Код товару може містити літери, цифри, пробіли та символи - . / _ +'])
                                             ->default(fn () => Product::generateUniqueSku())
                                             ->readonly()
                                             ->formatStateUsing(function ($state) {

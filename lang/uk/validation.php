@@ -28,6 +28,9 @@ return [
     'confirmed' => 'Підтвердження «:attribute» не збігається.',
     'unique'    => 'Таке значення «:attribute» вже існує.',
     'regex'     => 'Поле «:attribute» має невірний формат.',
+    'alpha_dash' => 'Поле «:attribute» може містити лише літери, цифри, дефіс і підкреслення (без пробілів).',
+    'alpha_num'  => 'Поле «:attribute» може містити лише літери та цифри.',
+    'alpha'      => 'Поле «:attribute» може містити лише літери.',
 
     'attributes' => [
         'first_name' => 'Імʼя',
@@ -52,6 +55,8 @@ return [
         'note'              => 'Коментар',
         'product_id'        => 'Товар',
         'quantity'          => 'Кількість',
+        'sku'               => 'Код товару',
+        'slug'              => 'SEO URL',
     ],
 
     'custom' => [],
