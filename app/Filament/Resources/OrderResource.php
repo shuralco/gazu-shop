@@ -1081,12 +1081,9 @@ class OrderResource extends Resource
                             ->schema([
                                 Forms\Components\Select::make('status')
                                     ->label('Статус замовлення')
-                                    ->options([
-                                        0 => 'Очікує',
-                                        1 => 'Виконано',
-                                    ])
+                                    ->options(fn () => \App\Models\OrderStatus::options())
                                     ->required()
-                                    ->default(0)
+                                    ->default(fn () => \App\Models\OrderStatus::defaultKey())
                                     ->live()
                                     ->suffixAction(
                                         Forms\Components\Actions\Action::make('copyStatus')
@@ -1270,16 +1267,9 @@ class OrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\BadgeColumn::make('status')
                     ->label('Статус')
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        '0' => 'Очікує',
-                        '1' => 'Виконано',
-                        default => 'Невідомо',
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        '0' => 'warning',
-                        '1' => 'success',
-                        default => 'gray',
-                    }),
+                    ->formatStateUsing(fn (?string $state): string => \App\Models\OrderStatus::options()[$state] ?? ($state ?: 'Невідомо'))
+                    ->color(fn (?string $state): string => \App\Models\OrderStatus::colors()[$state] ?? 'gray')
+                    ->icon(fn (?string $state): ?string => \App\Models\OrderStatus::icons()[$state] ?? null),
                 Tables\Columns\BadgeColumn::make('payment_status')
                     ->label('Оплата')
                     ->formatStateUsing(fn (?string $state): string => match ($state) {
@@ -1333,10 +1323,7 @@ class OrderResource extends Resource
                         ->whereHas('npShipments', fn ($s) => $s->whereNotNull('ttn'))),
                 Tables\Filters\SelectFilter::make('status')
                     ->label('Статус замовлення')
-                    ->options([
-                        '0' => 'Очікує',
-                        '1' => 'Виконано',
-                    ]),
+                    ->options(fn () => \App\Models\OrderStatus::options()),
                 Tables\Filters\SelectFilter::make('payment_status')
                     ->label('Статус оплати')
                     ->options([
@@ -1477,8 +1464,8 @@ class OrderResource extends Resource
                     ->size('lg')
                     ->color('success')
                     ->tooltip('Позначити виконаним')
-                    ->action(fn (Order $record) => $record->update(['status' => 1]))
-                    ->visible(fn (Order $record) => $record->status == 0),
+                    ->action(fn (Order $record) => $record->update(['status' => 'completed']))
+                    ->visible(fn (Order $record) => $record->status !== 'completed'),
                 Tables\Actions\Action::make('markPaid')
                     ->label('')
                     ->icon('heroicon-o-credit-card')
@@ -1498,7 +1485,7 @@ class OrderResource extends Resource
                         ->label('Позначити виконаними')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
-                        ->action(fn ($records) => $records->each->update(['status' => 1])),
+                        ->action(fn ($records) => $records->each->update(['status' => 'completed'])),
                     Tables\Actions\BulkAction::make('markPaid')
                         ->label('Позначити оплаченими')
                         ->icon('heroicon-o-credit-card')
