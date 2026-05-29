@@ -10,6 +10,11 @@ class CurrencyService
 {
     public function getDefault(): string
     {
+        // Базова валюта з БД-довідника (кастомізується адміном), fallback config.
+        if (class_exists(\App\Models\Currency::class) && ($base = \App\Models\Currency::baseCode())) {
+            return $base;
+        }
+
         return config('currencies.default', 'UAH');
     }
 
@@ -28,6 +33,11 @@ class CurrencyService
 
     public function getAvailable(): array
     {
+        // DB-довідник валют (кастомізується адміном), fallback на config.
+        if (class_exists(\App\Models\Currency::class) && ($map = \App\Models\Currency::availableMap())) {
+            return $map;
+        }
+
         return config('currencies.available', []);
     }
 
