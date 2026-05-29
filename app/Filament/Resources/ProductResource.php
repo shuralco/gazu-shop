@@ -720,7 +720,8 @@ class ProductResource extends Resource
                                                                 $opts[$range] = $range; // повний діапазон моделі
                                                                 if (preg_match('/(\d{4})\D+(\d{4})?/', $range, $mm)) {
                                                                     $from = (int) $mm[1];
-                                                                    $to = (int) ($mm[2] ?: date('Y'));
+                                                                    // $mm[2] може бути відсутнім (напр. "2016–present"/"2016–н.в.") → беремо поточний рік.
+                                                                    $to = (! empty($mm[2])) ? (int) $mm[2] : (int) date('Y');
                                                                     for ($y = $from; $y <= $to && $y <= 2035; $y++) $opts[(string) $y] = (string) $y;
                                                                 }
                                                             }
@@ -764,7 +765,20 @@ class ProductResource extends Resource
                                             ->label('Аналоги')
                                             ->schema([
                                                 Forms\Components\Grid::make(5)->schema([
-                                                    Forms\Components\TextInput::make('brand')->label('Бренд')->required(),
+                                                    // Бренд аналога — з brands (пошук). Наявні значення (навіть
+                                                    // поза каталогом, напр. "ContiTech") зберігаються через merge.
+                                                    Forms\Components\Select::make('brand')
+                                                        ->label('Бренд')
+                                                        ->options(function (Forms\Get $get) {
+                                                            $opts = \App\Models\Brand::query()->where('is_active', true)
+                                                                ->orderBy('sort_order')->orderBy('name')->get()
+                                                                ->pluck('name', 'name')->filter()->all();
+                                                            $cur = $get('brand');
+                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
+                                                            return $opts;
+                                                        })
+                                                        ->searchable()
+                                                        ->required(),
                                                     Forms\Components\TextInput::make('oem')->label('OEM/артикул')->required(),
                                                     Forms\Components\TextInput::make('price')->label('Ціна, ₴')->numeric()->step('0.01'),
                                                     Forms\Components\TextInput::make('qty')->label('Залишок')->numeric()->default(0),
