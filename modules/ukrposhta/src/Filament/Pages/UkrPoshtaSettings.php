@@ -115,7 +115,10 @@ class UkrPoshtaSettings extends Page implements HasForms
                 ->label('API логи')
                 ->icon('heroicon-o-bug-ant')
                 ->color('gray')
-                ->url(fn () => \App\Filament\Resources\NpApiLogResource::getUrl('index').'?tableFilters[provider][values][0]=ukrposhta'),
+                ->visible(fn () => class_exists(\App\Filament\Resources\NpApiLogResource::class) && \Illuminate\Support\Facades\Route::has('filament.admin.resources.shipping-api-logs.index'))
+                ->url(fn () => \Illuminate\Support\Facades\Route::has('filament.admin.resources.shipping-api-logs.index')
+                    ? \App\Filament\Resources\NpApiLogResource::getUrl('index').'?tableFilters[provider][values][0]=ukrposhta'
+                    : null),
         ];
     }
 

@@ -1,0 +1,24 @@
+{
+    "name": "layout_builder",
+    "label": "Конструктор зон layout (OpenCart-стиль)",
+    "description": "Admin призначає блоки (HTML / банер / featured-товари) у іменовані зони storefront через Hooks API. Зони: layout.home.top, layout.home.bottom, product.sidebar. Зберігається в БД (layout_blocks).",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+    "requires_modules": [],
+    "composer_packages": [],
+    "providers": [
+        "Modules\\LayoutBuilder\\LayoutBuilderServiceProvider"
+    ],
+    "filament_resources": [],
+    "filament_pages": [
+        "App\\Filament\\Pages\\LayoutBuilderPage"
+    ],
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "layout_builder",
+    "translations_path": "resources/lang",
+    "settings_schema": {},
+    "enabled_by_default": true
+}

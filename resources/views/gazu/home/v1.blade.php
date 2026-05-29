@@ -3,6 +3,7 @@
 @section('title', 'GAZU — пошук автозапчастин за артикулом')
 
 @section('content')
+    @hookAction('layout.home.top')
     {{-- Hero — селектор як primary CTA справа. Зліва — тексти + бенефіти + CTA. --}}
     <section class="py-10 sm:py-14" style="background: linear-gradient(180deg, var(--gazu-mist) 0%, var(--gazu-paper) 100%);">
         <div class="gazu-container gazu-grid-hero-vin">
@@ -66,4 +67,6 @@
     <x-gazu.brand-strip/>
 
     <x-gazu.seo-text/>
+
+    @hookAction('layout.home.bottom')
 @endsection

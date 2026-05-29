@@ -288,4 +288,11 @@ return [
         'requires' => [],
     ],
 
+    'layout_builder' => [
+        'name' => 'Конструктор зон layout',
+        'description' => 'OpenCart-стиль layout positions: admin призначає блоки (HTML/банер/featured) у іменовані зони storefront (layout.home.top, layout.home.bottom, product.sidebar) через Hooks API.',
+        'enabled' => env('MODULE_LAYOUT_BUILDER', true),
+        'requires' => [],
+    ],
+
 ];

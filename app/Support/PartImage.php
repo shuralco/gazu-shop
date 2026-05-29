@@ -101,39 +101,207 @@ class PartImage
         }
         $t = mb_strtolower($categoryTitle);
 
+        // ORDER MATTERS: more-specific needles MUST come before generic ones
+        // (e.g. "колодк"/"диск" before "гальм"; "свіч розжар" handled by "свіч").
+        // Every kind below is guaranteed to have a photo pool in
+        // public/img/parts/<kind>/ — so any category title that contains one of
+        // these Ukrainian stems gets a real photo instead of a monogram.
         $map = [
+            // --- Brakes ---
+            'колодк' => 'pad',              // гальмівні колодки
+            'гальмівн диск' => 'brake-disc',
+            'гальмівн рідин' => 'oil',      // brake fluid → bottle/oil pool
+            'супорт' => 'cv-joint',         // brake calipers
+            'циліндр' => 'cv-joint',
+            'шланг' => 'wiper',
+            'гальм' => 'brake-disc',        // generic brakes → disc
+
+            // --- Filters ---
             'філь' => 'filter',
-            'оливн' => 'oil',
+            'фільтр' => 'filter',
+
+            // --- Engine oils / fluids ---
+            'оливн' => 'oil',               // oil filters land on filter via "філь" first; standalone "оливн" → oil
+            'мотор масл' => 'oil',
+            'трансмісійн масл' => 'oil',
+            'трансмісійн' => 'oil',
+            'масл' => 'oil',                // масла
             'олив' => 'oil',
-            'свіч' => 'spark',
-            'запалю' => 'spark',
-            'гальм' => 'brake-disc',
-            'колодк' => 'pad',
-            'амортиз' => 'shock',
-            'підвіск' => 'spring',
-            'пружин' => 'spring',
-            'лампа' => 'bulb',
-            'акумул' => 'battery',
-            'генерат' => 'alternator',
-            'ремен' => 'belt',
-            'двигун' => 'oil',
-            'електр' => 'sensor',
-            'дзеркал' => 'mirror',
-            'фара' => 'headlight',
-            'кузов' => 'mirror',
-            'диск' => 'tire',
-            'шин' => 'tire',
-            'клатч' => 'clutch',
-            'зчепленн' => 'clutch',
-            'трансм' => 'cv-joint',
-            'двз' => 'oil',
-            'охолод' => 'coolant',
+            'омивач' => 'oil',              // washer fluid bottle
             'антифр' => 'coolant',
-            'шкло' => 'wiper',
+            'охолод' => 'coolant',
+            'антифриз' => 'coolant',
+
+            // --- Ignition ---
+            'свіч' => 'spark',              // свічки запалювання / розжарювання
+            'котушк' => 'spark',            // ignition coils
+            'високовольтн' => 'spark',      // HV wires
+            'замк запалюв' => 'sensor',     // ignition switch
+            'запалю' => 'spark',
+
+            // --- Cooling system ---
+            'помп' => 'belt',
+            'термостат' => 'sensor',
+            'радіатор' => 'filter',
+            'вентилятор' => 'alternator',
+
+            // --- Timing (ГРМ) ---
+            'ремен грм' => 'belt',
+            'ланцюг грм' => 'belt',
+            'комплект грм' => 'belt',
+            'грм' => 'belt',
+            'ремен' => 'belt',
+
+            // --- Sensors ---
+            'лямбда' => 'sensor',
+            'витратомір' => 'sensor',
+            'датчик' => 'sensor',
+            'парктронік' => 'sensor',
+            'сенсор' => 'sensor',
+
+            // --- Suspension ---
+            'амортиз' => 'shock',
+            'пружин' => 'spring',
+            'шаров опор' => 'cv-joint',
+            'рульов тяг' => 'cv-joint',
+            'стійк стабіл' => 'cv-joint',
+            'стабіліз' => 'cv-joint',
+            'сайлентблок' => 'bearing',
+            'тяг' => 'cv-joint',
+            'опор' => 'bearing',
+            'підвіск' => 'spring',
+
+            // --- Bearings ---
+            'маточин' => 'bearing',
+            'підшипник' => 'bearing',
+
+            // --- Electrics / power ---
+            'акумул' => 'battery',
+            'стартер' => 'alternator',
+            'генерат' => 'alternator',
+            'реле-регулятор' => 'sensor',
+            'реле' => 'sensor',
+            'запобіжник' => 'sensor',
+            'жгут' => 'belt',
+            'провод' => 'belt',
+            'дроти' => 'belt',
+            'розʼєм' => 'sensor',
+            'розʼєми' => 'sensor',
+            "роз'єм" => 'sensor',
+
+            // --- Lighting ---
+            'led' => 'bulb',
+            'ксенон' => 'bulb',
+            'лампа' => 'bulb',
+            'лампи' => 'bulb',
+            'стрічк' => 'bulb',             // LED-стрічки / DRL
+            'протитуман' => 'headlight',
+            'фара' => 'headlight',
+            'фари' => 'headlight',
+            'задн ліхтар' => 'taillight',
+            'ліхтар' => 'taillight',
+            'освітл' => 'bulb',
+
+            // --- Audio / alarm ---
+            'сигнал' => 'horn',             // car horns / сигналізації
+            'динамік' => 'horn',
+            'клаксон' => 'horn',
+
+            // --- Switches ---
+            'перемикач' => 'sensor',
+            'кнопк' => 'sensor',
+            'замк' => 'sensor',
+
+            // --- Clutch / transmission ---
+            'комплект зчепл' => 'clutch',
+            'диск зчепл' => 'clutch',
+            'кошик зчепл' => 'clutch',
+            'вижимн' => 'bearing',
+            'тросик' => 'belt',
+            'зчепленн' => 'clutch',
+            'клатч' => 'clutch',
+
+            // --- CV joints / driveline ---
+            'шрус' => 'cv-joint',
+            'піввіс' => 'cv-joint',
+            'пильовик' => 'wiper',
+            'кардан' => 'cv-joint',
+            'хрестовин' => 'cv-joint',
+            'підвісн підшип' => 'bearing',
+            'опор кпп' => 'bearing',
+            'сальник' => 'wiper',
+            'ручк кпп' => 'cv-joint',
+            'коробк передач' => 'cv-joint',
+            'кпп' => 'cv-joint',
+            'трансм' => 'cv-joint',
+
+            // --- Body / optics ---
+            'дзеркал' => 'mirror',
+            'скло дзеркал' => 'mirror',
+            'лобов скло' => 'mirror',
+            'бок скло' => 'mirror',
+            'задн скло' => 'mirror',
+            'скло' => 'mirror',
+            'крил' => 'taillight',
+            'бампер' => 'taillight',
+            'решітк' => 'filter',
+            'капот' => 'taillight',
+            'двер' => 'taillight',
+            'молдинг' => 'belt',
+            'кліпс' => 'bearing',
+            'емблем' => 'taillight',
+            'кузов' => 'mirror',
+
+            // --- Wipers / washers ---
             'двірник' => 'wiper',
-            'інструм' => 'tool',
-            'аксесуар' => 'mat',
+            'склоочисн' => 'wiper',
+            'моторчик двірник' => 'wiper',
+            'форсунк омивач' => 'wiper',
+            'форсунк' => 'wiper',
+            'шкло' => 'wiper',
+
+            // --- Interior / accessories ---
             'килим' => 'mat',
+            'чохл' => 'mat',
+            'органайзер' => 'mat',
+            'шторк' => 'mat',
+            'ароматизатор' => 'oil',
+
+            // --- Electronics ---
+            'відеореєстратор' => 'sensor',
+            'тримач' => 'sensor',
+            'зарядк' => 'sensor',
+            'gps' => 'sensor',
+            'трекер' => 'sensor',
+            'мультимед' => 'sensor',
+
+            // --- Tools / safety ---
+            'набор інструмент' => 'tool',
+            'інструм' => 'tool',
+            'домкрат' => 'tool',
+            'компресор' => 'tool',
+            'пуск дрот' => 'belt',
+            'вогнегасник' => 'tool',
+            'аптечк' => 'tool',
+            'знак авар' => 'taillight',
+            'знак' => 'taillight',
+
+            // --- Car care ---
+            'очисник' => 'oil',
+            'полірол' => 'oil',
+            'засоб для шин' => 'tire',
+            'догляд' => 'oil',
+
+            // --- Tires / wheels ---
+            'шин' => 'tire',
+            'диск' => 'tire',
+            'колес' => 'tire',
+
+            // --- Misc engine ---
+            'двигун' => 'oil',
+            'двз' => 'oil',
+            'електр' => 'sensor',
+            'аксесуар' => 'mat',
         ];
 
         foreach ($map as $needle => $kind) {

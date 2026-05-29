@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Product;
+use App\Support\PartImage;
 use Illuminate\Support\Str;
 
 /**
@@ -39,6 +40,7 @@ class ProductCardDecorator
         'horn' => 'horn', 'speaker' => 'horn', 'alarm' => 'sensor', 'parking-sensor' => 'sensor',
         'ignition-switch' => 'sensor', 'window-switch' => 'sensor', 'wiper-switch' => 'sensor',
         'clutch' => 'clutch', 'release-bearing' => 'bearing', 'clutch-cable' => 'belt',
+        'pressure-plate' => 'clutch',
         'cv-outer' => 'cv-joint', 'cv-inner' => 'cv-joint', 'cv-boot' => 'wiper', 'drive-shaft' => 'cv-joint',
         'transmission-mount' => 'bearing', 'gearbox' => 'cv-joint', 'shifter' => 'cv-joint',
         'cardan' => 'cv-joint', 'center-bearing' => 'bearing',
@@ -119,14 +121,32 @@ class ProductCardDecorator
         return $p;
     }
 
-    private static function imageKindFor(Product $p): string
+    /**
+     * Resolve the image-kind slug for a product (single source of truth,
+     * also used by the products:assign-photos audit command).
+     */
+    public static function imageKindFor(Product $p): string
     {
         if ($p->relationLoaded('category') && ($cat = $p->getRelation('category'))) {
+            // 1. Slug-needle map (en slugs) — primary, deterministic.
             $slug = (string) ($cat->slug ?? '');
             foreach (self::CATEGORY_IMAGE_KINDS as $needle => $kind) {
                 if ($slug !== '' && str_contains($slug, $needle)) return $kind;
             }
+
+            // 2. Ukrainian title heuristic — covers categories whose slug is not
+            //    in the map above (canonical PartImage helper). Returns a kind
+            //    that is guaranteed to have a photo pool.
+            $rawTitle = $cat->getRawOriginal('title');
+            $title = (is_string($rawTitle) && str_starts_with($rawTitle, '{'))
+                ? (json_decode($rawTitle, true)['uk'] ?? $rawTitle)
+                : ($cat->title ?? $rawTitle);
+            if ($kind = PartImage::kindFromCategory(is_string($title) ? $title : null)) {
+                return $kind;
+            }
         }
+
+        // 3. Last-resort: deterministic pick from kinds that all have pools.
         return self::IMAGE_KINDS[($p->id ?? 0) % count(self::IMAGE_KINDS)];
     }
 }

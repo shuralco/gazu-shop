@@ -25,7 +25,7 @@
                             {{ $module['message'] }}
                         </span>
                         <a
-                            href="{{ route('filament.admin.pages.integrations-page') }}"
+                            href="{{ \Illuminate\Support\Facades\Route::has('filament.admin.pages.integrations-page') ? route('filament.admin.pages.integrations-page') : '#' }}"
                             wire:navigate
                             class="text-xs text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 underline"
                         >
