@@ -9,7 +9,6 @@ use App\Models\Order;
 use App\Models\OrderProduct;
 use App\Models\Product;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 /**
@@ -39,10 +38,9 @@ class GazuCheckoutFlowTest extends TestCase
             \App\Http\Middleware\VerifyCsrfToken::class,
         ]);
 
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
-        MerchantWarehouse::query()->delete();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
-
+        // RefreshDatabase gives a clean DB per test, so no pre-existing
+        // warehouses to clear. (The previous MySQL-only SET FOREIGN_KEY_CHECKS
+        // toggle is invalid on the test sqlite :memory: connection.)
         $this->kyiv = MerchantWarehouse::factory()->default()->create([
             'code' => 'KY-1', 'city' => 'Київ',
             'shipping_cost' => 60, 'free_shipping_threshold' => 2000,

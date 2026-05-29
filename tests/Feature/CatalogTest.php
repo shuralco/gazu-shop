@@ -18,18 +18,23 @@ class CatalogTest extends TestCase
 
     public function test_category_page_loads(): void
     {
+        // GAZU fork serves categories at the root-level pretty URL `/{slug}`
+        // (no `/{locale}` prefix). StoreController::resolveSlug() dispatches
+        // a slug with no numeric suffix to the catalog view.
         $category = Category::factory()->create(['is_active' => true]);
         $locale = app()->getLocale();
         $slug = $category->getLocalizedSlug($locale);
-        $this->get("/{$locale}/{$slug}")->assertStatus(200);
+        $this->get("/{$slug}")->assertStatus(200);
     }
 
     public function test_product_page_loads(): void
     {
+        // Products also live at root-level `/{slug}`; resolveSlug() routes a
+        // Rozetka-style `…-{id}` slug to the product page.
         $product = Product::factory()->create(['is_active' => true]);
         $locale = app()->getLocale();
         $slug = $product->getLocalizedSlug($locale);
-        $this->get("/{$locale}/{$slug}")->assertStatus(200);
+        $this->get("/{$slug}")->assertStatus(200);
     }
 
     public function test_search_page_loads(): void
@@ -39,21 +44,27 @@ class CatalogTest extends TestCase
 
     public function test_specials_page_loads(): void
     {
-        $this->get('/specials')->assertStatus(200);
+        // GAZU uses the UA pretty URL `/akcii` (catalog with ?promo=1).
+        $this->get('/akcii')->assertStatus(200);
     }
 
     public function test_hits_page_loads(): void
     {
-        $this->get('/hits')->assertStatus(200);
+        // GAZU uses the UA pretty URL `/khity` (catalog with ?hits=1).
+        $this->get('/khity')->assertStatus(200);
     }
 
     public function test_brands_page_loads(): void
     {
-        $this->get('/brands')->assertStatus(200);
+        // GAZU brands index lives at `/brand` (singular); `/brendy` and
+        // `/brands` are not served.
+        $this->get('/brand')->assertStatus(200);
     }
 
-    public function test_comparison_page_loads(): void
+    public function test_wishlist_page_loads(): void
     {
-        $this->get('/comparison')->assertStatus(200);
+        // The brutal-codebase comparison feature was dropped in the GAZU fork
+        // in favour of a wishlist. There is no `/comparison` route anymore.
+        $this->get('/wishlist')->assertStatus(200);
     }
 }

@@ -7,6 +7,8 @@ use App\Models\Order;
 use App\Models\User;
 use App\Services\LoyaltyService;
 use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class LoyaltyServiceTest extends TestCase
@@ -18,6 +20,25 @@ class LoyaltyServiceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+
+        // У цьому деплої модуль лояльності вимкнено через env (MODULE_LOYALTY=false),
+        // тож App\Support\ModuleDiscovery НЕ реєструє його шлях міграцій і таблиці
+        // loyalty_* не створюються у свіжій sqlite :memory:. Сервіс LoyaltyService
+        // гейтиться окремим shopSetting('loyalty_enabled', true) (default true), а не
+        // module-тогглом, тому його логіка валідна — бракує лише схеми. Реєструємо
+        // міграції модуля явно, щоб таблиці існували незалежно від env-тоггла.
+        //
+        // LazilyRefreshDatabase запускає базові міграції (users, orders, ...) при
+        // першому зверненні до БД — Schema::hasTable нижче його тригерить, тож
+        // users вже існує до того як loyalty_transactions створює FK на нього.
+        if (! Schema::hasTable('loyalty_tiers')) {
+            Artisan::call('migrate', [
+                '--path' => 'modules/loyalty/database/migrations',
+                '--realpath' => false,
+                '--force' => true,
+            ]);
+        }
+
         $this->service = app(LoyaltyService::class);
 
         LoyaltyTier::create(['name' => 'bronze', 'display_name' => 'Бронзовий', 'min_points' => 0, 'points_multiplier' => 1.0, 'discount_percentage' => 0, 'is_active' => true, 'sort_order' => 0]);

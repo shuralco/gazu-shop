@@ -59,6 +59,9 @@ class BatchEditorServiceTest extends TestCase
         $count = $this->service->duplicateProducts([$product->id]);
         $this->assertEquals(1, $count);
         $this->assertEquals(2, Product::count());
-        $this->assertDatabaseHas('products', ['title' => '(Копія) Original']);
+        // title is a Spatie translatable column (stored as JSON {"uk":"..."}),
+        // so assert on the decoded accessor of the duplicated product instead of the raw column.
+        $copy = Product::where('id', '!=', $product->id)->first();
+        $this->assertEquals('(Копія) Original', $copy->title);
     }
 }

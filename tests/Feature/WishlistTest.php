@@ -12,11 +12,25 @@ class WishlistTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
-    public function test_wishlist_requires_auth(): void
+    public function test_wishlist_page_is_public_for_guests(): void
     {
+        // Wishlist page is intentionally public: guests build a wishlist in
+        // localStorage (client-side) and it merges into the account on login.
+        // The page renders an empty wishlist for guests rather than redirecting.
         $response = $this->get('/wishlist');
-        // Auth middleware should not allow access - either redirect or error
-        $this->assertNotEquals(200, $response->getStatusCode(), 'Wishlist should require authentication');
+        $response->assertOk();
+    }
+
+    public function test_wishlist_toggle_requires_auth(): void
+    {
+        // Mutating the server-side wishlist still requires authentication:
+        // an AJAX toggle by a guest must be rejected with 401 and redirect hint.
+        $product = Product::factory()->create(['is_active' => true]);
+
+        $response = $this->postJson('/wishlist/toggle', ['product_id' => $product->id]);
+
+        $response->assertStatus(401);
+        $response->assertJson(['ok' => false]);
     }
 
     public function test_wishlist_model_creation(): void

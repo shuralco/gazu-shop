@@ -6,7 +6,7 @@ use App\Models\MerchantWarehouse;
 use App\Services\Geo\GeoLocator;
 use App\Services\Warehouse\WarehouseLocator;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 use Mockery;
 use Tests\TestCase;
 
@@ -27,9 +27,11 @@ class WarehouseLocatorTest extends TestCase
 
         // The seed_default_merchant_warehouse migration injects a MAIN-01 row.
         // Wipe it so each test owns its warehouse fixture without ID collisions.
-        DB::statement('SET FOREIGN_KEY_CHECKS=0');
+        // Use the Schema helper so it stays driver-agnostic (the test runs on
+        // sqlite :memory:, which chokes on MySQL's `SET FOREIGN_KEY_CHECKS`).
+        Schema::disableForeignKeyConstraints();
         MerchantWarehouse::query()->delete();
-        DB::statement('SET FOREIGN_KEY_CHECKS=1');
+        Schema::enableForeignKeyConstraints();
     }
 
     public function test_falls_back_to_default_when_no_geo(): void

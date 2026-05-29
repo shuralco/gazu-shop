@@ -34,6 +34,21 @@ class LoyaltyTransaction extends Model
         'created_at' => 'datetime',
     ];
 
+    /**
+     * Таблиця має лише created_at (без updated_at), тож $timestamps вимкнено.
+     * created_at заповнюємо самі при створенні: покладатися на DB-default
+     * CURRENT_TIMESTAMP не можна — fix-міграція додає його лише для MySQL,
+     * тож на sqlite/інших драйверах колонка лишається NOT NULL без default.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (self $transaction): void {
+            if (empty($transaction->created_at)) {
+                $transaction->created_at = now();
+            }
+        });
+    }
+
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

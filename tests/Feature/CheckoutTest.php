@@ -11,7 +11,20 @@ class CheckoutTest extends TestCase
 
     public function test_checkout_page_loads(): void
     {
-        $response = $this->get('/checkout');
+        // Checkout redirects to the empty-cart page when the session cart is
+        // empty (correct behaviour). Arrange a cart line so the page renders.
+        $response = $this->withSession(['cart' => [
+            '1' => [
+                'title' => 'Test Product',
+                'slug' => 'test-product',
+                'image' => null,
+                'price' => 100,
+                'quantity' => 1,
+                'variant_id' => null,
+                'warehouse_id' => null,
+            ],
+        ]])->get('/checkout');
+
         $response->assertStatus(200);
     }
 

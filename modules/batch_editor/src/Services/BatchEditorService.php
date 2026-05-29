@@ -39,9 +39,9 @@ class BatchEditorService
             'increase' => $query->increment('price', $value),
             'decrease' => $query->decrement('price', $value),
             'increase_percent' => DB::table('products')->whereIn('id', $ids)
-                ->update(['price' => DB::raw("ROUND(price * (1 + {$value} / 100), 2)")]),
+                ->update(['price' => DB::raw("ROUND(price * (1 + {$value} / 100.0), 2)")]),
             'decrease_percent' => DB::table('products')->whereIn('id', $ids)
-                ->update(['price' => DB::raw("ROUND(price * (1 - {$value} / 100), 2)")]),
+                ->update(['price' => DB::raw("ROUND(price * (1 - {$value} / 100.0), 2)")]),
             default => 0,
         };
 

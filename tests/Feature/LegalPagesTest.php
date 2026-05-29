@@ -21,7 +21,10 @@ class LegalPagesTest extends TestCase
 
     public function test_returns_page_loads(): void
     {
-        $this->get('/returns')->assertStatus(200);
+        // GAZU has no standalone /returns route — returns info is part of the
+        // warranty page ("Гарантія та повернення"). /warranty is the page
+        // linked in the footer and topbar for return policy.
+        $this->get('/warranty')->assertStatus(200);
     }
 
     public function test_offer_page_loads(): void
