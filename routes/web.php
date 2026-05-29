@@ -230,18 +230,15 @@ Route::get('/sitemap-brands.xml', [\App\Http\Controllers\SitemapController::clas
 });
 Route::post('/sitemap/clear-cache', [\App\Http\Controllers\SitemapController::class, 'clearCache'])->name('sitemap.clear-cache');
 
-// Payment + delivery webhooks (no CSRF)
+// Payment + delivery webhooks (CSRF excluded via bootstrap/app.php validateCsrfTokens(except: ['webhooks/*']))
 Route::post('/webhooks/liqpay', [\App\Http\Controllers\WebhookController::class, 'liqpay'])
-    ->name('webhooks.liqpay')
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    ->name('webhooks.liqpay');
 
 Route::post('/webhooks/wayforpay', [\App\Http\Controllers\WebhookController::class, 'wayforpay'])
-    ->name('webhooks.wayforpay')
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    ->name('webhooks.wayforpay');
 
 Route::post('/webhooks/monobank', [\App\Http\Controllers\WebhookController::class, 'monobank'])
-    ->name('webhooks.monobank')
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    ->name('webhooks.monobank');
 
 // /api/np-webhook route moved to modules/novaposhta/routes/web.php
 // (auto-loaded when novaposhta module is enabled)

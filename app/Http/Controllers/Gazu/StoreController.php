@@ -139,7 +139,7 @@ class StoreController extends Controller
 
         $items = $cache->remember("home:featured:v2:limit=$limit", 300, function () use ($limit) {
             $q = Product::query()
-                ->with(['category', 'inventory'])
+                ->with(['category', 'inventory.warehouse'])
                 ->where('is_active', true);
             if (\Schema::hasColumn('products', 'brand_id')) {
                 $q->with('brand');
@@ -497,6 +497,7 @@ class StoreController extends Controller
         $analogs = collect();
         if (isset($product->id) && $product->id) {
             $pivotAnalogs = \App\Models\Product::query()
+                ->with(['category', 'brand', 'inventory.warehouse'])
                 ->whereHas('relatedProducts', fn ($q) => $q
                     ->where('related_products.product_id', $product->id)
                     ->where('related_products.type', 'analog'))
@@ -506,6 +507,7 @@ class StoreController extends Controller
                 $analogs = $pivotAnalogs->map(fn ($x) => $this->decorate($x));
             } elseif (($product instanceof Product) && $product->category_id) {
                 $analogs = \App\Models\Product::query()
+                    ->with(['category', 'brand', 'inventory.warehouse'])
                     ->where('category_id', $product->category_id)
                     ->where('id', '!=', $product->id)
                     ->where('is_active', true)
@@ -573,7 +575,7 @@ class StoreController extends Controller
 
         $items = $cache->remember($key, 300, function () use ($excludeIds, $limit) {
             $q = Product::query()
-                ->with(['category', 'inventory'])
+                ->with(['category', 'inventory.warehouse'])
                 ->where('is_active', true);
             if (\Schema::hasColumn('products', 'brand_id')) {
                 $q->with('brand');
@@ -684,6 +686,7 @@ class StoreController extends Controller
 
         $products = Product::query()
             ->where('is_active', true)
+            ->with(['category', 'brand', 'inventory'])
             ->where(function ($q) use ($brand) {
                 $q->where('brand_id', $brand->id)
                   ->orWhere('manufacturer', $brand->name);

@@ -14,6 +14,17 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->append(\App\Http\Middleware\CacheHeaders::class);
 
+        // CSRF exclusions for server-to-server callbacks that carry no session/token.
+        // Registered here (Laravel 12 style) so the FRAMEWORK ValidateCsrfToken
+        // actually skips them. The old per-route withoutMiddleware(App\..\VerifyCsrfToken)
+        // targeted a class not present in the resolved web stack and excluded nothing,
+        // so payment webhooks were rejected with 419/302 before WebhookController ran.
+        $middleware->validateCsrfTokens(except: [
+            'webhooks/*',
+            'orders/*/success',
+            'mobile-test',
+        ]);
+
         // Full-page HTML response cache (Redis). Caches storefront GET для гостей,
         // skip /admin /cart /checkout /api — див. GazuCacheProfile.
         // Auto-flush через model observers — див. AppServiceProvider::boot().

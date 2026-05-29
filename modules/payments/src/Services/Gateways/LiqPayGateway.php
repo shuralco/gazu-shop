@@ -18,13 +18,17 @@ class LiqPayGateway implements PaymentGatewayInterface
 
     private bool $sandboxMode;
 
+    private string $privateKey;
+
     public function __construct()
     {
         $settings = $this->getSettings();
 
+        $this->privateKey = $settings['private_key'] ?? config('liqpay.private_key');
+
         $this->liqpay = new LiqPay(
             $settings['public_key'] ?? config('liqpay.public_key'),
-            $settings['private_key'] ?? config('liqpay.private_key')
+            $this->privateKey
         );
         $this->sandboxMode = $settings['sandbox'] ?? config('liqpay.sandbox_mode');
     }
@@ -216,7 +220,7 @@ class LiqPayGateway implements PaymentGatewayInterface
 
     private function verifyWebhookSignature(string $data, string $signature): bool
     {
-        $privateKey = config('liqpay.private_key');
+        $privateKey = $this->privateKey;
         $expectedSignature = base64_encode(sha1($privateKey.$data.$privateKey, true));
 
         return hash_equals($expectedSignature, $signature);

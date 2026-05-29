@@ -179,14 +179,13 @@ class WayForPayGateway implements PaymentGatewayInterface
             // WayForPay не надає API для перевірки статусу,
             // статус оновлюється через webhook
 
-            return new PaymentStatus(
-                success: $payment->status === 'success',
-                status: $payment->status,
-                amount: $payment->amount,
-                currency: $payment->currency,
-                transactionId: $payment->external_id,
-                message: "Статус платежу: {$payment->status}"
-            );
+            return new PaymentStatus([
+                'status' => $payment->status,
+                'amount' => $payment->amount,
+                'currency' => $payment->currency,
+                'external_id' => $payment->external_id,
+                'raw_data' => ['message' => "Статус платежу: {$payment->status}"],
+            ]);
 
         } catch (\Exception $e) {
             Log::error('WayForPay payment verification failed', [
@@ -194,14 +193,13 @@ class WayForPayGateway implements PaymentGatewayInterface
                 'error' => $e->getMessage(),
             ]);
 
-            return new PaymentStatus(
-                success: false,
-                status: 'error',
-                amount: 0,
-                currency: 'UAH',
-                transactionId: null,
-                message: 'Помилка перевірки платежу'
-            );
+            return new PaymentStatus([
+                'status' => 'error',
+                'amount' => 0,
+                'currency' => 'UAH',
+                'external_id' => null,
+                'raw_data' => ['message' => 'Помилка перевірки платежу'],
+            ]);
         }
     }
 
@@ -238,13 +236,12 @@ class WayForPayGateway implements PaymentGatewayInterface
                     'user_agent' => request()->userAgent(),
                 ]);
 
-                return new RefundResponse(
-                    success: true,
-                    refundId: $response->getTransactionStatus(),
-                    amount: $amount,
-                    currency: 'UAH',
-                    message: 'Кошти успішно повернено'
-                );
+                return new RefundResponse([
+                    'success' => true,
+                    'refund_id' => $response->getTransactionStatus(),
+                    'amount' => $amount,
+                    'raw_data' => ['currency' => 'UAH', 'message' => 'Кошти успішно повернено'],
+                ]);
             } else {
                 throw new \Exception($response->getReasonCode().': '.$response->getReason());
             }
@@ -267,13 +264,12 @@ class WayForPayGateway implements PaymentGatewayInterface
                 ]);
             }
 
-            return new RefundResponse(
-                success: false,
-                refundId: null,
-                amount: 0,
-                currency: 'UAH',
-                message: 'Помилка повернення коштів: '.$e->getMessage()
-            );
+            return new RefundResponse([
+                'success' => false,
+                'refund_id' => null,
+                'amount' => 0,
+                'raw_data' => ['currency' => 'UAH', 'message' => 'Помилка повернення коштів: '.$e->getMessage()],
+            ]);
         }
     }
 

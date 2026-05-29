@@ -117,7 +117,7 @@ class CheckoutController extends Controller
                 'first_name' => $data['first_name'],
                 'last_name'  => $data['last_name'] ?? null,
                 'phone'      => $data['phone'],
-                'email'      => $data['email'] ?? null,
+                'email'      => ($data['email'] ?? null) ?: (auth()->user()?->email ?: 'guest+'.(preg_replace('/\D+/', '', (string) $data['phone']) ?: 'noid').'@gazu.local'),
                 'locale'     => app()->getLocale() ?: 'uk',
                 'status'     => 'pending',
                 'subtotal'   => $subtotal,

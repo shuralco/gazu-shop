@@ -135,12 +135,11 @@ class MonobankGateway implements PaymentGatewayInterface
                 // Логування
                 PaymentLog::create([
                     'payment_id' => $payment->id,
-                    'type' => 'request',
-                    'data' => [
-                        'request' => $invoiceData,
-                        'response' => $responseData,
-                    ],
-                    'status' => 'success',
+                    'action' => 'create_payment',
+                    'request_data' => $invoiceData,
+                    'response_data' => $responseData,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
 
                 return new PaymentResponse([
@@ -166,9 +165,10 @@ class MonobankGateway implements PaymentGatewayInterface
             if (isset($payment)) {
                 PaymentLog::create([
                     'payment_id' => $payment->id,
-                    'type' => 'error',
-                    'data' => ['error' => $e->getMessage()],
-                    'status' => 'failed',
+                    'action' => 'create_payment_error',
+                    'response_data' => ['error' => $e->getMessage(), 'status' => 'failed'],
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
             }
 
@@ -235,19 +235,19 @@ class MonobankGateway implements PaymentGatewayInterface
 
                 PaymentLog::create([
                     'payment_id' => $payment->id,
-                    'type' => 'status_check',
-                    'data' => $responseData,
-                    'status' => 'success',
+                    'action' => 'status_check',
+                    'response_data' => $responseData,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
 
-                return new PaymentStatus(
-                    success: $status === 'success',
-                    status: $status,
-                    amount: $responseData['amount'] / 100, // конвертувати з копійок
-                    currency: 'UAH',
-                    transactionId: $payment->external_id,
-                    message: "Статус платежу: {$status}"
-                );
+                return new PaymentStatus([
+                    'status' => $status,
+                    'amount' => $responseData['amount'] / 100, // конвертувати з копійок
+                    'currency' => 'UAH',
+                    'external_id' => $payment->external_id,
+                    'raw_data' => ['message' => "Статус платежу: {$status}"],
+                ]);
             } else {
                 throw new \Exception($response->json()['errText'] ?? 'Помилка перевірки статусу');
             }
@@ -258,14 +258,13 @@ class MonobankGateway implements PaymentGatewayInterface
                 'error' => $e->getMessage(),
             ]);
 
-            return new PaymentStatus(
-                success: false,
-                status: 'error',
-                amount: 0,
-                currency: 'UAH',
-                transactionId: null,
-                message: 'Помилка перевірки платежу: '.$e->getMessage()
-            );
+            return new PaymentStatus([
+                'status' => 'error',
+                'amount' => 0,
+                'currency' => 'UAH',
+                'external_id' => null,
+                'raw_data' => ['message' => 'Помилка перевірки платежу: '.$e->getMessage()],
+            ]);
         }
     }
 
@@ -312,21 +311,19 @@ class MonobankGateway implements PaymentGatewayInterface
 
                 PaymentLog::create([
                     'payment_id' => $payment->id,
-                    'type' => 'refund',
-                    'data' => [
-                        'request' => $refundData,
-                        'response' => $responseData,
-                    ],
-                    'status' => 'success',
+                    'action' => 'refund',
+                    'request_data' => $refundData,
+                    'response_data' => $responseData,
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
 
-                return new RefundResponse(
-                    success: true,
-                    refundId: $responseData['createdDate'] ?? $refundData['extRef'],
-                    amount: $amount,
-                    currency: 'UAH',
-                    message: 'Кошти успішно повернено'
-                );
+                return new RefundResponse([
+                    'success' => true,
+                    'refund_id' => $responseData['createdDate'] ?? $refundData['extRef'],
+                    'amount' => $amount,
+                    'raw_data' => ['currency' => 'UAH', 'message' => 'Кошти успішно повернено'],
+                ]);
             } else {
                 throw new \Exception($response->json()['errText'] ?? 'Помилка повернення коштів');
             }
@@ -341,22 +338,20 @@ class MonobankGateway implements PaymentGatewayInterface
             if (isset($payment)) {
                 PaymentLog::create([
                     'payment_id' => $payment->id,
-                    'type' => 'refund_error',
-                    'data' => [
-                        'amount' => $amount,
-                        'error' => $e->getMessage(),
-                    ],
-                    'status' => 'failed',
+                    'action' => 'refund_error',
+                    'request_data' => ['amount' => $amount],
+                    'response_data' => ['error' => $e->getMessage(), 'status' => 'failed'],
+                    'ip_address' => request()->ip(),
+                    'user_agent' => request()->userAgent(),
                 ]);
             }
 
-            return new RefundResponse(
-                success: false,
-                refundId: null,
-                amount: 0,
-                currency: 'UAH',
-                message: 'Помилка повернення коштів: '.$e->getMessage()
-            );
+            return new RefundResponse([
+                'success' => false,
+                'refund_id' => null,
+                'amount' => 0,
+                'raw_data' => ['currency' => 'UAH', 'message' => 'Помилка повернення коштів: '.$e->getMessage()],
+            ]);
         }
     }
 
@@ -394,9 +389,10 @@ class MonobankGateway implements PaymentGatewayInterface
             // Логування webhook
             PaymentLog::create([
                 'payment_id' => $payment->id,
-                'type' => 'webhook',
-                'data' => $data,
-                'status' => 'received',
+                'action' => 'webhook_received',
+                'request_data' => $data,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
             ]);
 
             // Мапінг статусів Monobank на наші статуси

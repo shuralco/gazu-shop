@@ -20,7 +20,7 @@ class FilterLandingController extends Controller
 
         $perPage = (int) ($request->input('per_page', 24));
         $paginator = $landing->productsQuery()
-            ->with(['category', 'brand'])
+            ->with(['category', 'brand', 'inventory.warehouse'])
             ->withCount('approvedReviews as reviews_count')
             ->orderByRaw('CASE WHEN image IS NOT NULL AND image != "" THEN 0 ELSE 1 END')
             ->orderBy('is_hit', 'desc')
