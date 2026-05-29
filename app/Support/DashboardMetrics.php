@@ -43,20 +43,32 @@ class DashboardMetrics
         $monthAgo = Carbon::today()->subDays(30);
         $hasInventory = Schema::hasTable('inventory');
 
-        // -- Замовлення / виручка --------------------------------------------
+        // -- Замовлення ------------------------------------------------------
+        // orders.status — INTEGER: 0 = Очікує, 1 = Виконано (НЕ рядок!).
+        // payment_status — рядок: pending|success|failed|refunded.
         $totalOrders = Order::count();
         $ordersToday = Order::whereDate('created_at', $today)->count();
         $orders7d = Order::where('created_at', '>=', $weekAgo)->count();
         $orders30d = Order::where('created_at', '>=', $monthAgo)->count();
+        $ordersPending = Order::where('status', 0)->count();
+        $ordersDone = Order::where('status', 1)->count();
+        $donePct = $totalOrders > 0 ? round($ordersDone / $totalOrders * 100) : 0;
         $ordersSpark = self::dailySeries(fn ($q) => $q, 'COUNT(*)');
-        $revenueSpark = self::dailySeries(fn ($q) => $q->where('status', '!=', 'cancelled'), 'SUM(total)');
 
-        $revenue30d = (float) Order::where('created_at', '>=', $monthAgo)->where('status', '!=', 'cancelled')->sum('total');
-        $revenueAll = (float) Order::where('status', '!=', 'cancelled')->sum('total');
+        // Розбивка за статусом оплати.
+        $payCounts = Order::selectRaw('payment_status, COUNT(*) c')->groupBy('payment_status')->pluck('c', 'payment_status')->all();
+        $payPaid = (int) ($payCounts['success'] ?? 0);
+        $payPend = (int) ($payCounts['pending'] ?? 0);
+        $payFail = (int) (($payCounts['failed'] ?? 0) + ($payCounts['refunded'] ?? 0));
+
+        // -- Виручка (без невдалих/повернених; COD-pending лишається) --------
+        $revScope = fn ($q) => $q->whereNotIn('payment_status', ['failed', 'refunded']);
+        $revenueToday = (float) $revScope(Order::whereDate('created_at', $today))->sum('total');
+        $revenue7d = (float) $revScope(Order::where('created_at', '>=', $weekAgo))->sum('total');
+        $revenue30d = (float) $revScope(Order::where('created_at', '>=', $monthAgo))->sum('total');
+        $revenueAll = (float) $revScope(Order::query())->sum('total');
         $avgOrder = $totalOrders > 0 ? $revenueAll / $totalOrders : 0;
-
-        $pending = Order::whereIn('status', ['pending', 'new', 'processing'])->count();
-        $cancelled = Order::where('status', 'cancelled')->count();
+        $revenueSpark = self::dailySeries($revScope, 'SUM(total)');
 
         // -- Каталог / склад -------------------------------------------------
         $productsTotal = Product::count();
@@ -70,6 +82,9 @@ class DashboardMetrics
         $productsOut = max(0, $productsActive - $productsInStock);
         $stockPct = $productsActive > 0 ? round($productsInStock / $productsActive * 100) : 0;
         $stockUnits = $hasInventory ? (int) DB::table('inventory')->sum('quantity') : (int) Product::sum('quantity');
+        $stockValue = $hasInventory
+            ? (float) DB::table('inventory')->join('products', 'products.id', '=', 'inventory.product_id')->sum(DB::raw('inventory.quantity * products.price'))
+            : (float) Product::sum(DB::raw('quantity * price'));
 
         $brandsCount = Brand::count();
         $categoriesCount = Category::count();
@@ -87,10 +102,15 @@ class DashboardMetrics
             $w->where('is_approved', false)->orWhereNull('is_approved')->orWhere('status', 'pending');
         }));
 
-        // -- Доставка / пошук ------------------------------------------------
+        // Заявки на дзвінок — операційна дія.
+        $cbTotal = self::tableCount('callback_requests');
+        $cbNew = self::tableCount('callback_requests', fn ($q) => $q->whereIn('status', ['new', 'pending', 'новий']));
+
+        // -- Налаштування (конфіг-здоров'я) / доставка / пошук --------------
         $warehouses = self::tableCount('merchant_warehouses', fn ($q) => $q->where('is_active', true));
         $shippingMethods = self::tableCount('shipping_methods', fn ($q) => $q->where('is_active', true));
         $paymentSystems = self::tableCount('payment_gateway_settings', fn ($q) => $q->where('is_active', true));
+        $configOk = $warehouses > 0 && $shippingMethods > 0 && $paymentSystems > 0;
         $shipments = self::tableCount('np_shipments') + self::tableCount('up_shipments');
 
         $searchTotal = self::tableCount('search_queries');
@@ -99,32 +119,38 @@ class DashboardMetrics
         $clr = fn ($n, $g = 'gray', $ok = 'success') => $n > 0 ? $ok : $g;
 
         $cards = [
+            // -- Продажі --
             ['id' => 'orders_total', 'label' => 'Усього замовлень', 'value' => self::num($totalOrders), 'sub' => $ordersToday > 0 ? "+{$ordersToday} сьогодні" : 'Сьогодні поки 0', 'icon' => 'heroicon-o-shopping-bag', 'color' => $clr($ordersToday), 'spark' => $ordersSpark],
-            ['id' => 'orders_today', 'label' => 'Замовлень сьогодні', 'value' => self::num($ordersToday), 'sub' => $ordersToday > 0 ? 'Свіжі' : 'Поки тиша', 'icon' => 'heroicon-o-shopping-cart', 'color' => $clr($ordersToday)],
-            ['id' => 'orders_7d', 'label' => 'За 7 днів', 'value' => self::num($orders7d), 'sub' => "За 30 днів: {$orders30d}", 'icon' => 'heroicon-o-calendar-days', 'color' => 'info', 'spark' => $ordersSpark],
-            ['id' => 'orders_pending', 'label' => 'Очікують обробки', 'value' => self::num($pending), 'sub' => $pending > 0 ? 'Потребують уваги' : 'Усе оброблено', 'icon' => 'heroicon-o-clock', 'color' => $pending > 0 ? 'warning' : 'success'],
-            ['id' => 'revenue_30d', 'label' => 'Виручка 30 днів', 'value' => self::money($revenue30d), 'sub' => 'Без скасованих', 'icon' => 'heroicon-o-banknotes', 'color' => 'success', 'spark' => $revenueSpark],
+            ['id' => 'orders_pending', 'label' => 'Очікують обробки', 'value' => self::num($ordersPending), 'sub' => $ordersPending > 0 ? 'Потребують уваги' : 'Усе оброблено', 'icon' => 'heroicon-o-clock', 'color' => $ordersPending > 0 ? 'warning' : 'success'],
+            ['id' => 'orders_done', 'label' => 'Виконано замовлень', 'value' => self::num($ordersDone), 'sub' => $totalOrders > 0 ? "{$donePct}% від усіх" : '—', 'icon' => 'heroicon-o-check-circle', 'color' => 'success'],
+            ['id' => 'orders_7d', 'label' => 'Замовлень за 7 днів', 'value' => self::num($orders7d), 'sub' => "За 30 днів: {$orders30d}", 'icon' => 'heroicon-o-calendar-days', 'color' => 'info', 'spark' => $ordersSpark],
+            ['id' => 'orders_payments', 'label' => 'Статуси оплати', 'value' => self::num($totalOrders), 'sub' => $totalOrders > 0 ? "Оплач. {$payPaid} · Очік. {$payPend} · Відмова {$payFail}" : 'Поки немає', 'icon' => 'heroicon-o-chart-pie', 'color' => $payFail > 0 ? 'warning' : 'gray'],
+
+            // -- Виручка --
+            ['id' => 'revenue_today', 'label' => 'Виручка сьогодні', 'value' => self::money($revenueToday), 'sub' => 'За сьогодні', 'icon' => 'heroicon-o-banknotes', 'color' => $revenueToday > 0 ? 'success' : 'gray'],
+            ['id' => 'revenue_7d', 'label' => 'Виручка 7 днів', 'value' => self::money($revenue7d), 'sub' => 'За тиждень', 'icon' => 'heroicon-o-banknotes', 'color' => 'success', 'spark' => $revenueSpark],
+            ['id' => 'revenue_30d', 'label' => 'Виручка 30 днів', 'value' => self::money($revenue30d), 'sub' => 'За місяць', 'icon' => 'heroicon-o-banknotes', 'color' => 'success', 'spark' => $revenueSpark],
             ['id' => 'revenue_all', 'label' => 'Виручка усього', 'value' => self::money($revenueAll), 'sub' => 'LTV каталогу', 'icon' => 'heroicon-o-currency-dollar', 'color' => 'primary'],
             ['id' => 'avg_order', 'label' => 'Середній чек', 'value' => self::money($avgOrder), 'sub' => 'По всіх замовленнях', 'icon' => 'heroicon-o-calculator', 'color' => 'primary'],
-            ['id' => 'orders_cancelled', 'label' => 'Скасовані', 'value' => self::num($cancelled), 'sub' => $totalOrders > 0 ? round($cancelled / max($totalOrders, 1) * 100).'% від усіх' : '—', 'icon' => 'heroicon-o-x-circle', 'color' => $cancelled > 0 ? 'danger' : 'gray'],
 
+            // -- Каталог / склад --
             ['id' => 'products_total', 'label' => 'Товарів у каталозі', 'value' => self::num($productsTotal), 'sub' => "{$productsActive} активних", 'icon' => 'heroicon-o-cube', 'color' => 'primary'],
             ['id' => 'in_stock', 'label' => 'У наявності', 'value' => "{$productsInStock} / {$productsActive}", 'sub' => "{$stockPct}% каталогу", 'icon' => 'heroicon-o-cube-transparent', 'color' => $stockPct >= 80 ? 'success' : ($stockPct >= 50 ? 'warning' : 'danger')],
             ['id' => 'out_of_stock', 'label' => 'Немає в наявності', 'value' => self::num($productsOut), 'sub' => $productsOut > 0 ? 'Поповнити' : 'Усе на місці', 'icon' => 'heroicon-o-archive-box-x-mark', 'color' => $productsOut > 0 ? 'danger' : 'success'],
             ['id' => 'low_stock', 'label' => 'Низький залишок', 'value' => self::num($productsLowStock), 'sub' => '1–5 шт.', 'icon' => 'heroicon-o-exclamation-triangle', 'color' => $productsLowStock > 0 ? 'warning' : 'gray'],
-            ['id' => 'stock_units', 'label' => 'Одиниць на складах', 'value' => self::num($stockUnits), 'sub' => 'Сумарний залишок', 'icon' => 'heroicon-o-squares-2x2', 'color' => 'info'],
+            ['id' => 'stock_value', 'label' => 'Залишок на суму', 'value' => self::money($stockValue), 'sub' => self::num($stockUnits).' одиниць', 'icon' => 'heroicon-o-scale', 'color' => 'primary'],
             ['id' => 'categories', 'label' => 'Категорій', 'value' => self::num($categoriesCount), 'sub' => "{$categoryLeaf} leaf-підкатегорій", 'icon' => 'heroicon-o-rectangle-stack', 'color' => 'gray'],
             ['id' => 'brands', 'label' => 'Брендів', 'value' => self::num($brandsCount), 'sub' => $topBrand ? "Топ: {$topBrand}" : 'Виробники', 'icon' => 'heroicon-o-bookmark', 'color' => 'gray'],
 
+            // -- Клієнти / контент / операції --
             ['id' => 'users', 'label' => 'Користувачів', 'value' => self::num($usersTotal), 'sub' => $usersNew7d > 0 ? "+{$usersNew7d} за тиждень" : 'Нових немає', 'icon' => 'heroicon-o-users', 'color' => $clr($usersNew7d)],
+            ['id' => 'callbacks', 'label' => 'Заявки на дзвінок', 'value' => self::num($cbTotal), 'sub' => $cbNew > 0 ? "{$cbNew} нових" : ($cbTotal > 0 ? 'Усі оброблені' : 'Поки немає'), 'icon' => 'heroicon-o-phone-arrow-down-left', 'color' => $cbNew > 0 ? 'warning' : 'gray'],
             ['id' => 'coupons', 'label' => 'Активних промокодів', 'value' => self::num($couponsActive), 'sub' => 'Купони у дії', 'icon' => 'heroicon-o-ticket', 'color' => 'info'],
             ['id' => 'reviews', 'label' => 'Відгуків', 'value' => self::num($reviewsTotal), 'sub' => $reviewsPending > 0 ? "{$reviewsPending} на модерації" : 'Усі оброблені', 'icon' => 'heroicon-o-star', 'color' => $reviewsPending > 0 ? 'warning' : 'gray'],
-
-            ['id' => 'warehouses', 'label' => 'Складів', 'value' => self::num($warehouses), 'sub' => 'Активних', 'icon' => 'heroicon-o-building-storefront', 'color' => 'gray'],
-            ['id' => 'shipping_methods', 'label' => 'Методів доставки', 'value' => self::num($shippingMethods), 'sub' => 'Активних', 'icon' => 'heroicon-o-truck', 'color' => $clr($shippingMethods, 'danger')],
-            ['id' => 'payment_systems', 'label' => 'Платіжних систем', 'value' => self::num($paymentSystems), 'sub' => 'Активних', 'icon' => 'heroicon-o-credit-card', 'color' => $clr($paymentSystems, 'danger')],
+            ['id' => 'config_status', 'label' => 'Доставка та оплата', 'value' => $configOk ? 'Готово' : 'Перевірте', 'sub' => "{$warehouses} склад · {$shippingMethods} методи · {$paymentSystems} платіжка", 'icon' => 'heroicon-o-cog-6-tooth', 'color' => $configOk ? 'success' : 'warning'],
             ['id' => 'shipments', 'label' => 'ТТН / відправлень', 'value' => self::num($shipments), 'sub' => 'НП + УП', 'icon' => 'heroicon-o-paper-airplane', 'color' => 'gray'],
 
+            // -- Пошук / SEO --
             ['id' => 'search_total', 'label' => 'Пошукових запитів', 'value' => self::num($searchTotal), 'sub' => 'Усього залоговано', 'icon' => 'heroicon-o-magnifying-glass', 'color' => 'info'],
             ['id' => 'search_zero', 'label' => 'Запитів без результату', 'value' => self::num($searchZero), 'sub' => $searchZero > 0 ? 'Можливості для SEO' : 'Усе знаходиться', 'icon' => 'heroicon-o-magnifying-glass-minus', 'color' => $searchZero > 0 ? 'warning' : 'success'],
         ];
