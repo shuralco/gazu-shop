@@ -12,11 +12,15 @@ class Dashboard extends BaseDashboard
 
     protected static ?string $navigationLabel = 'Головна';
 
+    // Кастомний view: зверху перетягувана сітка метрик (DashboardMetrics, 24
+    // показники, порядок у localStorage), нижче — звичайні Filament-віджети.
+    protected static string $view = 'filament.pages.gazu-dashboard';
+
     public function getWidgets(): array
     {
         return [
-            // Row 1 — 12 stat cards (full width)
-            \App\Filament\Widgets\StatsOverview::class,
+            // StatsOverview прибрано — його 12 карток замінила багатша
+            // перетягувана сітка показників у верхній частині view.
             // Row 2 — два графіки розподілу
             \App\Filament\Widgets\CatalogDistributionChart::class,
             \App\Filament\Widgets\BrandDistributionChart::class,
