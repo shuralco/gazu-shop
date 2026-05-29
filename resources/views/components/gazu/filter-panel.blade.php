@@ -212,6 +212,11 @@
                         <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center shrink-0">
                             @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
                         </span>
+                        {{-- Monogram-бейдж бренду (детермінований колір за назвою) — дає
+                             візуальний «логотип» у фільтрі без зовнішніх асетів. --}}
+                        <img src="{{ \App\Support\PartImage::monogram((string) $label, $value) }}"
+                             alt="" width="20" height="20" loading="lazy"
+                             class="w-5 h-5 rounded shrink-0 ring-1 ring-[var(--gazu-line-2)]"/>
                         <span class="flex-1">{{ $label }}</span>
                         <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $count }}</span>
                     </label>
