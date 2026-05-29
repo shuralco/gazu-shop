@@ -47,10 +47,13 @@ class AdminPanelProvider extends PanelProvider
             ->resources($this->collectModuleResources())
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages(array_merge([
+                // Лише справжні core-сторінки. ThemeSettings (theme_settings) та
+                // DemoCatalogGenerator (auto_parts_seed) — module-owned, реєструються
+                // через collectModulePages() гейтнуто по enabled(). Хардкод тут робив
+                // їх видимими навіть при вимкненому модулі + кидав би помилку при
+                // видаленні модуля (fragile cross-namespace coupling).
                 \App\Filament\Pages\Dashboard::class,
-                \App\Filament\Pages\ThemeSettings::class,
                 \App\Filament\Pages\ModuleSettings::class,
-                \App\Filament\Pages\DemoCatalogGenerator::class,
             ], $this->collectModulePages()))
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
             ->widgets(array_merge([

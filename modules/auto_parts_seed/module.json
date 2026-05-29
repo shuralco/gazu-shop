@@ -9,7 +9,9 @@
     "composer_packages": [],
     "providers": [],
     "filament_resources": [],
-    "filament_pages": [],
+    "filament_pages": [
+        "App\\Filament\\Pages\\DemoCatalogGenerator"
+    ],
     "migrations_path": "database/migrations",
     "seeders_path": "database/seeders",
     "views_path": "resources/views",

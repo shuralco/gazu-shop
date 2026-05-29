@@ -47,6 +47,11 @@ services:
       - ./modules:/var/www/html/modules
       - ./themes:/var/www/html/themes
       - ./presets:/var/www/html/presets
+      # Тести + phpunit конфіг — щоб правки тестів застосовувались без docker cp.
+      # Критично: phpunit.xml містить ізоляцію тестової БД (sqlite :memory:),
+      # tests/bootstrap.php форсує її — без bind-mount правки не доходять у контейнер.
+      - ./tests:/var/www/html/tests
+      - ./phpunit.xml:/var/www/html/phpunit.xml:ro
       - app_storage:/var/www/html/storage/app
       - app_logs:/var/www/html/storage/logs
     depends_on:
