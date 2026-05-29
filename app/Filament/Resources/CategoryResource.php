@@ -328,12 +328,16 @@ class CategoryResource extends Resource
                     ->copyable()
                     ->toggleable(isToggledHiddenByDefault: true),
 
-                Tables\Columns\TextColumn::make('products_count')
-                    ->counts('products')
-                    ->label('Товарів')
+                // Recursive product count over the whole subtree (category +
+                // all descendants). Direct ->counts('products') showed 0 for
+                // parents because products hang off leaf sub-categories.
+                // getStateUsing reads the accessor, which uses two request-
+                // static maps (no N+1). Not DB-sortable, so no ->sortable().
+                Tables\Columns\TextColumn::make('descendant_products_count')
+                    ->label('Товарів (з підкатег.)')
                     ->badge()
                     ->color(fn ($state) => $state > 0 ? 'primary' : 'gray')
-                    ->sortable(),
+                    ->getStateUsing(fn ($record) => $record->descendant_products_count),
 
                 Tables\Columns\TextColumn::make('children_count')
                     ->counts('children')
@@ -347,6 +351,7 @@ class CategoryResource extends Resource
                     ->boolean(),
 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
                     ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

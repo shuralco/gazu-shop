@@ -50,10 +50,12 @@ class FilterResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
+                    ->label('Назва')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('filter_group_id')
-                    ->numeric()
-                    ->sortable(),
+                Tables\Columns\TextColumn::make('filterGroup.title')
+                    ->label('Група фільтрів')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
                 //

@@ -139,33 +139,43 @@ class CouponResource extends Resource
                     )
                     ->sortable(),
                 Tables\Columns\TextColumn::make('minimum_amount')
+                    ->label('Мінімальна сума')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('maximum_discount')
+                    ->label('Максимальна знижка')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('usage_limit')
+                    ->label('Ліміт використань')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('used_count')
+                    ->label('Використано')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('usage_limit_per_user')
+                    ->label('Ліміт на користувача')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('Активний')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('valid_from')
+                    ->label('Дійсний з')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('valid_until')
+                    ->label('Дійсний до')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Оновлено')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

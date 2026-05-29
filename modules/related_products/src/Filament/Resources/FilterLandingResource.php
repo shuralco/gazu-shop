@@ -160,6 +160,7 @@ class FilterLandingResource extends Resource
                     ->badge()
                     ->color('primary'),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Оновлено')
                     ->dateTime('d.m.Y')
                     ->sortable()
                     ->toggleable(),

@@ -257,4 +257,50 @@ class Category extends Model
 
         return $depth;
     }
+
+    /**
+     * Recursive product count over the WHOLE subtree (this category + all
+     * descendants). Products usually hang off leaf sub-categories, so the
+     * direct `products_count` is 0 for parent nodes — this accessor walks
+     * the children tree and sums the real total.
+     *
+     * Perf: builds two request-static maps with exactly TWO queries total
+     * (one grouped product count, one parent_id -> children map), then every
+     * subsequent call is pure in-memory recursion. So rendering the admin
+     * table (up to 100 rows) costs 2 queries, not 2 per row — no N+1.
+     */
+    public function getDescendantProductsCountAttribute(): int
+    {
+        static $directCounts = null;
+        static $childrenMap = null;
+
+        if ($directCounts === null) {
+            // Direct product count per category — single grouped query.
+            $directCounts = Product::query()
+                ->selectRaw('category_id, COUNT(*) as aggregate')
+                ->whereNotNull('category_id')
+                ->groupBy('category_id')
+                ->pluck('aggregate', 'category_id')
+                ->toArray();
+
+            // parent_id -> [child ids] adjacency map — single lightweight query.
+            $childrenMap = [];
+            foreach (self::query()->get(['id', 'parent_id']) as $row) {
+                $childrenMap[(int) $row->parent_id][] = (int) $row->id;
+            }
+        }
+
+        $total = 0;
+        $stack = [(int) $this->id];
+        $guard = 0;
+        while ($stack && $guard++ < 5000) {
+            $id = array_pop($stack);
+            $total += (int) ($directCounts[$id] ?? 0);
+            foreach ($childrenMap[$id] ?? [] as $childId) {
+                $stack[] = $childId;
+            }
+        }
+
+        return $total;
+    }
 }

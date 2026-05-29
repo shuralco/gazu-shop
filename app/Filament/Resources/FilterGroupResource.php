@@ -40,6 +40,7 @@ class FilterGroupResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('title')
+                    ->label('Назва')
                     ->searchable(),
             ])
             ->filters([

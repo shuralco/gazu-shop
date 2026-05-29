@@ -36,6 +36,13 @@ foreach ($forced as $key => $value) {
     $_SERVER[$key] = $value;
 }
 
+// Сюїт стабільно тримається ~127 МБ — впритул до дефолтних 128 МБ CLI, тож
+// випадкова варіація інколи дає "Allowed memory size exhausted". Піднімаємо
+// ліміт, щоб прогін був детермінованим незалежно від php.ini контейнера.
+if ((int) ini_get('memory_limit') !== -1) {
+    ini_set('memory_limit', '512M');
+}
+
 // ОСТАННІЙ запобіжник: якщо щось досі вказує на не-тестову БД — НЕ стартуємо.
 if (($_ENV['DB_CONNECTION'] ?? null) !== 'sqlite' || ($_ENV['DB_DATABASE'] ?? null) !== ':memory:') {
     fwrite(STDERR, "\n⛔ Test bootstrap: не вдалося форснути sqlite :memory: — abort, щоб не зачепити реальну БД.\n");

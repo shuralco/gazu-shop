@@ -134,10 +134,13 @@ class UserResource extends Resource
                     ->circular()
                     ->size(40),
                 Tables\Columns\TextColumn::make('name')
+                    ->label('Імʼя')
                     ->searchable(),
                 Tables\Columns\IconColumn::make('is_admin')
+                    ->label('Адмін')
                     ->boolean(),
                 Tables\Columns\TextColumn::make('email')
+                    ->label('Email')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('customerGroup.display_name')
                     ->label('Група')
@@ -155,13 +158,16 @@ class UserResource extends Resource
                     ->label('Бали')
                     ->numeric(),
                 Tables\Columns\TextColumn::make('email_verified_at')
+                    ->label('Пошта підтверджена')
                     ->dateTime()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('Створено')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('Оновлено')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),

@@ -71,7 +71,7 @@ class CarModelResource extends Resource
                 Tables\Columns\TextColumn::make('body_type')->label('Кузов')->badge(),
                 Tables\Columns\TextColumn::make('years_range')->label('Роки'),
                 Tables\Columns\TextColumn::make('engines_count')->counts('engines')->label('Двигунів'),
-                Tables\Columns\IconColumn::make('is_active')->boolean(),
+                Tables\Columns\IconColumn::make('is_active')->label('Активна')->boolean(),
             ])
             ->defaultSort('make_id')
             ->reorderable('sort_order')

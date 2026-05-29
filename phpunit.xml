@@ -18,6 +18,9 @@
         </include>
     </source>
     <php>
+        <!-- Сюїт тримається ~127 МБ — впритул до дефолтних 128 МБ, інколи OOM.
+             Піднімаємо ліміт для детермінованого прогону. -->
+        <ini name="memory_limit" value="512M"/>
         <!-- force="true" КРИТИЧНО: контейнер задає DB_CONNECTION=mysql / DB_DATABASE=gazu_shop
              як OS-env (docker-compose). Без force="true" phpunit НЕ перекриває вже-встановлені
              OS-змінні → тести з RefreshDatabase зносять РЕАЛЬНУ dev-БД (інцидент 2026-05-29).
