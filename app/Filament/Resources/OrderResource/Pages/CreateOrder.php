@@ -19,17 +19,34 @@ class CreateOrder extends CreateRecord
 
     protected function autoCreateAndRedirect(): void
     {
-        // Створюємо порожнє замовлення з мінімальними даними
-        $order = \App\Models\Order::create([
-            'first_name' => 'Новий',
-            'last_name' => 'Клієнт',
-            'email' => 'temp@example.com',
-            'phone' => '',
-            'status' => 'pending',
-            'total' => 0,
-            'shipping_cost' => 0,
-            'shipping_data' => json_encode([]),
-        ]);
+        // OrderResource має RelationManagers (товари, ТТН), які потребують вже
+        // persisted-запис — тому форму «Створити» реалізовано як create-then-edit.
+        // Побічний ефект: кожне відкриття плодило порожній draft. Тому спершу
+        // ПЕРЕВИКОРИСТОВУЄМО останній кинутий порожній draft цього адміна
+        // (pending, total=0, без товарів) — це обмежує засмічення одним записом.
+        $order = \App\Models\Order::query()
+            ->where('status', 'pending')
+            ->where('total', 0)
+            ->where(function ($w) {
+                $w->whereNull('user_id')
+                  ->orWhere('user_id', \Illuminate\Support\Facades\Auth::id());
+            })
+            ->whereDoesntHave('orderProducts')
+            ->latest('id')
+            ->first();
+
+        if (! $order) {
+            $order = \App\Models\Order::create([
+                'first_name' => 'Новий',
+                'last_name' => 'Клієнт',
+                'email' => 'temp@example.com',
+                'phone' => '',
+                'status' => 'pending',
+                'total' => 0,
+                'shipping_cost' => 0,
+                'shipping_data' => json_encode([]),
+            ]);
+        }
 
         // Перенаправляємо на редагування
         $this->redirect($this->getResource()::getUrl('edit', ['record' => $order]));

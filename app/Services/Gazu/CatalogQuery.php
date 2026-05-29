@@ -311,13 +311,22 @@ class CatalogQuery
             mb_convert_case($term, MB_CASE_TITLE),
         ])));
 
-        return $q->where(function ($w) use ($variants) {
+        // Колоквіальні/росіянізм синоніми (масло→олив, тормоз→гальм, ...) —
+        // інакше LIKE '%масло%' = 0, бо каталог зве товар «оливний».
+        $synonyms = \App\Support\SearchSynonyms::expand($term);
+
+        return $q->where(function ($w) use ($variants, $synonyms) {
             foreach ($variants as $v) {
                 $like = '%'.$v.'%';
                 $w->orWhere('sku', 'like', $like)
                   ->orWhere('barcode', 'like', $like)
                   ->orWhere('manufacturer', 'like', $like)
                   ->orWhere('title', 'like', $like)
+                  ->orWhere('search_tags', 'like', $like);
+            }
+            foreach ($synonyms as $s) {
+                $like = '%'.$s.'%';
+                $w->orWhere('title', 'like', $like)
                   ->orWhere('search_tags', 'like', $like);
             }
         });

@@ -1148,7 +1148,10 @@ class StoreController extends Controller
             mb_convert_case($q, MB_CASE_TITLE),
         ])));
 
-        $searchClosure = function ($w) use ($variants, $qNormalized, $q) {
+        // Колоквіальні/росіянізм синоніми (масло→олив, тормоз→гальм, ...).
+        $synonyms = \App\Support\SearchSynonyms::expand($q);
+
+        $searchClosure = function ($w) use ($variants, $synonyms, $qNormalized, $q) {
             foreach ($variants as $v) {
                 $like = '%'.$v.'%';
                 $w->orWhere('sku', 'like', $like)
@@ -1156,6 +1159,11 @@ class StoreController extends Controller
                   ->orWhere('manufacturer', 'like', $like)
                   ->orWhere('title', 'like', $like)
                   ->orWhere('analogs', 'like', $like)
+                  ->orWhere('search_tags', 'like', $like);
+            }
+            foreach ($synonyms as $s) {
+                $like = '%'.$s.'%';
+                $w->orWhere('title', 'like', $like)
                   ->orWhere('search_tags', 'like', $like);
             }
             // Normalized SKU search (без separators) — knows 06A115561B == "06A 115 561 B"
