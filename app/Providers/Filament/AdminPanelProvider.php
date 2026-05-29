@@ -74,8 +74,11 @@ class AdminPanelProvider extends PanelProvider
                 Authenticate::class,
             ])
             ->plugins([
+                // Активні локалі залежать від преміум-модуля multilang:
+                // вимкнено → лише дефолтна мова (без перемикача мов у формах),
+                // увімкнено → усі app.available_locales (uk, en, ...).
                 \Filament\SpatieLaravelTranslatablePlugin::make()
-                    ->defaultLocales(['uk', 'en']),
+                    ->defaultLocales(\App\Support\Locales::active()),
             ])
             // Inject JS that auto-recovers from stale Livewire snapshots.
             // If Livewire requests a component name that no longer exists

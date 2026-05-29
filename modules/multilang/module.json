@@ -1,0 +1,32 @@
+{
+    "name": "multilang",
+    "label": "Мультимовність (Преміум)",
+    "description": "Багатомовний storefront: перемикач мов у шапці, локалізація контенту (товари/категорії/бренди/сторінки), керування перекладами в адмінці. Платний модуль — увімкнено лише для клієнтів, що придбали функціонал. Коли вимкнено — сайт працює однією (дефолтною) мовою.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+
+    "premium": true,
+    "pricing": {
+        "type": "paid",
+        "price": 1500,
+        "currency": "UAH",
+        "billing": "one_time"
+    },
+
+    "requires_modules": [],
+    "composer_packages": [],
+
+    "providers": [
+        "Modules\\Multilang\\MultilangServiceProvider"
+    ],
+
+    "filament_resources": [],
+    "filament_pages": [],
+
+    "views_path": "resources/views",
+    "views_namespace": "multilang",
+
+    "enabled_by_default": true
+}

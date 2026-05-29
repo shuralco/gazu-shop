@@ -54,6 +54,9 @@
         @foreach($links as $link)
             <a wire:navigate href="{{ $link['url'] }}" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-white">{{ $link['label'] }}</a>
         @endforeach
-        {{-- Language switcher hidden: проєкт зараз UA-only --}}
+        {{-- Перемикач мов: рендериться лише коли увімкнено преміум-модуль
+             multilang (його view-namespace реєструється тільки для enabled-модуля,
+             тож @includeIf тихо нічого не виводить, коли модуль вимкнено). --}}
+        @includeIf('multilang::switcher')
     </div>
 </div>
