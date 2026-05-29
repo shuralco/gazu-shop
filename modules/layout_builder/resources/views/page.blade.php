@@ -8,7 +8,7 @@
                     <li><code>layout.home.top</code> — верх головної</li>
                     <li><code>layout.home.bottom</code> — низ головної</li>
                     <li><code>layout.product.sidebar</code> — сайдбар картки товару</li>
-                    <li>Дані зберігаються у <code>layout_blocks</code>, рендеряться через <code>@hookAction</code> у темі</li>
+                    <li>Дані зберігаються у <code>layout_blocks</code>, рендеряться через <code>&#64;hookAction</code> у темі</li>
                 </ul>
             </div>
         </div>

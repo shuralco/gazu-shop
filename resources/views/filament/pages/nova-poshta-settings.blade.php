@@ -24,13 +24,22 @@
                             <span class="inline-block w-1.5 h-1.5 rounded-full {{ $sc['dot'] }}"></span>
                             {{ $module['message'] }}
                         </span>
+                        @php
+                            $allModulesUrl = \Illuminate\Support\Facades\Route::has('filament.admin.pages.modules')
+                                ? route('filament.admin.pages.modules')
+                                : (\Illuminate\Support\Facades\Route::has('filament.admin.pages.integrations-page')
+                                    ? route('filament.admin.pages.integrations-page')
+                                    : null);
+                        @endphp
+                        @if($allModulesUrl)
                         <a
-                            href="{{ route('filament.admin.pages.integrations-page') }}"
+                            href="{{ $allModulesUrl }}"
                             wire:navigate
                             class="text-xs text-gray-500 hover:text-primary-600 dark:text-gray-400 dark:hover:text-primary-400 underline"
                         >
                             ← Усі модулі
                         </a>
+                        @endif
                     </div>
                 </div>
             </div>

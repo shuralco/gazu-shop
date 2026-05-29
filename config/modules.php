@@ -239,10 +239,13 @@ return [
         'requires' => [],
     ],
 
-    'integrations_panel' => [
+    // Key must match the module directory/manifest name ('integrations') so the
+    // ModuleManager waterfall actually controls it. Legacy MODULE_INTEGRATIONS_PANEL
+    // env still honoured as a fallback for existing deploys.
+    'integrations' => [
         'name' => 'Інтеграції (загальна панель)',
         'description' => 'IntegrationsPage + IntegrationConfigPage — список 3rd-party інтеграцій.',
-        'enabled' => env('MODULE_INTEGRATIONS_PANEL', true),
+        'enabled' => env('MODULE_INTEGRATIONS', env('MODULE_INTEGRATIONS_PANEL', true)),
         'requires' => [],
     ],
 
