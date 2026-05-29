@@ -72,6 +72,9 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
+                // Runtime-guard: 404 для сторінок/ресурсів вимкнених модулів
+                // навіть якщо кеш компонентів застарів (див. middleware-док).
+                \App\Http\Middleware\EnsureModuleEnabled::class,
             ])
             ->plugins([
                 // Активні локалі залежать від преміум-модуля multilang:
