@@ -665,10 +665,88 @@ class ProductResource extends Resource
                                             ->label('Авто')
                                             ->schema([
                                                 Forms\Components\Grid::make(4)->schema([
-                                                    Forms\Components\TextInput::make('make')->label('Марка')->placeholder('Volkswagen')->required(),
-                                                    Forms\Components\TextInput::make('model')->label('Модель')->placeholder('Passat B8')->required(),
-                                                    Forms\Components\TextInput::make('years')->label('Роки')->placeholder('2014–2024'),
-                                                    Forms\Components\TextInput::make('engine')->label('Двигун')->placeholder('2.0 TDI'),
+                                                    // Марка — з car_makes (пошук). live → каскадить модель.
+                                                    Forms\Components\Select::make('make')
+                                                        ->label('Марка')
+                                                        ->options(function (Forms\Get $get) {
+                                                            $opts = \App\Models\CarMake::query()->where('is_active', true)
+                                                                ->orderBy('sort_order')->orderBy('name')->pluck('name', 'name')->all();
+                                                            $cur = $get('make'); // зберегти наявне значення (навіть поза каталогом)
+                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
+                                                            return $opts;
+                                                        })
+                                                        ->searchable()
+                                                        ->live()
+                                                        ->afterStateUpdated(function (Forms\Set $set) {
+                                                            $set('model', null);
+                                                            $set('years', null);
+                                                            $set('engine', null);
+                                                        })
+                                                        ->required(),
+                                                    // Модель — car_models відфільтровані за обраною маркою.
+                                                    Forms\Components\Select::make('model')
+                                                        ->label('Модель')
+                                                        ->options(function (Forms\Get $get) {
+                                                            $make = $get('make');
+                                                            $opts = $make
+                                                                ? \App\Models\CarModel::query()->where('is_active', true)
+                                                                    ->whereHas('make', fn ($q) => $q->where('name', $make))
+                                                                    ->orderBy('sort_order')->orderBy('name')->pluck('name', 'name')->all()
+                                                                : [];
+                                                            $cur = $get('model');
+                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
+                                                            return $opts;
+                                                        })
+                                                        ->searchable()
+                                                        ->live()
+                                                        ->afterStateUpdated(function (Forms\Get $get, Forms\Set $set) {
+                                                            $model = \App\Models\CarModel::query()
+                                                                ->whereHas('make', fn ($q) => $q->where('name', $get('make')))
+                                                                ->where('name', $get('model'))->first();
+                                                            $set('years', $model?->years_range); // авто-підказка років з БД
+                                                            $set('engine', null);
+                                                        })
+                                                        ->placeholder('Спершу оберіть марку')
+                                                        ->required(),
+                                                    // Роки — діапазон моделі з car_models.years_range + окремі роки.
+                                                    Forms\Components\Select::make('years')
+                                                        ->label('Роки')
+                                                        ->options(function (Forms\Get $get) {
+                                                            $model = \App\Models\CarModel::query()
+                                                                ->whereHas('make', fn ($q) => $q->where('name', $get('make')))
+                                                                ->where('name', $get('model'))->first();
+                                                            $opts = [];
+                                                            if ($range = $model?->years_range) {
+                                                                $opts[$range] = $range; // повний діапазон моделі
+                                                                if (preg_match('/(\d{4})\D+(\d{4})?/', $range, $mm)) {
+                                                                    $from = (int) $mm[1];
+                                                                    $to = (int) ($mm[2] ?: date('Y'));
+                                                                    for ($y = $from; $y <= $to && $y <= 2035; $y++) $opts[(string) $y] = (string) $y;
+                                                                }
+                                                            }
+                                                            $cur = $get('years');
+                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
+                                                            return $opts;
+                                                        })
+                                                        ->searchable()
+                                                        ->placeholder('Оберіть модель'),
+                                                    // Двигун — car_engines обраної моделі.
+                                                    Forms\Components\Select::make('engine')
+                                                        ->label('Двигун')
+                                                        ->options(function (Forms\Get $get) {
+                                                            $model = \App\Models\CarModel::query()
+                                                                ->whereHas('make', fn ($q) => $q->where('name', $get('make')))
+                                                                ->where('name', $get('model'))->first();
+                                                            $opts = $model
+                                                                ? \App\Models\CarEngine::query()->where('model_id', $model->id)
+                                                                    ->where('is_active', true)->orderBy('sort_order')->pluck('label', 'label')->all()
+                                                                : [];
+                                                            $cur = $get('engine');
+                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
+                                                            return $opts;
+                                                        })
+                                                        ->searchable()
+                                                        ->placeholder('Оберіть модель'),
                                                 ]),
                                             ])
                                             ->itemLabel(fn (array $state) => trim(($state['make'] ?? '').' '.($state['model'] ?? '').' '.($state['years'] ?? '')))
