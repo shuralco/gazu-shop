@@ -220,6 +220,11 @@ class ModuleSettings extends Page
         Artisan::call('responsecache:clear');
         Artisan::call('view:clear');
         Artisan::call('route:clear');
+        // CRITICAL: перебудувати кеш Filament-компонентів. Без цього вимкнений
+        // модуль ЛИШАЄТЬСЯ в адмін-навігації (його Resources/Pages залишаються
+        // у закешованому bootstrap/cache/filament/panels/*). filament:cache-components
+        // перезапускає collectModuleClasses() який гейтить по enabled().
+        $this->rebuildFilamentCache();
 
         // Build notification body with what happened
         $bodyParts = [];
@@ -315,6 +320,7 @@ class ModuleSettings extends Page
         ]);
 
         ModuleManager::clearCache();
+        $this->rebuildFilamentCache();
 
         $this->installZip = null;
         $this->installForce = false;
@@ -352,6 +358,7 @@ class ModuleSettings extends Page
             'tables_dropped' => $report['tables_dropped'] ?? null,
         ]);
         ModuleManager::clearCache();
+        $this->rebuildFilamentCache();
 
         Notification::make()
             ->title($purge ? "✓ Повністю видалено «{$key}»" : "✓ Папку модуля «{$key}» видалено")
@@ -382,6 +389,29 @@ class ModuleSettings extends Page
         }
 
         return response()->download($archive, basename($archive))->deleteFileAfterSend();
+    }
+
+    /**
+     * Перебудувати кеш Filament-панелі після зміни складу модулів.
+     *
+     * Filament кешує зареєстровані Resources/Pages/навігацію у
+     * bootstrap/cache/filament/panels/*. Поки цей кеш є, він має пріоритет
+     * над живою реєстрацією → вимкнений модуль ЛИШАЄТЬСЯ в сайдбарі адмінки.
+     * Спершу чистимо старий кеш, потім будуємо заново (collectModuleClasses
+     * гейтить по enabled() → новий кеш відображає актуальний стан).
+     */
+    private function rebuildFilamentCache(): void
+    {
+        try {
+            Artisan::call('filament:clear-cached-components');
+        } catch (\Throwable $e) {
+            // команда може бути відсутня у деяких версіях — не критично
+        }
+        try {
+            Artisan::call('filament:cache-components');
+        } catch (\Throwable $e) {
+            \Log::warning('[ModuleSettings] filament:cache-components failed: '.$e->getMessage());
+        }
     }
 
     public function saveModuleSettings(string $key): void

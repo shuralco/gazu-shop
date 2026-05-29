@@ -198,6 +198,10 @@ class ModuleDetail extends Page
         Artisan::call('responsecache:clear');
         Artisan::call('view:clear');
         Artisan::call('route:clear');
+        // Перебудувати кеш Filament-панелі — інакше вимкнений модуль лишається
+        // у сайдбарі (закешовані Resources/Pages). Див. ModuleSettings::rebuildFilamentCache.
+        try { Artisan::call('filament:clear-cached-components'); } catch (\Throwable $e) {}
+        try { Artisan::call('filament:cache-components'); } catch (\Throwable $e) {}
 
         $body = [];
         if (! empty($report['actions'])) $body[] = 'Hooks: '.implode(', ', $report['actions']);
