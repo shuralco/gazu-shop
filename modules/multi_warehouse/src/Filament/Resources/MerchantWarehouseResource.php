@@ -73,6 +73,11 @@ class MerchantWarehouseResource extends Resource
                                     ->email(),
                             ]),
                             Forms\Components\Grid::make(4)->schema([
+                                Forms\Components\Select::make('status')
+                                    ->label('Статус складу')
+                                    ->options(fn () => \App\Models\WarehouseStatus::options())
+                                    ->default(fn () => \App\Models\WarehouseStatus::defaultKey())
+                                    ->helperText('Кастомні статуси — у «Доставка та оплата → Статуси складів»'),
                                 Forms\Components\Toggle::make('is_active')
                                     ->label('Активний')
                                     ->default(true),
@@ -218,6 +223,10 @@ class MerchantWarehouseResource extends Resource
                     ->color('info')
                     ->toggleable(),
                 Tables\Columns\IconColumn::make('is_default')->label('Default')->boolean(),
+                Tables\Columns\TextColumn::make('status')->label('Статус')->badge()
+                    ->formatStateUsing(fn (?string $state): string => \App\Models\WarehouseStatus::options()[$state] ?? ($state ?: '—'))
+                    ->color(fn (?string $state): string => \App\Models\WarehouseStatus::colors()[$state] ?? 'gray')
+                    ->icon(fn (?string $state): ?string => \App\Models\WarehouseStatus::icons()[$state] ?? null),
                 Tables\Columns\IconColumn::make('is_active')->label('Активний')->boolean()->sortable(),
                 Tables\Columns\TextColumn::make('inventory_count')
                     ->label('SKU')

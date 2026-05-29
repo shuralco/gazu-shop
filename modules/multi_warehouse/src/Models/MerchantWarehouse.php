@@ -35,6 +35,7 @@ class MerchantWarehouse extends Model
         'shipping_cost',
         'free_shipping_threshold',
         'is_active',
+        'status',
         'is_default',
         'pickup_supported',
         'sort_order',
