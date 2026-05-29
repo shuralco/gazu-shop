@@ -26,6 +26,20 @@ class ShopSettingsResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+    /**
+     * Дубль-сторінка: усі її поля (shop_name/email/phone/address/meta_*)
+     * повторюють канонічну ShopSettings Page (/admin/store-configuration),
+     * але писали в окрему таблицю shop_settings (storefront її майже не читає —
+     * усе живе у display_settings). Вкладки «Безпека»/«Товари» — нефункціональні
+     * toggle'и. Тому прибираємо дубль із меню; таблиця shop_settings та її
+     * нечисленні читачі (helper/integration/error_pages) лишаються недоторканими.
+     * Єдиний хаб налаштувань тепер — ShopSettings Page у групі «Налаштування».
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public static function form(Form $form): Form
     {
         return $form
