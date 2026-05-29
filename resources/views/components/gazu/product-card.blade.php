@@ -1,4 +1,4 @@
-@props(['p', 'compact' => false])
+@props(['p', 'compact' => false, 'eager' => false])
 @php
     // $p — Product модель або mock-об'єкт/array з overlay-полями
     $name = is_object($p) ? ($p->name ?? '') : ($p['name'] ?? '');
@@ -73,7 +73,7 @@
          На hover показуємо альтернативний variant SVG part-image (другий "ракурс"). --}}
     <a wire:navigate href="{{ $url }}" class="aspect-square block no-underline relative overflow-hidden rounded-t-lg group/img">
         <div class="absolute inset-0 flex items-center justify-center bg-white transition-opacity duration-300 group-hover/img:opacity-0">
-            <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
+            <x-gazu.part-image kind="{{ $image }}" :seed="$productId" :eager="$eager" fit/>
         </div>
         <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-paper)] opacity-0 transition-opacity duration-300 group-hover/img:opacity-100">
             <x-gazu.part-image kind="{{ $image }}" :seed="($productId ?? 0) + 7777" fit/>

@@ -45,7 +45,7 @@
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach($products as $p)
-            <x-gazu.product-card :p="$p" :compact="true"/>
+            <x-gazu.product-card :p="$p" :compact="true" :eager="$loop->index < 4"/>
         @endforeach
     </div>
 </div>

@@ -199,7 +199,7 @@
                 @else
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 mt-4 gazu-stagger">
                         @foreach($products as $p)
-                            <x-gazu.product-card :p="$p" :compact="true"/>
+                            <x-gazu.product-card :p="$p" :compact="true" :eager="$loop->index < 4"/>
                         @endforeach
                     </div>
                     <x-gazu.pagination :paginator="$paginator"/>

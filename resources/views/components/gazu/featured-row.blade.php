@@ -16,7 +16,7 @@
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3.5 sm:gap-4">
         @foreach($items as $p)
-            <x-gazu.product-card :p="$p"/>
+            <x-gazu.product-card :p="$p" :eager="$loop->index < 2"/>
         @endforeach
     </div>
 </section>

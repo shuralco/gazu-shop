@@ -1,4 +1,12 @@
-@props(['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null, 'title' => null])
+@props(['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null, 'title' => null, 'eager' => false])
+@php
+    // eager=true для above-the-fold карток (перший ряд каталогу/головної):
+    // native loading="lazy" відкладав навіть видимі картинки → на першому екрані
+    // вони були порожні до скролу («картинок у фільтрації немає»). Перший ряд
+    // вантажимо одразу + fetchpriority=high.
+    $imgLoading = $eager ? 'eager' : 'lazy';
+    $imgPriority = $eager ? 'high' : 'auto';
+@endphp
 @php
     // Real demo photos (Pexels) take priority over the vector illustration.
     // Priority: per-kind pool (public/img/parts/<kind>/NN.webp) → single file
@@ -21,10 +29,10 @@
 @endphp
 @if($partPhoto)
     @if($fit)
-        <img src="{{ $partPhoto }}" alt="{{ $kind }}" loading="lazy" decoding="async"
+        <img src="{{ $partPhoto }}" alt="{{ $kind }}" loading="{{ $imgLoading }}" fetchpriority="{{ $imgPriority }}" decoding="async"
              {{ $attributes->merge(['class' => 'block w-full h-full object-cover']) }}>
     @else
-        <img src="{{ $partPhoto }}" alt="{{ $kind }}" loading="lazy" decoding="async"
+        <img src="{{ $partPhoto }}" alt="{{ $kind }}" loading="{{ $imgLoading }}" fetchpriority="{{ $imgPriority }}" decoding="async"
              width="{{ $size }}" height="{{ $size }}"
              {{ $attributes->merge(['class' => 'block object-cover']) }}>
     @endif
@@ -34,10 +42,10 @@
         $monogramUrl = \App\Support\PartImage::monogram((string) $title, $seed);
     @endphp
     @if($fit)
-        <img src="{{ $monogramUrl }}" alt="{{ $title }}" loading="lazy" decoding="async"
+        <img src="{{ $monogramUrl }}" alt="{{ $title }}" loading="{{ $imgLoading }}" fetchpriority="{{ $imgPriority }}" decoding="async"
              {{ $attributes->merge(['class' => 'block w-full h-full object-cover']) }}>
     @else
-        <img src="{{ $monogramUrl }}" alt="{{ $title }}" loading="lazy" decoding="async"
+        <img src="{{ $monogramUrl }}" alt="{{ $title }}" loading="{{ $imgLoading }}" fetchpriority="{{ $imgPriority }}" decoding="async"
              width="{{ $size }}" height="{{ $size }}"
              {{ $attributes->merge(['class' => 'block object-cover']) }}>
     @endif
