@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
-         bootstrap="vendor/autoload.php"
+         bootstrap="tests/bootstrap.php"
          colors="true"
          cacheDirectory=".phpunit.cache">
     <testsuites>
@@ -18,19 +18,25 @@
         </include>
     </source>
     <php>
-        <env name="APP_ENV" value="testing"/>
-        <env name="APP_KEY" value="base64:KPJfCB7vJURV8ZS9AE8BVvMTh5bg2YICfQZfDxnLNtE="/>
-        <env name="BCRYPT_ROUNDS" value="4"/>
-        <env name="CACHE_STORE" value="array"/>
-        <env name="RESPONSE_CACHE_DRIVER" value="array"/>
-        <env name="RESPONSE_CACHE_ENABLED" value="false"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
-        <env name="MAIL_MAILER" value="array"/>
-        <env name="PULSE_ENABLED" value="false"/>
-        <env name="QUEUE_CONNECTION" value="sync"/>
-        <env name="SESSION_DRIVER" value="array"/>
-        <env name="SCOUT_DRIVER" value="null"/>
-        <env name="TELESCOPE_ENABLED" value="false"/>
+        <!-- force="true" КРИТИЧНО: контейнер задає DB_CONNECTION=mysql / DB_DATABASE=gazu_shop
+             як OS-env (docker-compose). Без force="true" phpunit НЕ перекриває вже-встановлені
+             OS-змінні → тести з RefreshDatabase зносять РЕАЛЬНУ dev-БД (інцидент 2026-05-29).
+             force=true гарантує що тести завжди йдуть на ізольований sqlite :memory:. -->
+        <env name="APP_ENV" value="testing" force="true"/>
+        <env name="APP_KEY" value="base64:KPJfCB7vJURV8ZS9AE8BVvMTh5bg2YICfQZfDxnLNtE=" force="true"/>
+        <env name="BCRYPT_ROUNDS" value="4" force="true"/>
+        <env name="CACHE_STORE" value="array" force="true"/>
+        <env name="RESPONSE_CACHE_DRIVER" value="array" force="true"/>
+        <env name="RESPONSE_CACHE_ENABLED" value="false" force="true"/>
+        <env name="DB_CONNECTION" value="sqlite" force="true"/>
+        <env name="DB_DATABASE" value=":memory:" force="true"/>
+        <env name="DB_HOST" value="127.0.0.1" force="true"/>
+        <env name="MAIL_MAILER" value="array" force="true"/>
+        <env name="PULSE_ENABLED" value="false" force="true"/>
+        <env name="QUEUE_CONNECTION" value="sync" force="true"/>
+        <env name="SESSION_DRIVER" value="array" force="true"/>
+        <env name="SCOUT_DRIVER" value="null" force="true"/>
+        <env name="TELESCOPE_ENABLED" value="false" force="true"/>
+        <env name="REDIS_HOST" value="127.0.0.1" force="true"/>
     </php>
 </phpunit>
