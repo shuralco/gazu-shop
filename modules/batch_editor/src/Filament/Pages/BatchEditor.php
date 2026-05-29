@@ -28,6 +28,10 @@ class BatchEditor extends Page
 
     protected static string $view = 'filament.pages.batch-editor';
 
+    // Spreadsheet-стиль редактор — повна ширина контенту (без дефолтного
+    // 7xl/screen-2xl обмеження, що лишало порожнечу по боках).
+    protected ?string $maxContentWidth = 'full';
+
     // Filters
     public ?int $filterCategory = null;
     public ?int $filterBrand = null;
