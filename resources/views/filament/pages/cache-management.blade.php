@@ -3,7 +3,7 @@
 
     <div class="space-y-6">
         {{-- Live system status --}}
-        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        <div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fill,minmax(150px,1fr))">
             @php
                 // color → Filament badge palette (green→success, red→danger, gray→gray)
                 $cards = [
@@ -35,9 +35,9 @@
             <x-slot name="description">Усі response cache і application cache зберігаються тут.</x-slot>
 
             @if (isset($stats['redis']['error']))
-                <div class="text-red-600 text-sm">Помилка з'єднання: {{ $stats['redis']['error'] }}</div>
+                <div class="text-danger-600 text-sm">Помилка з'єднання: {{ $stats['redis']['error'] }}</div>
             @else
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                <div class="text-sm" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
                     <div>
                         <div class="text-gray-500">Використано пам'яті</div>
                         <div class="font-semibold text-base">{{ $stats['redis']['used_memory_human'] ?? '—' }}</div>
@@ -67,7 +67,7 @@
                     @foreach (session('cache_logs', []) as $log)
                         <div class="mb-1.5 flex items-start gap-2">
                             <span class="text-gray-400 shrink-0">[{{ $log['time'] }}]</span>
-                            <span class="text-blue-600 dark:text-blue-400 font-semibold shrink-0">{{ $log['action'] }}</span>
+                            <span class="text-info-600 dark:text-info-400 font-semibold shrink-0">{{ $log['action'] }}</span>
                             <span class="text-gray-700 dark:text-gray-300">— {{ $log['details'] }}</span>
                         </div>
                     @endforeach

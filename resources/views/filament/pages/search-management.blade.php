@@ -22,7 +22,7 @@
                 @if ($tab === 'zero_results')
                     @php $zeroCount = \App\Models\SearchQuery::where('results_count', 0)->count(); @endphp
                     @if ($zeroCount > 0)
-                        <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                        <span class="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-danger-500 rounded-full">
                             {{ $zeroCount > 99 ? '99+' : $zeroCount }}
                         </span>
                     @endif
@@ -35,11 +35,11 @@
     @if ($activeTab === 'analytics')
         {{-- Stats Cards --}}
         @php $stats = $this->analyticsStats; @endphp
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="mb-6" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
             <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="rounded-lg bg-blue-50 dark:bg-blue-500/10 p-2.5">
-                        <x-heroicon-o-magnifying-glass class="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <div class="rounded-lg bg-primary-50 dark:bg-primary-500/10 p-2.5">
+                        <x-heroicon-o-magnifying-glass class="w-5 h-5 text-primary-600 dark:text-primary-400" />
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Всього пошуків</p>
@@ -50,8 +50,8 @@
 
             <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="rounded-lg bg-purple-50 dark:bg-purple-500/10 p-2.5">
-                        <x-heroicon-o-list-bullet class="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <div class="rounded-lg bg-info-50 dark:bg-info-500/10 p-2.5">
+                        <x-heroicon-o-list-bullet class="w-5 h-5 text-info-600 dark:text-info-400" />
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Унікальних запитів</p>
@@ -62,8 +62,8 @@
 
             <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="rounded-lg bg-red-50 dark:bg-red-500/10 p-2.5">
-                        <x-heroicon-o-x-circle class="w-5 h-5 text-red-600 dark:text-red-400" />
+                    <div class="rounded-lg bg-danger-50 dark:bg-danger-500/10 p-2.5">
+                        <x-heroicon-o-x-circle class="w-5 h-5 text-danger-600 dark:text-danger-400" />
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Без результатів</p>
@@ -74,8 +74,8 @@
 
             <div class="rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <div class="flex items-center gap-3">
-                    <div class="rounded-lg bg-green-50 dark:bg-green-500/10 p-2.5">
-                        <x-heroicon-o-cursor-arrow-rays class="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <div class="rounded-lg bg-success-50 dark:bg-success-500/10 p-2.5">
+                        <x-heroicon-o-cursor-arrow-rays class="w-5 h-5 text-success-600 dark:text-success-400" />
                     </div>
                     <div>
                         <p class="text-sm text-gray-500 dark:text-gray-400">Середній CTR</p>
@@ -117,16 +117,16 @@
                                 <input
                                     type="text"
                                     wire:model.defer="synonymGroups.{{ $index }}.main_word"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                    class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"
                                     placeholder="наприклад: ноутбук"
                                 >
                             </div>
-                            <div class="flex-1">
+                            <div style="flex:1 1 0%">
                                 <label class="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1">Синоніми (через кому)</label>
                                 <input
                                     type="text"
                                     wire:model.defer="synonymGroups.{{ $index }}.synonyms"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"
+                                    class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"
                                     placeholder="наприклад: ноут, лептоп, laptop, нотбук"
                                 >
                             </div>
@@ -180,7 +180,7 @@
                 <textarea
                     wire:model.defer="stopWordsText"
                     rows="15"
-                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500 font-mono"
+                    class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10 font-mono"
                     placeholder="і&#10;в&#10;на&#10;з&#10;до"
                 ></textarea>
 
@@ -210,16 +210,16 @@
             {{-- Meilisearch Status --}}
             <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Статус Meilisearch</h3>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
                     <div>
                         <p class="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">Статус</p>
                         <p class="mt-1 flex items-center gap-2">
                             @if ($msInfo['connected'])
-                                <span class="w-2.5 h-2.5 rounded-full bg-green-500"></span>
-                                <span class="text-sm font-medium text-green-600 dark:text-green-400">{{ $msInfo['status'] }}</span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-success-500"></span>
+                                <span class="text-sm font-medium text-success-600 dark:text-success-400">{{ $msInfo['status'] }}</span>
                             @else
-                                <span class="w-2.5 h-2.5 rounded-full bg-red-500"></span>
-                                <span class="text-sm font-medium text-red-600 dark:text-red-400">{{ $msInfo['status'] }}</span>
+                                <span class="w-2.5 h-2.5 rounded-full bg-danger-500"></span>
+                                <span class="text-sm font-medium text-danger-600 dark:text-danger-400">{{ $msInfo['status'] }}</span>
                             @endif
                         </p>
                     </div>
@@ -240,15 +240,20 @@
                 </div>
 
                 @if (!$msInfo['connected'] && isset($msInfo['error']))
-                    <div class="mt-4 p-3 rounded-lg bg-red-50 dark:bg-red-500/10 text-sm text-red-700 dark:text-red-300">
-                        <strong>Помилка:</strong> {{ $msInfo['error'] }}
+                    <div class="mt-4">
+                        <x-filament::section icon="heroicon-o-exclamation-circle" icon-color="danger">
+                            <x-slot name="heading">Помилка</x-slot>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">{{ $msInfo['error'] }}</p>
+                        </x-filament::section>
                     </div>
                 @endif
 
                 @if ($msInfo['is_indexing'])
-                    <div class="mt-4 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-500/10 text-sm text-yellow-700 dark:text-yellow-300 flex items-center gap-2">
-                        <x-heroicon-o-arrow-path class="w-5 h-5 animate-spin" />
-                        Індексація в процесі...
+                    <div class="mt-4">
+                        <x-filament::section icon="heroicon-o-arrow-path" icon-color="warning">
+                            <x-slot name="heading">Індексація в процесі...</x-slot>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Зачекайте завершення індексації.</p>
+                        </x-filament::section>
                     </div>
                 @endif
             </div>
@@ -263,7 +268,7 @@
                     @foreach ($searchableAttrs as $i => $attr)
                         <div class="flex items-center gap-2 p-2.5 rounded-lg bg-gray-50 dark:bg-gray-800 group">
                             <span class="text-xs font-mono text-gray-400 w-6 text-right">{{ $i + 1 }}.</span>
-                            <span class="text-sm font-medium text-gray-900 dark:text-white flex-1">{{ $attr }}</span>
+                            <span class="text-sm font-medium text-gray-900 dark:text-white" style="flex:1 1 0%">{{ $attr }}</span>
                             <div class="flex gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
                                 <span @class(['invisible' => $i === 0])>
                                     <x-filament::icon-button icon="heroicon-m-chevron-up" wire:click="moveAttrUp({{ $i }})" color="gray" size="sm" label="Вгору" />
@@ -296,7 +301,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">
                     Увімкніть атрибути за якими можна фільтрувати результати пошуку.
                 </p>
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                <div style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fit,minmax(140px,1fr))">
                     @foreach ($allFilterableOptions as $attr)
                         <label class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
                             <input type="checkbox"
@@ -312,7 +317,7 @@
             {{-- Typo Tolerance (editable) --}}
             <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Толерантність до помилок</h3>
-                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(200px,1fr))">
                     <div>
                         <label class="flex items-center gap-3 cursor-pointer">
                             <div class="relative inline-flex items-center">
@@ -325,12 +330,12 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Мін. символів для 1 помилки</label>
                         <input type="number" wire:model.live="minWordOneTypo" min="1" max="20"
-                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm">
+                               class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Мін. символів для 2 помилок</label>
                         <input type="number" wire:model.live="minWordTwoTypos" min="2" max="30"
-                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm">
+                               class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                     </div>
                 </div>
             </div>
@@ -447,7 +452,7 @@
                             @empty
                                 <tr>
                                     <td colspan="4" class="py-12 text-center text-gray-500 dark:text-gray-400">
-                                        <x-heroicon-o-check-circle class="w-12 h-12 mx-auto mb-3 text-green-500 opacity-50" />
+                                        <x-heroicon-o-check-circle class="w-12 h-12 mx-auto mb-3 text-success-500 opacity-50" />
                                         <p class="font-medium">Немає запитів без результатів</p>
                                         <p class="text-sm mt-1">Всі пошукові запити повертають результати</p>
                                     </td>
@@ -555,15 +560,15 @@
             </div>
 
             {{-- How it works --}}
-            <div class="rounded-xl bg-blue-50 dark:bg-blue-900/20 p-6 ring-1 ring-blue-200 dark:ring-blue-800">
-                <h4 class="font-semibold text-blue-900 dark:text-blue-200 mb-3">Як це працює</h4>
-                <ol class="list-decimal list-inside space-y-2 text-sm text-blue-800 dark:text-blue-300">
+            <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
+                <x-slot name="heading">Як це працює</x-slot>
+                <ol class="list-decimal list-inside space-y-2 text-sm text-gray-600 dark:text-gray-400">
                     <li>Натисніть "Згенерувати промт" — система створить детальний промт</li>
                     <li><strong>Без API:</strong> Скопіюйте промт → вставте в ChatGPT/Claude/Gemini → скопіюйте JSON відповідь → вставте в поле → "Застосувати"</li>
                     <li><strong>З API:</strong> Натисніть "Згенерувати через API" → система зробить все автоматично</li>
                     <li>Результат зберігається в товарах та/або синонімах і одразу доступний для пошуку</li>
                 </ol>
-            </div>
+            </x-filament::section>
         </div>
     @endif
 

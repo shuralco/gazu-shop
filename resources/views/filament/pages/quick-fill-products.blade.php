@@ -1,19 +1,15 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        <div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800">
-            <div class="flex gap-3">
-                <x-filament::icon icon="heroicon-o-information-circle" class="h-5 w-5 text-blue-600 shrink-0 mt-0.5"/>
-                <div class="text-sm text-blue-900 dark:text-blue-100 space-y-1">
-                    <div><strong>Швидке наповнення</strong> — натхненне Excel-таблицею: один рядок = один товар.</div>
-                    <ul class="list-disc list-inside text-xs space-y-0.5">
-                        <li>Введіть закупку у валюті постачальника (CNY/USD), система перерахує у ₴ за курсом і застосує націнку.</li>
-                        <li>Курси редагуються через DisplaySetting (<code>fx_cny_uah</code>, <code>fx_usd_uah</code>, <code>default_markup</code>) або у файлі <code>config/.env</code> поки що.</li>
-                        <li>SKU має бути унікальним — дублі пропускаються з помилкою.</li>
-                        <li>Після збереження товар отримує статус <em>активний</em>, <em>в наявності</em> якщо k-ть більше 0.</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+        <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
+            <x-slot name="heading">Швидке наповнення</x-slot>
+            <x-slot name="description">Натхненне Excel-таблицею: один рядок = один товар.</x-slot>
+            <ul class="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                <li>Введіть закупку у валюті постачальника (CNY/USD), система перерахує у ₴ за курсом і застосує націнку.</li>
+                <li>Курси редагуються через DisplaySetting (<code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">fx_cny_uah</code>, <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">fx_usd_uah</code>, <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">default_markup</code>) або у файлі <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">config/.env</code> поки що.</li>
+                <li>SKU має бути унікальним — дублі пропускаються з помилкою.</li>
+                <li>Після збереження товар отримує статус <em>активний</em>, <em>в наявності</em> якщо k-ть більше 0.</li>
+            </ul>
+        </x-filament::section>
 
         {{ $this->form }}
 
@@ -28,7 +24,7 @@
                 <span wire:loading wire:target="saveAll">Збереження…</span>
             </x-filament::button>
 
-            <span class="flex-1"></span>
+            <span style="flex:1 1 0%"></span>
 
             <x-filament::button
                 tag="a"
@@ -39,14 +35,14 @@
             </x-filament::button>
         </div>
 
-        <div class="rounded-lg bg-gray-50 dark:bg-gray-900/50 p-4 border border-gray-200 dark:border-gray-700 text-xs">
-            <div class="font-bold text-gray-900 dark:text-white mb-2">Формула розрахунку ціни</div>
-            <code class="text-xs text-gray-700 dark:text-gray-300">
+        <x-filament::section icon="heroicon-o-calculator" icon-color="gray">
+            <x-slot name="heading">Формула розрахунку ціни</x-slot>
+            <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">
                 Ціна продажу = закупка × курс × (1 + націнка / 100)
             </code>
-            <div class="mt-2 text-gray-600 dark:text-gray-400">
+            <div class="mt-2 text-sm text-gray-600 dark:text-gray-400">
                 Приклад: 100 ¥ × 4.0 ₴/¥ × (1 + 100% / 100) = <strong>800 ₴</strong>
             </div>
-        </div>
+        </x-filament::section>
     </div>
 </x-filament-panels::page>

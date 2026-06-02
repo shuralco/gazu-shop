@@ -1,18 +1,16 @@
 <x-filament-panels::page>
-    <div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800 mb-4">
-        <div class="flex gap-3">
-            <x-filament::icon icon="heroicon-o-information-circle" class="h-5 w-5 text-blue-600 shrink-0 mt-0.5"/>
-            <div class="text-sm text-blue-900 dark:text-blue-100 space-y-1">
-                <div><strong>Конструктор зон layout (OpenCart-стиль).</strong> Призначайте блоки у іменовані зони storefront.</div>
-                <ul class="list-disc list-inside text-xs space-y-0.5">
-                    <li><code>layout.home.top</code> — верх головної</li>
-                    <li><code>layout.home.bottom</code> — низ головної</li>
-                    <li><code>layout.product.sidebar</code> — сайдбар картки товару</li>
-                    <li>Дані зберігаються у <code>layout_blocks</code>, рендеряться через <code>&#64;hookAction</code> у темі</li>
-                </ul>
-            </div>
+    <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
+        <x-slot name="heading">Конструктор зон layout (OpenCart-стиль)</x-slot>
+        <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+            <div>Призначайте блоки у іменовані зони storefront.</div>
+            <ul class="list-disc list-inside text-xs space-y-0.5">
+                <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.home.top</code> — верх головної</li>
+                <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.home.bottom</code> — низ головної</li>
+                <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.product.sidebar</code> — сайдбар картки товару</li>
+                <li>Дані зберігаються у <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout_blocks</code>, рендеряться через <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">&#64;hookAction</code> у темі</li>
+            </ul>
         </div>
-    </div>
+    </x-filament::section>
 
     {{ $this->form }}
 

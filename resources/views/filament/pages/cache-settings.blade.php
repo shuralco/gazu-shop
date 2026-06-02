@@ -9,20 +9,20 @@
             $total = $h + $m;
             $rate = $total > 0 ? round(($h / $total) * 100, 1) : 0;
         @endphp
-        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+        <div class="gap-3 mb-6" style="display:grid;gap:0.75rem;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))">
             <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div class="text-[10px] uppercase tracking-wider text-gray-500">Hit rate</div>
-                <div class="text-2xl font-bold mt-1 {{ $rate >= 90 ? 'text-green-600' : ($rate >= 70 ? 'text-yellow-600' : 'text-red-600') }}">
+                <div class="text-2xl font-bold mt-1 {{ $rate >= 90 ? 'text-success-600' : ($rate >= 70 ? 'text-warning-500' : 'text-danger-500') }}">
                     {{ $rate }}%
                 </div>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div class="text-[10px] uppercase tracking-wider text-gray-500">Hits</div>
-                <div class="text-2xl font-bold mt-1 text-green-600">{{ number_format($h, 0, '.', ' ') }}</div>
+                <div class="text-2xl font-bold mt-1 text-success-600">{{ number_format($h, 0, '.', ' ') }}</div>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div class="text-[10px] uppercase tracking-wider text-gray-500">Misses</div>
-                <div class="text-2xl font-bold mt-1 text-red-500">{{ number_format($m, 0, '.', ' ') }}</div>
+                <div class="text-2xl font-bold mt-1 text-danger-500">{{ number_format($m, 0, '.', ' ') }}</div>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-lg p-3 shadow-sm border border-gray-100 dark:border-gray-700">
                 <div class="text-[10px] uppercase tracking-wider text-gray-500">Commands</div>
@@ -30,7 +30,7 @@
             </div>
         </div>
     @else
-        <div class="text-red-600 text-sm mb-6">Redis connection error: {{ $stats['error'] }}</div>
+        <div class="text-danger-600 text-sm mb-6">Redis connection error: {{ $stats['error'] }}</div>
     @endif
 
     {{-- Form з settings --}}

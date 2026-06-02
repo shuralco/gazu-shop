@@ -43,7 +43,7 @@
                     @foreach($horizontalItems as $index => $item)
                     <div wire:key="h-item-{{ $index }}" class="fi-fo-repeater-item flex items-center gap-3 rounded-lg bg-white dark:bg-white/5 p-3 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                         <span class="flex items-center justify-center w-7 h-7 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-bold text-gray-500 dark:text-gray-400 flex-shrink-0">{{ $index + 1 }}</span>
-                        <div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div style="flex:1 1 0%;display:grid;gap:0.5rem;grid-template-columns:repeat(auto-fit,minmax(160px,1fr))">
                             <x-filament::input.wrapper>
                                 <x-filament::input type="text" wire:model.blur="horizontalItems.{{ $index }}.text" placeholder="Назва пункту" />
                             </x-filament::input.wrapper>
@@ -86,9 +86,9 @@
 
             <div class="space-y-4">
                 {{-- Catalog trigger mode --}}
-                <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Відкриття каталогу:</span>
-                    <select wire:model.live="catalogTrigger" class="text-sm border-gray-300 dark:border-gray-600 rounded-md shadow-sm dark:bg-gray-700 dark:text-gray-300">
+                    <select wire:model.live="catalogTrigger" class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                         <option value="click">По кліку</option>
                         <option value="hover">При наведенні</option>
                         <option value="both">Клік + наведення</option>
@@ -107,12 +107,12 @@
 
                 {{-- Columns --}}
                 @if(!empty($megaMenuColumns))
-                <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-{{ min(count($megaMenuColumns), 4) }} gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))">
                     @foreach($megaMenuColumns as $colIndex => $column)
                     <div wire:key="mega-col-{{ $colIndex }}" class="fi-fo-repeater-item rounded-xl bg-white dark:bg-white/5 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                         {{-- Column header --}}
                         <div class="flex items-center gap-x-3 px-4 py-3 border-b border-gray-100 dark:border-white/5">
-                            <span class="fi-fo-repeater-item-label text-sm font-medium text-gray-950 dark:text-white flex-1">
+                            <span class="fi-fo-repeater-item-label text-sm font-medium text-gray-950 dark:text-white" style="flex:1 1 0%">
                                 Колонка {{ $colIndex + 1 }}
                             </span>
                             <div class="flex items-center gap-x-0.5">
@@ -132,7 +132,7 @@
                                     {{-- Category name row --}}
                                     <div class="flex items-center gap-1.5 p-2.5 border-b border-gray-100 dark:border-white/5">
                                         <x-heroicon-m-folder class="w-4 h-4 text-primary-500 flex-shrink-0" />
-                                        <div class="flex-1 min-w-0">
+                                        <div class="min-w-0" style="flex:1 1 0%">
                                             <x-filament::input.wrapper>
                                                 <x-filament::input
                                                     type="text"
@@ -151,7 +151,7 @@
                                         @foreach($item['children'] ?? [] as $childIndex => $child)
                                         <div wire:key="child-{{ $colIndex }}-{{ $itemIndex }}-{{ $childIndex }}" class="flex items-center gap-1.5 py-1.5 border-b border-gray-100 dark:border-white/5 last:border-0">
                                             <span class="text-[10px] text-gray-400 dark:text-gray-500 flex-shrink-0 w-4 text-center font-medium">{{ $childIndex + 1 }}</span>
-                                            <div class="flex-1 min-w-0">
+                                            <div class="min-w-0" style="flex:1 1 0%">
                                                 <x-filament::input.wrapper>
                                                     <x-filament::input
                                                         type="text"
@@ -202,7 +202,7 @@
                                 <div class="rounded-lg bg-gray-50 dark:bg-white/5 ring-1 ring-gray-200 dark:ring-white/10 p-3">
                                     <div class="flex items-center gap-2 mb-2">
                                         <x-heroicon-m-link class="w-5 h-5 text-gray-400 flex-shrink-0" />
-                                        <div class="flex-1 min-w-0">
+                                        <div class="min-w-0" style="flex:1 1 0%">
                                             <x-filament::input.wrapper>
                                                 <x-filament::input
                                                     type="text"
@@ -239,7 +239,7 @@
 
                         {{-- Footer: add buttons --}}
                         <div class="flex gap-2 px-4 py-3 border-t border-gray-100 dark:border-white/5 bg-gray-50/50 dark:bg-white/[0.02] rounded-b-xl">
-                            <div x-data="{ open: false }" class="relative flex-1">
+                            <div x-data="{ open: false }" class="relative" style="flex:1 1 0%">
                                 <x-filament::button @click="open = !open" size="sm" color="gray" icon="heroicon-m-folder-plus" class="w-full justify-center">
                                     Категорія
                                 </x-filament::button>
@@ -254,7 +254,7 @@
                                     @endforeach
                                 </div>
                             </div>
-                            <x-filament::button wire:click="addCustomLinkToColumn({{ $colIndex }})" size="sm" color="gray" icon="heroicon-m-link" class="flex-1 justify-center">
+                            <x-filament::button wire:click="addCustomLinkToColumn({{ $colIndex }})" size="sm" color="gray" icon="heroicon-m-link" class="justify-center" style="flex:1 1 0%">
                                 Посилання
                             </x-filament::button>
                         </div>
@@ -295,7 +295,7 @@
             </x-slot>
 
             <div x-data x-show="$wire.showPromo" x-cloak x-transition>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
                     <div class="space-y-1.5">
                         <label class="fi-fo-field-wrp-label text-sm font-medium text-gray-950 dark:text-white">Заголовок</label>
                         <x-filament::input.wrapper>

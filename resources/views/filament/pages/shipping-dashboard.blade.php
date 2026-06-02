@@ -6,7 +6,7 @@
                 Швидкі дії
             </x-slot>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="gap-4" style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))">
                 <x-filament::button
                     href="{{ \App\Filament\Resources\ShippingProviderResource::getUrl('index') }}"
                     icon="heroicon-o-cog-6-tooth"
@@ -50,12 +50,12 @@
         </x-filament::section>
 
         {{-- Status Overview --}}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
             {{-- Nova Poshta Status --}}
             <x-filament::section>
                 <x-slot name="heading">
                     <div class="flex items-center">
-                        <x-heroicon-o-truck class="w-5 h-5 mr-2 text-blue-600"/>
+                        <x-heroicon-o-truck class="w-5 h-5 mr-2 text-primary-600"/>
                         Нова Пошта
                     </div>
                 </x-slot>
@@ -115,7 +115,7 @@
             <x-filament::section>
                 <x-slot name="heading">
                     <div class="flex items-center">
-                        <x-heroicon-o-heart class="w-5 h-5 mr-2 text-green-600"/>
+                        <x-heroicon-o-heart class="w-5 h-5 mr-2 text-success-600"/>
                         Стан системи
                     </div>
                 </x-slot>
@@ -153,7 +153,7 @@
         <x-filament::section>
             <x-slot name="heading">
                 <div class="flex items-center">
-                    <x-heroicon-o-clipboard-document-check class="w-5 h-5 mr-2 text-purple-600"/>
+                    <x-heroicon-o-clipboard-document-check class="w-5 h-5 mr-2 text-info-600"/>
                     Список завдань налаштування
                 </div>
             </x-slot>
@@ -195,14 +195,14 @@
                 @endphp
                 
                 @foreach($checkpoints as $checkpoint)
-                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg border">
+                    <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg ring-1 ring-inset ring-gray-950/10 dark:bg-white/5 dark:ring-white/10">
                         @if($checkpoint['completed'])
-                            <x-heroicon-s-check-circle class="w-6 h-6 text-green-600 flex-shrink-0"/>
+                            <x-heroicon-s-check-circle class="w-6 h-6 text-success-600 flex-shrink-0"/>
                         @else
-                            <x-heroicon-s-x-circle class="w-6 h-6 text-red-600 flex-shrink-0"/>
+                            <x-heroicon-s-x-circle class="w-6 h-6 text-danger-600 flex-shrink-0"/>
                         @endif
-                        
-                        <div class="flex-1 min-w-0">
+
+                        <div class="min-w-0" style="flex:1 1 0%">
                             <p class="text-sm font-medium text-gray-900">
                                 {{ $checkpoint['title'] }}
                             </p>

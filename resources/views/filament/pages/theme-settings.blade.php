@@ -1,18 +1,17 @@
 <x-filament-panels::page>
     <div class="space-y-6">
-        <div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800">
-            <div class="flex gap-3">
-                <x-filament::icon icon="heroicon-o-information-circle" class="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
-                <div class="text-sm text-blue-900 dark:text-blue-100">
-                    Тема магазину = пакет CSS-токенів з <code class="px-1 bg-blue-100 dark:bg-blue-800 rounded">resources/css/tokens/</code>.
-                    Зміна теми перепише <code class="px-1 bg-blue-100 dark:bg-blue-800 rounded">@import</code> у <code class="px-1 bg-blue-100 dark:bg-blue-800 rounded">app.css</code> — після цього виконайте <code class="px-1 bg-blue-100 dark:bg-blue-800 rounded">npm run build</code> (production) або запустіть <code class="px-1 bg-blue-100 dark:bg-blue-800 rounded">npm run dev</code> (live reload).
-                    <br><br>
-                    Усі компоненти <code class="px-1 bg-blue-100 dark:bg-blue-800 rounded">&lt;x-ui.*&gt;</code> на storefront автоматично адаптуються — кнопки, картки, badges, inputs, sections.
-                </div>
-            </div>
-        </div>
+        <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
+            <x-slot name="heading">Тема магазину</x-slot>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="text-sm text-gray-600 dark:text-gray-400">
+                Тема магазину = пакет CSS-токенів з <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">resources/css/tokens/</code>.
+                Зміна теми перепише <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">@import</code> у <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">app.css</code> — після цього виконайте <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">npm run build</code> (production) або запустіть <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">npm run dev</code> (live reload).
+                <br><br>
+                Усі компоненти <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">&lt;x-ui.*&gt;</code> на storefront автоматично адаптуються — кнопки, картки, badges, inputs, sections.
+            </div>
+        </x-filament::section>
+
+        <div style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
             @foreach($this->availableThemes as $theme)
                 @php
                     $isActive = $theme === $this->activeTheme;
@@ -23,28 +22,28 @@
                     $radiusCard = $this->previewToken($theme, 'radius-card') ?? '0px';
                 @endphp
 
-                <div class="border-2 {{ $isActive ? 'border-success-500' : 'border-gray-200 dark:border-gray-700' }} rounded-lg p-5 bg-white dark:bg-gray-900 transition-all hover:shadow-md">
-                    <div class="flex items-start justify-between mb-3">
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-bold capitalize">{{ str_replace('-', ' ', $theme) }}</h3>
-                                @if($isActive)
-                                    <x-filament::badge color="success">АКТИВНА</x-filament::badge>
-                                @endif
-                            </div>
-                            <p class="text-xs text-gray-500 mt-1 font-mono">tokens/{{ $theme }}.css</p>
-                        </div>
-                    </div>
+                <x-filament::section>
+                    <x-slot name="heading">
+                        <span class="flex items-center gap-2">
+                            <span class="text-lg font-bold capitalize">{{ str_replace('-', ' ', $theme) }}</span>
+                            @if($isActive)
+                                <x-filament::badge color="success">АКТИВНА</x-filament::badge>
+                            @endif
+                        </span>
+                    </x-slot>
+                    <x-slot name="description">
+                        <span class="font-mono text-xs">tokens/{{ $theme }}.css</span>
+                    </x-slot>
 
-                    <!-- Live preview -->
+                    {{-- Live preview --}}
                     <div
-                        class="rounded-lg p-4 mb-4 border"
+                        class="mb-4 rounded-lg border p-4"
                         style="background:{{ $colorBg }}; color:{{ $colorFg }}; border-color:{{ $colorFg }}; border-radius:{{ $radiusCard }};"
                     >
-                        <div class="flex items-center gap-2 mb-3">
-                            <span class="inline-block w-4 h-4 rounded-full" style="background:{{ $colorBrand }};" title="brand"></span>
-                            <span class="inline-block w-4 h-4 rounded-full" style="background:{{ $colorAccent }};" title="accent"></span>
-                            <span class="text-xs font-mono">{{ $colorFg }} on {{ $colorBg }}</span>
+                        <div class="mb-3 flex items-center gap-2">
+                            <span class="inline-block h-4 w-4 rounded-full" style="background:{{ $colorBrand }};" title="brand"></span>
+                            <span class="inline-block h-4 w-4 rounded-full" style="background:{{ $colorAccent }};" title="accent"></span>
+                            <span class="font-mono text-xs">{{ $colorFg }} on {{ $colorBg }}</span>
                         </div>
                         <div class="flex gap-2">
                             <button
@@ -69,24 +68,28 @@
                             Активувати
                         </x-filament::button>
                     @else
-                        <div class="text-center text-sm text-gray-500">Поточна тема</div>
+                        <div class="text-center text-sm text-gray-500 dark:text-gray-400">Поточна тема</div>
                     @endif
-                </div>
+                </x-filament::section>
             @endforeach
         </div>
 
-        <div class="rounded-lg bg-gray-50 dark:bg-gray-900 p-4 border border-gray-200 dark:border-gray-700">
-            <h4 class="font-bold mb-2">Як створити нову тему</h4>
-            <ol class="text-sm space-y-1 list-decimal list-inside">
-                <li>Скопіюйте <code class="px-1 bg-white dark:bg-gray-800 rounded">resources/css/tokens/brutal.css</code> у <code class="px-1 bg-white dark:bg-gray-800 rounded">my-theme.css</code></li>
+        <x-filament::section icon="heroicon-o-plus-circle">
+            <x-slot name="heading">Як створити нову тему</x-slot>
+
+            <ol class="list-inside list-decimal space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                <li>Скопіюйте <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">resources/css/tokens/brutal.css</code> у <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">my-theme.css</code></li>
                 <li>Відредагуйте значення CSS-змінних (зберігаючи усі імена)</li>
                 <li>Поверніться сюди й активуйте «my theme»</li>
-                <li>Виконайте <code class="px-1 bg-white dark:bg-gray-800 rounded">npm run build</code></li>
+                <li>Виконайте <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">npm run build</code></li>
             </ol>
-            <p class="text-xs text-gray-500 mt-2">
-                Повний контракт CSS-змінних: <a href="/docs/THEMES.md" class="text-primary-600 underline" target="_blank">docs/THEMES.md</a> ·
-                UI components: <a href="/docs/UI-COMPONENTS.md" class="text-primary-600 underline" target="_blank">docs/UI-COMPONENTS.md</a>
+
+            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                Повний контракт CSS-змінних:
+                <x-filament::link href="/docs/THEMES.md" target="_blank">docs/THEMES.md</x-filament::link> ·
+                UI components:
+                <x-filament::link href="/docs/UI-COMPONENTS.md" target="_blank">docs/UI-COMPONENTS.md</x-filament::link>
             </p>
-        </div>
+        </x-filament::section>
     </div>
 </x-filament-panels::page>

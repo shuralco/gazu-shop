@@ -14,80 +14,71 @@
             $activeFilter = $this->filter;
         @endphp
 
+        @php
+            $filters = [
+                'all' => 'Усі',
+                'enabled' => 'Увімкнені',
+                'disabled' => 'Вимкнені',
+                'ok' => 'Готові',
+                'warning' => 'Увага',
+                'error' => 'Помилки',
+            ];
+        @endphp
+
         {{-- Header summary --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 space-y-4">
-            <div class="flex flex-wrap items-start justify-between gap-4">
-                <div>
-                    <h2 class="text-base font-semibold text-gray-900 dark:text-white">Модулі та інтеграції</h2>
-                    <p class="text-sm text-gray-500 dark:text-gray-400">
-                        Увімкніть потрібні модулі та налаштуйте їх для роботи магазину.
-                    </p>
+        <x-filament::section icon="heroicon-o-puzzle-piece">
+            <x-slot name="heading">Модулі та інтеграції</x-slot>
+            <x-slot name="description">
+                Увімкніть потрібні модулі та налаштуйте їх для роботи магазину.
+            </x-slot>
+            <x-slot name="headerEnd">
+                <div class="flex items-center gap-2 flex-wrap">
+                    <x-filament::badge color="success">Готових: {{ $statusCounts['ok'] }}</x-filament::badge>
+                    <x-filament::badge color="warning">Увага: {{ $statusCounts['warning'] }}</x-filament::badge>
+                    <x-filament::badge color="danger">Помилок: {{ $statusCounts['error'] }}</x-filament::badge>
+                    <x-filament::badge color="gray">Усього: {{ $enabledCount }}/{{ $totalCount }}</x-filament::badge>
                 </div>
-                <div class="flex items-center gap-2 text-sm flex-wrap">
-                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-green-50 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                        <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                        Готових: {{ $statusCounts['ok'] }}
-                    </span>
-                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-yellow-50 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400">
-                        <span class="inline-block w-2 h-2 rounded-full bg-yellow-500"></span>
-                        Увага: {{ $statusCounts['warning'] }}
-                    </span>
-                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-400">
-                        <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
-                        Помилок: {{ $statusCounts['error'] }}
-                    </span>
-                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300">
-                        Усього: {{ $enabledCount }}/{{ $totalCount }}
-                    </span>
+            </x-slot>
+
+            <div class="space-y-4">
+                {{-- Search + filter --}}
+                <div class="flex flex-wrap items-center gap-3">
+                    <div class="relative" style="flex:1 1 0%;min-width:240px">
+                        <input
+                            type="search"
+                            wire:model.live.debounce.250ms="search"
+                            placeholder="Пошук модуля..."
+                            class="fi-input block w-full rounded-lg border-none bg-white pl-9 pr-9 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"
+                        />
+                        <x-heroicon-m-magnifying-glass class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        @if (! empty($this->search))
+                            <button type="button" wire:click="clearSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                                <x-heroicon-m-x-mark class="w-4 h-4" />
+                            </button>
+                        @endif
+                    </div>
+
+                    <div class="flex items-center gap-1 flex-wrap">
+                        @foreach ($filters as $key => $label)
+                            <x-filament::button
+                                wire:click="setFilter('{{ $key }}')"
+                                size="sm"
+                                :color="$activeFilter === $key ? 'primary' : 'gray'"
+                                :outlined="$activeFilter !== $key"
+                            >
+                                {{ $label }}
+                            </x-filament::button>
+                        @endforeach
+                    </div>
                 </div>
+
+                @if ($matched === 0)
+                    <div class="text-sm text-gray-500 dark:text-gray-400 py-2">
+                        Нічого не знайдено за запитом «{{ $this->search }}» з фільтром «{{ $filters[$activeFilter] ?? 'Усі' }}».
+                    </div>
+                @endif
             </div>
-
-            {{-- Search + filter --}}
-            <div class="flex flex-wrap items-center gap-3">
-                <div class="relative flex-1 min-w-[240px]">
-                    <input
-                        type="search"
-                        wire:model.live.debounce.250ms="search"
-                        placeholder="Пошук модуля..."
-                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white pl-9 pr-9 py-2 text-sm focus:border-primary-500 focus:ring-primary-500"
-                    />
-                    <x-heroicon-m-magnifying-glass class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                    @if (! empty($this->search))
-                        <button type="button" wire:click="clearSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                            <x-heroicon-m-x-mark class="w-4 h-4" />
-                        </button>
-                    @endif
-                </div>
-
-                @php
-                    $filters = [
-                        'all' => 'Усі',
-                        'enabled' => 'Увімкнені',
-                        'disabled' => 'Вимкнені',
-                        'ok' => 'Готові',
-                        'warning' => 'Увага',
-                        'error' => 'Помилки',
-                    ];
-                @endphp
-                <div class="flex items-center gap-1 flex-wrap">
-                    @foreach ($filters as $key => $label)
-                        <button
-                            type="button"
-                            wire:click="setFilter('{{ $key }}')"
-                            class="px-3 py-1.5 text-xs font-medium rounded-lg transition-colors {{ $activeFilter === $key ? 'bg-primary-600 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600' }}"
-                        >
-                            {{ $label }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-
-            @if ($matched === 0)
-                <div class="text-sm text-gray-500 dark:text-gray-400 py-2">
-                    Нічого не знайдено за запитом «{{ $this->search }}» з фільтром «{{ $filters[$activeFilter] ?? 'Усі' }}».
-                </div>
-            @endif
-        </div>
+        </x-filament::section>
 
         @foreach ($this->getGroups() as $groupKey => $groupLabel)
             @php $integrations = $this->getIntegrationsByGroup($groupKey); @endphp
@@ -98,7 +89,7 @@
                         {{ $groupLabel }}
                     </h2>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))">
                         @foreach ($integrations as $integration)
                             @php
                                 $key = $integration->getKey();
@@ -107,18 +98,25 @@
                                 $settingsRoute = $integration->getSettingsRoute();
                                 $status = $integration->getStatus();
                                 $statusColors = [
-                                    'ok' => ['bg' => 'bg-green-50 dark:bg-green-900/30', 'text' => 'text-green-700 dark:text-green-400', 'dot' => 'bg-green-500'],
-                                    'warning' => ['bg' => 'bg-yellow-50 dark:bg-yellow-900/30', 'text' => 'text-yellow-700 dark:text-yellow-400', 'dot' => 'bg-yellow-500'],
-                                    'error' => ['bg' => 'bg-red-50 dark:bg-red-900/30', 'text' => 'text-red-700 dark:text-red-400', 'dot' => 'bg-red-500'],
-                                    'unknown' => ['bg' => 'bg-gray-100 dark:bg-gray-700', 'text' => 'text-gray-600 dark:text-gray-300', 'dot' => 'bg-gray-400'],
+                                    'ok' => 'success',
+                                    'warning' => 'warning',
+                                    'error' => 'danger',
+                                    'unknown' => 'gray',
+                                ];
+                                $statusIcons = [
+                                    'ok' => 'heroicon-m-check-circle',
+                                    'warning' => 'heroicon-m-exclamation-triangle',
+                                    'error' => 'heroicon-m-x-circle',
+                                    'unknown' => 'heroicon-m-question-mark-circle',
                                 ];
                                 $sc = $statusColors[$status['level']] ?? $statusColors['unknown'];
+                                $scIcon = $statusIcons[$status['level']] ?? $statusIcons['unknown'];
                             @endphp
 
-                            <div class="relative bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 transition-all duration-200 hover:shadow-md flex flex-col {{ $enabled ? 'ring-2 ring-primary-500/30' : '' }}">
+                            <div class="relative rounded-xl bg-white p-5 shadow-sm ring-1 transition hover:shadow-md flex flex-col dark:bg-white/5 {{ $enabled ? 'ring-2 ring-primary-500/40' : 'ring-gray-950/5 dark:ring-white/10' }}">
                                 {{-- Status indicator dot (top right) --}}
                                 <div class="absolute top-4 right-4">
-                                    <span class="inline-block w-3 h-3 rounded-full {{ $enabled ? 'bg-green-500' : 'bg-gray-300 dark:bg-gray-600' }}"></span>
+                                    <span class="inline-block w-3 h-3 rounded-full {{ $enabled ? 'bg-success-500' : 'bg-gray-300 dark:bg-gray-600' }}"></span>
                                 </div>
 
                                 {{-- Icon + Name --}}
@@ -132,20 +130,19 @@
                                 </div>
 
                                 {{-- Description --}}
-                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2 flex-1">
+                                <p class="text-sm text-gray-500 dark:text-gray-400 mb-3 line-clamp-2" style="flex:1 1 0%">
                                     {{ $integration->getDescription() }}
                                 </p>
 
                                 {{-- Status badge --}}
                                 <div class="mb-3">
-                                    <span class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md {{ $sc['bg'] }} {{ $sc['text'] }}">
-                                        <span class="inline-block w-1.5 h-1.5 rounded-full {{ $sc['dot'] }}"></span>
+                                    <x-filament::badge :color="$sc" :icon="$scIcon">
                                         {{ $status['message'] }}
-                                    </span>
+                                    </x-filament::badge>
                                 </div>
 
                                 {{-- Actions --}}
-                                <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 dark:border-gray-700">
+                                <div class="flex items-center justify-between gap-2 pt-3 border-t border-gray-100 dark:border-white/10">
                                     {{-- Toggle --}}
                                     <button
                                         wire:click="toggleIntegration('{{ $key }}')"
@@ -160,13 +157,14 @@
 
                                     <div class="flex items-center gap-2 flex-wrap justify-end">
                                         @if ($key === 'telegram' && $enabled)
-                                            <button
+                                            <x-filament::button
                                                 wire:click="testTelegram"
-                                                type="button"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg text-blue-700 bg-blue-50 hover:bg-blue-100 dark:text-blue-400 dark:bg-blue-900/30 dark:hover:bg-blue-900/50 transition-colors"
+                                                color="info"
+                                                size="sm"
+                                                outlined
                                             >
                                                 Тест
-                                            </button>
+                                            </x-filament::button>
                                         @endif
 
                                         @php
@@ -174,23 +172,25 @@
                                             $settingsUrl = $settingsRoute ? route($settingsRoute) : $genericUrl;
                                         @endphp
                                         @if ($settingsUrl)
-                                            <a
-                                                href="{{ $settingsUrl }}"
+                                            <x-filament::button
+                                                tag="a"
+                                                :href="$settingsUrl"
                                                 wire:navigate
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg text-primary-700 bg-primary-50 hover:bg-primary-100 dark:text-primary-400 dark:bg-primary-900/30 dark:hover:bg-primary-900/50 transition-colors"
+                                                color="primary"
+                                                size="sm"
+                                                icon="heroicon-m-cog-6-tooth"
                                             >
-                                                <x-heroicon-m-cog-6-tooth class="w-3.5 h-3.5" />
                                                 Налаштувати
-                                            </a>
+                                            </x-filament::button>
                                         @elseif ($hasConfig)
-                                            <button
+                                            <x-filament::button
                                                 wire:click="openConfig('{{ $key }}')"
-                                                type="button"
-                                                class="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium rounded-lg text-gray-700 bg-gray-100 hover:bg-gray-200 dark:text-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                                                color="gray"
+                                                size="sm"
+                                                icon="heroicon-m-cog-6-tooth"
                                             >
-                                                <x-heroicon-m-cog-6-tooth class="w-3.5 h-3.5" />
                                                 Налаштувати
-                                            </button>
+                                            </x-filament::button>
                                         @endif
                                     </div>
                                 </div>
@@ -241,7 +241,7 @@
                                     type="{{ $field['type'] }}"
                                     wire:model.defer="configData.{{ $field['key'] }}"
                                     placeholder="{{ $field['placeholder'] ?? '' }}"
-                                    class="mt-1 block w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm"
+                                    class="fi-input mt-1 block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"
                                 />
                             </label>
                         @endif

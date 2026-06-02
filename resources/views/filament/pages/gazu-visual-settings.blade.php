@@ -1,17 +1,16 @@
 <x-filament-panels::page>
-    <div class="rounded-lg bg-blue-50 dark:bg-blue-900/20 p-4 border border-blue-200 dark:border-blue-800 mb-4">
-        <div class="flex gap-3">
-            <x-filament::icon icon="heroicon-o-information-circle" class="h-5 w-5 text-blue-600 shrink-0 mt-0.5"/>
-            <div class="text-sm text-blue-900 dark:text-blue-100 space-y-1">
-                <div><strong>Візуальні блоки GAZU storefront.</strong> Усі тексти, які раніше були хардкоджені у шаблоні, тепер редагуються тут.</div>
-                <ul class="list-disc list-inside text-xs space-y-0.5">
-                    <li>Зміни одразу видно на <code>/gazu</code> (без перебудови CSS)</li>
-                    <li>Дані зберігаються у <code>display_settings</code> (live, кешуються)</li>
-                    <li>Якщо щось вилучити (порожнє значення) — застосовується дефолт</li>
-                </ul>
-            </div>
+    <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
+        <x-slot name="heading">Візуальні блоки GAZU storefront</x-slot>
+
+        <div class="space-y-2 text-sm text-gray-600 dark:text-gray-400">
+            <p>Усі тексти, які раніше були хардкоджені у шаблоні, тепер редагуються тут.</p>
+            <ul class="list-disc list-inside space-y-0.5">
+                <li>Зміни одразу видно на <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">/gazu</code> (без перебудови CSS)</li>
+                <li>Дані зберігаються у <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">display_settings</code> (live, кешуються)</li>
+                <li>Якщо щось вилучити (порожнє значення) — застосовується дефолт</li>
+            </ul>
         </div>
-    </div>
+    </x-filament::section>
 
     {{ $this->form }}
 

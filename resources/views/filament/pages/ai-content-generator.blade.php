@@ -26,12 +26,12 @@
             <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Параметри генерації</h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))">
                     {{-- Category --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Категорія *</label>
                         <select wire:model="genCategoryId"
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             <option value="">Оберіть категорію</option>
                             @foreach ($this->categories as $id => $name)
                                 <option value="{{ $id }}">{{ $name }}</option>
@@ -43,14 +43,14 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Кількість товарів</label>
                         <input type="number" wire:model="genCount" min="1" max="50"
-                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                               class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                     </div>
 
                     {{-- Language --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Мова</label>
                         <select wire:model="genLanguage"
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             <option value="both">Обидві (UK + EN)</option>
                             <option value="uk">Тільки українська</option>
                             <option value="en">Тільки англійська</option>
@@ -61,21 +61,21 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ціна від (грн)</label>
                         <input type="number" wire:model="genPriceFrom" min="0"
-                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                               class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                     </div>
 
                     {{-- Price To --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ціна до (грн)</label>
                         <input type="number" wire:model="genPriceTo" min="0"
-                               class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                               class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                     </div>
 
                     {{-- Style --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Стиль</label>
                         <select wire:model="genStyle"
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             <option value="professional">Професійний</option>
                             <option value="casual">Розмовний</option>
                             <option value="technical">Технічний</option>
@@ -87,7 +87,7 @@
                 <div class="mt-4">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Додаткові інструкції</label>
                     <textarea wire:model="genInstructions" rows="3" placeholder="Наприклад: генерувати тільки бюджетні товари, фокус на ігровій тематиці..."
-                              class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
+                              class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"></textarea>
                 </div>
 
                 {{-- Buttons --}}
@@ -136,7 +136,7 @@
                 <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">JSON відповідь від AI</h3>
                     <textarea wire:model="generatedJson" rows="10" placeholder='Вставте JSON відповідь від AI сюди...'
-                              class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-xs font-mono shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
+                              class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-xs font-mono text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"></textarea>
                     <div class="flex items-center gap-3 mt-3">
                         <x-filament::button wire:click="handleParseJson" color="info" icon="heroicon-o-code-bracket">
                             Розпарсити JSON
@@ -237,12 +237,12 @@
             <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Збагачення існуючих товарів</h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))">
                     {{-- Product Select --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Товари *</label>
                         <select wire:model="enrichProductIds" multiple size="8"
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             @foreach ($this->productsForEnrichment as $id => $name)
                                 <option value="{{ $id }}">{{ $name }}</option>
                             @endforeach
@@ -255,7 +255,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Що генерувати</label>
                             <select wire:model.live="enrichType"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                    class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                                 <option value="all">Все (опис + SEO + теги)</option>
                                 <option value="description">Тільки опис</option>
                                 <option value="seo">Тільки SEO мета</option>
@@ -268,7 +268,7 @@
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Цільова мова</label>
                                 <select wire:model="enrichTargetLocale"
-                                        class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                        class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                                     <option value="en">Англійська</option>
                                     <option value="uk">Українська</option>
                                 </select>
@@ -321,7 +321,7 @@
                 <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">JSON відповідь (для одного товару)</h3>
                     <textarea wire:model="enrichJson" rows="8" placeholder='Вставте JSON відповідь від AI...'
-                              class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-xs font-mono shadow-sm focus:border-primary-500 focus:ring-primary-500"></textarea>
+                              class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-xs font-mono text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10"></textarea>
                     <div class="flex items-center gap-3 mt-3">
                         <x-filament::button wire:click="handleApplyEnrichJson" color="success" icon="heroicon-o-check">
                             Застосувати до товару
@@ -340,12 +340,12 @@
             <div class="rounded-xl bg-white dark:bg-gray-900 p-6 shadow-sm ring-1 ring-gray-950/5 dark:ring-white/10">
                 <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Налаштування AI провайдера</h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fit,minmax(290px,1fr))">
                     {{-- Provider --}}
                     <div>
                         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Провайдер</label>
                         <select wire:model.live="apiProvider"
-                                class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             <option value="none">Не використовувати (тільки промти)</option>
                             <option value="openai">OpenAI</option>
                             <option value="anthropic">Anthropic (Claude)</option>
@@ -358,7 +358,7 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">API Key</label>
                             <input type="password" wire:model="apiKey"
                                    placeholder="{{ $this->isApiConfigured ? '********** (збережено)' : 'sk-...' }}"
-                                   class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                   class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             <p class="text-xs text-gray-400 mt-1">Залиште порожнім, щоб зберегти поточний ключ</p>
                         </div>
                     @endif
@@ -368,7 +368,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Модель</label>
                             <select wire:model="apiModelOpenai"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                    class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                                 <option value="gpt-4o">GPT-4o (рекомендовано)</option>
                                 <option value="gpt-4o-mini">GPT-4o Mini (швидше, дешевше)</option>
                                 <option value="gpt-3.5-turbo">GPT-3.5 Turbo (найдешевше)</option>
@@ -381,7 +381,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Модель</label>
                             <select wire:model="apiModelAnthropic"
-                                    class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                    class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                                 <option value="claude-sonnet-4-20250514">Claude Sonnet 4 (рекомендовано)</option>
                                 <option value="claude-haiku-4-5-20251001">Claude Haiku 4.5 (швидше, дешевше)</option>
                             </select>
@@ -395,7 +395,7 @@
                                 Temperature: {{ $apiTemperature }}
                             </label>
                             <input type="range" wire:model.live="apiTemperature" min="0" max="1" step="0.1"
-                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-600">
+                                   class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer dark:bg-gray-700 accent-primary-500">
                             <div class="flex justify-between text-xs text-gray-400 mt-1">
                                 <span>0.0 (точний)</span>
                                 <span>1.0 (креативний)</span>
@@ -406,7 +406,7 @@
                         <div>
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Макс. токенів</label>
                             <input type="number" wire:model="apiMaxTokens" min="1000" max="16000" step="500"
-                                   class="w-full rounded-lg border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white text-sm shadow-sm focus:border-primary-500 focus:ring-primary-500">
+                                   class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">
                             <p class="text-xs text-gray-400 mt-1">1000-16000. Більше токенів = довші відповіді, але дорожче.</p>
                         </div>
                     @endif
@@ -432,20 +432,15 @@
             </div>
 
             {{-- Info Box --}}
-            <div class="rounded-xl bg-blue-50 dark:bg-blue-500/10 p-6 ring-1 ring-blue-200 dark:ring-blue-500/20">
-                <div class="flex gap-3">
-                    <x-heroicon-o-information-circle class="w-6 h-6 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div class="text-sm text-blue-700 dark:text-blue-300">
-                        <p class="font-medium mb-2">Як це працює:</p>
-                        <ul class="list-disc list-inside space-y-1">
-                            <li><strong>Без API</strong> - генеруються промти, які можна копіювати та вставляти в ChatGPT, Claude чи інший AI через веб-інтерфейс</li>
-                            <li><strong>З API</strong> - генерація відбувається автоматично через API обраного провайдера</li>
-                            <li>OpenAI: отримайте ключ на <a href="https://platform.openai.com/api-keys" target="_blank" class="underline">platform.openai.com</a></li>
-                            <li>Anthropic: отримайте ключ на <a href="https://console.anthropic.com/" target="_blank" class="underline">console.anthropic.com</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
+            <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
+                <x-slot name="heading">Як це працює</x-slot>
+                <ul class="list-disc list-inside space-y-1 text-sm text-gray-600 dark:text-gray-400">
+                    <li><strong>Без API</strong> - генеруються промти, які можна копіювати та вставляти в ChatGPT, Claude чи інший AI через веб-інтерфейс</li>
+                    <li><strong>З API</strong> - генерація відбувається автоматично через API обраного провайдера</li>
+                    <li>OpenAI: отримайте ключ на <a href="https://platform.openai.com/api-keys" target="_blank" class="underline">platform.openai.com</a></li>
+                    <li>Anthropic: отримайте ключ на <a href="https://console.anthropic.com/" target="_blank" class="underline">console.anthropic.com</a></li>
+                </ul>
+            </x-filament::section>
         </div>
     @endif
 
