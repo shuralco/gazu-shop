@@ -13,582 +13,554 @@ $actionLabels = [
   'upgrade' => 'Оновлено',
   'uninstall' => 'Видалено',
 ];
+$inputClass = 'fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10';
 @endphp
 
 <x-filament-panels::page>
-<div class="-mt-2 space-y-6 max-w-5xl">
-
-  {{-- ─── HEADER ─── --}}
-  <header class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 pb-6 border-b border-gray-200 dark:border-gray-800">
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-3 mb-1.5 flex-wrap">
-        <h1 class="text-2xl font-semibold tracking-tight text-gray-900 dark:text-white">{{ $info['name'] }}</h1>
-        @if($info['enabled'])
-          <span class="inline-flex items-center gap-1.5 px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 ring-1 ring-inset ring-emerald-600/20">
-            <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-            Активний
-          </span>
-        @else
-          <span class="inline-flex items-center px-2 py-0.5 text-[11px] font-medium uppercase tracking-wide rounded text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800/60 ring-1 ring-inset ring-gray-500/20">
-            Неактивний
-          </span>
-        @endif
-      </div>
-      <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mb-2.5 font-mono">
-        <span>{{ $info['key'] }}</span>
-        @if($info['version'])<span class="text-gray-300 dark:text-gray-600">·</span><span>v{{ $info['version'] }}</span>@endif
-        @if($info['author'])<span class="text-gray-300 dark:text-gray-600">·</span><span class="font-sans">{{ $info['author'] }}</span>@endif
-      </div>
-      @if($info['description'])
-        <p class="text-[15px] text-gray-600 dark:text-gray-300 max-w-2xl leading-relaxed">{{ $info['description'] }}</p>
-      @endif
-    </div>
-
-    <div class="flex items-center gap-2 shrink-0">
-      {{-- Нативні Filament-кнопки: гарантовано стилізовані admin-CSS.
-           Сирі Tailwind-утиліти (bg-gray-900/text-white) у admin НЕ компілюються
-           → кнопка ставала біле-на-білому (невидима). --}}
-      <x-filament::icon-button
-        icon="heroicon-o-arrow-path"
-        wire:click="clearModuleCache"
-        wire:loading.attr="disabled" wire:target="clearModuleCache"
-        label="Очистити кеш"
-        color="gray"
-        size="lg" />
-
-      @if($info['enabled'])
-        <x-filament::button
-          wire:click="toggleModule"
-          wire:confirm="Вимкнути модуль «{{ $info['name'] }}»? Дані залишаються у БД."
-          wire:loading.attr="disabled" wire:target="toggleModule"
-          color="danger"
-          icon="heroicon-o-power">
-          <span wire:loading.remove wire:target="toggleModule">Вимкнути</span>
-          <span wire:loading wire:target="toggleModule">Вимикаю…</span>
-        </x-filament::button>
-      @else
-        <x-filament::button
-          wire:click="toggleModule"
-          wire:loading.attr="disabled" wire:target="toggleModule"
-          color="primary"
-          icon="heroicon-o-bolt">
-          <span wire:loading.remove wire:target="toggleModule">Увімкнути</span>
-          <span wire:loading wire:target="toggleModule">Вмикаю…</span>
-        </x-filament::button>
-      @endif
-    </div>
-  </header>
-
-  {{-- ─── STATS GRID (no boxes, clean inline) ─── --}}
-  <div class="grid grid-cols-2 sm:grid-cols-5 gap-px bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800">
-    @php
-      $stats = [
-        ['label'=>'Файлів','value'=>$info['file_count']],
-        ['label'=>'Migrations','value'=>$info['migrations_count']],
-        ['label'=>'Routes','value'=>$info['registered_routes']],
-        ['label'=>'Filament','value'=>count($info['filament_resources'])+count($info['filament_pages'])+count($info['filament_widgets'])],
-        ['label'=>'Hooks','value'=>count($info['hook_events'] ?? [])],
-      ];
-    @endphp
-    @foreach($stats as $s)
-      <div class="bg-white dark:bg-gray-900 px-4 py-3">
-        <div class="text-[11px] uppercase tracking-wide text-gray-500 dark:text-gray-400 font-medium">{{ $s['label'] }}</div>
-        <div class="text-xl font-semibold text-gray-900 dark:text-white mt-0.5 tabular-nums">{{ $s['value'] }}</div>
-      </div>
-    @endforeach
-  </div>
-
-  {{-- ─── TWO COLUMN: dependencies + settings ─── --}}
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-    {{-- DEPENDENCIES --}}
-    <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-      <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-        <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Залежності</h2>
-      </div>
-      <div class="p-5 space-y-4 text-sm">
-        <div>
-          <div class="text-xs text-gray-500 mb-1.5">Потребує</div>
-          @if(empty($info['requires']))
-            <span class="text-gray-400 text-sm">— нічого —</span>
-          @else
-            <div class="flex flex-wrap gap-1.5">
-              @foreach($info['requires'] as $req)
-                <a href="{{ url('/admin/modules/view?key='.$req) }}" class="px-2 py-0.5 rounded text-xs font-mono bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">{{ $req }}</a>
-              @endforeach
-            </div>
-          @endif
-        </div>
-        <div>
-          <div class="text-xs text-gray-500 mb-1.5">Від нього залежать</div>
-          @if(empty($info['dependents']))
-            <span class="text-gray-400 text-sm">— ніхто —</span>
-          @else
-            <div class="flex flex-wrap gap-1.5">
-              @foreach($info['dependents'] as $dep => $depEnabled)
-                <a href="{{ url('/admin/modules/view?key='.$dep) }}" class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
-                  @if($depEnabled)<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>@endif
-                  {{ $dep }}
-                </a>
-              @endforeach
-            </div>
-          @endif
-        </div>
-        <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100 dark:border-gray-800 text-xs">
-          <div>
-            <div class="text-gray-500">Default</div>
-            <div class="font-medium text-gray-900 dark:text-gray-100 mt-0.5">{{ $info['enabled_by_default'] ? 'on' : 'off' }}</div>
-          </div>
-          @if($info['enabled_at'])
-            <div>
-              <div class="text-gray-500">Увімкнено</div>
-              <div class="font-medium text-gray-900 dark:text-gray-100 mt-0.5">{{ \Carbon\Carbon::parse($info['enabled_at'])->diffForHumans() }}</div>
-            </div>
-          @endif
-        </div>
-      </div>
-    </section>
-
-    {{-- SETTINGS --}}
-    <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-      <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-        <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Налаштування</h2>
-        @if($info['has_settings'])
-          <span class="text-xs text-gray-400">{{ count($info['settings_schema']) }}</span>
-        @endif
-      </div>
-      <div class="p-5">
-        @if(! $info['has_settings'])
-          <div class="text-center py-6">
-            <x-filament::icon icon="heroicon-o-cog-6-tooth" class="w-8 h-8 text-gray-300 dark:text-gray-700 mx-auto mb-2" />
-            <p class="text-sm text-gray-500">Модуль не оголошує налаштувань</p>
-            <p class="text-[11px] text-gray-400 mt-1">Додай <code class="font-mono">settings_schema</code> у <code class="font-mono">module.json</code></p>
-          </div>
-        @else
-          <div class="space-y-3.5">
-            @foreach($info['settings_schema'] as $settingKey => $schema)
-              @php
-                $type = $schema['type'] ?? 'string';
-                $hasError = ! empty($this->settingsErrors[$settingKey]);
-                $errorMsg = $this->settingsErrors[$settingKey] ?? null;
-                $label = $schema['label'] ?? $settingKey;
-                $help = $schema['help'] ?? null;
-                $required = $schema['required'] ?? false;
-                $inputClass = "w-full px-2.5 py-1.5 text-sm rounded-md bg-white dark:bg-gray-950/50 text-gray-900 dark:text-gray-100 placeholder-gray-400 ring-1 ring-inset focus:ring-2 focus:ring-primary-500 focus:outline-none transition-shadow ".($hasError ? 'ring-rose-400' : 'ring-gray-300 dark:ring-gray-700');
-              @endphp
-              <div>
-                <div class="flex items-baseline justify-between mb-1">
-                  <label class="text-[13px] font-medium text-gray-800 dark:text-gray-200">
-                    {{ $label }}
-                    @if($required)<span class="text-rose-500" title="обов'язкове">*</span>@endif
-                  </label>
-                  <span class="text-[10px] uppercase tracking-wide text-gray-400 font-mono">{{ $type }}</span>
+    {{-- ─── HEADER ─── --}}
+    <x-filament::section>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div class="min-w-0 space-y-2" style="flex:1 1 0%">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="text-xl font-bold tracking-tight text-gray-950 dark:text-white">{{ $info['name'] }}</h2>
+                    @if($info['enabled'])
+                        <x-filament::badge color="success" icon="heroicon-m-check-circle">Активний</x-filament::badge>
+                    @else
+                        <x-filament::badge color="gray" icon="heroicon-m-pause-circle">Неактивний</x-filament::badge>
+                    @endif
                 </div>
-                @if($type === 'bool')
-                  <label class="inline-flex items-center gap-2 cursor-pointer">
-                    <input type="checkbox" wire:model="settings.{{ $settingKey }}" class="rounded text-primary-600 focus:ring-primary-500" />
-                    <span class="text-xs text-gray-500">Увімкнено</span>
-                  </label>
-                @elseif($type === 'int' || $type === 'float')
-                  <input type="number" wire:model="settings.{{ $settingKey }}"
-                    @if(isset($schema['min']))min="{{ $schema['min'] }}"@endif
-                    @if(isset($schema['max']))max="{{ $schema['max'] }}"@endif
-                    @if($type === 'float') step="0.01" @endif
-                    placeholder="{{ $schema['default'] ?? '' }}" class="{{ $inputClass }}" />
-                @elseif(! empty($schema['enum']))
-                  <select wire:model="settings.{{ $settingKey }}" class="{{ $inputClass }}">
-                    <option value="">— оберіть —</option>
-                    @foreach($schema['enum'] as $opt)
-                      <option value="{{ $opt }}">{{ $opt }}</option>
-                    @endforeach
-                  </select>
+
+                <div class="flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-xs text-gray-500 dark:text-gray-400">
+                    <span>{{ $info['key'] }}</span>
+                    @if($info['version'])<span class="text-gray-300 dark:text-gray-600">·</span><span>v{{ $info['version'] }}</span>@endif
+                    @if($info['author'])<span class="text-gray-300 dark:text-gray-600">·</span><span class="font-sans">{{ $info['author'] }}</span>@endif
+                </div>
+
+                @if($info['description'])
+                    <p class="max-w-2xl text-sm leading-relaxed text-gray-600 dark:text-gray-300">{{ $info['description'] }}</p>
+                @endif
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+                <x-filament::icon-button
+                    icon="heroicon-o-arrow-path"
+                    wire:click="clearModuleCache"
+                    wire:loading.attr="disabled" wire:target="clearModuleCache"
+                    label="Очистити кеш"
+                    color="gray"
+                    size="lg" />
+
+                @if($info['enabled'])
+                    <x-filament::button
+                        wire:click="toggleModule"
+                        wire:confirm="Вимкнути модуль «{{ $info['name'] }}»? Дані залишаються у БД."
+                        wire:loading.attr="disabled" wire:target="toggleModule"
+                        color="danger"
+                        icon="heroicon-o-power">
+                        <span wire:loading.remove wire:target="toggleModule">Вимкнути</span>
+                        <span wire:loading wire:target="toggleModule">Вимикаю…</span>
+                    </x-filament::button>
                 @else
-                  <input type="text" wire:model="settings.{{ $settingKey }}" placeholder="{{ $schema['default'] ?? '' }}" class="{{ $inputClass }}" />
+                    <x-filament::button
+                        wire:click="toggleModule"
+                        wire:loading.attr="disabled" wire:target="toggleModule"
+                        color="primary"
+                        icon="heroicon-o-bolt">
+                        <span wire:loading.remove wire:target="toggleModule">Увімкнути</span>
+                        <span wire:loading wire:target="toggleModule">Вмикаю…</span>
+                    </x-filament::button>
                 @endif
-                @if($hasError)
-                  <p class="text-[11px] text-rose-600 mt-1 flex items-center gap-1">
-                    <x-filament::icon icon="heroicon-o-exclamation-circle" class="w-3 h-3" />
-                    {{ $errorMsg }}
-                  </p>
-                @elseif($help)
-                  <p class="text-[11px] text-gray-500 mt-1">{{ $help }}</p>
-                @endif
-              </div>
-            @endforeach
-            <div class="flex gap-2 pt-2">
-              <button type="button" wire:click="saveSettings"
-                wire:loading.attr="disabled" wire:target="saveSettings"
-                class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-900 hover:bg-gray-800 dark:bg-white dark:hover:bg-gray-100 text-white dark:text-gray-900 transition-colors disabled:opacity-40">
-                <svg wire:loading wire:target="saveSettings" class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
-                <span wire:loading.remove wire:target="saveSettings">Зберегти</span>
-                <span wire:loading wire:target="saveSettings">Зберігаю…</span>
-              </button>
-              <button type="button" wire:click="resetSettings"
-                wire:confirm="Скинути всі налаштування до значень з manifest?"
-                class="px-3 py-1.5 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-                Скинути
-              </button>
             </div>
-          </div>
-        @endif
-      </div>
-    </section>
-  </div>
-
-  {{-- ─── HEALTH CHECKS ─── --}}
-  <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-    <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-      <h2 class="flex items-center gap-2 text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">
-        @if($overallHealth==='ok')
-          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span>
-        @elseif($overallHealth==='warning')
-          <span class="w-1.5 h-1.5 bg-amber-500 rounded-full"></span>
-        @else
-          <span class="w-1.5 h-1.5 bg-rose-500 rounded-full"></span>
-        @endif
-        Health
-      </h2>
-      <div class="flex items-center gap-1.5 text-[11px] font-mono text-gray-500">
-        @if($healthCounts['ok'] > 0)<span class="text-emerald-600 dark:text-emerald-400">{{ $healthCounts['ok'] }}✓</span>@endif
-        @if($healthCounts['warning'] > 0)<span class="text-amber-600 dark:text-amber-400">{{ $healthCounts['warning'] }}!</span>@endif
-        @if($healthCounts['error'] > 0)<span class="text-rose-600 dark:text-rose-400">{{ $healthCounts['error'] }}✕</span>@endif
-      </div>
-    </div>
-    <ul class="divide-y divide-gray-100 dark:divide-gray-800">
-      @foreach($health as $check)
-        <li class="flex items-center gap-3 px-5 py-2.5">
-          <div class="shrink-0">
-            @if($check['status']==='ok')
-              <div class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></div>
-            @elseif($check['status']==='warning')
-              <div class="w-1.5 h-1.5 bg-amber-500 rounded-full"></div>
-            @else
-              <div class="w-1.5 h-1.5 bg-rose-500 rounded-full"></div>
-            @endif
-          </div>
-          <div class="flex-1 min-w-0">
-            <span class="text-[13px] text-gray-900 dark:text-gray-100">{{ $check['label'] }}</span>
-            @if($check['detail'])
-              <span class="text-[12px] text-gray-500 ml-1.5">— {{ $check['detail'] }}</span>
-            @endif
-          </div>
-        </li>
-      @endforeach
-    </ul>
-  </section>
-
-  {{-- ─── ACTIVITY ─── --}}
-  <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-    <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
-      <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Активність</h2>
-      @if($activity->count() > 0)<span class="text-xs text-gray-400">{{ $activity->count() }}</span>@endif
-    </div>
-    @if($activity->count() === 0)
-      <div class="px-5 py-8 text-center">
-        <x-filament::icon icon="heroicon-o-clock" class="w-7 h-7 text-gray-300 dark:text-gray-700 mx-auto mb-1.5" />
-        <p class="text-sm text-gray-500">Поки що порожньо</p>
-        <p class="text-[11px] text-gray-400 mt-0.5">Зміни модуля з'являться тут</p>
-      </div>
-    @else
-      <ul class="divide-y divide-gray-100 dark:divide-gray-800">
-        @foreach($activity as $entry)
-          <li class="px-5 py-2.5 flex items-center gap-3 text-sm">
-            <time class="shrink-0 text-[11px] text-gray-400 font-mono w-20 tabular-nums">{{ $entry->created_at->diffForHumans() }}</time>
-            <div class="flex-1 min-w-0">
-              <span class="text-gray-900 dark:text-gray-100">{{ $actionLabels[$entry->action] ?? $entry->action }}</span>
-              @if($entry->user_id)<span class="text-[11px] text-gray-400 ml-1.5">user #{{ $entry->user_id }}</span>@endif
-              @if(! empty($entry->payload['from_version']) && ! empty($entry->payload['to_version']) && $entry->payload['from_version'] !== $entry->payload['to_version'])
-                <code class="ml-1.5 text-[11px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 rounded font-mono">{{ $entry->payload['from_version'] }} → {{ $entry->payload['to_version'] }}</code>
-              @endif
-            </div>
-            <span class="hidden sm:inline text-[11px] text-gray-400 font-mono">{{ $entry->created_at->format('d.m H:i') }}</span>
-          </li>
-        @endforeach
-      </ul>
-    @endif
-  </section>
-
-  {{-- ─── MANIFEST + FILES (two-column compact) ─── --}}
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
-    <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-      <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-        <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Manifest</h2>
-      </div>
-      <div class="p-5 space-y-3 text-sm">
-        @foreach([
-          'providers' => 'Service providers',
-          'filament_resources' => 'Resources',
-          'filament_pages' => 'Pages',
-          'filament_widgets' => 'Widgets',
-          'composer_packages' => 'Composer пакети',
-        ] as $field => $label)
-          @if(! empty($info[$field]))
-            <div>
-              <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1.5">{{ $label }} <span class="text-gray-400">{{ count($info[$field]) }}</span></div>
-              <div class="space-y-1">
-                @foreach($info[$field] as $cls)
-                  <code class="block text-[11px] px-2 py-1 bg-gray-50 dark:bg-gray-950/50 text-gray-700 dark:text-gray-300 rounded font-mono break-all">{{ $cls }}</code>
-                @endforeach
-              </div>
-            </div>
-          @endif
-        @endforeach
-        @if($info['views_namespace'])
-          <div>
-            <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1.5">Views namespace</div>
-            <code class="text-[11px] px-2 py-1 bg-gray-50 dark:bg-gray-950/50 rounded font-mono text-gray-700 dark:text-gray-300">{{ $info['views_namespace'] }}::view-name</code>
-          </div>
-        @endif
-      </div>
-    </section>
-
-    {{-- HOOKS section — на які core-events модуль підписаний --}}
-    @if(! empty($info['hook_events']))
-      <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-        <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-          <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300 flex items-center gap-2">
-            <x-filament::icon icon="heroicon-o-bolt" class="w-4 h-4 text-amber-500" />
-            Hook subscriptions
-            <span class="text-gray-400 font-normal lowercase">— на які core-events модуль підписаний</span>
-          </h2>
         </div>
-        <div class="p-5 text-sm">
-          <ul class="space-y-1.5">
-            @foreach($info['hook_events'] as $event)
-              @php $listeners = \App\Support\Hooks::listenersFor($event); @endphp
-              <li class="flex items-baseline gap-3 text-[12px]">
-                <code class="font-mono text-amber-700 dark:text-amber-400 px-1.5 py-0.5 bg-amber-50 dark:bg-amber-900/20 rounded">{{ $event }}</code>
-                @php $myEntry = collect($listeners)->firstWhere('source', $info['key']); @endphp
-                @if($myEntry)
-                  <span class="text-[11px] text-gray-500">
-                    {{ $myEntry['type'] }} · priority {{ $myEntry['priority'] }}
-                  </span>
-                @endif
-              </li>
-            @endforeach
-          </ul>
-          <p class="mt-3 text-[11px] text-gray-500 leading-relaxed">
-            Модуль слухає ці події в core. Якщо вимкнути модуль — listener'и зникають,
-            core працює без них (graceful degradation).
-          </p>
-        </div>
-      </section>
-    @endif
 
-    <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-      <div class="px-5 py-3 border-b border-gray-100 dark:border-gray-800">
-        <h2 class="text-[13px] font-semibold uppercase tracking-wider text-gray-700 dark:text-gray-300">Файли</h2>
-      </div>
-      <div class="p-5 text-sm space-y-3">
-        <div>
-          <div class="text-[11px] uppercase tracking-wide text-gray-500 mb-1.5">Шлях</div>
-          <code class="block text-[11px] px-2 py-1 bg-gray-50 dark:bg-gray-950/50 text-gray-700 dark:text-gray-300 rounded font-mono break-all">{{ str_replace(base_path().'/', '', $info['module_path']) }}</code>
-          <span class="text-[11px] text-gray-500 mt-1 block">{{ $info['folder_exists'] ? '✓ існує' : '✗ відсутня' }} · {{ $info['file_count'] }} файлів</span>
-        </div>
-        @if($info['migrations_count'] > 0)
-          <details>
-            <summary class="cursor-pointer text-[11px] uppercase tracking-wide text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 select-none flex items-center gap-1.5">
-              <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-              Migrations <span class="text-gray-400">{{ $info['migrations_count'] }}</span>
-            </summary>
-            <div class="mt-2 space-y-1">
-              @foreach($info['migrations'] as $mig)
-                <code class="block text-[11px] px-2 py-1 bg-gray-50 dark:bg-gray-950/50 text-gray-700 dark:text-gray-300 rounded font-mono break-all">{{ $mig }}</code>
-              @endforeach
-              <button type="button" wire:click="runMigrations"
-                wire:loading.attr="disabled" wire:target="runMigrations"
-                class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
-                <svg wire:loading wire:target="runMigrations" class="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
-                Запустити migrate
-              </button>
-            </div>
-          </details>
-        @endif
-      </div>
-    </section>
-  </div>
-
-  {{-- ─── DEBUG TOGGLE ─── --}}
-  <section class="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800">
-    <div class="px-5 py-3 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-2.5">
-        <x-filament::icon icon="heroicon-o-bug-ant" class="w-4 h-4 text-gray-400" />
-        <div>
-          <div class="text-[13px] font-semibold text-gray-900 dark:text-white">Debug info</div>
-          <div class="text-[11px] text-gray-500 dark:text-gray-400">Файли · routes · DB tables · hooks · env. Підвантажується при потребі.</div>
-        </div>
-      </div>
-      <button type="button" wire:click="toggleDebug"
-        wire:loading.attr="disabled" wire:target="toggleDebug"
-        class="inline-flex items-center gap-1.5 px-2.5 py-1 text-[12px] font-medium rounded text-gray-700 dark:text-gray-300 ring-1 ring-inset ring-gray-300 dark:ring-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors disabled:opacity-40">
-        <svg wire:loading wire:target="toggleDebug" class="animate-spin w-3 h-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" class="opacity-25"></circle><path fill="currentColor" class="opacity-75" d="M4 12a8 8 0 018-8V0C5.4 0 0 5.4 0 12h4z"></path></svg>
-        @if($showDebug)
-          <x-filament::icon icon="heroicon-o-eye-slash" class="w-3.5 h-3.5" />
-          <span>Сховати</span>
-        @else
-          <x-filament::icon icon="heroicon-o-eye" class="w-3.5 h-3.5" />
-          <span>Показати</span>
-        @endif
-      </button>
-    </div>
-
-    @if($showDebug)
-      @php $debug = $this->getDebugInfo(); @endphp
-      <div class="border-t border-gray-200 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
-
-        {{-- 1. File tree --}}
-        <details open class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            Файлове дерево
-            <span class="text-gray-400 ml-1">{{ $debug['file_tree_total'] }}</span>
-            @if($debug['file_tree_total'] === 40)<span class="ml-1 text-[10px] text-amber-600">(showing first 40)</span>@endif
-          </summary>
-          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
-            <div class="font-mono text-[11px] leading-relaxed text-gray-700 dark:text-gray-300 space-y-0.5">
-              @foreach($debug['file_tree'] as $f)
-                <div class="truncate">{{ $f }}</div>
-              @endforeach
-            </div>
-          </div>
-        </details>
-
-        {{-- 2. Routes --}}
-        <details class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            Routes зареєстровано
-            <span class="text-gray-400 ml-1">{{ count($debug['routes']) }}</span>
-          </summary>
-          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
-            @if(empty($debug['routes']))
-              <p class="text-[11px] text-gray-500">Жодного route не зареєстровано через цей модуль.</p>
-            @else
-              <div class="space-y-1 font-mono text-[11px]">
-                @foreach($debug['routes'] as $r)
-                  <div class="flex items-center gap-2">
-                    <span class="shrink-0 w-16 text-gray-500">{{ $r['method'] }}</span>
-                    <span class="flex-1 truncate text-gray-900 dark:text-gray-100">{{ $r['uri'] }}</span>
-                    <span class="shrink-0 text-gray-400">{{ $r['name'] }}</span>
-                  </div>
-                @endforeach
-              </div>
-            @endif
-          </div>
-        </details>
-
-        {{-- 3. DB Tables --}}
-        <details class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            DB-таблиці + кількість рядків
-            <span class="text-gray-400 ml-1">{{ count($debug['table_counts']) }}</span>
-          </summary>
-          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
-            @if(empty($debug['table_counts']))
-              <p class="text-[11px] text-gray-500">Таблиць з ім'ям, що містить «{{ $info['key'] }}», не знайдено.</p>
-            @else
-              <div class="font-mono text-[11px] space-y-0.5">
-                @foreach($debug['table_counts'] as $table => $count)
-                  <div class="flex items-center justify-between">
-                    <span class="text-gray-900 dark:text-gray-100">{{ $table }}</span>
-                    <span class="text-gray-500 tabular-nums">{{ $count }} rows</span>
-                  </div>
-                @endforeach
-              </div>
-            @endif
-          </div>
-        </details>
-
-        {{-- 4. Hook listeners --}}
-        <details class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            Hooks listeners (global)
-            <span class="text-gray-400 ml-1">{{ count($debug['hook_listeners']) }}</span>
-          </summary>
-          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30">
-            @if(empty($debug['hook_listeners']))
-              <p class="text-[11px] text-gray-500">Жодного слухача не зареєстровано через Hooks API.</p>
-            @else
-              <div class="font-mono text-[11px] space-y-0.5">
-                @foreach($debug['hook_listeners'] as $event => $count)
-                  <div class="flex items-center justify-between">
-                    <span class="text-gray-900 dark:text-gray-100">{{ $event }}</span>
-                    <span class="text-gray-500 tabular-nums">{{ $count }} listener{{ $count === 1 ? '' : 's' }}</span>
-                  </div>
-                @endforeach
-              </div>
-            @endif
-          </div>
-        </details>
-
-        {{-- 5. PHP class loaded check --}}
-        <details class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            PHP class_exists перевірка
-          </summary>
-          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30 space-y-2 text-[11px] font-mono">
-            @foreach(['providers' => 'Providers', 'resources' => 'Filament resources'] as $field => $label)
-              @if(! empty($debug['php_class_loaded_check'][$field]))
-                <div>
-                  <div class="text-gray-500 mb-1">{{ $label }}</div>
-                  @foreach($debug['php_class_loaded_check'][$field] as $check)
-                    <div class="flex items-center gap-2">
-                      <span class="shrink-0 w-3">
-                        @if($check['exists'])
-                          <span class="w-1.5 h-1.5 bg-emerald-500 rounded-full block"></span>
-                        @else
-                          <span class="w-1.5 h-1.5 bg-rose-500 rounded-full block"></span>
-                        @endif
-                      </span>
-                      <span class="text-gray-900 dark:text-gray-100 break-all">{{ $check['class'] }}</span>
-                    </div>
-                  @endforeach
+        {{-- STATS --}}
+        <div class="mt-5 overflow-hidden rounded-lg bg-gray-200 dark:bg-white/10" style="display:grid;gap:1px;grid-template-columns:repeat(auto-fit,minmax(110px,1fr))">
+            @php
+                $stats = [
+                    ['label'=>'Файлів','value'=>$info['file_count']],
+                    ['label'=>'Migrations','value'=>$info['migrations_count']],
+                    ['label'=>'Routes','value'=>$info['registered_routes']],
+                    ['label'=>'Filament','value'=>count($info['filament_resources'])+count($info['filament_pages'])+count($info['filament_widgets'])],
+                    ['label'=>'Hooks','value'=>count($info['hook_events'] ?? [])],
+                ];
+            @endphp
+            @foreach($stats as $s)
+                <div class="bg-white px-4 py-3 dark:bg-gray-900">
+                    <div class="text-[11px] font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $s['label'] }}</div>
+                    <div class="mt-0.5 text-xl font-semibold tabular-nums text-gray-950 dark:text-white">{{ $s['value'] }}</div>
                 </div>
-              @endif
             @endforeach
-            <div class="pt-2 border-t border-gray-200 dark:border-gray-800">
-              <span class="text-gray-500">Composer classmap matches:</span>
-              <span class="text-gray-900 dark:text-gray-100 ml-2">{{ $debug['composer_classmap_check']['matches'] ?? '?' }}</span>
+        </div>
+    </x-filament::section>
+
+    {{-- ─── DEPENDENCIES + SETTINGS ─── --}}
+    <div style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+
+        {{-- DEPENDENCIES --}}
+        <x-filament::section icon="heroicon-o-link" icon-color="gray">
+            <x-slot name="heading">Залежності</x-slot>
+
+            <div class="space-y-4 text-sm">
+                <div>
+                    <div class="mb-1.5 text-xs text-gray-500">Потребує</div>
+                    @if(empty($info['requires']))
+                        <span class="text-sm text-gray-400">— нічого —</span>
+                    @else
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($info['requires'] as $req)
+                                <a href="{{ url('/admin/modules/view?key='.$req) }}">
+                                    <x-filament::badge color="warning">{{ $req }}</x-filament::badge>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <div>
+                    <div class="mb-1.5 text-xs text-gray-500">Від нього залежать</div>
+                    @if(empty($info['dependents']))
+                        <span class="text-sm text-gray-400">— ніхто —</span>
+                    @else
+                        <div class="flex flex-wrap gap-1.5">
+                            @foreach($info['dependents'] as $dep => $depEnabled)
+                                <a href="{{ url('/admin/modules/view?key='.$dep) }}">
+                                    <x-filament::badge :color="$depEnabled ? 'success' : 'gray'">{{ $dep }}</x-filament::badge>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <div class="grid grid-cols-2 gap-3 border-t border-gray-100 pt-3 text-xs dark:border-white/5">
+                    <div>
+                        <div class="text-gray-500">За замовчуванням</div>
+                        <div class="mt-0.5 font-medium text-gray-900 dark:text-gray-100">{{ $info['enabled_by_default'] ? 'увімкнено' : 'вимкнено' }}</div>
+                    </div>
+                    @if($info['enabled_at'])
+                        <div>
+                            <div class="text-gray-500">Увімкнено</div>
+                            <div class="mt-0.5 font-medium text-gray-900 dark:text-gray-100">{{ \Carbon\Carbon::parse($info['enabled_at'])->diffForHumans() }}</div>
+                        </div>
+                    @endif
+                </div>
             </div>
-          </div>
-        </details>
+        </x-filament::section>
 
-        {{-- 6. ENV vars --}}
-        <details class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            ENV
-          </summary>
-          <div class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30 font-mono text-[11px] space-y-0.5">
-            @foreach($debug['env_vars'] as $envKey => $envVal)
-              <div class="flex items-baseline gap-2">
-                <span class="text-gray-500 w-44 shrink-0">{{ $envKey }}</span>
-                <span class="text-gray-900 dark:text-gray-100">{{ $envVal === null ? '(unset)' : var_export($envVal, true) }}</span>
-              </div>
+        {{-- SETTINGS --}}
+        <x-filament::section icon="heroicon-o-cog-6-tooth" icon-color="gray">
+            <x-slot name="heading">Налаштування</x-slot>
+            @if($info['has_settings'])
+                <x-slot name="headerEnd">
+                    <x-filament::badge color="gray">{{ count($info['settings_schema']) }}</x-filament::badge>
+                </x-slot>
+            @endif
+
+            @if(! $info['has_settings'])
+                <div class="py-6 text-center">
+                    <x-filament::icon icon="heroicon-o-cog-6-tooth" class="mx-auto mb-2 h-8 w-8 text-gray-300 dark:text-gray-700" />
+                    <p class="text-sm text-gray-500">Модуль не оголошує налаштувань</p>
+                    <p class="mt-1 text-xs text-gray-400">Додай <code class="font-mono">settings_schema</code> у <code class="font-mono">module.json</code></p>
+                </div>
+            @else
+                <div class="space-y-4">
+                    @foreach($info['settings_schema'] as $settingKey => $schema)
+                        @php
+                            $type = $schema['type'] ?? 'string';
+                            $hasError = ! empty($this->settingsErrors[$settingKey]);
+                            $errorMsg = $this->settingsErrors[$settingKey] ?? null;
+                            $label = $schema['label'] ?? $settingKey;
+                            $help = $schema['help'] ?? null;
+                            $required = $schema['required'] ?? false;
+                            $fieldClass = $inputClass . ($hasError ? ' ring-danger-500 dark:ring-danger-500' : '');
+                        @endphp
+                        <div>
+                            <div class="mb-1 flex items-baseline justify-between">
+                                <label class="text-sm font-medium text-gray-700 dark:text-gray-200">
+                                    {{ $label }}
+                                    @if($required)<span class="text-danger-500" title="обов'язкове">*</span>@endif
+                                </label>
+                                <span class="font-mono text-[10px] uppercase tracking-wide text-gray-400">{{ $type }}</span>
+                            </div>
+                            @if($type === 'bool')
+                                <label class="inline-flex cursor-pointer items-center gap-2">
+                                    <input type="checkbox" wire:model="settings.{{ $settingKey }}" class="fi-checkbox-input rounded border-none bg-white shadow-sm ring-1 ring-gray-950/10 checked:ring-0 dark:bg-white/5 dark:ring-white/20" />
+                                    <span class="text-xs text-gray-500">Увімкнено</span>
+                                </label>
+                            @elseif($type === 'int' || $type === 'float')
+                                <input type="number" wire:model="settings.{{ $settingKey }}"
+                                    @if(isset($schema['min']))min="{{ $schema['min'] }}"@endif
+                                    @if(isset($schema['max']))max="{{ $schema['max'] }}"@endif
+                                    @if($type === 'float') step="0.01" @endif
+                                    placeholder="{{ $schema['default'] ?? '' }}" class="{{ $fieldClass }}" />
+                            @elseif(! empty($schema['enum']))
+                                <select wire:model="settings.{{ $settingKey }}" class="{{ $fieldClass }}">
+                                    <option value="">— оберіть —</option>
+                                    @foreach($schema['enum'] as $opt)
+                                        <option value="{{ $opt }}">{{ $opt }}</option>
+                                    @endforeach
+                                </select>
+                            @else
+                                <input type="text" wire:model="settings.{{ $settingKey }}" placeholder="{{ $schema['default'] ?? '' }}" class="{{ $fieldClass }}" />
+                            @endif
+                            @if($hasError)
+                                <p class="mt-1 flex items-center gap-1 text-xs text-danger-600 dark:text-danger-400">
+                                    <x-filament::icon icon="heroicon-o-exclamation-circle" class="h-3 w-3" />
+                                    {{ $errorMsg }}
+                                </p>
+                            @elseif($help)
+                                <p class="mt-1 text-xs text-gray-500">{{ $help }}</p>
+                            @endif
+                        </div>
+                    @endforeach
+                    <div class="flex gap-2 pt-1">
+                        <x-filament::button
+                            wire:click="saveSettings"
+                            wire:loading.attr="disabled" wire:target="saveSettings"
+                            color="primary" size="sm" icon="heroicon-o-check">
+                            <span wire:loading.remove wire:target="saveSettings">Зберегти</span>
+                            <span wire:loading wire:target="saveSettings">Зберігаю…</span>
+                        </x-filament::button>
+                        <x-filament::button
+                            wire:click="resetSettings"
+                            wire:confirm="Скинути всі налаштування до значень з manifest?"
+                            color="gray" size="sm" outlined>
+                            Скинути
+                        </x-filament::button>
+                    </div>
+                </div>
+            @endif
+        </x-filament::section>
+    </div>
+
+    {{-- ─── HEALTH CHECKS ─── --}}
+    <x-filament::section
+        :icon="$overallHealth==='ok' ? 'heroicon-o-check-circle' : ($overallHealth==='warning' ? 'heroicon-o-exclamation-triangle' : 'heroicon-o-x-circle')"
+        :icon-color="$overallHealth==='ok' ? 'success' : ($overallHealth==='warning' ? 'warning' : 'danger')"
+    >
+        <x-slot name="heading">Стан здоров'я</x-slot>
+        <x-slot name="headerEnd">
+            <div class="flex items-center gap-1.5">
+                @if($healthCounts['ok'] > 0)<x-filament::badge color="success" size="sm">{{ $healthCounts['ok'] }}</x-filament::badge>@endif
+                @if($healthCounts['warning'] > 0)<x-filament::badge color="warning" size="sm">{{ $healthCounts['warning'] }}</x-filament::badge>@endif
+                @if($healthCounts['error'] > 0)<x-filament::badge color="danger" size="sm">{{ $healthCounts['error'] }}</x-filament::badge>@endif
+            </div>
+        </x-slot>
+
+        <ul class="divide-y divide-gray-100 dark:divide-white/5">
+            @foreach($health as $check)
+                <li class="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                    <span @class([
+                        'h-2 w-2 shrink-0 rounded-full',
+                        'bg-success-500' => $check['status']==='ok',
+                        'bg-warning-500' => $check['status']==='warning',
+                        'bg-danger-500' => $check['status']==='error',
+                    ])></span>
+                    <div class="min-w-0" style="flex:1 1 0%">
+                        <span class="text-sm text-gray-900 dark:text-gray-100">{{ $check['label'] }}</span>
+                        @if($check['detail'])
+                            <span class="ml-1.5 text-xs text-gray-500">— {{ $check['detail'] }}</span>
+                        @endif
+                    </div>
+                </li>
             @endforeach
-          </div>
-        </details>
+        </ul>
+    </x-filament::section>
 
-        {{-- 7. Raw manifest --}}
-        <details class="group">
-          <summary class="cursor-pointer px-5 py-2.5 text-[11px] uppercase tracking-wide font-semibold text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/30 flex items-center gap-1.5 select-none">
-            <x-filament::icon icon="heroicon-o-chevron-right" class="w-3 h-3 group-open:rotate-90 transition-transform" />
-            module.json (raw)
-          </summary>
-          <pre class="px-5 py-3 bg-gray-50/50 dark:bg-gray-950/30 text-[11px] text-gray-700 dark:text-gray-400 overflow-x-auto font-mono leading-relaxed"><code>{{ json_encode($debug['manifest'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</code></pre>
-        </details>
-      </div>
-    @endif
-  </section>
+    {{-- ─── ACTIVITY ─── --}}
+    <x-filament::section icon="heroicon-o-clock" icon-color="gray">
+        <x-slot name="heading">Активність</x-slot>
+        @if($activity->count() > 0)
+            <x-slot name="headerEnd">
+                <x-filament::badge color="gray">{{ $activity->count() }}</x-filament::badge>
+            </x-slot>
+        @endif
 
-  {{-- BACK --}}
-  <a href="{{ route('filament.admin.pages.modules') }}" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 transition-colors">
-    <x-filament::icon icon="heroicon-o-arrow-left" class="w-3.5 h-3.5" />
-    Усі модулі
-  </a>
-</div>
+        @if($activity->count() === 0)
+            <div class="py-8 text-center">
+                <x-filament::icon icon="heroicon-o-clock" class="mx-auto mb-1.5 h-7 w-7 text-gray-300 dark:text-gray-700" />
+                <p class="text-sm text-gray-500">Поки що порожньо</p>
+                <p class="mt-0.5 text-xs text-gray-400">Зміни модуля з'являться тут</p>
+            </div>
+        @else
+            <ul class="divide-y divide-gray-100 dark:divide-white/5">
+                @foreach($activity as $entry)
+                    <li class="flex items-center gap-3 py-2.5 text-sm first:pt-0 last:pb-0">
+                        <time class="w-20 shrink-0 font-mono text-xs tabular-nums text-gray-400">{{ $entry->created_at->diffForHumans() }}</time>
+                        <div class="min-w-0" style="flex:1 1 0%">
+                            <span class="text-gray-900 dark:text-gray-100">{{ $actionLabels[$entry->action] ?? $entry->action }}</span>
+                            @if($entry->user_id)<span class="ml-1.5 text-xs text-gray-400">user #{{ $entry->user_id }}</span>@endif
+                            @if(! empty($entry->payload['from_version']) && ! empty($entry->payload['to_version']) && $entry->payload['from_version'] !== $entry->payload['to_version'])
+                                <code class="ml-1.5 rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs text-gray-600 dark:bg-white/10 dark:text-gray-400">{{ $entry->payload['from_version'] }} → {{ $entry->payload['to_version'] }}</code>
+                            @endif
+                        </div>
+                        <span class="hidden font-mono text-xs text-gray-400 sm:inline">{{ $entry->created_at->format('d.m H:i') }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </x-filament::section>
+
+    {{-- ─── MANIFEST + HOOKS + FILES ─── --}}
+    <div style="display:grid;gap:1.5rem;grid-template-columns:repeat(auto-fit,minmax(340px,1fr))">
+
+        <x-filament::section icon="heroicon-o-document-text" icon-color="gray">
+            <x-slot name="heading">Manifest</x-slot>
+
+            <div class="space-y-3 text-sm">
+                @foreach([
+                    'providers' => 'Service providers',
+                    'filament_resources' => 'Resources',
+                    'filament_pages' => 'Pages',
+                    'filament_widgets' => 'Widgets',
+                    'composer_packages' => 'Composer пакети',
+                ] as $field => $label)
+                    @if(! empty($info[$field]))
+                        <div>
+                            <div class="mb-1.5 text-[11px] uppercase tracking-wide text-gray-500">{{ $label }} <span class="text-gray-400">{{ count($info[$field]) }}</span></div>
+                            <div class="space-y-1">
+                                @foreach($info[$field] as $cls)
+                                    <code class="block break-all rounded bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700 dark:bg-white/5 dark:text-gray-300">{{ $cls }}</code>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                @endforeach
+                @if($info['views_namespace'])
+                    <div>
+                        <div class="mb-1.5 text-[11px] uppercase tracking-wide text-gray-500">Views namespace</div>
+                        <code class="rounded bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700 dark:bg-white/5 dark:text-gray-300">{{ $info['views_namespace'] }}::view-name</code>
+                    </div>
+                @endif
+            </div>
+        </x-filament::section>
+
+        {{-- HOOKS --}}
+        @if(! empty($info['hook_events']))
+            <x-filament::section icon="heroicon-o-bolt" icon-color="warning">
+                <x-slot name="heading">Hook subscriptions</x-slot>
+                <x-slot name="description">На які core-events модуль підписаний</x-slot>
+
+                <ul class="space-y-1.5">
+                    @foreach($info['hook_events'] as $event)
+                        @php $listeners = \App\Support\Hooks::listenersFor($event); @endphp
+                        <li class="flex items-baseline gap-3 text-xs">
+                            <code class="rounded bg-amber-50 px-1.5 py-0.5 font-mono text-amber-700 dark:bg-amber-900/20 dark:text-amber-400">{{ $event }}</code>
+                            @php $myEntry = collect($listeners)->firstWhere('source', $info['key']); @endphp
+                            @if($myEntry)
+                                <span class="text-xs text-gray-500">{{ $myEntry['type'] }} · priority {{ $myEntry['priority'] }}</span>
+                            @endif
+                        </li>
+                    @endforeach
+                </ul>
+                <p class="mt-3 text-xs leading-relaxed text-gray-500">
+                    Модуль слухає ці події в core. Якщо вимкнути модуль — listener'и зникають,
+                    core працює без них (graceful degradation).
+                </p>
+            </x-filament::section>
+        @endif
+
+        {{-- FILES --}}
+        <x-filament::section icon="heroicon-o-folder" icon-color="gray">
+            <x-slot name="heading">Файли</x-slot>
+
+            <div class="space-y-3 text-sm">
+                <div>
+                    <div class="mb-1.5 text-[11px] uppercase tracking-wide text-gray-500">Шлях</div>
+                    <code class="block break-all rounded bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700 dark:bg-white/5 dark:text-gray-300">{{ str_replace(base_path().'/', '', $info['module_path']) }}</code>
+                    <span class="mt-1 block text-[11px] text-gray-500">{{ $info['folder_exists'] ? '✓ існує' : '✗ відсутня' }} · {{ $info['file_count'] }} файлів</span>
+                </div>
+                @if($info['migrations_count'] > 0)
+                    <details class="group">
+                        <summary class="flex cursor-pointer select-none items-center gap-1.5 text-[11px] uppercase tracking-wide text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                            <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                            Migrations <span class="text-gray-400">{{ $info['migrations_count'] }}</span>
+                        </summary>
+                        <div class="mt-2 space-y-1">
+                            @foreach($info['migrations'] as $mig)
+                                <code class="block break-all rounded bg-gray-50 px-2 py-1 font-mono text-[11px] text-gray-700 dark:bg-white/5 dark:text-gray-300">{{ $mig }}</code>
+                            @endforeach
+                            <div class="pt-1">
+                                <x-filament::button
+                                    wire:click="runMigrations"
+                                    wire:loading.attr="disabled" wire:target="runMigrations"
+                                    color="gray" size="sm" outlined icon="heroicon-o-play">
+                                    <span wire:loading.remove wire:target="runMigrations">Запустити migrate</span>
+                                    <span wire:loading wire:target="runMigrations">Виконую…</span>
+                                </x-filament::button>
+                            </div>
+                        </div>
+                    </details>
+                @endif
+            </div>
+        </x-filament::section>
+    </div>
+
+    {{-- ─── DEBUG ─── --}}
+    <x-filament::section icon="heroicon-o-bug-ant" icon-color="gray">
+        <x-slot name="heading">Debug info</x-slot>
+        <x-slot name="description">Файли · routes · DB tables · hooks · env. Підвантажується при потребі.</x-slot>
+        <x-slot name="headerEnd">
+            <x-filament::button
+                wire:click="toggleDebug"
+                wire:loading.attr="disabled" wire:target="toggleDebug"
+                color="gray" size="sm" outlined
+                :icon="$showDebug ? 'heroicon-o-eye-slash' : 'heroicon-o-eye'">
+                {{ $showDebug ? 'Сховати' : 'Показати' }}
+            </x-filament::button>
+        </x-slot>
+
+        @if($showDebug)
+            @php $debug = $this->getDebugInfo(); @endphp
+            <div class="-mx-6 -mb-6 divide-y divide-gray-100 border-t border-gray-200 dark:divide-white/5 dark:border-white/10">
+
+                {{-- 1. File tree --}}
+                <details open class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        Файлове дерево
+                        <span class="ml-1 text-gray-400">{{ $debug['file_tree_total'] }}</span>
+                        @if($debug['file_tree_total'] === 40)<span class="ml-1 text-[10px] text-amber-600">(перші 40)</span>@endif
+                    </summary>
+                    <div class="bg-gray-50/50 px-6 py-3 dark:bg-white/5">
+                        <div class="space-y-0.5 font-mono text-[11px] leading-relaxed text-gray-700 dark:text-gray-300">
+                            @foreach($debug['file_tree'] as $f)
+                                <div class="truncate">{{ $f }}</div>
+                            @endforeach
+                        </div>
+                    </div>
+                </details>
+
+                {{-- 2. Routes --}}
+                <details class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        Routes зареєстровано
+                        <span class="ml-1 text-gray-400">{{ count($debug['routes']) }}</span>
+                    </summary>
+                    <div class="bg-gray-50/50 px-6 py-3 dark:bg-white/5">
+                        @if(empty($debug['routes']))
+                            <p class="text-[11px] text-gray-500">Жодного route не зареєстровано через цей модуль.</p>
+                        @else
+                            <div class="space-y-1 font-mono text-[11px]">
+                                @foreach($debug['routes'] as $r)
+                                    <div class="flex items-center gap-2">
+                                        <span class="w-16 shrink-0 text-gray-500">{{ $r['method'] }}</span>
+                                        <span class="flex-1 truncate text-gray-900 dark:text-gray-100">{{ $r['uri'] }}</span>
+                                        <span class="shrink-0 text-gray-400">{{ $r['name'] }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </details>
+
+                {{-- 3. DB Tables --}}
+                <details class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        DB-таблиці + кількість рядків
+                        <span class="ml-1 text-gray-400">{{ count($debug['table_counts']) }}</span>
+                    </summary>
+                    <div class="bg-gray-50/50 px-6 py-3 dark:bg-white/5">
+                        @if(empty($debug['table_counts']))
+                            <p class="text-[11px] text-gray-500">Таблиць з ім'ям, що містить «{{ $info['key'] }}», не знайдено.</p>
+                        @else
+                            <div class="space-y-0.5 font-mono text-[11px]">
+                                @foreach($debug['table_counts'] as $table => $count)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-900 dark:text-gray-100">{{ $table }}</span>
+                                        <span class="tabular-nums text-gray-500">{{ $count }} rows</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </details>
+
+                {{-- 4. Hook listeners --}}
+                <details class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        Hooks listeners (global)
+                        <span class="ml-1 text-gray-400">{{ count($debug['hook_listeners']) }}</span>
+                    </summary>
+                    <div class="bg-gray-50/50 px-6 py-3 dark:bg-white/5">
+                        @if(empty($debug['hook_listeners']))
+                            <p class="text-[11px] text-gray-500">Жодного слухача не зареєстровано через Hooks API.</p>
+                        @else
+                            <div class="space-y-0.5 font-mono text-[11px]">
+                                @foreach($debug['hook_listeners'] as $event => $count)
+                                    <div class="flex items-center justify-between">
+                                        <span class="text-gray-900 dark:text-gray-100">{{ $event }}</span>
+                                        <span class="tabular-nums text-gray-500">{{ $count }} listener{{ $count === 1 ? '' : 's' }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                </details>
+
+                {{-- 5. PHP class loaded check --}}
+                <details class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        PHP class_exists перевірка
+                    </summary>
+                    <div class="space-y-2 bg-gray-50/50 px-6 py-3 font-mono text-[11px] dark:bg-white/5">
+                        @foreach(['providers' => 'Providers', 'resources' => 'Filament resources'] as $field => $label)
+                            @if(! empty($debug['php_class_loaded_check'][$field]))
+                                <div>
+                                    <div class="mb-1 text-gray-500">{{ $label }}</div>
+                                    @foreach($debug['php_class_loaded_check'][$field] as $check)
+                                        <div class="flex items-center gap-2">
+                                            <span @class([
+                                                'block h-1.5 w-1.5 shrink-0 rounded-full',
+                                                'bg-success-500' => $check['exists'],
+                                                'bg-danger-500' => ! $check['exists'],
+                                            ])></span>
+                                            <span class="break-all text-gray-900 dark:text-gray-100">{{ $check['class'] }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        @endforeach
+                        <div class="border-t border-gray-200 pt-2 dark:border-white/10">
+                            <span class="text-gray-500">Composer classmap matches:</span>
+                            <span class="ml-2 text-gray-900 dark:text-gray-100">{{ $debug['composer_classmap_check']['matches'] ?? '?' }}</span>
+                        </div>
+                    </div>
+                </details>
+
+                {{-- 6. ENV vars --}}
+                <details class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        ENV
+                    </summary>
+                    <div class="space-y-0.5 bg-gray-50/50 px-6 py-3 font-mono text-[11px] dark:bg-white/5">
+                        @foreach($debug['env_vars'] as $envKey => $envVal)
+                            <div class="flex items-baseline gap-2">
+                                <span class="w-44 shrink-0 text-gray-500">{{ $envKey }}</span>
+                                <span class="text-gray-900 dark:text-gray-100">{{ $envVal === null ? '(unset)' : var_export($envVal, true) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                </details>
+
+                {{-- 7. Raw manifest --}}
+                <details class="group">
+                    <summary class="flex cursor-pointer select-none items-center gap-1.5 px-6 py-2.5 text-[11px] font-semibold uppercase tracking-wide text-gray-600 hover:bg-gray-50 dark:text-gray-400 dark:hover:bg-white/5">
+                        <x-filament::icon icon="heroicon-o-chevron-right" class="h-3 w-3 transition-transform group-open:rotate-90" />
+                        module.json (raw)
+                    </summary>
+                    <pre class="overflow-x-auto bg-gray-50/50 px-6 py-3 font-mono text-[11px] leading-relaxed text-gray-700 dark:bg-white/5 dark:text-gray-400"><code>{{ json_encode($debug['manifest'], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) }}</code></pre>
+                </details>
+            </div>
+        @endif
+    </x-filament::section>
+
+    {{-- BACK --}}
+    <div>
+        <x-filament::link tag="a" href="{{ route('filament.admin.pages.modules') }}" icon="heroicon-o-arrow-left" color="gray">
+            Усі модулі
+        </x-filament::link>
+    </div>
 </x-filament-panels::page>

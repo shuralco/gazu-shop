@@ -146,7 +146,7 @@
                 <x-filament::badge color="gray">{{ count($category['modules']) }}</x-filament::badge>
             </x-slot>
 
-            <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div style="display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(290px,1fr))">
                 @foreach ($category['modules'] as $module)
                     <div class="flex flex-col justify-between rounded-xl border border-gray-200 bg-white p-4 shadow-sm transition hover:shadow-md dark:border-white/10 dark:bg-white/5">
                         <div>

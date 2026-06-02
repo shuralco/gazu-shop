@@ -64,6 +64,16 @@ class ModuleMarketplace extends Page
     }
 
     /**
+     * Прихований з навігації — функціонал злито в єдину сторінку «Модулі»
+     * (App\Filament\Pages\ModuleSettings, slug `modules`). Сторінка лишається
+     * доступною за прямим URL заради старих закладок, але не дублює меню.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
+    /**
      * Категорії-вітрина. Кожна — label + icon + список карток модулів.
      * Карта key→категорія співпадає з ModuleSettings; усе інше падає у 'tools'.
      *
