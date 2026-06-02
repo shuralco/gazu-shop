@@ -1,8 +1,8 @@
 {
     "name": "gazu",
-    "label": "GAZU brutal-style (auto-parts)",
-    "description": "Темний акцент + жирні display fonts. Оптимізовано для магазинів автозапчастин. Власна Tailwind 4 збірка незалежна від app.css.",
-    "version": "1.0.0",
+    "label": "GAZU (синьо-сталевий)",
+    "description": "Дефолтна тема: глибокий navy + сталь, світлий paper-фон. Оптимізовано для магазинів автозапчастин.",
+    "version": "1.1.0",
     "author": "Lionex",
     "engine": ">=2.0",
     "parent": null,
@@ -11,11 +11,29 @@
     ],
     "views_path": "resources/views",
     "css_entry": "themes/gazu/resources/css/gazu.css",
+
+    "_tokens_doc": "Палітра теми. Ключі = суфікси CSS-змінних --gazu-* / --color-gazu-* (напр. ключ 'blue' → --gazu-blue + --color-gazu-blue). Перевизначаються у рантаймі БЕЗ npm build. Щоб додати тему: скопіюй цю теку в themes/<нова>/, зміни name+label+значення кольорів, лиши css_entry на gazu.css — вона зʼявиться в адмінці й перемкнеться миттєво.",
     "tokens": {
-        "primary": "#0a0f1a",
-        "accent": "#ffd200",
-        "ink": "#0a0f1a",
-        "graphite": "#3a3f4a",
-        "paper": "#f7f7f5"
+        "ink": "#0E1B2C",
+        "ink-2": "#1A2740",
+        "steel": "#1F3A5F",
+        "blue": "#2453A6",
+        "blue-600": "#1E47A1",
+        "blue-700": "#15387D",
+        "azure": "#3672D9",
+        "mist": "#E6ECF3",
+        "bone": "#F5F2EC",
+        "paper": "#FBFAF7",
+        "white": "#FFFFFF",
+        "line": "#E4E7EB",
+        "line-2": "#CFD4DB",
+        "graphite": "#5A6573",
+        "muted": "#8A93A1",
+        "success": "#2E7D5A",
+        "success-bg": "#E6F2EC",
+        "warn": "#B86E1A",
+        "warn-bg": "#FAF1E2",
+        "danger": "#B23B3B",
+        "danger-bg": "#FAE8E8"
     }
 }

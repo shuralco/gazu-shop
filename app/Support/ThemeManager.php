@@ -72,6 +72,47 @@ class ThemeManager
         return (array) (self::manifest()['tokens'] ?? []);
     }
 
+    /**
+     * Runtime CSS that re-skins the storefront to the ACTIVE theme's color
+     * tokens — injected into the layout <head> AFTER the built theme CSS.
+     *
+     * Every token maps to BOTH families the storefront uses:
+     *   --gazu-{key}        (component CSS + var() references in blades)
+     *   --color-gazu-{key}  (Tailwind utilities like bg-gazu-blue)
+     *
+     * Because all storefront styling references these vars via var(), a later
+     * :root / .gazu-theme override re-skins live — NO npm build required.
+     * Returns '' when the active theme declares no tokens.
+     */
+    public static function cssVarOverrides(): string
+    {
+        $tokens = self::tokens();
+        if (empty($tokens)) {
+            return '';
+        }
+
+        $gazu = '';
+        $color = '';
+        foreach ($tokens as $key => $value) {
+            // Hardening: token files are admin-authored, but never trust blindly.
+            if (! is_string($value) || ! preg_match('/^[a-z0-9_-]+$/i', (string) $key)) {
+                continue;
+            }
+            $val = trim($value);
+            if ($val === '' || ! preg_match('/^[#a-z0-9(),.%\/ -]+$/i', $val)) {
+                continue; // only colours / safe CSS colour values
+            }
+            $gazu .= "--gazu-{$key}:{$val};";
+            $color .= "--color-gazu-{$key}:{$val};";
+        }
+
+        if ($gazu === '' && $color === '') {
+            return '';
+        }
+
+        return ".gazu-theme{{$gazu}}:root{{$color}}";
+    }
+
     public static function cssEntry(): ?string
     {
         return self::manifest()['css_entry'] ?? null;

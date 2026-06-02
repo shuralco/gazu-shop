@@ -2,14 +2,22 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Actions\Action;
+use App\Support\ThemeManager;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Artisan;
 
 /**
- * Admin UI for switching the active storefront theme without CLI.
- * Mirrors `php artisan theme:use {name}` logic.
+ * Admin UI for switching the active storefront theme — instantly, with NO build.
+ *
+ * Backed by the real theme system (App\Support\ThemeManager + themes/*\/theme.json):
+ *   - active theme persisted in DisplaySetting('active_theme') (DB)
+ *   - storefront layout injects the theme's color tokens at runtime
+ *     (ThemeManager::cssVarOverrides()) → re-skins live without npm build
+ *   - saving the DisplaySetting auto-busts the storefront ResponseCache
+ *
+ * To add a theme: drop themes/<name>/theme.json (copy themes/gazu) — it appears
+ * here automatically and switches instantly.
  */
 class ThemeSettings extends Page
 {
@@ -32,9 +40,10 @@ class ThemeSettings extends Page
         return auth()->user()?->is_admin === true;
     }
 
-    public string $activeTheme = 'brutal';
+    public string $activeTheme = 'gazu';
 
-    public array $availableThemes = [];
+    /** @var array<int,array{name:string,label:string,description:?string,tokens:array<string,string>}> */
+    public array $themes = [];
 
     public function mount(): void
     {
@@ -43,70 +52,59 @@ class ThemeSettings extends Page
 
     protected function loadThemes(): void
     {
-        $tokensDir = resource_path('css/tokens');
-        $this->availableThemes = collect(File::files($tokensDir))
-            ->map(fn ($f) => pathinfo($f->getFilename(), PATHINFO_FILENAME))
-            ->filter(fn ($n) => $n !== 'active')
+        ThemeManager::clearCache();
+        $this->activeTheme = ThemeManager::active();
+
+        $this->themes = collect(ThemeManager::themes())
+            ->map(fn (array $m, string $name) => [
+                'name' => $name,
+                'label' => $m['label'] ?? $name,
+                'description' => $m['description'] ?? null,
+                'tokens' => (array) ($m['tokens'] ?? []),
+            ])
             ->values()
             ->all();
-
-        $appCss = File::get(resource_path('css/app.css'));
-        if (preg_match('/@import\s+\'\.\/tokens\/([a-z0-9-]+)\.css\';/i', $appCss, $m)) {
-            $this->activeTheme = $m[1];
-        }
-    }
-
-    public function getActions(): array
-    {
-        return [];
     }
 
     public function activateTheme(string $name): void
     {
-        if (! in_array($name, $this->availableThemes, true)) {
+        ThemeManager::clearCache();
+
+        if (! ThemeManager::names()->contains($name)) {
             Notification::make()->title('Невідома тема')->danger()->send();
 
             return;
         }
 
-        $appCss = resource_path('css/app.css');
-        $css = File::get($appCss);
-        $updated = preg_replace(
-            '/@import\s+\'\.\/tokens\/[a-z0-9-]+\.css\';/i',
-            "@import './tokens/{$name}.css';",
-            $css,
-            1,
-        );
-
-        if ($updated === null || $updated === $css) {
-            Notification::make()
-                ->title('Не знайдено імпорт токенів у app.css')
-                ->danger()
-                ->send();
-
-            return;
+        // Persists DisplaySetting('active_theme') → ResponseCacheObserver flushes
+        // the storefront cache automatically. Belt-and-suspenders explicit clear.
+        ThemeManager::setActive($name);
+        try {
+            Artisan::call('responsecache:clear');
+        } catch (\Throwable) {
+            // ResponseCache may be disabled in some envs — observer already handled it.
         }
 
-        File::put($appCss, $updated);
+        ThemeManager::clearCache();
         $this->activeTheme = $name;
 
         Notification::make()
             ->title("Тема активована: {$name}")
-            ->body('Тепер виконайте `npm run build` (або `vite dev`) щоб новий стиль застосувався в браузері.')
+            ->body('Застосовано миттєво — без перебудови. Оновіть вітрину, щоб побачити.')
             ->success()
-            ->persistent()
             ->send();
+
+        $this->redirect(static::getUrl());
     }
 
-    public function previewToken(string $theme, string $token): ?string
+    public function previewToken(string $themeName, string $key): ?string
     {
-        $path = resource_path("css/tokens/{$theme}.css");
-        if (! File::exists($path)) {
-            return null;
-        }
-        $content = File::get($path);
-        if (preg_match('/--'.preg_quote($token, '/').'\s*:\s*([^;]+);/', $content, $m)) {
-            return trim($m[1]);
+        foreach ($this->themes as $t) {
+            if ($t['name'] === $themeName) {
+                $v = $t['tokens'][$key] ?? null;
+
+                return is_string($v) ? $v : null;
+            }
         }
 
         return null;

@@ -217,6 +217,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
     @vite([\App\Support\ThemeManager::cssEntry() ?: 'themes/gazu/resources/css/gazu.css'])
+    {{-- Runtime theme tokens: re-skins the storefront to the active theme's
+         palette live (no npm build). Must come AFTER @vite so it wins the
+         cascade. Empty for a theme without token overrides. --}}
+    @php $gazuThemeVars = \App\Support\ThemeManager::cssVarOverrides(); @endphp
+    @if($gazuThemeVars)<style id="gazu-theme-vars">{!! $gazuThemeVars !!}</style>@endif
     @livewireStyles
     {{-- Alpine.js is bundled with Livewire 3 (@livewireScripts at end of body).
          Loading alpine-3.14.1.min.js separately created a SECOND instance,
