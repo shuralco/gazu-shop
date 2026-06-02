@@ -100,9 +100,24 @@ class DisplaySetting extends Model
 
     public static function set(string $key, $value, ?string $title = null): void
     {
+        // Infer the storage type from the value. WITHOUT this the `type` column
+        // falls back to its DB default ('boolean'), so get() would cast a string
+        // like a theme name via filter_var(..., BOOLEAN) → false (silent data loss).
+        $type = match (true) {
+            is_bool($value) => 'boolean',
+            is_int($value) => 'integer',
+            is_float($value) => 'number',
+            is_array($value) => 'json',
+            default => 'string',
+        };
+
         $data = [
-            'value' => $value,
+            'value' => is_array($value) ? json_encode($value, JSON_UNESCAPED_UNICODE) : $value,
+            'type' => $type,
             'title' => $title ?? ucfirst(str_replace(['_', '-'], ' ', $key)),
+            // get() reads only is_active=true rows; a setting written via set()
+            // must be active or it would be invisible to get() (silent miss).
+            'is_active' => true,
         ];
 
         static::updateOrCreate(
