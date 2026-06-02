@@ -104,6 +104,14 @@ class AdminPanelProvider extends PanelProvider
                     });
                     </script>
                 HTML
+            )
+            // Additive Tailwind v4 utility layer for custom admin Blade views.
+            // Loaded AFTER Filament's own styles so utilities our pages use
+            // (semantic colors, dark:bg-white/5, grid-cols-*, flex-1, …) resolve.
+            // It imports only theme+utilities (no preflight) — purely additive.
+            ->renderHook(
+                \Filament\View\PanelsRenderHook::HEAD_END,
+                fn (): string => \Illuminate\Support\Facades\Blade::render("@vite('resources/css/filament/admin-utilities.css')"),
             );
     }
 
