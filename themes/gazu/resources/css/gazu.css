@@ -19,6 +19,8 @@
     --color-gazu-mist:       #E6ECF3;
     --color-gazu-bone:       #F5F2EC;
     --color-gazu-paper:      #FBFAF7;
+    --color-gazu-surface:    #FFFFFF;
+    --color-gazu-on-brand:   #FFFFFF;
     --color-gazu-line:       #E4E7EB;
     --color-gazu-line-2:     #CFD4DB;
     --color-gazu-graphite:   #5A6573;
@@ -51,33 +53,33 @@ html.gazu, body.gazu {
 
 .gazu-btn-primary {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    padding: .75rem 1rem; background: var(--gazu-ink); color: #fff; border: 0; border-radius: 8px;
+    padding: .75rem 1rem; background: var(--gazu-ink); color: var(--gazu-on-brand, #fff); border: 0; border-radius: 8px;
     font-weight: 500; font-size: 14px; cursor: pointer; transition: background .15s;
 }
 .gazu-btn-primary:hover { background: var(--gazu-ink-2); }
 
 .gazu-btn-blue {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    padding: .75rem 1rem; background: var(--gazu-blue); color: #fff; border: 0; border-radius: 8px;
+    padding: .75rem 1rem; background: var(--gazu-blue); color: var(--gazu-on-brand, #fff); border: 0; border-radius: 8px;
     font-weight: 500; font-size: 14px; cursor: pointer; transition: background .15s;
 }
 .gazu-btn-blue:hover { background: var(--gazu-blue-600); }
 
 .gazu-btn-outline {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    padding: .65rem .9rem; background: #fff; color: var(--gazu-ink); border: 1px solid var(--gazu-line);
+    padding: .65rem .9rem; background: var(--gazu-surface, #fff); color: var(--gazu-ink); border: 1px solid var(--gazu-line);
     border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; transition: border-color .15s;
 }
 .gazu-btn-outline:hover { border-color: var(--gazu-ink); }
 
 .gazu-card {
-    background: #fff; border: 1px solid var(--gazu-line); border-radius: 8px;
+    background: var(--gazu-surface, #fff); border: 1px solid var(--gazu-line); border-radius: 8px;
 }
 
 .gazu-chip {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 10px; border-radius: 16px; border: 1px solid var(--gazu-line);
-    background: #fff; font-size: 12px; color: var(--gazu-ink);
+    background: var(--gazu-surface, #fff); font-size: 12px; color: var(--gazu-ink);
 }
 
 .gazu-mono { font-family: var(--gazu-font-mono); }
@@ -259,7 +261,7 @@ html.gazu, body.gazu {
     margin: 1em 0;
     padding: 1em 1.25em;
     background: var(--gazu-ink);
-    color: #E4E7EB;
+    color: var(--gazu-mist, #E4E7EB);
     border-radius: 8px;
     overflow-x: auto;
     font-size: 13px;
@@ -386,7 +388,7 @@ html.gazu, body.gazu {
 /* Mobile sticky bottom nav */
 .gazu-mobile-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: #fff; border-top: 1px solid var(--gazu-line);
+    background: var(--gazu-surface, #fff); border-top: 1px solid var(--gazu-line);
     display: grid; grid-template-columns: repeat(5, 1fr);
     z-index: 30;
 }
@@ -490,7 +492,7 @@ button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
 }
 .gazu-toast {
     pointer-events: auto;
-    background: var(--gazu-ink, #0e0e10); color: #fff;
+    background: var(--gazu-ink, #0e0e10); color: var(--gazu-on-brand, #fff);
     padding: 12px 16px; border-radius: 10px;
     box-shadow: 0 10px 30px rgba(0,0,0,0.25);
     display: flex; align-items: center; gap: 10px;
@@ -498,7 +500,7 @@ button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
     animation: gazu-toast-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .gazu-toast.success { background: var(--gazu-success, #10b981); }
-.gazu-toast.error   { background: #dc2626; }
+.gazu-toast.error   { background: var(--gazu-danger, #dc2626); }
 .gazu-toast.info    { background: var(--gazu-blue, #2563eb); }
 .gazu-toast[data-leaving="1"] { animation: gazu-toast-out 0.25s ease-in both; }
 @keyframes gazu-toast-in  { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
@@ -554,7 +556,7 @@ button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
     .gazu-grid-sidebar > .gazu-filter-panel {
         position: fixed; top: 0; bottom: 0; left: 0; z-index: 70;
         width: 88%; max-width: 340px;
-        background: #fff;
+        background: var(--gazu-surface, #fff);
         box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
         padding: 16px;
         overflow-y: auto;

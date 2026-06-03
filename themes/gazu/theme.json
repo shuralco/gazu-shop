@@ -25,6 +25,8 @@
         "bone": "#F5F2EC",
         "paper": "#FBFAF7",
         "white": "#FFFFFF",
+        "surface": "#FFFFFF",
+        "on-brand": "#FFFFFF",
         "line": "#E4E7EB",
         "line-2": "#CFD4DB",
         "graphite": "#5A6573",
