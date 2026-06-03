@@ -98,6 +98,20 @@ class DisplaySetting extends Model
         cache()->forget('display_settings_all');
     }
 
+    /**
+     * Reset ONLY the in-process static cache (not the shared cache).
+     *
+     * On Octane/Swoole the static $settingsCache survives between requests in a
+     * worker, so a setting changed by one worker stays stale in the others until
+     * restart. An Octane RequestReceived listener calls this so every request
+     * re-reads the SHARED cache (which set() invalidates), giving fresh values
+     * without forgetting/rebuilding the shared cache each request.
+     */
+    public static function resetRequestCache(): void
+    {
+        static::$settingsCache = null;
+    }
+
     public static function set(string $key, $value, ?string $title = null): void
     {
         // Infer the storage type from the value. WITHOUT this the `type` column

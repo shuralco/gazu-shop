@@ -73,7 +73,10 @@ return [
         RequestReceived::class => [
             ...Octane::prepareApplicationForNextOperation(),
             ...Octane::prepareApplicationForNextRequest(),
-            //
+            // Reset per-request static caches (settings + active theme) so a
+            // theme/setting changed by one Swoole worker is fresh in all workers
+            // next request — no stale theme on prod without a worker reload.
+            \App\Listeners\Octane\FlushPerRequestSettingsState::class,
         ],
 
         RequestHandled::class => [
