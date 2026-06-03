@@ -9,12 +9,12 @@
     $primaryCar = auth()->check() ? auth()->user()->primaryCar : null;
 @endphp
 <div class="max-w-[420px] mx-auto pb-32">
-    <div class="aspect-square bg-white relative">
+    <div class="aspect-square bg-[var(--gazu-surface)] relative">
         <div class="absolute inset-0 flex items-center justify-center">
             <x-gazu.part-image kind="{{ $p->image_kind ?? 'filter' }}" size="280"/>
         </div>
-        <div class="absolute top-3 left-3 px-2 py-1 bg-white border border-[var(--gazu-line)] gazu-mono text-[10px] tracking-wider rounded">1 / 8</div>
-        <button class="absolute top-3 right-3 w-9 h-9 bg-white border border-[var(--gazu-line)] rounded-md flex items-center justify-center"><x-gazu.icon name="heart" size="16"/></button>
+        <div class="absolute top-3 left-3 px-2 py-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] gazu-mono text-[10px] tracking-wider rounded">1 / 8</div>
+        <button class="absolute top-3 right-3 w-9 h-9 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md flex items-center justify-center"><x-gazu.icon name="heart" size="16"/></button>
     </div>
 
     <div class="p-4">
@@ -41,7 +41,7 @@
 
         <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
             @foreach([['truck','Доставка завтра'],['shield','Гарантія 12 міс'],['return','Повернення 14 днів'],['box','Оригінал']] as [$ic, $t])
-                <div class="flex gap-2 items-center px-2.5 py-2 bg-white border border-[var(--gazu-line)] rounded text-[var(--gazu-graphite)]">
+                <div class="flex gap-2 items-center px-2.5 py-2 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded text-[var(--gazu-graphite)]">
                     <span class="text-[var(--gazu-blue)]"><x-gazu.icon name="{{ $ic }}" size="12"/></span>{{ $t }}
                 </div>
             @endforeach
@@ -49,7 +49,7 @@
     </div>
 </div>
 
-<div class="fixed bottom-12 left-0 right-0 max-w-[420px] mx-auto bg-white border-t border-[var(--gazu-line)] p-3 flex gap-2 z-20">
+<div class="fixed bottom-12 left-0 right-0 max-w-[420px] mx-auto bg-[var(--gazu-surface)] border-t border-[var(--gazu-line)] p-3 flex gap-2 z-20">
     <button type="button" class="gazu-btn-outline px-3"><x-gazu.icon name="cart" size="18"/></button>
     <button type="button" class="gazu-btn-primary flex-1 py-3">Купити · {{ number_format((float)($p->price ?? 0), 0, '.', ' ') }} ₴</button>
 </div>

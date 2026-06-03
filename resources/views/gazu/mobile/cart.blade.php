@@ -6,7 +6,7 @@
     <h1 class="gazu-display text-xl font-semibold mb-3">Кошик · {{ count($cart ?? []) }}</h1>
 
     @if(empty($cart))
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6 text-center">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-6 text-center">
             <div class="inline-flex w-14 h-14 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-3 text-[var(--gazu-blue)]">
                 <x-gazu.icon name="cart" size="24"/>
             </div>
@@ -25,7 +25,7 @@
                     $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
                     $kind = $kinds[$productId % count($kinds)];
                 @endphp
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-3 flex gap-3 items-center">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-3 flex gap-3 items-center">
                     <div class="w-16 h-16 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
                         <x-gazu.part-image kind="{{ $kind }}" size="50"/>
                     </div>
@@ -60,7 +60,7 @@
 </div>
 
 @if(! empty($cart))
-<div class="fixed bottom-12 left-0 right-0 max-w-[420px] mx-auto bg-white border-t border-[var(--gazu-line)] p-3 z-20">
+<div class="fixed bottom-12 left-0 right-0 max-w-[420px] mx-auto bg-[var(--gazu-surface)] border-t border-[var(--gazu-line)] p-3 z-20">
     <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full py-3 no-underline">Оформити замовлення</a>
 </div>
 @endif

@@ -9,7 +9,7 @@
         $brand->name,
     ]"/>
 
-    <section class="bg-white border border-[var(--gazu-line)] rounded-xl p-5 sm:p-8 mb-7 gazu-grid-brand-hero">
+    <section class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl p-5 sm:p-8 mb-7 gazu-grid-brand-hero">
         <div class="w-24 h-24 sm:w-32 sm:h-32 bg-[var(--gazu-paper)] rounded-lg flex items-center justify-center gazu-display text-2xl sm:text-3xl font-bold text-[var(--gazu-ink)]">
             @if($brand->logo)
                 <img src="{{ Str::startsWith($brand->logo, 'http') ? $brand->logo : asset('storage/'.$brand->logo) }}"
@@ -44,7 +44,7 @@
                     $catName = $cat->title ?? $cat->name ?? 'Категорія';
                 @endphp
                 <a wire:navigate href="{{ url('/'.$catSlug).'?brand[]='.urlencode($brand->name) }}"
-                   class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)]">
+                   class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)]">
                     <div class="font-medium">{{ $catName }}</div>
                 </a>
             @endforeach
@@ -60,7 +60,7 @@
     </h2>
 
     @if($products->isEmpty())
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center">
             <div class="gazu-display text-xl font-semibold mb-2">Зараз немає товарів</div>
             <p class="text-sm text-[var(--gazu-graphite)] mb-4">Скоро тут зʼявляться оновлення асортименту.</p>
             <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Усі товари</a>

@@ -41,9 +41,9 @@
             cardQty   = parseInt($event.detail.qty);
         }
      "
-     class="group gazu-card-anim bg-white border border-[var(--gazu-line)] rounded-lg flex flex-col font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5 hover:z-40">
+     class="group gazu-card-anim bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg flex flex-col font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5 hover:z-40">
     @if($discount)
-        <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-white text-[11px] font-semibold rounded gazu-mono z-10">−{{ $discount }}%</div>
+        <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] text-[11px] font-semibold rounded gazu-mono z-10">−{{ $discount }}%</div>
     @endif
     @if($productId)
         {{-- Wishlist state hydrated client-side з /api/wishlist/ids (бо HTML кешований
@@ -62,7 +62,7 @@
                 "
                 :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
                 :class="active ? 'text-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] hover:text-[var(--gazu-danger)]'"
-                class="absolute top-2 right-2 w-8 h-8 rounded-md border-0 bg-white/85 cursor-pointer flex items-center justify-center z-10 transition-colors">
+                class="absolute top-2 right-2 w-8 h-8 rounded-md border-0 bg-[var(--gazu-surface)]/85 cursor-pointer flex items-center justify-center z-10 transition-colors">
             <svg :class="burst ? 'gazu-heart-burst' : ''" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
             </svg>
@@ -72,14 +72,14 @@
     {{-- Картинка без ободка/паддінгів/маржинів — повна ширина card-а, скруглені верхні кути.
          На hover показуємо альтернативний variant SVG part-image (другий "ракурс"). --}}
     <a wire:navigate href="{{ $url }}" class="aspect-square block no-underline relative overflow-hidden rounded-t-lg group/img">
-        <div class="absolute inset-0 flex items-center justify-center bg-white transition-opacity duration-300 group-hover/img:opacity-0">
+        <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-surface)] transition-opacity duration-300 group-hover/img:opacity-0">
             <x-gazu.part-image kind="{{ $image }}" :seed="$productId" :eager="$eager" fit/>
         </div>
         <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-paper)] opacity-0 transition-opacity duration-300 group-hover/img:opacity-100">
             <x-gazu.part-image kind="{{ $image }}" :seed="($productId ?? 0) + 7777" fit/>
         </div>
         @if($oem)
-            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded z-[1]">{{ $oem }}</span>
+            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-[var(--gazu-surface)]/90 border border-[var(--gazu-line)] rounded z-[1]">{{ $oem }}</span>
         @endif
     </a>
 
@@ -152,7 +152,7 @@
                         "
                         :class="added ? 'bg-[var(--gazu-success)] scale-[0.97]' : (busy ? 'bg-[var(--gazu-ink)] opacity-80' : 'bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] active:scale-[0.97]')"
                         :disabled="busy"
-                        class="flex-1 min-w-0 py-2.5 text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200">
+                        class="flex-1 min-w-0 py-2.5 text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200">
                     <span x-show="!busy && !added" class="inline-flex items-center gap-1.5">
                         <x-gazu.icon name="cart" size="14"/> У кошик
                     </span>
@@ -174,7 +174,7 @@
                     </button>
                 @endif
             @else
-                <a wire:navigate href="{{ $url }}" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
+                <a wire:navigate href="{{ $url }}" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
                     <x-gazu.icon name="cart" size="14"/> Деталі
                 </a>
             @endif
@@ -183,7 +183,7 @@
                         title="Купити в 1 клік"
                         x-data
                         @click.prevent="$dispatch('gazu:one-click', { productId: '{{ $productId }}', productName: @js($name), productPrice: {{ (float) $price }} })"
-                        class="w-8 sm:w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
+                        class="w-8 sm:w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-[var(--gazu-surface)] text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 </button>
             @endif

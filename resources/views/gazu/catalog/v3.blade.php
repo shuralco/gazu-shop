@@ -47,7 +47,7 @@
                             $analogsArr = is_object($p) ? ($p->analogs ?? null) : ($p['analogs'] ?? null);
                             $analogsCount = is_array($analogsArr) ? count($analogsArr) : 0;
                         @endphp
-                        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
+                        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
                             <a wire:navigate href="{{ $url }}" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center" style="aspect-ratio:1;">
                                 <x-gazu.part-image kind="{{ $kind }}" size="140"/>
                             </a>
@@ -94,10 +94,10 @@
                                     </div>
                                 </div>
                                 <div class="flex gap-1.5">
-                                    <button type="button" class="flex-1 py-3 bg-[var(--gazu-ink)] text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5">
+                                    <button type="button" class="flex-1 py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5">
                                         <x-gazu.icon name="cart" size="14"/> У кошик
                                     </button>
-                                    <button type="button" class="w-10 bg-white text-[var(--gazu-graphite)] border border-[var(--gazu-line)] rounded-md cursor-pointer flex items-center justify-center">
+                                    <button type="button" class="w-10 bg-[var(--gazu-surface)] text-[var(--gazu-graphite)] border border-[var(--gazu-line)] rounded-md cursor-pointer flex items-center justify-center">
                                         <x-gazu.icon name="heart" size="16"/>
                                     </button>
                                 </div>

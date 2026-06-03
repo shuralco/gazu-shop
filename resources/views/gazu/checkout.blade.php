@@ -10,14 +10,14 @@
     <nav aria-label="Прогрес замовлення" class="mb-7">
         <ol class="flex items-center gap-2 sm:gap-4 text-sm overflow-x-auto">
             <li class="flex items-center gap-2 shrink-0">
-                <span class="w-8 h-8 rounded-full bg-[var(--gazu-success)] text-white flex items-center justify-center font-bold">
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-success)] text-[var(--gazu-on-brand)] flex items-center justify-center font-bold">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg>
                 </span>
                 <a wire:navigate href="{{ route('gazu.cart') }}" class="text-[var(--gazu-graphite)] hover:text-[var(--gazu-ink)] no-underline">Кошик</a>
             </li>
             <li class="flex-1 h-0.5 bg-[var(--gazu-ink)] min-w-[24px]"></li>
             <li class="flex items-center gap-2 shrink-0">
-                <span class="w-8 h-8 rounded-full bg-[var(--gazu-ink)] text-white flex items-center justify-center font-bold">2</span>
+                <span class="w-8 h-8 rounded-full bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] flex items-center justify-center font-bold">2</span>
                 <span class="text-[var(--gazu-ink)] font-medium">Оформлення</span>
             </li>
             <li class="flex-1 h-0.5 bg-[var(--gazu-line-2)] min-w-[24px]"></li>
@@ -41,9 +41,9 @@
         @csrf
         <div class="flex flex-col gap-4">
             {{-- 1. Контактні дані --}}
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 border-[var(--gazu-ink)]">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 border-[var(--gazu-ink)]">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-white">1</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]">1</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Контактні дані</h3>
                 </div>
                 <div class="grid md:grid-cols-2 gap-3 pl-11">
@@ -75,9 +75,9 @@
             </div>
 
             {{-- 2. Доставка --}}
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-white">2</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]">2</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Доставка</h3>
                 </div>
                 @php
@@ -265,7 +265,7 @@
                                    class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none">
                             <input type="hidden" name="shipping_city_ref" :value="cityRef">
                             <div x-show="cityOpen && cityResults.length" x-cloak x-transition.opacity
-                                 class="absolute z-30 left-0 right-0 mt-1 bg-white border border-[var(--gazu-line)] rounded-md shadow-xl"
+                                 class="absolute z-30 left-0 right-0 mt-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md shadow-xl"
                                  style="max-height: 15rem; overflow-y: auto;">
                                 <template x-for="item in cityResults" :key="item.ref">
                                     <button type="button" @click="selectCity(item)"
@@ -282,17 +282,17 @@
                     <div x-show="method === 'novaposhta'" x-cloak class="mt-2">
                         <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
                             <button type="button" @click="switchType('branch')"
-                                    :class="type === 'branch' ? 'bg-[var(--gazu-ink)] text-white border-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)]'"
+                                    :class="type === 'branch' ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-[var(--gazu-ink)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border-[var(--gazu-line)]'"
                                     class="px-3 py-2 border rounded-md text-sm font-medium flex items-center justify-center gap-2 transition">
                                 <x-gazu.icon name="box" size="14"/> Відділення
                             </button>
                             <button type="button" @click="switchType('postomat')"
-                                    :class="type === 'postomat' ? 'bg-[var(--gazu-ink)] text-white border-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)]'"
+                                    :class="type === 'postomat' ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-[var(--gazu-ink)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border-[var(--gazu-line)]'"
                                     class="px-3 py-2 border rounded-md text-sm font-medium flex items-center justify-center gap-2 transition">
                                 <x-gazu.icon name="cube" size="14"/> Поштомат
                             </button>
                             <button type="button" @click="switchType('np_courier')"
-                                    :class="type === 'np_courier' ? 'bg-[var(--gazu-ink)] text-white border-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)]'"
+                                    :class="type === 'np_courier' ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-[var(--gazu-ink)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border-[var(--gazu-line)]'"
                                     class="px-3 py-2 border rounded-md text-sm font-medium flex items-center justify-center gap-2 transition">
                                 <x-gazu.icon name="truck" size="14"/> Курʼєр
                             </button>
@@ -306,12 +306,12 @@
                                 <span class="text-xs text-[var(--gazu-graphite)] block" x-text="type === 'postomat' ? 'Поштомат' : 'Відділення / адреса'"></span>
                                 <div class="flex gap-1 text-[11px]" x-show="warehouseResults.some(w => w.lat && w.lng)" x-cloak>
                                     <button type="button" @click="view = 'list'"
-                                            :class="view === 'list' ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white text-[var(--gazu-ink)]'"
+                                            :class="view === 'list' ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)]'"
                                             class="px-2 py-1 border border-[var(--gazu-line)] rounded">
                                         Список
                                     </button>
                                     <button type="button" @click="view = 'map'; $nextTick(() => $dispatch('np-map-render'))"
-                                            :class="view === 'map' ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white text-[var(--gazu-ink)]'"
+                                            :class="view === 'map' ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)]'"
                                             class="px-2 py-1 border border-[var(--gazu-line)] rounded">
                                         Мапа
                                     </button>
@@ -340,7 +340,7 @@
                                        autocomplete="off"
                                        class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none">
                                 <div x-show="warehouseOpen && warehouseResults.length" x-cloak x-transition.opacity
-                                     class="absolute z-30 left-0 right-0 mt-1 bg-white border border-[var(--gazu-line)] rounded-md shadow-xl"
+                                     class="absolute z-30 left-0 right-0 mt-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md shadow-xl"
                                      style="max-height: 18rem; overflow-y: auto;">
                                     <template x-for="item in warehouseResults" :key="item.ref">
                                         <button type="button" @click="selectWarehouse(item)"
@@ -374,7 +374,7 @@
                                        class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none">
                                 <input type="hidden" name="shipping_street_ref" :value="streetRef">
                                 <div x-show="streetOpen && streetResults.length" x-cloak x-transition.opacity
-                                     class="absolute z-30 left-0 right-0 mt-1 bg-white border border-[var(--gazu-line)] rounded-md shadow-xl"
+                                     class="absolute z-30 left-0 right-0 mt-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md shadow-xl"
                                      style="max-height: 14rem; overflow-y: auto;">
                                     <template x-for="item in streetResults" :key="item.ref">
                                         <button type="button" @click="selectStreet(item)"
@@ -423,7 +423,7 @@
                                 <label class="block">
                                     <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">Бажаний час</span>
                                     <select name="shipping_preferred_time"
-                                            class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none bg-white">
+                                            class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none bg-[var(--gazu-surface)]">
                                         <option value="">— Будь-який —</option>
                                         <option value="09:00-14:00">9:00 — 14:00</option>
                                         <option value="14:00-18:00">14:00 — 18:00</option>
@@ -490,7 +490,7 @@
                                    class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none">
                             <input type="hidden" name="shipping_up_city_id" :value="up.cityId">
                             <div x-show="up.cityOpen && up.cityResults.length" x-cloak
-                                 class="absolute z-30 left-0 right-0 mt-1 bg-white border border-[var(--gazu-line)] rounded-md shadow-xl"
+                                 class="absolute z-30 left-0 right-0 mt-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md shadow-xl"
                                  style="max-height: 15rem; overflow-y: auto;">
                                 <template x-for="c in up.cityResults" :key="c.id">
                                     <button type="button" @click="up.selectCity(c)"
@@ -512,7 +512,7 @@
                                    class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none">
                             <input type="hidden" name="shipping_up_office_id" :value="up.officeId">
                             <div x-show="up.officeOpen && up.officeResults.length" x-cloak
-                                 class="absolute z-30 left-0 right-0 mt-1 bg-white border border-[var(--gazu-line)] rounded-md shadow-xl"
+                                 class="absolute z-30 left-0 right-0 mt-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md shadow-xl"
                                  style="max-height: 18rem; overflow-y: auto;">
                                 <template x-for="o in up.officeResults" :key="o.id">
                                     <button type="button" @click="up.selectOffice(o)"
@@ -546,9 +546,9 @@
             </div>
 
             {{-- 3. Оплата --}}
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                 <div class="flex items-center gap-3 mb-3">
-                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-white">3</div>
+                    <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]">3</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Спосіб оплати</h3>
                 </div>
                 <div class="grid gap-2 pl-11" x-data="{ pm: '{{ old('payment_method', 'card') }}' }">
@@ -575,7 +575,7 @@
             </div>
 
             {{-- 4. Коментар --}}
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-line)] text-[var(--gazu-graphite)]">4</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Коментар (необовʼязково)</h3>
@@ -595,7 +595,7 @@
         </div>
 
         {{-- Order summary — sticky on desktop scroll, item removal --}}
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 lg:sticky lg:top-4 self-start">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 lg:sticky lg:top-4 self-start">
             <h3 class="gazu-display text-lg font-semibold m-0 mb-4">Ваше замовлення</h3>
             <div class="flex flex-col gap-3 mb-4 max-h-[400px] overflow-y-auto">
                 @foreach($cart as $key => $item)
@@ -749,7 +749,7 @@
                                 <input type="text" x-model="promoInput" @keydown.enter.prevent="applyPromo()" placeholder="Введіть код"
                                        class="flex-1 px-3 py-2 border border-[var(--gazu-line)] rounded-md text-sm focus:border-[var(--gazu-ink)] outline-none gazu-mono uppercase">
                                 <button type="button" @click="applyPromo()" :disabled="promoBusy || !promoInput.trim()"
-                                        class="px-3.5 py-2 bg-[var(--gazu-ink)] text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--gazu-ink-2)] transition-colors">
+                                        class="px-3.5 py-2 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--gazu-ink-2)] transition-colors">
                                     <span x-show="!promoBusy">OK</span>
                                     <svg x-show="promoBusy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                                 </button>

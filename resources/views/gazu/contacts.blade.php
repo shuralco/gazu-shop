@@ -17,13 +17,13 @@
 
     <div class="gazu-grid-contacts">
         <div>
-            <div class="bg-[var(--gazu-ink)] text-white rounded-lg p-6 mb-4">
+            <div class="bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-lg p-6 mb-4">
                 <div class="gazu-mono text-[11px] text-[var(--gazu-azure)] tracking-widest uppercase mb-2">Гаряча лінія</div>
                 <div class="gazu-display text-3xl font-bold mb-1">{{ $phone }}</div>
                 <div class="text-sm text-[#9DA5B2]">Безкоштовно по Україні · {{ $hours }}</div>
             </div>
 
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 mb-4">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 mb-4">
                 <h3 class="gazu-display text-base font-semibold m-0 mb-3">Месенджери</h3>
                 @foreach([
                     ['phone', 'Telegram', $tg],
@@ -43,7 +43,7 @@
             </div>
 
             @if(! empty($offices))
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                     <h3 class="gazu-display text-base font-semibold m-0 mb-3">{{ count($offices) }} відділень в Україні</h3>
                     @foreach($offices as $off)
                         <div class="flex items-start gap-3 py-2 border-b border-[var(--gazu-line)] last:border-b-0">
@@ -66,7 +66,7 @@
                 $mapIsIframe = \Illuminate\Support\Str::contains($mapRaw, '<iframe');
                 $mapIsUrl = $mapRaw !== '' && \Illuminate\Support\Str::startsWith($mapRaw, 'http');
             @endphp
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-5" style="height: 420px;">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-5" style="height: 420px;">
                 @if($mapIsIframe)
                     <div class="w-full h-full gazu-map-embed">{!! $mapRaw !!}</div>
                 @elseif($mapIsUrl)
@@ -81,7 +81,7 @@
                 @endif
             </div>
 
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-6">
                 <h3 class="gazu-display text-xl font-semibold m-0 mb-4">Напишіть нам</h3>
                 <form class="grid grid-cols-2 gap-3">
                     <label class="block">

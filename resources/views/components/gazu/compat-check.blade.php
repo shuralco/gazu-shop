@@ -16,7 +16,7 @@
             api: { makes: @js($apiMakes), models: @js($apiModels), engines: @js($apiEngines), check: @js($apiCheck) },
          })"
          x-init="init()"
-         class="relative bg-white rounded-2xl p-3 sm:p-4 font-text shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]">
+         class="relative bg-[var(--gazu-surface)] rounded-2xl p-3 sm:p-4 font-text shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]">
 
         <div class="flex items-center gap-2 mb-2">
             <div class="w-8 h-8 rounded-full bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] shrink-0">
@@ -31,7 +31,7 @@
         <div class="flex flex-wrap items-center gap-1 mb-2 min-h-[24px]">
             <template x-for="chip in pickedChips()" :key="chip.level">
                 <div class="inline-flex items-center gap-1 pl-1 pr-1.5 py-0.5 rounded-full bg-[var(--gazu-mist)] text-[11px] text-[var(--gazu-ink)] max-w-full">
-                    <div class="w-4 h-4 rounded-full bg-white inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></div>
+                    <div class="w-4 h-4 rounded-full bg-[var(--gazu-surface)] inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></div>
                     <span class="font-medium truncate" x-text="chip.label"></span>
                     <button type="button" @click="changeLevel(chip.level)" class="text-[9px] text-[var(--gazu-blue)] hover:underline bg-transparent border-0 cursor-pointer p-0 shrink-0">×</button>
                 </div>
@@ -51,7 +51,7 @@
                     <button type="button"
                             @click="pick(item)"
                             :style="'--gazu-tile-delay: ' + (idx * 18) + 'ms'"
-                            :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]'"
+                            :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-[var(--gazu-surface)] shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]'"
                             class="gazu-tile-in flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[52px]">
                         <div class="w-9 h-9 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[10px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="itemBadge(item)"></div>
                         <div class="min-w-0 flex-1">

@@ -28,7 +28,7 @@
                 :category="$category"/>
             <div class="min-w-0">
                 @include('gazu.partials.sort-bar', ['count' => $totalCount, 'view' => 'list', 'currentSort' => $currentSort])
-                <div class="mt-4 bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
+                <div class="mt-4 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
                     <table class="w-full text-left" style="border-collapse: collapse;">
                         <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
                             <tr class="border-b border-[var(--gazu-line)]">
@@ -74,7 +74,7 @@
                                         @if($oldPrice)<div class="text-[11px] text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</div>@endif
                                     </td>
                                     <td class="py-2.5 px-2" style="width: 92px;">
-                                        <button type="button" class="px-3 py-2 bg-[var(--gazu-ink)] text-white border-0 rounded text-xs font-medium cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap">
+                                        <button type="button" class="px-3 py-2 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded text-xs font-medium cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap">
                                             <x-gazu.icon name="cart" size="14"/> Купити
                                         </button>
                                     </td>

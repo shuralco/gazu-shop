@@ -19,11 +19,11 @@
 @endphp
 <div class="flex items-center justify-center gap-1 py-8 font-text">
     @if ($current > 1)
-        <a wire:navigate href="{{ $url($current - 1) }}" class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
+        <a wire:navigate href="{{ $url($current - 1) }}" class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
             <x-gazu.icon name="arrow-l" size="14"/>
         </a>
     @else
-        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
+        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
             <x-gazu.icon name="arrow-l" size="14"/>
         </span>
     @endif
@@ -34,18 +34,18 @@
         @else
             @php $active = $p == $current; @endphp
             <a wire:navigate href="{{ $url($p) }}"
-               class="w-9 h-9 rounded-md text-[13px] inline-flex items-center justify-center no-underline {{ $active ? 'bg-[var(--gazu-ink)] text-white border border-[var(--gazu-ink)] font-semibold' : 'bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)]' }}">
+               class="w-9 h-9 rounded-md text-[13px] inline-flex items-center justify-center no-underline {{ $active ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border border-[var(--gazu-ink)] font-semibold' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border border-[var(--gazu-line)]' }}">
                 {{ $p }}
             </a>
         @endif
     @endforeach
 
     @if ($current < $total)
-        <a wire:navigate href="{{ $url($current + 1) }}" class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
+        <a wire:navigate href="{{ $url($current + 1) }}" class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
             <x-gazu.icon name="arrow-r" size="14"/>
         </a>
     @else
-        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
+        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
             <x-gazu.icon name="arrow-r" size="14"/>
         </span>
     @endif

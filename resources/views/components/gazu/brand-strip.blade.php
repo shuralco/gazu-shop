@@ -39,7 +39,7 @@
     <div class="grid grid-cols-3 md:grid-cols-6 gap-2.5">
         @foreach($brandList as $b)
             <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
-               class="bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gazu-display text-lg font-semibold text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]"
+               class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gazu-display text-lg font-semibold text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]"
                style="aspect-ratio: 5/2;">{{ $b['name'] }}</a>
         @endforeach
     </div>

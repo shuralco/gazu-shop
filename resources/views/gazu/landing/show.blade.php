@@ -66,7 +66,7 @@
 
     {{-- PRODUCTS --}}
     @if($products->count() === 0)
-        <div class="bg-white border border-[var(--gazu-line)] rounded-xl p-10 text-center">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl p-10 text-center">
             <p class="text-[var(--gazu-graphite)]">За цими фільтрами товарів не знайдено.</p>
         </div>
     @else

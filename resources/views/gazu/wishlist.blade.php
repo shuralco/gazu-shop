@@ -18,7 +18,7 @@
              count підставляється з localStorage через Alpine. --}}
         <div x-data="{ count: 0 }"
              x-init="$nextTick(() => { try { count = (JSON.parse(localStorage.getItem('gazu_wishlist')||'[]')||[]).length; } catch(e){} })">
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center">
                 <div class="inline-flex w-16 h-16 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-4 text-[var(--gazu-blue)]">
                     <x-gazu.icon name="heart" size="28"/>
                 </div>
@@ -44,7 +44,7 @@
 
     @auth
     @if($items->isEmpty())
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center">
             <div class="inline-flex w-16 h-16 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-4 text-[var(--gazu-blue)]">
                 <x-gazu.icon name="heart" size="28"/>
             </div>

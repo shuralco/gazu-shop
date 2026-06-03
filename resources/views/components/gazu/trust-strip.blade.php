@@ -33,7 +33,7 @@
     };
 @endphp
 @if(! empty($items))
-<section class="bg-gradient-to-b from-[var(--gazu-paper)] to-white py-8 sm:py-10">
+<section class="bg-gradient-to-b from-[var(--gazu-paper)] to-[var(--gazu-surface)] py-8 sm:py-10">
     <div class="gazu-container">
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             @foreach($items as $it)
@@ -41,7 +41,7 @@
                     $accent = $accentClass($it['accent'] ?? 'blue');
                     $icon = $it['icon'] ?? 'shield';
                 @endphp
-                <div class="group relative bg-white border border-[var(--gazu-line)] rounded-xl p-4 sm:p-5 hover:border-transparent transition-all duration-300 overflow-hidden"
+                <div class="group relative bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl p-4 sm:p-5 hover:border-transparent transition-all duration-300 overflow-hidden"
                      style="--glow: {{ $accent['glow'] }};"
                      onmouseover="this.style.boxShadow='0 12px 28px -8px '+getComputedStyle(this).getPropertyValue('--glow')"
                      onmouseout="this.style.boxShadow='none'">
@@ -49,7 +49,7 @@
                     <div class="absolute -top-8 -right-8 w-24 h-24 rounded-full bg-gradient-to-br {{ $accent['from'] }} {{ $accent['to'] }} opacity-0 group-hover:opacity-10 transition-opacity duration-500"></div>
 
                     {{-- Icon with gradient bg --}}
-                    <div class="relative inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br {{ $accent['from'] }} {{ $accent['to'] }} items-center justify-center text-white mb-3 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15)]">
+                    <div class="relative inline-flex w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-br {{ $accent['from'] }} {{ $accent['to'] }} items-center justify-center text-[var(--gazu-on-brand)] mb-3 group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300 shadow-[0_4px_12px_-4px_rgba(0,0,0,0.15)]">
                         <div class="w-5 h-5 sm:w-6 sm:h-6">{!! $svgFor($icon) !!}</div>
                     </div>
 

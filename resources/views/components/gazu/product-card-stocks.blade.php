@@ -26,7 +26,7 @@
         <div class="pointer-events-auto opacity-0 group-hover:opacity-100 transition-all duration-150
                     translate-y-1 group-hover:translate-y-0"
              :class="open ? '!opacity-100 !translate-y-0 pointer-events-auto' : ''">
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg shadow-[0_12px_32px_-12px_rgba(14,27,44,0.35)] p-3 mt-1">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg shadow-[0_12px_32px_-12px_rgba(14,27,44,0.35)] p-3 mt-1">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[10px] uppercase tracking-wider font-semibold text-[var(--gazu-graphite)]">
                         Доставка зі складу
@@ -57,7 +57,7 @@
                                     @if($disabled) opacity-50 cursor-not-allowed @endif">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-5 h-5 rounded flex items-center justify-center flex-shrink-0"
-                                     :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-[var(--gazu-ink)] text-white' : 'bg-[var(--gazu-mist)] text-[var(--gazu-blue)]'">
+                                     :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-mist)] text-[var(--gazu-blue)]'">
                                     <svg x-show="sel !== {{ (int) $s->warehouse_id }}" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                                     <svg x-show="sel === {{ (int) $s->warehouse_id }}" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                                 </div>
@@ -86,7 +86,7 @@
                 @click.stop.prevent="open = !open"
                 class="md:hidden pointer-events-auto absolute -top-[95px] right-2 z-30
                        text-[10px] gazu-mono uppercase tracking-wider px-2 py-1
-                       bg-white shadow-[0_1px_4px_-1px_rgba(14,27,44,0.20)]
+                       bg-[var(--gazu-surface)] shadow-[0_1px_4px_-1px_rgba(14,27,44,0.20)]
                        rounded-md text-[var(--gazu-blue)] font-semibold
                        hover:text-[var(--gazu-ink)] cursor-pointer
                        inline-flex items-center gap-1">

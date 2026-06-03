@@ -11,7 +11,7 @@
 
     <div class="grid md:grid-cols-2 gap-7 max-w-4xl mx-auto">
         {{-- Sign in --}}
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-7">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-7">
             <h2 class="gazu-display text-2xl font-semibold m-0 mb-1">Вхід</h2>
             <p class="text-sm text-[var(--gazu-graphite)] mb-5">Якщо у вас вже є акаунт</p>
 
@@ -42,7 +42,7 @@
         </div>
 
         {{-- Sign up --}}
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-7">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-7">
             <h2 class="gazu-display text-2xl font-semibold m-0 mb-1">Реєстрація</h2>
             <p class="text-sm text-[var(--gazu-graphite)] mb-5">Створіть акаунт за 30 секунд</p>
 

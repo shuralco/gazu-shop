@@ -10,7 +10,7 @@
         <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mb-7 max-w-2xl">{{ $intro }}</p>
     @endif
 
-    <article class="bg-white border border-[var(--gazu-line)] rounded-xl p-8 space-y-5 text-[15px] leading-relaxed text-[var(--gazu-ink)]">
+    <article class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl p-8 space-y-5 text-[15px] leading-relaxed text-[var(--gazu-ink)]">
         @if(! empty($content_html ?? null))
             <div class="gazu-prose">{!! $content_html !!}</div>
         @endif

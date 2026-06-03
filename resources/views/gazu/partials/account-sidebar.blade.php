@@ -4,7 +4,7 @@
     $name = $user?->name ?: 'Гість';
     $phone = $user?->phone ?: $user?->email ?: '—';
 @endphp
-<aside class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+<aside class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
     <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[var(--gazu-line)]">
         <div class="w-12 h-12 bg-[var(--gazu-mist)] rounded-full flex items-center justify-center text-[var(--gazu-blue)] uppercase font-bold gazu-display">
             {{ mb_substr($name, 0, 1) }}

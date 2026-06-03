@@ -3,7 +3,7 @@
 @section('title', 'GAZU — підбір за маркою-моделлю-роком')
 
 @section('content')
-    <section class="py-15 relative overflow-hidden bg-[var(--gazu-ink)] text-white" style="padding-top:60px;padding-bottom:60px">
+    <section class="py-15 relative overflow-hidden bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]" style="padding-top:60px;padding-bottom:60px">
         <div class="absolute inset-0 gazu-grid-pattern-dark"></div>
         <div class="gazu-container relative">
             <div class="gazu-grid-hero-picker">
@@ -22,7 +22,7 @@
                     </h1>
                     <p class="text-base text-[#9DA5B2] leading-relaxed mt-5 max-w-md">{{ $desc }}</p>
                 </div>
-                <div class="bg-white text-[var(--gazu-ink)] rounded-xl p-6">
+                <div class="bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-xl p-6">
                     <div class="flex items-center gap-1.5 mb-4.5 text-[11px] gazu-mono tracking-widest uppercase text-[var(--gazu-graphite)]">
                         <span class="text-[var(--gazu-blue)]">Крок 1 з 4</span>
                         <span class="flex-1 h-0.5 bg-[var(--gazu-line)] rounded relative">
@@ -35,7 +35,7 @@
                         <div class="grid grid-cols-4 gap-2">
                             @foreach((array) $brands as $i => $b)
                                 <button type="button"
-                                        class="py-3 px-2 gazu-display font-semibold text-[13px] border-[1.5px] rounded-md cursor-pointer {{ $i === 0 ? 'bg-[var(--gazu-ink)] text-white border-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] border-[var(--gazu-line)]' }}">{{ $b }}</button>
+                                        class="py-3 px-2 gazu-display font-semibold text-[13px] border-[1.5px] rounded-md cursor-pointer {{ $i === 0 ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-[var(--gazu-ink)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border-[var(--gazu-line)]' }}">{{ $b }}</button>
                             @endforeach
                         </div>
                         <a wire:navigate href="{{ route('gazu.brand') }}" class="inline-block bg-transparent border-0 text-[var(--gazu-blue)] text-xs pt-2.5 cursor-pointer no-underline">Усі {{ $brandsTotal }} марок →</a>

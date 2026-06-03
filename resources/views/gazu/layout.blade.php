@@ -234,7 +234,7 @@
 <body class="gazu gazu-theme min-h-screen flex flex-col">
 {{-- Accessibility: skip-to-main link для keyboard navigation (Tab key) --}}
 <a href="#main-content"
-   class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--gazu-ink)] focus:text-white focus:rounded focus:no-underline focus:outline-2 focus:outline-[var(--gazu-blue)]">
+   class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--gazu-ink)] focus:text-[var(--gazu-on-brand)] focus:rounded focus:no-underline focus:outline-2 focus:outline-[var(--gazu-blue)]">
     Перейти до основного контенту
 </a>
 
@@ -486,7 +486,7 @@
      @mousemove="cancelIdle()"
      @scroll.passive="cancelIdle(); armIdle()"
      @touchstart.passive="cancelIdle()"
-     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[400px] bg-white border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
+     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[400px] bg-[var(--gazu-surface)] border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
      :data-open="open ? '1' : '0'"
      role="dialog" aria-label="Кошик">
 
@@ -574,7 +574,7 @@
         </div>
         <div class="flex gap-2">
             <button type="button" @click="open = false" class="flex-1 py-2.5 border border-[var(--gazu-line-2)] rounded-md text-sm font-medium hover:bg-[var(--gazu-mist)]">Продовжити</button>
-            <a wire:navigate href="{{ route('gazu.cart') }}" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
+            <a wire:navigate href="{{ route('gazu.cart') }}" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-[var(--gazu-on-brand)] rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
         </div>
     </div>
 </div>

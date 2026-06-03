@@ -204,7 +204,7 @@
                 ];
             @endphp
             <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
-                <div class="aspect-square bg-white rounded-lg relative overflow-hidden cursor-zoom-in group/main"
+                <div class="aspect-square bg-[var(--gazu-surface)] rounded-lg relative overflow-hidden cursor-zoom-in group/main"
                      @click="zoom = true" title="Натисніть щоб збільшити">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
                     @foreach($variants as $i => $seed)
@@ -219,14 +219,14 @@
                     <img data-gazu-product-image
                          alt=""
                          style="display:none; opacity:0; transition: opacity .2s ease;"
-                         class="absolute inset-0 w-full h-full object-contain bg-white z-[3]"
+                         class="absolute inset-0 w-full h-full object-contain bg-[var(--gazu-surface)] z-[3]"
                          onload="this.style.opacity='1';"
                          onerror="this.style.display='none';"/>
-                    <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded z-[1]">
+                    <div class="absolute top-3.5 left-3.5 px-2.5 py-1.5 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] gazu-mono text-[11px] text-[var(--gazu-ink)] tracking-wider rounded z-[1]">
                         <span x-text="idx + 1">1</span> / {{ count($variants) }}
                     </div>
                     {{-- Zoom hint icon — top-right поряд з heart, видно тільки при hover --}}
-                    <div class="absolute bottom-3.5 left-3.5 w-9 h-9 rounded-lg bg-white/90 backdrop-blur border border-[var(--gazu-line)] inline-flex items-center justify-center text-[var(--gazu-ink)] opacity-0 group-hover/main:opacity-100 transition-opacity z-[1] pointer-events-none">
+                    <div class="absolute bottom-3.5 left-3.5 w-9 h-9 rounded-lg bg-[var(--gazu-surface)]/90 backdrop-blur border border-[var(--gazu-line)] inline-flex items-center justify-center text-[var(--gazu-ink)] opacity-0 group-hover/main:opacity-100 transition-opacity z-[1] pointer-events-none">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
                     </div>
                     @if($productId)
@@ -241,7 +241,7 @@
                                     Promise.resolve(window.gazuWishlistToggle({{ (int) $productId }})).then(inWl => { active = inWl; }).finally(() => busy = false);"
                                 :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
                                 :class="active ? 'text-[var(--gazu-danger)] border-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] border-[var(--gazu-line)] hover:text-[var(--gazu-danger)]'"
-                                class="absolute top-3.5 right-3.5 w-9 h-9 border bg-white rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors z-[2]">
+                                class="absolute top-3.5 right-3.5 w-9 h-9 border bg-[var(--gazu-surface)] rounded-lg cursor-pointer inline-flex items-center justify-center transition-colors z-[2]">
                             <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
                                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
                             </svg>
@@ -270,7 +270,7 @@
                             class="absolute right-4 sm:right-8 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white border-0 cursor-pointer inline-flex items-center justify-center transition-colors z-[1]">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
-                    <div class="relative w-full max-w-[90vw] max-h-[85vh] aspect-square bg-white rounded-2xl overflow-hidden flex items-center justify-center" @click.stop>
+                    <div class="relative w-full max-w-[90vw] max-h-[85vh] aspect-square bg-[var(--gazu-surface)] rounded-2xl overflow-hidden flex items-center justify-center" @click.stop>
                         @foreach($variants as $i => $seed)
                             <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
                                  :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
@@ -372,7 +372,7 @@
                 $productOptions = $p->options()->where('is_active', true)->orderBy('sort_order')->with(['values' => fn($q) => $q->where('is_active', true)->orderBy('sort_order')])->get();
             @endphp
             @if($productOptions->isNotEmpty())
-                <section class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 sm:p-5 mt-4 mb-4"
+                <section class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 sm:p-5 mt-4 mb-4"
                          x-data="{
                             picks: {},
                             busy: false,
@@ -431,7 +431,7 @@
                             @elseif($opt->type === 'select')
                                 <select @change="picks[{{ $opt->id }}] = parseInt($event.target.value); sync();"
                                         :disabled="busy"
-                                        class="w-full max-w-xs px-3 py-2 text-sm rounded-md border border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] focus:outline-none focus:border-[var(--gazu-ink)] disabled:opacity-50">
+                                        class="w-full max-w-xs px-3 py-2 text-sm rounded-md border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] focus:outline-none focus:border-[var(--gazu-ink)] disabled:opacity-50">
                                     <option value="">— Оберіть {{ mb_strtolower($opt->name) }} —</option>
                                     @foreach($opt->values as $v)
                                         <option value="{{ $v->id }}">{{ $v->value }}@if($v->price_modifier != 0) ({{ $v->price_modifier > 0 ? '+' : '' }}{{ (int) $v->price_modifier }} ₴)@endif</option>
@@ -444,7 +444,7 @@
                                         <button type="button"
                                                 @click="picks[{{ $opt->id }}] = {{ $v->id }}; sync();"
                                                 :disabled="busy"
-                                                :class="picks[{{ $opt->id }}] === {{ $v->id }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)]'"
+                                                :class="picks[{{ $opt->id }}] === {{ $v->id }} ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] ring-[var(--gazu-ink)]' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)]'"
                                                 class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-md ring-1 transition-colors disabled:opacity-50 disabled:cursor-wait">
                                             <span>{{ $v->value }}</span>
                                             @if($v->price_modifier != 0)
@@ -503,10 +503,10 @@
                          }"
                          x-init="$nextTick(() => upd())"
                          @resize.window.debounce.150ms="upd()">
-                        <div class="flex items-stretch bg-white border border-[var(--gazu-line)] rounded-xl overflow-hidden shadow-[0_6px_20px_-6px_rgba(14,27,44,0.22)]">
+                        <div class="flex items-stretch bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl overflow-hidden shadow-[0_6px_20px_-6px_rgba(14,27,44,0.22)]">
                             <button type="button" @click="nudge(-1)" x-show="canL" x-cloak x-transition.opacity
                                     aria-label="Прокрутити вкладки вліво"
-                                    class="w-9 shrink-0 bg-white border-r border-[var(--gazu-line)] text-[var(--gazu-ink)] inline-flex items-center justify-center cursor-pointer active:scale-90 transition-transform">
+                                    class="w-9 shrink-0 bg-[var(--gazu-surface)] border-r border-[var(--gazu-line)] text-[var(--gazu-ink)] inline-flex items-center justify-center cursor-pointer active:scale-90 transition-transform">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                             </button>
                             <div x-ref="strip" @scroll.passive="upd()" role="tablist" aria-label="Інформація про товар"
@@ -528,7 +528,7 @@
                             </div>
                             <button type="button" @click="nudge(1)" x-show="canR" x-cloak x-transition.opacity
                                     aria-label="Прокрутити вкладки вправо"
-                                    class="w-9 shrink-0 bg-white border-l border-[var(--gazu-line)] text-[var(--gazu-ink)] inline-flex items-center justify-center cursor-pointer active:scale-90 transition-transform">
+                                    class="w-9 shrink-0 bg-[var(--gazu-surface)] border-l border-[var(--gazu-line)] text-[var(--gazu-ink)] inline-flex items-center justify-center cursor-pointer active:scale-90 transition-transform">
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                             </button>
                         </div>
@@ -557,7 +557,7 @@
                     {{-- spec --}}
                     <div role="tabpanel" x-show="tab === 'spec'" x-cloak class="mt-6">
                         <div class="gazu-display text-lg font-semibold mb-3">Характеристики</div>
-                        <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden">
+                        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
                             @php
                                 // Clickable spec rows → catalog filter:
                                 //   "Виробник" → brand slug (lower-cased name with hyphens)
@@ -608,7 +608,7 @@
                     <div role="tabpanel" x-show="tab === 'compat'" x-cloak class="mt-6">
                         <div class="gazu-display text-lg font-semibold mb-3">Сумісність з автомобілями</div>
                         @if(! empty($compat))
-                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
+                            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
                                 <table class="w-full text-left font-text text-[13px]">
                                     <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
                                         <tr>
@@ -638,7 +638,7 @@
                                 </table>
                             </div>
                         @else
-                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6 text-center">
+                            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-6 text-center">
                                 <p class="text-[13px] text-[var(--gazu-graphite)]">Список сумісних авто для цієї деталі поки не заповнено. Зв'яжіться з менеджером для уточнення.</p>
                             </div>
                         @endif
@@ -678,7 +678,7 @@
                         @if(is_object($p) && method_exists($p, 'approvedReviews') && ($reviewList = $p->approvedReviews()->latest()->take(3)->get())->isNotEmpty())
                             <div class="flex flex-col gap-3">
                                 @foreach($reviewList as $rev)
-                                    <article class="bg-white border border-[var(--gazu-line)] rounded-lg p-4">
+                                    <article class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4">
                                         <header class="flex items-center justify-between gap-3 mb-2">
                                             <div class="flex items-center gap-2">
                                                 <span class="font-semibold text-[var(--gazu-ink)] text-[14px]">{{ $rev->author_name ?? $rev->user?->name ?? 'Анонім' }}</span>
@@ -705,14 +705,14 @@
                     {{-- delivery --}}
                     <div role="tabpanel" x-show="tab === 'delivery'" x-cloak class="mt-6">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 flex gap-3 items-start">
+                            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 flex gap-3 items-start">
                                 <x-gazu.icon name="truck" size="22" stroke="var(--gazu-blue)" class="shrink-0"/>
                                 <div>
                                     <div class="gazu-display font-semibold text-[var(--gazu-ink)] mb-1">Доставка</div>
                                     <div class="text-[13px] text-[var(--gazu-graphite)] leading-relaxed">{{ $deliveryText }}</div>
                                 </div>
                             </div>
-                            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 flex gap-3 items-start">
+                            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 flex gap-3 items-start">
                                 <x-gazu.icon name="shield" size="22" stroke="var(--gazu-blue)" class="shrink-0"/>
                                 <div>
                                     <div class="gazu-display font-semibold text-[var(--gazu-ink)] mb-1">Оплата</div>
@@ -751,7 +751,7 @@
                 }
              }"
              x-show="show" x-cloak x-transition.opacity.duration.200ms
-             class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-[var(--gazu-line)] shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.08)] px-4 py-3"
+             class="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[var(--gazu-surface)] border-t border-[var(--gazu-line)] shadow-[0_-4px_12px_-2px_rgba(0,0,0,0.08)] px-4 py-3"
              role="region" aria-label="Швидкий кошик">
             <form action="{{ route('gazu.cart.add') }}" method="POST" class="flex items-center gap-3">
                 @csrf
@@ -765,7 +765,7 @@
                     </div>
                 </div>
                 <button type="submit"
-                    class="h-12 px-5 bg-[var(--gazu-ink)] text-white border-0 rounded-lg text-[14px] font-semibold cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-ink-2)] whitespace-nowrap"
+                    class="h-12 px-5 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded-lg text-[14px] font-semibold cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-ink-2)] whitespace-nowrap"
                     aria-label="Додати в кошик за {{ number_format($defaultPrice, 0, '.', ' ') }} грн">
                     <x-gazu.icon name="cart" size="18"/>
                     <span>У кошик</span>

@@ -15,13 +15,13 @@
     @if(! empty($categories) && count($categories) > 0)
         <div class="flex flex-wrap gap-2 mb-7">
             <a wire:navigate href="{{ route('gazu.blog') }}"
-               class="px-3.5 py-1.5 rounded-full text-[13px] no-underline transition-colors {{ ! $activeCategory ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white border border-[var(--gazu-line)] text-[var(--gazu-graphite)] hover:border-[var(--gazu-line-2)]' }}">
+               class="px-3.5 py-1.5 rounded-full text-[13px] no-underline transition-colors {{ ! $activeCategory ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-surface)] border border-[var(--gazu-line)] text-[var(--gazu-graphite)] hover:border-[var(--gazu-line-2)]' }}">
                 Усі статті
             </a>
             @foreach($categories as $c)
                 @php $cName = is_array($c->name) ? ($c->name['uk'] ?? '') : $c->name; @endphp
                 <a wire:navigate href="{{ route('gazu.blog.category', ['categorySlug' => $c->slug]) }}"
-                   class="px-3.5 py-1.5 rounded-full text-[13px] no-underline transition-colors {{ $activeCategory && $activeCategory->id === $c->id ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white border border-[var(--gazu-line)] text-[var(--gazu-graphite)] hover:border-[var(--gazu-line-2)]' }}">
+                   class="px-3.5 py-1.5 rounded-full text-[13px] no-underline transition-colors {{ $activeCategory && $activeCategory->id === $c->id ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-surface)] border border-[var(--gazu-line)] text-[var(--gazu-graphite)] hover:border-[var(--gazu-line-2)]' }}">
                     {{ $cName }}<span class="opacity-60 ml-1">{{ $c->posts_count }}</span>
                 </a>
             @endforeach
@@ -43,7 +43,7 @@
                     $readMin = $post->reading_minutes;
                 @endphp
                 <a wire:navigate href="{{ route('gazu.blog.show', ['slug' => $slug]) }}"
-                   class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden no-underline text-[var(--gazu-ink)] flex flex-col hover:border-[var(--gazu-line-2)]">
+                   class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden no-underline text-[var(--gazu-ink)] flex flex-col hover:border-[var(--gazu-line-2)]">
                     @php
                         $img = $post->og_image;
                         // Handle three forms: full URL, absolute path "/img/...", relative "img/..." stored in /storage
@@ -84,7 +84,7 @@
             <div class="mt-6">{{ $posts->links("vendor.pagination.gazu") }}</div>
         @endif
     @else
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-12 text-center">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-12 text-center">
             <div class="inline-flex w-14 h-14 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-4">
                 <x-gazu.icon name="search" size="24" stroke="var(--gazu-graphite)"/>
             </div>

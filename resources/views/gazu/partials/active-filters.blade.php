@@ -34,7 +34,7 @@
                 unset($params['page']);
             @endphp
             <a wire:navigate href="{{ url()->current() . (count($params) ? '?' . http_build_query($params) : '') }}"
-               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] rounded-2xl text-xs text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]">
+               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-2xl text-xs text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]">
                 {{ $chip['label'] }} <x-gazu.icon name="close" size="12" stroke="var(--gazu-graphite)"/>
             </a>
         @endforeach

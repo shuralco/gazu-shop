@@ -65,7 +65,7 @@
                 : collect();
         @endphp
         <div>
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
                 @foreach($cart as $key => $item)
                     @php
                         $productId = is_numeric($key) ? (int) $key : (int) explode('_', (string) $key)[0];
@@ -203,7 +203,7 @@
         @php
             $shipping = app(\App\Services\Cart\ShippingCalculator::class)->breakdown($cart);
         @endphp
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 self-start">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 self-start">
             <h3 class="gazu-display text-xl font-semibold m-0 mb-4">Підсумок</h3>
             <div class="flex justify-between mb-2 text-sm">
                 <span class="text-[var(--gazu-graphite)]" x-text="count + ' ' + (count === 1 ? 'позиція' : (count >= 2 && count <= 4 ? 'позиції' : 'позицій'))">{{ plural_uk_count($positionsCount, 'позиція', 'позиції', 'позицій') }}</span>
@@ -310,7 +310,7 @@
                 <div x-show="open" x-cloak x-collapse class="mt-3">
                     <div class="flex gap-2">
                         <input type="text" x-model="code" @keydown.enter.prevent="apply()" placeholder="Введіть код" class="flex-1 px-3 py-2 border border-[var(--gazu-line)] rounded-md text-sm focus:border-[var(--gazu-ink)] outline-none">
-                        <button type="button" @click="apply()" :disabled="busy || !code.trim()" class="px-4 py-2 bg-[var(--gazu-ink)] text-white rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--gazu-ink-2)] transition-colors">
+                        <button type="button" @click="apply()" :disabled="busy || !code.trim()" class="px-4 py-2 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-md text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[var(--gazu-ink-2)] transition-colors">
                             <span x-show="!busy">Застосувати</span>
                             <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>
                         </button>

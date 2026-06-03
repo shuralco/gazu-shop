@@ -17,12 +17,12 @@
 
 {{-- Popover container (positioned by parent in header.blade.php).
      flex-col + max-h-full so the body scrolls inside the fixed shell on mobile. --}}
-<div class="bg-white rounded-xl overflow-hidden border border-[var(--gazu-line)] relative flex flex-col max-h-full"
+<div class="bg-[var(--gazu-surface)] rounded-xl overflow-hidden border border-[var(--gazu-line)] relative flex flex-col max-h-full"
      x-data="{ activeMega: '{{ $megaTree[0]['id'] ?? 'engine' }}', mobileOpen: null }"
      style="box-shadow: 0 28px 60px -10px rgba(14,27,44,0.35), 0 8px 16px rgba(14,27,44,0.12);">
 
     {{-- Pointer arrow that visually connects popover to "Каталог" button — desktop only --}}
-    <div class="hidden lg:block absolute -top-2 w-4 h-4 bg-white border-l border-t border-[var(--gazu-line)] rotate-45 z-10" style="left: 156px;"></div>
+    <div class="hidden lg:block absolute -top-2 w-4 h-4 bg-[var(--gazu-surface)] border-l border-t border-[var(--gazu-line)] rotate-45 z-10" style="left: 156px;"></div>
 
     {{-- Top strip --}}
     <div class="flex items-center gap-3 px-4 sm:px-5 py-2.5 border-b border-[var(--gazu-line)] bg-[var(--gazu-paper)] shrink-0">
@@ -30,7 +30,7 @@
         <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] hidden sm:inline">· {{ number_format($totalCount, 0, '.', ' ') }} товарів у {{ count($megaTree) }} категоріях</span>
         <span class="flex-1"></span>
         <button type="button" @click="megaOpen = false"
-                class="w-7 h-7 border border-[var(--gazu-line)] bg-white rounded inline-flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)]">
+                class="w-7 h-7 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] rounded inline-flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)]">
             <x-gazu.icon name="close" size="14"/>
         </button>
     </div>
@@ -42,7 +42,7 @@
             <div class="border-b border-[var(--gazu-line)] last:border-b-0">
                 <button type="button"
                         @click="mobileOpen = (mobileOpen === '{{ $c['id'] }}' ? null : '{{ $c['id'] }}')"
-                        :class="mobileOpen === '{{ $c['id'] }}' ? 'bg-[var(--gazu-paper)]' : 'bg-white'"
+                        :class="mobileOpen === '{{ $c['id'] }}' ? 'bg-[var(--gazu-paper)]' : 'bg-[var(--gazu-surface)]'"
                         class="w-full flex items-center gap-3 px-4 py-3.5 border-0 cursor-pointer text-left">
                     <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="22"/>
                     <span class="flex-1 text-[15px] font-semibold text-[var(--gazu-ink)]">{{ $c['label'] }}</span>
@@ -54,7 +54,7 @@
                 <div x-show="mobileOpen === '{{ $c['id'] }}'" x-cloak x-transition.opacity.duration.150ms
                      class="px-4 pb-4 bg-[var(--gazu-paper)]">
                     <a wire:navigate href="{{ $catLink }}"
-                       class="flex items-center justify-center gap-1.5 w-full py-2.5 mb-3 bg-[var(--gazu-ink)] text-white rounded-md text-[13px] font-medium no-underline">
+                       class="flex items-center justify-center gap-1.5 w-full py-2.5 mb-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-md text-[13px] font-medium no-underline">
                         Усі товари категорії →
                     </a>
                     @foreach($c['groups'] as $g)
@@ -95,7 +95,7 @@
                     ['Блог', route('gazu.blog')],
                 ] as [$label, $url])
                     <a wire:navigate href="{{ $url }}"
-                       class="flex items-center justify-center px-2 py-2.5 bg-white border border-[var(--gazu-line)] rounded-lg text-[13px] font-medium text-[var(--gazu-ink)] no-underline text-center hover:border-[var(--gazu-ink)] transition-colors">
+                       class="flex items-center justify-center px-2 py-2.5 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg text-[13px] font-medium text-[var(--gazu-ink)] no-underline text-center hover:border-[var(--gazu-ink)] transition-colors">
                         {{ $label }}
                     </a>
                 @endforeach
@@ -124,7 +124,7 @@
                 <div class="grid grid-cols-3 gap-1.5">
                     @foreach(array_slice($brandList, 0, 9) as $b)
                         <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
-                           class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] no-underline transition-colors">{{ $b['name'] }}</a>
+                           class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-[var(--gazu-surface)] hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] no-underline transition-colors">{{ $b['name'] }}</a>
                     @endforeach
                 </div>
             </div>
@@ -159,7 +159,7 @@
                 @php $catLink = ! empty($c['slug']) ? url('/'.$c['slug']) : route('gazu.catalog'); @endphp
                 <a wire:navigate href="{{ $catLink }}"
                    @mouseenter="activeMega = '{{ $c['id'] }}'"
-                   :class="activeMega === '{{ $c['id'] }}' ? 'bg-white text-[var(--gazu-ink)] font-semibold' : 'text-[var(--gazu-graphite)]'"
+                   :class="activeMega === '{{ $c['id'] }}' ? 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] font-semibold' : 'text-[var(--gazu-graphite)]'"
                    :style="activeMega === '{{ $c['id'] }}' ? 'border-left:3px solid var(--gazu-blue)' : 'border-left:3px solid transparent'"
                    class="flex items-center gap-3 py-2.5 pr-3.5 pl-5 text-sm no-underline cursor-pointer relative">
                     <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="20"/>
@@ -228,7 +228,7 @@
                 <div class="grid grid-cols-3 gap-1.5">
                     @foreach(array_slice($menuBrandsDesktop, 0, 9) as $b)
                         <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
-                           class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-white hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] cursor-pointer no-underline transition-colors">{{ $b['name'] }}</a>
+                           class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-[var(--gazu-surface)] hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] cursor-pointer no-underline transition-colors">{{ $b['name'] }}</a>
                     @endforeach
                 </div>
             </div>
@@ -267,14 +267,14 @@
                 $promoTitle = \App\Models\DisplaySetting::get('gazu_megamenu_promo_title', '');
             @endphp
             @if($promoKicker || $promoTitle)
-                <div class="bg-[var(--gazu-ink)] text-white rounded-lg p-4 flex flex-col gap-2 mt-auto">
+                <div class="bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-lg p-4 flex flex-col gap-2 mt-auto">
                     @if($promoKicker)
                         <div class="gazu-mono text-[9px] text-[var(--gazu-blue)] tracking-widest uppercase">{{ $promoKicker }}</div>
                     @endif
                     @if($promoTitle)
                         <div class="gazu-display text-lg font-bold">{{ $promoTitle }}</div>
                     @endif
-                    <a wire:navigate href="{{ route('gazu.catalog', ['promo' => 1]) }}" class="self-start px-2.5 py-1.5 bg-[var(--gazu-blue)] text-white rounded text-xs font-medium no-underline mt-0.5">До акції →</a>
+                    <a wire:navigate href="{{ route('gazu.catalog', ['promo' => 1]) }}" class="self-start px-2.5 py-1.5 bg-[var(--gazu-blue)] text-[var(--gazu-on-brand)] rounded text-xs font-medium no-underline mt-0.5">До акції →</a>
                 </div>
             @endif
         </div>

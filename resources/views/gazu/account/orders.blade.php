@@ -36,7 +36,7 @@
             </div>
 
             @if($orders->isEmpty())
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center">
                     <div class="inline-flex w-16 h-16 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-4 text-[var(--gazu-blue)]">
                         <x-gazu.icon name="box" size="28"/>
                     </div>
@@ -52,7 +52,7 @@
                             $count = $order->orderProducts->count();
                             $word = plural_uk($count, 'товар', 'товари', 'товарів');
                         @endphp
-                        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-order-row">
+                        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-order-row">
                             <div class="min-w-0">
                                 <div class="gazu-display font-semibold text-sm text-[var(--gazu-ink)]">#{{ $order->id }}</div>
                                 <div class="text-xs text-[var(--gazu-graphite)] mt-0.5">{{ $count }} {{ $word }}</div>

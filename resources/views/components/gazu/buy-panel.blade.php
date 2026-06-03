@@ -29,7 +29,7 @@
         ],
     ])->all();
 @endphp
-<div class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
+<div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
      x-data="{
         q: 1,
         warehouseId: {{ $defaultWh ? (int) $defaultWh : 'null' }},
@@ -118,7 +118,7 @@
                 </button>
                 <input x-model.number="q" type="number" min="1" :max="available || 99"
                     aria-label="Кількість"
-                    class="w-12 h-11 text-center border-0 bg-white text-base gazu-mono font-semibold text-[var(--gazu-ink)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
+                    class="w-12 h-11 text-center border-0 bg-[var(--gazu-surface)] text-base gazu-mono font-semibold text-[var(--gazu-ink)] outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none">
                 <button type="button" @click="q = Math.min((available || 99), q+1)"
                     aria-label="Збільшити кількість"
                     class="w-10 h-11 border-0 bg-transparent cursor-pointer text-[var(--gazu-ink)] inline-flex items-center justify-center hover:bg-[var(--gazu-line-2)] active:bg-[var(--gazu-line)] transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
@@ -147,7 +147,7 @@
         @if($productId)
             <div class="grid grid-cols-1 gap-2.5">
                 <button type="submit" :disabled="available <= 0"
-                    :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-white hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
+                    :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
                     class="w-full h-14 border-0 rounded-lg text-[15px] font-semibold inline-flex items-center justify-center gap-2.5 transition-colors">
                     <template x-if="available > 0">
                         <span class="inline-flex items-center gap-2.5">
@@ -167,7 +167,7 @@
 
                 @if($oneClickEnabled)
                     <button type="button" @click.prevent="$dispatch('gazu:one-click', { productId: '{{ $productId }}', productName: @js($name ?? ''), productPrice: price * q })"
-                            class="w-full h-12 bg-white text-[var(--gazu-ink)] border-[1.5px] border-[var(--gazu-ink)] rounded-lg text-[14px] font-medium cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-mist)] transition-colors">
+                            class="w-full h-12 bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border-[1.5px] border-[var(--gazu-ink)] rounded-lg text-[14px] font-medium cursor-pointer inline-flex items-center justify-center gap-2 hover:bg-[var(--gazu-mist)] transition-colors">
                         <x-gazu.icon name="phone" size="16"/>
                         {{ $oneClickLabel }}
                     </button>

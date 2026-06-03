@@ -37,7 +37,7 @@
             {{-- Cars grid --}}
             <div class="grid md:grid-cols-2 gap-4">
                 @foreach($cars as $car)
-                    <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 {{ $car->is_primary ? 'border-[var(--gazu-blue)]' : '' }}">
+                    <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 {{ $car->is_primary ? 'border-[var(--gazu-blue)]' : '' }}">
                         @if($car->is_primary)
                             <div class="gazu-mono text-[10px] text-[var(--gazu-blue)] tracking-widest uppercase mb-2">⭐ Основне</div>
                         @endif
@@ -107,7 +107,7 @@
                 {{-- Add card --}}
                 <button type="button" @click="openAdd = true"
                         class="bg-[var(--gazu-mist)] border-2 border-dashed border-[var(--gazu-line-2)] rounded-lg p-5 flex flex-col items-center justify-center text-center min-h-[280px] cursor-pointer hover:border-[var(--gazu-blue)] hover:bg-[var(--gazu-paper)]">
-                    <div class="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[var(--gazu-blue)] mb-3">
+                    <div class="w-12 h-12 bg-[var(--gazu-surface)] rounded-full flex items-center justify-center text-[var(--gazu-blue)] mb-3">
                         <x-gazu.icon name="plus" size="24"/>
                     </div>
                     <div class="gazu-display font-semibold text-[var(--gazu-ink)] mb-1.5">{{ $cars->isEmpty() ? 'Додайте перше авто' : 'Додати ще одне авто' }}</div>
@@ -119,7 +119,7 @@
             <div x-show="openAdd" x-cloak x-transition.opacity
                  class="fixed inset-0 bg-black/45 z-[60] flex items-center justify-center p-4"
                  @click.self="openAdd = false">
-                <div class="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" @click.stop>
+                <div class="bg-[var(--gazu-surface)] rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" @click.stop>
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="gazu-display text-xl font-semibold m-0">Додати авто</h3>
                         <button type="button" @click="openAdd = false" class="bg-transparent border-0 cursor-pointer text-[var(--gazu-graphite)]">
@@ -184,7 +184,7 @@
             <div x-show="editing" x-cloak x-transition.opacity
                  class="fixed inset-0 bg-black/45 z-[60] flex items-center justify-center p-4"
                  @click.self="editing = null">
-                <div class="bg-white rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" @click.stop>
+                <div class="bg-[var(--gazu-surface)] rounded-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto" @click.stop>
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="gazu-display text-xl font-semibold m-0">Редагувати авто</h3>
                         <button type="button" @click="editing = null" class="bg-transparent border-0 cursor-pointer text-[var(--gazu-graphite)]">

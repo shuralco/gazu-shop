@@ -31,14 +31,14 @@
                     ? request()->fullUrlWithQuery(['brand' => null])
                     : request()->fullUrlWithQuery(['brand' => [$pillSlug]]);
             @endphp
-            <a wire:navigate href="{{ $url }}" class="px-3 py-1.5 rounded-full text-xs whitespace-nowrap no-underline {{ $isActive ? 'bg-[var(--gazu-ink)] text-white' : 'bg-white border border-[var(--gazu-line)] text-[var(--gazu-graphite)]' }}">
+            <a wire:navigate href="{{ $url }}" class="px-3 py-1.5 rounded-full text-xs whitespace-nowrap no-underline {{ $isActive ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-surface)] border border-[var(--gazu-line)] text-[var(--gazu-graphite)]' }}">
                 {{ $pillLabel }}
             </a>
         @endforeach
     </div>
     <div class="flex justify-between items-center mb-3">
         <button type="button" class="gazu-btn-outline text-xs py-1.5 px-3"><x-gazu.icon name="filter" size="14"/> Фільтри</button>
-        <select class="text-xs border border-[var(--gazu-line)] bg-white rounded px-2 py-1.5">
+        <select class="text-xs border border-[var(--gazu-line)] bg-[var(--gazu-surface)] rounded px-2 py-1.5">
             <option>За популярністю</option>
             <option>За ціною</option>
         </select>

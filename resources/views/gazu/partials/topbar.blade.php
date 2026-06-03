@@ -52,7 +52,7 @@
         @endif
         <span class="flex-1"></span>
         @foreach($links as $link)
-            <a wire:navigate href="{{ $link['url'] }}" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-white">{{ $link['label'] }}</a>
+            <a wire:navigate href="{{ $link['url'] }}" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-[var(--gazu-on-brand)]">{{ $link['label'] }}</a>
         @endforeach
         {{-- Перемикач мов: рендериться лише коли увімкнено преміум-модуль
              multilang (його view-namespace реєструється тільки для enabled-модуля,

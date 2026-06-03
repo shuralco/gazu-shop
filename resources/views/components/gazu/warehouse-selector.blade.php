@@ -25,7 +25,7 @@
     {{-- Central column: product meta (brand · article · availability) + the
          warehouse picker. Owns its `sel` state; the buy-panel listens for the
          `warehouse-selected` window event to sync price / qty / warehouse_id. --}}
-    <div class="bg-white border border-[var(--gazu-line)] rounded-[10px] p-5 font-text"
+    <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-5 font-text"
          x-data="{
             sel: {{ $defaultWh ? (int) $defaultWh : 'null' }},
             expanded: false,
@@ -109,13 +109,13 @@
                     @click="sel = {{ (int) $s->warehouse_id }}; $dispatch('warehouse-selected', { id: {{ (int) $s->warehouse_id }} })"
                     @if($idx >= $visible) x-show="expanded" x-transition.opacity.duration.150ms @endif
                     @disabled($available <= 0)
-                    :class="sel === {{ (int) $s->warehouse_id }} ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)] text-white' : 'border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-graphite)]'"
+                    :class="sel === {{ (int) $s->warehouse_id }} ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]' : 'border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] hover:border-[var(--gazu-graphite)]'"
                     class="w-full flex items-center justify-between gap-3 px-3 py-2.5 border rounded-md transition-colors text-left min-h-[44px]
                         @if($available <= 0) opacity-50 cursor-not-allowed @endif">
                     <div class="flex items-center gap-2.5 min-w-0">
                         {{-- Warehouse icon: коробка (склад) — змінюється на check при виборі --}}
                         <div class="w-6 h-6 rounded-md flex items-center justify-center flex-shrink-0"
-                             :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-white text-[var(--gazu-ink)]' : 'bg-[var(--gazu-mist)] text-[var(--gazu-blue)]'">
+                             :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)]' : 'bg-[var(--gazu-mist)] text-[var(--gazu-blue)]'">
                             <svg x-show="sel !== {{ (int) $s->warehouse_id }}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                             <svg x-show="sel === {{ (int) $s->warehouse_id }}" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                         </div>
@@ -124,7 +124,7 @@
                                 <span>{{ $whCity }}</span>
                                 @if($closestWarehouseId && $s->warehouse_id === $closestWarehouseId)
                                     <span class="text-[9px] gazu-mono px-1 py-0.5 rounded uppercase tracking-wider"
-                                          :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-white/15 text-white' : 'bg-[var(--gazu-blue-bg,#E0EBFF)] text-[var(--gazu-blue)]'">
+                                          :class="sel === {{ (int) $s->warehouse_id }} ? 'bg-[var(--gazu-surface)]/15 text-[var(--gazu-on-brand)]' : 'bg-[var(--gazu-blue-bg,#E0EBFF)] text-[var(--gazu-blue)]'">
                                         {{ ($gazuSettings ?? [])['gazu_warehouse_closest_label'] ?? 'найшвидша відправка' }}
                                     </span>
                                 @endif

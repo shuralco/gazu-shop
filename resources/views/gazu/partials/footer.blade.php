@@ -62,20 +62,20 @@
 
         @foreach((array) $columns as $col)
             <div>
-                <div class="gazu-display text-sm font-semibold text-white mb-3.5">{{ $col['title'] ?? '' }}</div>
+                <div class="gazu-display text-sm font-semibold text-[var(--gazu-on-brand)] mb-3.5">{{ $col['title'] ?? '' }}</div>
                 <ul class="list-none p-0 m-0 flex flex-col gap-2.5">
                     @foreach((array) ($col['items'] ?? []) as $i)
                         @php $href = $linkMap[$i] ?? route('gazu.catalog'); @endphp
-                        <li><a wire:navigate href="{{ $href }}" class="text-[13px] text-[#9DA5B2] no-underline hover:text-white">{{ $i }}</a></li>
+                        <li><a wire:navigate href="{{ $href }}" class="text-[13px] text-[#9DA5B2] no-underline hover:text-[var(--gazu-on-brand)]">{{ $i }}</a></li>
                     @endforeach
                 </ul>
             </div>
         @endforeach
 
         <div>
-            <div class="gazu-display text-sm font-semibold text-white mb-3.5">Зворотний звʼязок</div>
+            <div class="gazu-display text-sm font-semibold text-[var(--gazu-on-brand)] mb-3.5">Зворотний звʼязок</div>
             @if($phone)
-                <div class="gazu-display text-[22px] text-white mb-1">{{ $phone }}</div>
+                <div class="gazu-display text-[22px] text-[var(--gazu-on-brand)] mb-1">{{ $phone }}</div>
             @endif
             @if($hours)
                 <div class="text-xs text-[#9DA5B2] mb-4">{{ $hours }}, безкоштовно</div>

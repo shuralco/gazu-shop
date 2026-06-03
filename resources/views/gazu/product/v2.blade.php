@@ -62,7 +62,7 @@
 
         <div class="gazu-grid-buy-left">
             <div>
-                <div class="aspect-[4/3] bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
+                <div class="aspect-[4/3] bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
                     <div class="absolute inset-0 flex items-center justify-center">
                         <x-gazu.part-image kind="{{ $kind }}" size="320"/>
                     </div>
@@ -75,7 +75,7 @@
                     @endfor
                 </div>
 
-                <div class="mt-4.5 p-4 bg-white border border-[var(--gazu-line)] rounded-lg">
+                <div class="mt-4.5 p-4 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg">
                     <div class="gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-widest uppercase mb-2.5">Розміри (мм)</div>
                     <svg width="100%" height="120" viewBox="0 0 400 120">
                         <rect x="120" y="30" width="160" height="60" fill="var(--gazu-bone)" stroke="var(--gazu-ink)" stroke-width="1.5"/>
@@ -107,7 +107,7 @@
                 <x-gazu.buy-panel :price="$price" :oldPrice="$oldPrice" :qty="$qty" :discount="$discount" :productId="is_object($p) ? ($p->id ?? null) : null" :name="$name"/>
 
                 <div class="mt-7 gazu-display text-lg font-semibold mb-3">Повні характеристики</div>
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg px-4">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg px-4">
                     @foreach($specs as [$k, $v, $mono])
                         <div class="grid grid-cols-2 py-2.5 border-b border-[var(--gazu-line)] last:border-b-0 text-[13px]">
                             <span class="text-[var(--gazu-graphite)]">{{ $k }}</span>
@@ -121,7 +121,7 @@
         <div class="mt-10 grid lg:grid-cols-2 gap-6">
             <div>
                 <div class="gazu-display text-[22px] font-semibold mb-3.5">Сумісність</div>
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
                     <table class="w-full text-left text-[13px]">
                         <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
                             <tr>
@@ -146,7 +146,7 @@
             </div>
             <div>
                 <div class="gazu-display text-[22px] font-semibold mb-3.5">Аналоги та замінники</div>
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden overflow-x-auto">
                     <table class="w-full text-left text-[13px]">
                         <thead class="bg-[var(--gazu-bone)] gazu-mono text-[11px] text-[var(--gazu-graphite)] tracking-wider uppercase">
                             <tr>

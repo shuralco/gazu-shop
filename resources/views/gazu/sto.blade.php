@@ -11,7 +11,7 @@
 @endphp
 <div class="gazu-container">
     <x-gazu.breadcrumbs :items="[['Головна', route('gazu.home')], 'СТО та послуги']"/>
-    <section class="bg-[var(--gazu-ink)] text-white rounded-xl p-10 mb-7">
+    <section class="bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-xl p-10 mb-7">
         <h1 class="gazu-display text-4xl font-semibold m-0 mb-2">{{ $heroTitle }}</h1>
         <p class="text-base text-[#9DA5B2] m-0 max-w-xl">{{ $heroDesc }}</p>
     </section>
@@ -19,7 +19,7 @@
     @if(! empty($services))
         <div class="grid md:grid-cols-3 gap-4 mb-7">
             @foreach($services as $svc)
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                     <div class="w-12 h-12 bg-[var(--gazu-mist)] rounded-md flex items-center justify-center text-[var(--gazu-blue)] mb-4">
                         <x-gazu.icon name="{{ $svc['icon'] ?? 'wrench' }}" size="24"/>
                     </div>
@@ -36,7 +36,7 @@
             <h2 class="gazu-display text-2xl font-semibold m-0 mb-4">Наші партнери СТО</h2>
             <div class="grid md:grid-cols-2 gap-3">
                 @foreach($partners as $p)
-                    <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 flex items-start gap-3">
+                    <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 flex items-start gap-3">
                         <div class="w-10 h-10 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center text-[var(--gazu-blue)]">
                             <x-gazu.icon name="location" size="20"/>
                         </div>

@@ -7,7 +7,7 @@
     <div class="flex items-baseline gap-3.5 mb-4">
         <h2 class="gazu-display text-[28px] font-semibold text-[var(--gazu-ink)] m-0">{{ $title }}</h2>
         @if($badge)
-            <span class="text-[11px] px-2 py-0.5 bg-[var(--gazu-danger)] text-white rounded gazu-mono tracking-wider">{{ $badge }}</span>
+            <span class="text-[11px] px-2 py-0.5 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] rounded gazu-mono tracking-wider">{{ $badge }}</span>
         @endif
         <span class="flex-1"></span>
         @if($viewAll)

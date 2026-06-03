@@ -47,7 +47,7 @@
             @if($primaryCar)
                 <div class="flex flex-col gap-2">
                     @foreach($rows as [$k, $v, $filled])
-                        <div class="flex items-center gap-2.5 px-2.5 py-2 bg-white rounded {{ $filled ? 'border border-[var(--gazu-line)]' : 'border border-[var(--gazu-line-2)] opacity-60' }}">
+                        <div class="flex items-center gap-2.5 px-2.5 py-2 bg-[var(--gazu-surface)] rounded {{ $filled ? 'border border-[var(--gazu-line)]' : 'border border-[var(--gazu-line-2)] opacity-60' }}">
                             <span class="text-[11px] text-[var(--gazu-graphite)] w-14">{{ $k }}</span>
                             <span class="flex-1 text-[13px] {{ $filled ? 'text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-muted)]' }}">{{ $v }}</span>
                             @if($filled)<x-gazu.icon name="check" size="14" stroke="var(--gazu-success)"/>@endif
@@ -58,7 +58,7 @@
             @else
                 <p class="text-xs text-[var(--gazu-graphite)] mb-2">@auth Додайте авто у Гараж — фільтр буде підставляти його автоматично @else Увійдіть, щоб зберегти своє авто @endauth</p>
                 <a wire:navigate href="{{ auth()->check() ? route('gazu.garage') : route('gazu.auth') }}"
-                   class="block w-full py-2 bg-[var(--gazu-ink)] text-white rounded text-xs text-center no-underline hover:bg-[var(--gazu-ink-2)]">
+                   class="block w-full py-2 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded text-xs text-center no-underline hover:bg-[var(--gazu-ink-2)]">
                     @auth + Додати авто @else Увійти @endauth
                 </a>
             @endif
@@ -76,11 +76,11 @@
                 <input type="number" name="min" x-model="priceMin"
                        min="{{ $priceRange['min'] }}" max="{{ $priceRange['max'] }}"
                        placeholder="від {{ (int) $priceRange['min'] }}"
-                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none placeholder:text-[var(--gazu-muted)]">
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-[var(--gazu-surface)] outline-none placeholder:text-[var(--gazu-muted)]">
                 <input type="number" name="max" x-model="priceMax"
                        min="{{ $priceRange['min'] }}" max="{{ $priceRange['max'] }}"
                        placeholder="до {{ (int) $priceRange['max'] }}"
-                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none placeholder:text-[var(--gazu-muted)]">
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-[var(--gazu-surface)] outline-none placeholder:text-[var(--gazu-muted)]">
             </div>
             <div class="text-[11px] text-[var(--gazu-muted)] mt-2">
                 Від <span class="gazu-mono">{{ number_format($priceRange['min'], 0, '.', ' ') }} ₴</span>
@@ -209,7 +209,7 @@
                         <input type="checkbox" name="brand[]" value="{{ $value }}"
                                class="sr-only" {{ $checked ? 'checked' : '' }}
                                onchange="this.form.submit()">
-                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center shrink-0">
+                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]' }} rounded inline-flex items-center justify-center shrink-0">
                             @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
                         </span>
                         {{-- Monogram-бейдж бренду (детермінований колір за назвою) — дає
@@ -258,7 +258,7 @@
                         <input type="checkbox" name="condition[]" value="{{ $val }}"
                                class="sr-only" {{ $checked ? 'checked' : '' }}
                                onchange="this.form.submit()">
-                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center shrink-0">
+                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]' }} rounded inline-flex items-center justify-center shrink-0">
                             @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
                         </span>
                         <span class="flex-1">{{ $label }}</span>
@@ -279,7 +279,7 @@
             <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)]">
                 <input type="checkbox" name="stock" value="in" class="sr-only"
                        {{ $inStockOnly ? 'checked' : '' }} onchange="this.form.submit()">
-                <span class="w-4 h-4 border-[1.5px] {{ $inStockOnly ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white' }} rounded inline-flex items-center justify-center">
+                <span class="w-4 h-4 border-[1.5px] {{ $inStockOnly ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]' }} rounded inline-flex items-center justify-center">
                     @if($inStockOnly)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
                 </span>
                 <span class="flex-1">Тільки в наявності</span>
@@ -287,7 +287,7 @@
         </div>
     </details>
 
-    <button type="submit" class="w-full mt-4 py-3 bg-[var(--gazu-ink)] text-white border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
+    <button type="submit" class="w-full mt-4 py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
         Застосувати фільтри
     </button>
     @if($hasFilters || request()->filled('q'))

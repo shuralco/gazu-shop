@@ -3,7 +3,7 @@
     $cartCount = $cartCount ?? 0;
     $megaOpen = $megaOpen ?? false;
 @endphp
-<header class="bg-white border-b border-[var(--gazu-line)] relative font-text"
+<header class="bg-[var(--gazu-surface)] border-b border-[var(--gazu-line)] relative font-text"
         x-data="{ megaOpen: false }"
         @keydown.escape.window="megaOpen = false">
     @include('gazu.partials.topbar')
@@ -20,7 +20,7 @@
                 @click="megaOpen = !megaOpen"
                 :aria-label="megaOpen ? 'Закрити каталог' : 'Відкрити каталог'"
                 :class="megaOpen ? 'bg-[var(--gazu-blue)]' : 'bg-[var(--gazu-ink)]'"
-                class="inline-flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 text-white border-0 rounded-lg text-sm font-medium shrink-0 cursor-pointer transition-colors hover:opacity-90">
+                class="inline-flex items-center justify-center gap-2 w-10 h-10 sm:w-auto sm:h-auto sm:px-4 sm:py-2.5 text-[var(--gazu-on-brand)] border-0 rounded-lg text-sm font-medium shrink-0 cursor-pointer transition-colors hover:opacity-90">
             <x-gazu.icon name="menu" size="18"/>
             <span class="hidden sm:inline">Каталог</span>
         </button>
@@ -81,7 +81,7 @@
              }"
              x-init="initVoice()"
              @click.outside="open = false">
-            <form action="{{ route('gazu.search') }}" method="GET" class="flex items-stretch border-[1.5px] border-[var(--gazu-ink)] rounded-lg overflow-hidden bg-white">
+            <form action="{{ route('gazu.search') }}" method="GET" class="flex items-stretch border-[1.5px] border-[var(--gazu-ink)] rounded-lg overflow-hidden bg-[var(--gazu-surface)]">
                 <input name="q" placeholder="Назва категорії, бренд або деталь — напр. оливний фільтр, Bosch, амортизатор"
                        x-model="q" @input="onInput" @focus="if (items.length) open = true"
                        class="flex-1 min-w-0 border-0 outline-none px-3.5 py-2.5 text-sm text-[var(--gazu-ink)]"
@@ -90,19 +90,19 @@
                 <button type="button" @click="voice()" x-show="voiceSupported" x-cloak
                         :aria-pressed="listening"
                         :title="listening ? 'Зупинити запис' : 'Голосовий пошук'"
-                        :class="listening ? 'text-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)]' : 'text-[var(--gazu-graphite)] bg-white hover:bg-[var(--gazu-paper)]'"
+                        :class="listening ? 'text-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)]' : 'text-[var(--gazu-graphite)] bg-[var(--gazu-surface)] hover:bg-[var(--gazu-paper)]'"
                         class="border-0 border-l border-[var(--gazu-line)] px-3 cursor-pointer inline-flex items-center justify-center shrink-0 transition-colors">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                          :class="listening ? 'animate-pulse' : ''"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 1 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 1 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                 </button>
-                <button type="submit" class="border-0 bg-[var(--gazu-ink)] text-white px-4 cursor-pointer inline-flex items-center gap-1.5 text-sm shrink-0">
+                <button type="submit" class="border-0 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] px-4 cursor-pointer inline-flex items-center gap-1.5 text-sm shrink-0">
                     <x-gazu.icon name="search" size="16"/> <span class="hidden sm:inline">Знайти</span>
                 </button>
             </form>
 
             {{-- Suggest dropdown --}}
             <div x-show="open && (items.length || loading)" x-cloak x-transition.opacity
-                 class="absolute top-full left-0 right-0 mt-2 bg-white border border-[var(--gazu-line)] rounded-lg shadow-2xl z-50 overflow-hidden max-h-[80vh] overflow-y-auto">
+                 class="absolute top-full left-0 right-0 mt-2 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg shadow-2xl z-50 overflow-hidden max-h-[80vh] overflow-y-auto">
                 <template x-if="loading && !items.length">
                     <div class="p-4 text-center text-sm text-[var(--gazu-graphite)]">Шукаю…</div>
                 </template>
@@ -151,26 +151,26 @@
                x-data="{ count: {{ (int) $wlc }} }"
                x-on:gazu:wishlist-changed.window="count = $event.detail.count"
                x-init="$nextTick(() => { if (window.GAZU_WISHLIST_IDS) count = window.GAZU_WISHLIST_IDS.size; })"
-               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
+               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="heart" size="20"/>
-                <span x-show="count > 0" x-cloak class="absolute -top-1 -right-1 bg-[var(--gazu-danger)] text-white rounded-full min-w-[18px] h-[18px] text-[11px] font-semibold flex items-center justify-center px-1" x-text="count"></span>
+                <span x-show="count > 0" x-cloak class="absolute -top-1 -right-1 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] rounded-full min-w-[18px] h-[18px] text-[11px] font-semibold flex items-center justify-center px-1" x-text="count"></span>
             </a>
             <a wire:navigate href="{{ auth()->check() ? route('gazu.account') : route('gazu.auth') }}"
                title="{{ auth()->check() ? auth()->user()->name : 'Вхід / Реєстрація' }}"
-               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
+               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border border-[var(--gazu-line)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="user" size="20"/>
                 @auth
-                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[var(--gazu-success)] rounded-full border-2 border-white"></span>
+                    <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-[var(--gazu-success)] rounded-full border-2 border-[var(--gazu-surface)]"></span>
                 @endauth
             </a>
             <a wire:navigate href="{{ route('gazu.cart') }}"
                data-gazu-cart-icon
                x-data="{ count: {{ (int) $cartCount }} }"
                x-on:cart-updated.window="count = $event.detail.count"
-               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-[var(--gazu-ink)] text-white border border-[var(--gazu-ink)] rounded-lg cursor-pointer relative">
+               class="w-9 h-9 sm:w-11 sm:h-11 inline-flex items-center justify-center bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border border-[var(--gazu-ink)] rounded-lg cursor-pointer relative">
                 <x-gazu.icon name="cart" size="20"/>
                 <span x-show="count > 0" x-cloak
-                      class="absolute -top-1 -right-1 bg-[var(--gazu-blue)] text-white rounded-full min-w-[18px] h-[18px] text-[11px] font-semibold flex items-center justify-center px-1"
+                      class="absolute -top-1 -right-1 bg-[var(--gazu-blue)] text-[var(--gazu-on-brand)] rounded-full min-w-[18px] h-[18px] text-[11px] font-semibold flex items-center justify-center px-1"
                       x-text="count">{{ $cartCount }}</span>
             </a>
         </div>

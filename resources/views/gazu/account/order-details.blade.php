@@ -36,7 +36,7 @@
             </div>
 
             {{-- Order info --}}
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 mb-4 grid md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 mb-4 grid md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                 <div>
                     <div class="text-xs text-[var(--gazu-graphite)] mb-0.5">Дата</div>
                     <div class="text-[var(--gazu-ink)]">{{ $order->created_at?->format('d.m.Y H:i') }}</div>
@@ -84,7 +84,7 @@
 
             {{-- Items --}}
             <h2 class="gazu-display text-xl font-semibold mb-3">{{ plural_uk_count($order->orderProducts->count(), 'Товар', 'Товари', 'Товарів') }}</h2>
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-4">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-4">
                 @php
                     // Group order products by warehouse_id so users see "Зі складу X" sections.
                     $orderProducts = $order->orderProducts->load('warehouse');

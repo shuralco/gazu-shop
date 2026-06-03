@@ -43,7 +43,7 @@
                         </div>
                     @endfor
                 </div>
-                <div class="aspect-square bg-white border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
+                <div class="aspect-square bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
                     <div class="absolute inset-0 flex items-center justify-center">
                         <x-gazu.part-image kind="{{ $kind }}" size="400"/>
                     </div>
@@ -97,7 +97,7 @@
                         ['return', 'Повернення 14 днів'],
                         ['box', 'Оригінальна упаковка'],
                     ] as [$ic, $t])
-                        <div class="flex gap-2 items-center px-2.5 py-2 bg-white border border-[var(--gazu-line)] rounded-md text-[var(--gazu-graphite)]">
+                        <div class="flex gap-2 items-center px-2.5 py-2 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md text-[var(--gazu-graphite)]">
                             <span class="text-[var(--gazu-blue)]"><x-gazu.icon name="{{ $ic }}" size="14"/></span>{{ $t }}
                         </div>
                     @endforeach
@@ -107,7 +107,7 @@
 
         @include('gazu.partials.product-tabs', ['active' => 'spec'])
         <div class="mt-5 grid lg:grid-cols-2 gap-6">
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg px-4">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg px-4">
                 @foreach(array_slice($specs, 0, $half) as [$k, $v, $mono])
                     <div class="grid grid-cols-2 py-2.5 border-b border-[var(--gazu-line)] last:border-b-0 text-[13px]">
                         <span class="text-[var(--gazu-graphite)]">{{ $k }}</span>
@@ -115,7 +115,7 @@
                     </div>
                 @endforeach
             </div>
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg px-4">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg px-4">
                 @foreach(array_slice($specs, $half) as [$k, $v, $mono])
                     <div class="grid grid-cols-2 py-2.5 border-b border-[var(--gazu-line)] last:border-b-0 text-[13px]">
                         <span class="text-[var(--gazu-graphite)]">{{ $k }}</span>
@@ -127,7 +127,7 @@
     </div>
 
     {{-- Sticky buy bar --}}
-    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-[var(--gazu-line)] px-6 py-3.5 flex items-center gap-4 z-10" style="box-shadow: 0 -4px 16px rgba(14,27,44,0.06);">
+    <div class="fixed bottom-0 left-0 right-0 bg-[var(--gazu-surface)] border-t border-[var(--gazu-line)] px-6 py-3.5 flex items-center gap-4 z-10" style="box-shadow: 0 -4px 16px rgba(14,27,44,0.06);">
         <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center shrink-0">
             <x-gazu.part-image kind="{{ $kind }}" size="36"/>
         </div>
@@ -141,7 +141,7 @@
             <input value="1" class="w-11 text-center border-0 py-2.5 text-sm gazu-mono font-medium outline-none">
             <button type="button" class="w-9 h-10 border-0 bg-transparent text-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center"><x-gazu.icon name="plus" size="14"/></button>
         </div>
-        <button type="button" class="px-5 py-3 bg-[var(--gazu-ink)] text-white border-0 rounded-md font-medium text-sm cursor-pointer inline-flex items-center gap-2">
+        <button type="button" class="px-5 py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded-md font-medium text-sm cursor-pointer inline-flex items-center gap-2">
             <x-gazu.icon name="cart" size="16"/> <span class="hidden sm:inline">У кошик · {{ number_format($price, 0, '.', ' ') }} ₴</span>
         </button>
     </div>

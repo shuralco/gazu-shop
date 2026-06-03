@@ -120,7 +120,7 @@
 
         {{-- Subcategories drilldown — клікабельні плитки L2/L3 під поточною категорією --}}
         @if(! empty($subcategories) && $subcategories->isNotEmpty())
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 mb-5">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 mb-5">
                 <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-3">Підкатегорії</div>
                 <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
                     @foreach($subcategories as $sub)
@@ -174,17 +174,17 @@
                 @endphp
                 {{-- Mobile filter trigger --}}
                 <button type="button" @click="filtersOpen = true"
-                        class="lg:hidden w-full mb-3 px-4 py-2.5 bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gap-2 text-[13px] font-medium text-[var(--gazu-ink)] cursor-pointer">
+                        class="lg:hidden w-full mb-3 px-4 py-2.5 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gap-2 text-[13px] font-medium text-[var(--gazu-ink)] cursor-pointer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
                     Фільтри
                     @if($activeFilterCount > 0)
-                        <span class="ml-1 px-1.5 py-0.5 bg-[var(--gazu-ink)] text-white text-[11px] rounded-full gazu-mono leading-none">{{ $activeFilterCount }}</span>
+                        <span class="ml-1 px-1.5 py-0.5 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] text-[11px] rounded-full gazu-mono leading-none">{{ $activeFilterCount }}</span>
                     @endif
                 </button>
                 @include('gazu.partials.sort-bar', ['count' => $totalCount, 'view' => $currentView, 'currentSort' => $currentSort])
 
                 @if($products->isEmpty())
-                    <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center mt-4">
+                    <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center mt-4">
                         <div class="gazu-display text-2xl font-semibold mb-2">Нічого не знайдено</div>
                         <p class="text-sm text-[var(--gazu-graphite)] mb-4">Спробуйте змінити фільтри або скинути всі.</p>
                         <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Скинути фільтри</a>
