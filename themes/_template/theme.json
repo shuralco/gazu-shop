@@ -1,0 +1,57 @@
+{
+    "_README": "ШАБЛОН ТЕМИ для GAZU storefront. Це СПЕЦ — теки з префіксом '_' ThemeManager ІГНОРУЄ (у перемикач не потрапляють). Щоб згенерувати дизайн: скопіюй цю теку в themes/<slug>/ (без '_'), заповни name/label і значення в tokens/radii/fonts. Усе застосовується у РАНТАЙМІ без npm build (активуй в /admin/theme-settings). css_entry лиши на спільну збірку gazu. Повний контракт нижче — заповнюй кожен ключ.",
+
+    "name": "REPLACE-with-unique-slug",
+    "label": "REPLACE — назва теми для адмінки",
+    "description": "Короткий опис стилю теми.",
+    "version": "1.0.0",
+    "author": "Claude",
+    "engine": ">=2.0",
+    "css_entry": "themes/gazu/resources/css/gazu.css",
+
+    "_doc_tokens": "КОЛЬОРИ (обовʼязково всі). Ключ → --gazu-<key> + --color-gazu-<key>. Семантика: ink=основний текст/темний бренд; ink-2=hover темного; steel/blue/blue-600/blue-700/azure=акцент-палітра (синій у gazu); mist=нейтральний світлий тінт (плейсхолдери зображень); bone/paper=фони сторінки (paper — головний фон body); surface=фон карток/панелей/хедера/модалок; on-brand=текст+іконки НА темних brand-поверхнях (кнопки ink/blue, футер, тости); line/line-2=бордери/роздільники; graphite/muted=вторинний/приглушений текст; success/warn/danger=статуси (+ *-bg світлі підкладки бейджів). ДЛЯ ТЕМНОЇ ТЕМИ: paper+surface+bone — темні; ink+on-brand — світлі; line — темно-сірі.",
+    "tokens": {
+        "ink": "#0E1B2C",
+        "ink-2": "#1A2740",
+        "steel": "#1F3A5F",
+        "blue": "#2453A6",
+        "blue-600": "#1E47A1",
+        "blue-700": "#15387D",
+        "azure": "#3672D9",
+        "mist": "#E6ECF3",
+        "bone": "#F5F2EC",
+        "paper": "#FBFAF7",
+        "surface": "#FFFFFF",
+        "on-brand": "#FFFFFF",
+        "line": "#E4E7EB",
+        "line-2": "#CFD4DB",
+        "graphite": "#5A6573",
+        "muted": "#8A93A1",
+        "success": "#2E7D5A",
+        "success-bg": "#E6F2EC",
+        "warn": "#B86E1A",
+        "warn-bg": "#FAF1E2",
+        "danger": "#B23B3B",
+        "danger-bg": "#FAE8E8"
+    },
+
+    "_doc_radii": "ЗАОКРУГЛЕННЯ (опційно) → Tailwind --radius-<key>. Впливає на rounded-sm/md/lg/xl/2xl у блейдах + картки/кнопки/чипи. Менші = «брутальніше/гостріше», більші = «мʼякше». rounded-full не чіпається.",
+    "radii": {
+        "sm": "0.25rem",
+        "md": "0.375rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem"
+    },
+
+    "_doc_fonts": "ШРИФТИ (опційно) → --gazu-font-<key> + --font-<key>. display=заголовки; text=основний/body; mono=моноширинний (артикули); archivo=надважкі акценти. Якщо шрифт не системний — додай його CSS у font_links (Google Fonts <link>), інакше спрацює system-ui fallback.",
+    "fonts": {
+        "display": "'Space Grotesk', system-ui, sans-serif",
+        "text": "'Inter Tight', system-ui, sans-serif",
+        "mono": "'JetBrains Mono', ui-monospace, monospace",
+        "archivo": "'Archivo Black', 'Space Grotesk', system-ui, sans-serif"
+    },
+    "font_links": [
+        "https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    ]
+}

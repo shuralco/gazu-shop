@@ -53,14 +53,14 @@ html.gazu, body.gazu {
 
 .gazu-btn-primary {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    padding: .75rem 1rem; background: var(--gazu-ink); color: var(--gazu-on-brand, #fff); border: 0; border-radius: 8px;
+    padding: .75rem 1rem; background: var(--gazu-ink); color: var(--gazu-on-brand, #fff); border: 0; border-radius: var(--radius-lg);
     font-weight: 500; font-size: 14px; cursor: pointer; transition: background .15s;
 }
 .gazu-btn-primary:hover { background: var(--gazu-ink-2); }
 
 .gazu-btn-blue {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
-    padding: .75rem 1rem; background: var(--gazu-blue); color: var(--gazu-on-brand, #fff); border: 0; border-radius: 8px;
+    padding: .75rem 1rem; background: var(--gazu-blue); color: var(--gazu-on-brand, #fff); border: 0; border-radius: var(--radius-lg);
     font-weight: 500; font-size: 14px; cursor: pointer; transition: background .15s;
 }
 .gazu-btn-blue:hover { background: var(--gazu-blue-600); }
@@ -68,17 +68,17 @@ html.gazu, body.gazu {
 .gazu-btn-outline {
     display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
     padding: .65rem .9rem; background: var(--gazu-surface, #fff); color: var(--gazu-ink); border: 1px solid var(--gazu-line);
-    border-radius: 8px; font-weight: 500; font-size: 14px; cursor: pointer; transition: border-color .15s;
+    border-radius: var(--radius-lg); font-weight: 500; font-size: 14px; cursor: pointer; transition: border-color .15s;
 }
 .gazu-btn-outline:hover { border-color: var(--gazu-ink); }
 
 .gazu-card {
-    background: var(--gazu-surface, #fff); border: 1px solid var(--gazu-line); border-radius: 8px;
+    background: var(--gazu-surface, #fff); border: 1px solid var(--gazu-line); border-radius: var(--radius-lg);
 }
 
 .gazu-chip {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 4px 10px; border-radius: 16px; border: 1px solid var(--gazu-line);
+    padding: 4px 10px; border-radius: var(--radius-2xl); border: 1px solid var(--gazu-line);
     background: var(--gazu-surface, #fff); font-size: 12px; color: var(--gazu-ink);
 }
 
@@ -262,7 +262,7 @@ html.gazu, body.gazu {
     padding: 1em 1.25em;
     background: var(--gazu-ink);
     color: var(--gazu-mist, #E4E7EB);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     overflow-x: auto;
     font-size: 13px;
     line-height: 1.55;
@@ -276,7 +276,7 @@ html.gazu, body.gazu {
     margin: 1em 0 1.5em;
     font-size: 14px;
     border: 1px solid var(--gazu-line);
-    border-radius: 8px;
+    border-radius: var(--radius-lg);
     overflow: hidden;
 }
 .gazu-prose thead { background: var(--gazu-paper); }

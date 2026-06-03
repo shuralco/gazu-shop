@@ -2,7 +2,7 @@
     "name": "gazu",
     "label": "GAZU (синьо-сталевий)",
     "description": "Дефолтна тема: глибокий navy + сталь, світлий paper-фон. Оптимізовано для магазинів автозапчастин.",
-    "version": "1.1.0",
+    "version": "1.2.0",
     "author": "Lionex",
     "engine": ">=2.0",
     "parent": null,
@@ -12,7 +12,9 @@
     "views_path": "resources/views",
     "css_entry": "themes/gazu/resources/css/gazu.css",
 
-    "_tokens_doc": "Палітра теми. Ключі = суфікси CSS-змінних --gazu-* / --color-gazu-* (напр. ключ 'blue' → --gazu-blue + --color-gazu-blue). Перевизначаються у рантаймі БЕЗ npm build. Щоб додати тему: скопіюй цю теку в themes/<нова>/, зміни name+label+значення кольорів, лиши css_entry на gazu.css — вона зʼявиться в адмінці й перемкнеться миттєво.",
+    "_doc": "ПОВНИЙ контракт теми. Усе перевизначається у рантаймі БЕЗ npm build. Щоб зробити нову тему: скопіюй цю теку в themes/<name>/, зміни name+label і значення в tokens/radii/fonts (ключі лишай). Спец-шаблон з коментарями: themes/_template/theme.json. css_entry лиши на gazu.css (спільна збірка).",
+
+    "_doc_tokens": "Кольори. Ключ → --gazu-<key> (компонентний CSS + var() у блейдах) + --color-gazu-<key> (Tailwind bg-gazu-*). surface=фон карток/панелей/хедера; on-brand=текст на brand-поверхнях (кнопки ink/blue). Для темної теми: paper/surface — темні, ink/on-brand — світлі.",
     "tokens": {
         "ink": "#0E1B2C",
         "ink-2": "#1A2740",
@@ -24,7 +26,6 @@
         "mist": "#E6ECF3",
         "bone": "#F5F2EC",
         "paper": "#FBFAF7",
-        "white": "#FFFFFF",
         "surface": "#FFFFFF",
         "on-brand": "#FFFFFF",
         "line": "#E4E7EB",
@@ -37,5 +38,25 @@
         "warn-bg": "#FAF1E2",
         "danger": "#B23B3B",
         "danger-bg": "#FAE8E8"
-    }
+    },
+
+    "_doc_radii": "Заокруглення → Tailwind rounded-* scale (--radius-<key>). Впливає на всі rounded-sm/md/lg/xl/2xl у блейдах + картки/кнопки. rounded-full не чіпається (пігулки/аватари лишаються круглими).",
+    "radii": {
+        "sm": "0.25rem",
+        "md": "0.375rem",
+        "lg": "0.5rem",
+        "xl": "0.75rem",
+        "2xl": "1rem"
+    },
+
+    "_doc_fonts": "Шрифти → --gazu-font-<key> (.gazu-display/.gazu-mono/.gazu-archivo + body) + --font-<key>. font_links: зовнішні <link> (Google Fonts), які layout завантажить для активної теми.",
+    "fonts": {
+        "display": "'Space Grotesk', system-ui, sans-serif",
+        "text": "'Inter Tight', system-ui, sans-serif",
+        "mono": "'JetBrains Mono', ui-monospace, monospace",
+        "archivo": "'Archivo Black', 'Space Grotesk', system-ui, sans-serif"
+    },
+    "font_links": [
+        "https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    ]
 }

@@ -214,7 +214,10 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    {{-- Шрифти активної теми (theme.json → font_links). Без font_links — system-ui fallback з font-family. --}}
+    @foreach(\App\Support\ThemeManager::fontLinks() as $fontHref)
+        <link href="{{ $fontHref }}" rel="stylesheet">
+    @endforeach
 
     @vite([\App\Support\ThemeManager::cssEntry() ?: 'themes/gazu/resources/css/gazu.css'])
     {{-- Runtime theme tokens: re-skins the storefront to the active theme's
