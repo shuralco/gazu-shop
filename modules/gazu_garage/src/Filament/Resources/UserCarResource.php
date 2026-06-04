@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 
 class UserCarResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use RequiresModule;
 
     protected static string $moduleKey = 'gazu_garage';

@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class InfoPageResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = InfoPage::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';

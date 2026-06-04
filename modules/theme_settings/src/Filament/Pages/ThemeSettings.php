@@ -21,6 +21,8 @@ use Illuminate\Support\Facades\Artisan;
  */
 class ThemeSettings extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     protected static ?string $navigationIcon = 'heroicon-o-paint-brush';
 
     protected static ?string $navigationGroup = 'Налаштування';
@@ -35,10 +37,6 @@ class ThemeSettings extends Page
 
     protected static string $view = 'filament.pages.theme-settings';
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->is_admin === true;
-    }
 
     public string $activeTheme = 'gazu';
 

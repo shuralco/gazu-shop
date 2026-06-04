@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class OrderResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = Order::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';

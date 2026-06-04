@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Cache;
  */
 class FeedExport extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use RequiresModule;
 
     protected static string $moduleKey = 'feed_export';

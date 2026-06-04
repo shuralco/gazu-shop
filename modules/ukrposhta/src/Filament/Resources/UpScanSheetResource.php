@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 
 class UpScanSheetResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = UpScanSheet::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';

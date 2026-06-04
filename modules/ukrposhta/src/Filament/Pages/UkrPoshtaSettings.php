@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Cache;
 
 class UkrPoshtaSettings extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';

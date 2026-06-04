@@ -18,6 +18,8 @@ use Livewire\WithFileUploads;
 
 class BatchEditor extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use WithFileUploads;
 
     protected static ?string $navigationIcon = 'heroicon-o-table-cells';

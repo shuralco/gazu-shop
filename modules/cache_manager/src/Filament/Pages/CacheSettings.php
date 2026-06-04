@@ -22,6 +22,8 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  */
 class CacheSettings extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-rocket-launch';

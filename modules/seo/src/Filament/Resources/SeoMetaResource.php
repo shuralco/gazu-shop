@@ -15,6 +15,8 @@ use Illuminate\Support\Str;
 
 class SeoMetaResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = SeoMeta::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-magnifying-glass';

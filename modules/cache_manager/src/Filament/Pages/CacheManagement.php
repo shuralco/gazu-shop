@@ -25,6 +25,8 @@ use Spatie\ResponseCache\Facades\ResponseCache;
  */
 class CacheManagement extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     protected static ?string $navigationIcon = 'heroicon-o-server';
     protected static ?string $navigationLabel = 'Керування кешами';
     protected static ?string $title = 'Cache Control Panel';
@@ -32,10 +34,6 @@ class CacheManagement extends Page
     protected static ?int $navigationSort = 30;
     protected static string $view = 'filament.pages.cache-management';
 
-    public static function canAccess(): bool
-    {
-        return auth()->user()?->is_admin === true;
-    }
 
     public function getCacheStats(): array
     {

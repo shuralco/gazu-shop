@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 
 class BlogCategoryResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use Translatable;
 
     protected static ?string $model = BlogCategory::class;

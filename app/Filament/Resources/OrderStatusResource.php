@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class OrderStatusResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = OrderStatus::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';

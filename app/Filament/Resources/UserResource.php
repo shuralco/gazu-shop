@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Hash;
 
 class UserResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = User::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
@@ -85,8 +87,16 @@ class UserResource extends Resource
                 Forms\Components\Section::make('Дозволи')
                     ->schema([
                         Forms\Components\Toggle::make('is_admin')
-                            ->label('Адміністраторський доступ')
-                            ->helperText('Надати повні права адміна'),
+                            ->label('Супер-адмін')
+                            ->helperText('Повний доступ до всього (обходить пресети). Лишай вимкненим для звичайного персоналу.')
+                            ->live(),
+                        Forms\Components\Select::make('access_preset_id')
+                            ->label('Пресет доступу (роль)')
+                            ->relationship('accessPreset', 'name')
+                            ->searchable()->preload()
+                            ->helperText('Що бачить і може робити цей співробітник в адмінці. Ігнорується для супер-адміна.')
+                            ->visible(fn (Forms\Get $get) => ! $get('is_admin'))
+                            ->required(fn (Forms\Get $get) => ! $get('is_admin')),
                         Forms\Components\DateTimePicker::make('email_verified_at')
                             ->label('Пошта підтверджена')
                             ->helperText('Залишить порожнім для непідтвердженої пошти'),

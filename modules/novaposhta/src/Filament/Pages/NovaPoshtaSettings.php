@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Log;
 
 class NovaPoshtaSettings extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';

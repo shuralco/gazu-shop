@@ -11,6 +11,8 @@ use Filament\Tables\Table;
 
 class NpWebhookLogResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = NpWebhookLog::class;
     protected static ?string $navigationIcon = 'heroicon-o-arrow-down-tray';
     protected static ?string $navigationGroup = 'Склад і доставка';

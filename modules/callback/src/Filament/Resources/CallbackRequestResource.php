@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 
 class CallbackRequestResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = CallbackRequest::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-phone-arrow-down-left';

@@ -9,6 +9,8 @@ use Filament\Pages\Page;
 
 class MegaMenuEditor extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     protected static ?string $navigationIcon = 'heroicon-o-bars-3';
 
     protected static ?string $navigationLabel = 'Мега-меню';

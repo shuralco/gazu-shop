@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 
 class CarMakeResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = CarMake::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';

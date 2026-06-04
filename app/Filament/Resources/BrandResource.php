@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 
 class BrandResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use Translatable;
     protected static ?string $model = Brand::class;
 

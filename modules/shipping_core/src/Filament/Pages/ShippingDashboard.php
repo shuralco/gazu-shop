@@ -9,6 +9,8 @@ use Filament\Widgets\StatsOverviewWidget as BaseStatsOverviewWidget;
 
 class ShippingDashboard extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
     protected static ?string $navigationGroup = 'Склад і доставка';

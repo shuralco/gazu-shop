@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class WarehouseStatusResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = WarehouseStatus::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';

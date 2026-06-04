@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class FilterGroupResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = FilterGroup::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';

@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class CurrencyResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = Currency::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';

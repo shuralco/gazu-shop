@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Log;
 
 class NpScanSheetResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = NpScanSheet::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
     protected static ?string $navigationGroup = 'Склад і доставка';

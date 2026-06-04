@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class ShippingWarehouseResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = ShippingWarehouse::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';

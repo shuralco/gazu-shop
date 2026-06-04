@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class ShopSettingsResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = ShopSettings::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-8-tooth';

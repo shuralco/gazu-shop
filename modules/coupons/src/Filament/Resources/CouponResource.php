@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class CouponResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use \App\Filament\Concerns\RequiresModule;
 
     protected static string $moduleKey = 'coupons';

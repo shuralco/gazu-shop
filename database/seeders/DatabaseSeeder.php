@@ -42,6 +42,11 @@ class DatabaseSeeder extends Seeder
             LoyaltySettingsSeeder::class, // Loyalty settings
         ]);
 
+        // Admin access control
+        $this->call([
+            AccessPresetSeeder::class,    // RBAC presets (roles)
+        ]);
+
         // Test data
         $this->call([
             TestOrdersSeeder::class,      // Sample orders

@@ -27,6 +27,7 @@ class User extends Authenticatable implements FilamentUser
         'email',
         'password',
         'is_admin',
+        'access_preset_id',
         'avatar',
         'phone',
         'birthdate',
@@ -69,7 +70,14 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->is_admin;
+        // Super-admin (is_admin) OR staff with an access preset assigned.
+        // Per-section visibility/access is then gated by AccessControl.
+        return $this->is_admin === true || $this->access_preset_id !== null;
+    }
+
+    public function accessPreset(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(\App\Models\AccessPreset::class, 'access_preset_id');
     }
 
     public function orders(): HasMany

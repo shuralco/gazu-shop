@@ -9,6 +9,8 @@ use Illuminate\Support\Facades\Cache;
 
 class IntegrationsPage extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
     protected static ?string $navigationLabel = 'Інтеграції';

@@ -16,6 +16,8 @@ use Filament\Tables\Table;
 
 class PaymentResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = Payment::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-banknotes';

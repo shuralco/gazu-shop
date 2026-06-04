@@ -20,6 +20,8 @@ use Illuminate\Support\Str;
  */
 class BlogResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use Translatable;
 
     protected static ?string $model = Page::class;

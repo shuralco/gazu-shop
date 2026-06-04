@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class FilterResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = Filter::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-funnel';

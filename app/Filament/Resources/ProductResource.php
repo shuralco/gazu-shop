@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ProductResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use Translatable;
     protected static ?string $model = Product::class;
 

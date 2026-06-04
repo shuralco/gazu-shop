@@ -15,6 +15,8 @@ use Filament\Tables\Table;
 
 class PageResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use Translatable;
 
     protected static ?string $model = Page::class;

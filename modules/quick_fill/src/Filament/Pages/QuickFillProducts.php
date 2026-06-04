@@ -28,6 +28,8 @@ use Illuminate\Support\Str;
  */
 class QuickFillProducts extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
     use RequiresModule;
 

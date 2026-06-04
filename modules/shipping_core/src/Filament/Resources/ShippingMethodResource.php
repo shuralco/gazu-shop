@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Builder;
 
 class ShippingMethodResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = ShippingMethod::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';

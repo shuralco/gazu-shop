@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class PaymentGatewaySettingsResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = PaymentGatewaySettings::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';

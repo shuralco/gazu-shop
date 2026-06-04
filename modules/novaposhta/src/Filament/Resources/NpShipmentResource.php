@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Log;
 
 class NpShipmentResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use \App\Filament\Concerns\RequiresModule;
 
     protected static string $moduleKey = 'novaposhta';

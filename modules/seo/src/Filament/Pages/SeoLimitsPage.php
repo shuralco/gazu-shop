@@ -21,6 +21,8 @@ use Filament\Pages\Page;
 
 class SeoLimitsPage extends Page implements HasActions, HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithActions;
     use InteractsWithForms;
 

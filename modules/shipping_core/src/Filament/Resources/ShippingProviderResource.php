@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class ShippingProviderResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = ShippingProvider::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';

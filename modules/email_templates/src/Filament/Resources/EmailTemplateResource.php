@@ -13,6 +13,8 @@ use Filament\Tables\Table;
 
 class EmailTemplateResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = EmailTemplate::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';

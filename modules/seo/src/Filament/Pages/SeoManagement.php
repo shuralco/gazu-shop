@@ -19,6 +19,8 @@ use Illuminate\Support\Facades\Cache;
 
 class SeoManagement extends Page implements HasActions, HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithActions;
     use InteractsWithForms;
 

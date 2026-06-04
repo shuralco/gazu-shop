@@ -14,6 +14,8 @@ use Filament\Tables\Table;
 
 class NpApiLogResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = ShippingApiLog::class;
 
     protected static ?string $slug = 'shipping-api-logs';
@@ -239,8 +241,4 @@ class NpApiLogResource extends Resource
         ];
     }
 
-    public static function canCreate(): bool
-    {
-        return false;
-    }
 }

@@ -19,6 +19,8 @@ use Filament\Pages\Page;
 
 class SeoTemplates extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';

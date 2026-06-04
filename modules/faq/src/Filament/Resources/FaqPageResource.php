@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class FaqPageResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = FaqPage::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';

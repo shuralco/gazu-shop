@@ -13,6 +13,8 @@ use Filament\Pages\Page;
 
 class Error404Settings extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-exclamation-triangle';

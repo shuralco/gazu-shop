@@ -15,6 +15,8 @@ use Filament\Tables\Table;
 
 class UpShipmentResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use \App\Filament\Concerns\RequiresModule;
 
     protected static string $moduleKey = 'ukrposhta';

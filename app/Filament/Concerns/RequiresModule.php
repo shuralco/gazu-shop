@@ -23,17 +23,11 @@ trait RequiresModule
         return static::moduleEnabled();
     }
 
-    public static function canAccess(): bool
-    {
-        return static::moduleEnabled();
-    }
+    // canAccess()/canViewAny() are intentionally NOT defined here — the access
+    // gate lives in GatedResource/GatedPage, which compose moduleEnabled() so a
+    // disabled module is also denied. (Avoids a trait-method collision.)
 
-    public static function canViewAny(): bool
-    {
-        return static::moduleEnabled();
-    }
-
-    protected static function moduleEnabled(): bool
+    public static function moduleEnabled(): bool
     {
         $key = static::$moduleKey ?? null;
         if (! $key) {

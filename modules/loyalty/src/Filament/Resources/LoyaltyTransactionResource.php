@@ -15,6 +15,8 @@ use Filament\Tables\Table;
 
 class LoyaltyTransactionResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     use \App\Filament\Concerns\RequiresModule;
 
     protected static string $moduleKey = 'loyalty';
@@ -32,10 +34,6 @@ class LoyaltyTransactionResource extends Resource
 
     protected static ?int $navigationSort = 50;
 
-    public static function canCreate(): bool
-    {
-        return false;
-    }
 
     public static function form(Form $form): Form
     {

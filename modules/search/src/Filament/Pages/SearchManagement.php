@@ -31,6 +31,8 @@ use Meilisearch\Client;
 
 class SearchManagement extends Page implements HasForms, HasTable
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
     use InteractsWithTable;
 

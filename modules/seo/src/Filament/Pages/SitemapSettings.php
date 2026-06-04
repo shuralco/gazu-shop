@@ -17,6 +17,8 @@ use Illuminate\Support\Facades\Cache;
 
 class SitemapSettings extends Page implements HasForms
 {
+    use \App\Filament\Concerns\GatedPage;
+
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-map';

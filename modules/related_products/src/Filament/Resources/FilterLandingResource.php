@@ -12,6 +12,8 @@ use Filament\Tables\Table;
 
 class FilterLandingResource extends Resource
 {
+    use \App\Filament\Concerns\GatedResource;
+
     protected static ?string $model = FilterLanding::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-bookmark-square';

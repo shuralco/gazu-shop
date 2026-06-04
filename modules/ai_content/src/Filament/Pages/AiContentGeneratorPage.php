@@ -12,6 +12,8 @@ use Filament\Pages\Page;
 
 class AiContentGeneratorPage extends Page
 {
+    use \App\Filament\Concerns\GatedPage;
+
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
 
     protected static ?string $navigationLabel = 'AI-генератор';
