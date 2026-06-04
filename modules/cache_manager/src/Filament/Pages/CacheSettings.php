@@ -27,8 +27,8 @@ class CacheSettings extends Page implements HasForms
     protected static ?string $navigationIcon = 'heroicon-o-rocket-launch';
     protected static ?string $navigationLabel = 'Cache налаштування';
     protected static ?string $title = 'Швидкість & Cache налаштування';
-    protected static ?string $navigationGroup = 'Система';
-    protected static ?int $navigationSort = 3;
+    protected static ?string $navigationGroup = 'Обслуговування';
+    protected static ?int $navigationSort = 20;
     protected static string $view = 'filament.pages.cache-settings';
 
     public ?array $data = [];

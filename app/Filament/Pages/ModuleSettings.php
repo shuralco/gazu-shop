@@ -27,13 +27,13 @@ class ModuleSettings extends Page
 
     protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
-    protected static ?string $navigationGroup = 'Налаштування';
+    protected static ?string $navigationGroup = 'Система';
 
     protected static ?string $navigationLabel = 'Модулі';
 
     protected static ?string $title = 'Модулі магазину';
 
-    protected static ?int $navigationSort = 51;
+    protected static ?int $navigationSort = 20;
 
     protected static ?string $slug = 'modules';
 

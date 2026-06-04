@@ -14,13 +14,13 @@ class AiContentGeneratorPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
 
-    protected static ?string $navigationLabel = 'AI Генератор';
+    protected static ?string $navigationLabel = 'AI-генератор';
 
     protected static ?string $title = 'AI Генератор контенту';
 
-    protected static ?string $navigationGroup = 'Система';
+    protected static ?string $navigationGroup = 'Обслуговування';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?int $navigationSort = 40;
 
     protected static string $view = 'filament.pages.ai-content-generator';
 

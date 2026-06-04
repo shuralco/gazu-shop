@@ -19,13 +19,14 @@ class SeoMetaResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-magnifying-glass';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
+    protected static ?string $navigationLabel = 'SEO мета-теги';
 
     protected static ?string $modelLabel = 'SEO Мета-дані';
 
     protected static ?string $pluralModelLabel = 'SEO Мета-дані';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 60;
 
     public static function form(Form $form): Form
     {

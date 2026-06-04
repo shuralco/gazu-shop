@@ -25,7 +25,7 @@ class InventoryTransferResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-arrow-right-on-rectangle';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $navigationLabel = 'Переміщення між складами';
 
@@ -33,7 +33,7 @@ class InventoryTransferResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Переміщення між складами';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 30;
 
     public static function form(Form $form): Form
     {

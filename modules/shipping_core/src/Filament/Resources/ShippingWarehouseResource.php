@@ -16,13 +16,14 @@ class ShippingWarehouseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
+    protected static ?string $navigationLabel = 'Відділення/поштомати';
 
     protected static ?string $modelLabel = 'Відділення/Поштомат';
 
     protected static ?string $pluralModelLabel = 'Відділення та Поштомати';
 
-    protected static ?int $navigationSort = 21;
+    protected static ?int $navigationSort = 90;
 
     public static function form(Form $form): Form
     {

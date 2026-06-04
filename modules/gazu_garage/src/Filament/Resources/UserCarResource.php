@@ -23,13 +23,13 @@ class UserCarResource extends Resource
 
     protected static ?string $navigationLabel = 'Гараж клієнтів';
 
-    protected static ?string $navigationGroup = 'Користувачі';
+    protected static ?string $navigationGroup = 'Каталог';
 
     protected static ?string $modelLabel = 'Авто клієнта';
 
     protected static ?string $pluralModelLabel = 'Авто клієнтів';
 
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 100;
 
     public static function form(Form $form): Form
     {

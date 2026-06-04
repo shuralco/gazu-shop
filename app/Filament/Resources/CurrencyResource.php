@@ -19,7 +19,7 @@ class CurrencyResource extends Resource
     protected static ?string $navigationLabel = 'Валюти';
     protected static ?string $modelLabel = 'валюта';
     protected static ?string $pluralModelLabel = 'Валюти';
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 20;
 
     public static function form(Form $form): Form
     {

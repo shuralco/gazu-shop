@@ -28,9 +28,9 @@ class HomepageBuilder extends Page implements HasForms
 
     protected static ?string $title = 'Конструктор головної сторінки';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 80;
 
     protected static string $view = 'filament.pages.homepage-builder';
 

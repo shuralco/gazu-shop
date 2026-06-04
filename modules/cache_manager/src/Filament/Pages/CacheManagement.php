@@ -28,8 +28,8 @@ class CacheManagement extends Page
     protected static ?string $navigationIcon = 'heroicon-o-server';
     protected static ?string $navigationLabel = 'Керування кешами';
     protected static ?string $title = 'Cache Control Panel';
-    protected static ?string $navigationGroup = 'Система';
-    protected static ?int $navigationSort = 4;
+    protected static ?string $navigationGroup = 'Обслуговування';
+    protected static ?int $navigationSort = 30;
     protected static string $view = 'filament.pages.cache-management';
 
     public static function canAccess(): bool

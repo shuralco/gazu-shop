@@ -42,7 +42,7 @@ class SearchManagement extends Page implements HasForms, HasTable
 
     protected static ?string $navigationGroup = 'Налаштування';
 
-    protected static ?int $navigationSort = 98;
+    protected static ?int $navigationSort = 60;
 
     protected static string $view = 'filament.pages.search-management';
 

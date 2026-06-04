@@ -21,12 +21,13 @@ class LoyaltyTierResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-trophy';
 
     protected static ?string $navigationGroup = 'Продажі';
+    protected static ?string $navigationLabel = 'Рівні лояльності';
 
     protected static ?string $modelLabel = 'Рівень лояльності';
 
     protected static ?string $pluralModelLabel = 'Рівні лояльності';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form
     {

@@ -23,7 +23,7 @@ class SeoTemplates extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
     protected static ?string $navigationLabel = 'Шаблони SEO';
 
@@ -31,7 +31,7 @@ class SeoTemplates extends Page implements HasForms
 
     protected static string $view = 'filament.pages.seo-templates';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 120;
 
     public ?array $data = [];
 

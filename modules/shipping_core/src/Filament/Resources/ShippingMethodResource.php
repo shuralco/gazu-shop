@@ -17,7 +17,7 @@ class ShippingMethodResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-cube';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $navigationLabel = 'Методи доставки';
 
@@ -25,7 +25,7 @@ class ShippingMethodResource extends Resource
 
     protected static ?string $label = 'Метод доставки';
 
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 60;
 
     public static function form(Form $form): Form
     {

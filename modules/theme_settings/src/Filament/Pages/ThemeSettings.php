@@ -29,7 +29,7 @@ class ThemeSettings extends Page
 
     protected static ?string $title = 'Тема магазину';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 40;
 
     protected static ?string $slug = 'theme-settings';
 

@@ -22,13 +22,13 @@ class NovaPoshtaSettings extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static ?string $navigationLabel = 'Налаштування НП';
+    protected static ?string $navigationLabel = 'Нова Пошта: налаштування';
 
     protected static ?string $title = 'Налаштування Нової Пошти';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 100;
 
     protected static string $view = 'filament.pages.nova-poshta-settings';
 

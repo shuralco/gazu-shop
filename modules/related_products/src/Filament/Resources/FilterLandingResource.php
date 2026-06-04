@@ -16,11 +16,11 @@ class FilterLandingResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bookmark-square';
 
-    protected static ?string $navigationLabel = 'SEO лендінги';
+    protected static ?string $navigationLabel = 'SEO-лендінги';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 70;
 
     protected static ?string $modelLabel = 'Лендінг';
 

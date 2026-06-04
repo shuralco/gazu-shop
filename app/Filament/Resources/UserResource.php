@@ -19,12 +19,13 @@ class UserResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?string $navigationGroup = 'Продажі';
+    protected static ?string $navigationLabel = 'Користувачі';
 
     protected static ?string $modelLabel = 'Користувач';
 
     protected static ?string $pluralModelLabel = 'Користувачі';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 70;
 
     public static function getNavigationBadge(): ?string
     {

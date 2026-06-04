@@ -17,11 +17,11 @@ class NpScanSheetResource extends Resource
 {
     protected static ?string $model = NpScanSheet::class;
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
-    protected static ?string $navigationGroup = 'Доставка та оплата';
-    protected static ?string $navigationLabel = 'Реєстри ТТН';
+    protected static ?string $navigationGroup = 'Склад і доставка';
+    protected static ?string $navigationLabel = 'Нова Пошта: реєстри';
     protected static ?string $modelLabel = 'Реєстр';
     protected static ?string $pluralModelLabel = 'Реєстри ТТН';
-    protected static ?int $navigationSort = 15;
+    protected static ?int $navigationSort = 120;
 
     public static function form(Form $form): Form
     {

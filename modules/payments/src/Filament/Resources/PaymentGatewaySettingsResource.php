@@ -16,7 +16,7 @@ class PaymentGatewaySettingsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $navigationLabel = 'Платіжні системи';
 
@@ -24,7 +24,7 @@ class PaymentGatewaySettingsResource extends Resource
 
     protected static ?string $modelLabel = 'Платіжна система';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 80;
 
     public static function form(Form $form): Form
     {

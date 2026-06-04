@@ -17,15 +17,15 @@ class UpScanSheetResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-duplicate';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
-    protected static ?string $navigationLabel = 'Реєстри УП';
+    protected static ?string $navigationLabel = 'УкрПошта: реєстри';
 
     protected static ?string $modelLabel = 'Реєстр УП';
 
     protected static ?string $pluralModelLabel = 'Реєстри УП';
 
-    protected static ?int $navigationSort = 16;
+    protected static ?int $navigationSort = 170;
 
     public static function form(Form $form): Form
     {

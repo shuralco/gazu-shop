@@ -27,13 +27,13 @@ class DemoCatalogGenerator extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-sparkles';
 
-    protected static ?string $navigationLabel = 'Демо-каталог (генератор)';
+    protected static ?string $navigationLabel = 'Демо-каталог';
 
     protected static ?string $navigationGroup = 'Каталог';
 
     protected static ?string $title = 'Генератор демо-каталогу';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?int $navigationSort = 130;
 
     protected static ?string $slug = 'demo-catalog-generator';
 

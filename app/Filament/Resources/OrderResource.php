@@ -19,12 +19,13 @@ class OrderResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
     protected static ?string $navigationGroup = 'Продажі';
+    protected static ?string $navigationLabel = 'Замовлення';
 
     protected static ?string $modelLabel = 'Замовлення';
 
     protected static ?string $pluralModelLabel = 'Замовлення';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationBadge(): ?string
     {

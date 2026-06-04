@@ -17,12 +17,13 @@ class FilterResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-funnel';
 
     protected static ?string $navigationGroup = 'Каталог';
+    protected static ?string $navigationLabel = 'Фільтри';
 
     protected static ?string $modelLabel = 'Фільтр';
 
     protected static ?string $pluralModelLabel = 'Фільтри';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form
     {

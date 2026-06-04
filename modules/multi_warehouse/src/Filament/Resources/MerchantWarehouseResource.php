@@ -22,7 +22,7 @@ class MerchantWarehouseResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $navigationLabel = 'Склади магазину';
 
@@ -30,7 +30,7 @@ class MerchantWarehouseResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Склади магазину';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 20;
 
     public static function form(Form $form): Form
     {

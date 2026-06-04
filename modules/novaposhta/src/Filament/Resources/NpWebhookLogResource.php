@@ -13,11 +13,11 @@ class NpWebhookLogResource extends Resource
 {
     protected static ?string $model = NpWebhookLog::class;
     protected static ?string $navigationIcon = 'heroicon-o-arrow-down-tray';
-    protected static ?string $navigationGroup = 'Доставка та оплата';
-    protected static ?string $navigationLabel = 'Webhook логи (НП)';
+    protected static ?string $navigationGroup = 'Склад і доставка';
+    protected static ?string $navigationLabel = 'Нова Пошта: webhook-логи';
     protected static ?string $modelLabel = 'Webhook лог';
     protected static ?string $pluralModelLabel = 'Webhook логи';
-    protected static ?int $navigationSort = 30;
+    protected static ?int $navigationSort = 130;
 
     public static function getNavigationBadge(): ?string
     {

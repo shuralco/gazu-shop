@@ -19,13 +19,13 @@ class UkrPoshtaSettings extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
-    protected static ?string $navigationLabel = 'Налаштування УП';
+    protected static ?string $navigationLabel = 'УкрПошта: налаштування';
 
     protected static ?string $title = 'Налаштування УкрПошти';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 150;
 
     protected static string $view = 'filament.pages.ukr-poshta-settings';
 

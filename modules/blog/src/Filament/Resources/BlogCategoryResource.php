@@ -20,7 +20,7 @@ class BlogCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-tag';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
     protected static ?string $navigationLabel = 'Рубрики блогу';
 
@@ -28,7 +28,7 @@ class BlogCategoryResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Рубрики блогу';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 30;
 
     public static function form(Form $form): Form
     {

@@ -35,7 +35,7 @@ class ShopSettings extends Page implements HasForms
 
     protected static ?string $navigationGroup = 'Налаштування';
 
-    protected static ?int $navigationSort = 99;
+    protected static ?int $navigationSort = 10;
 
     protected static string $view = 'filament.pages.shop-settings';
 

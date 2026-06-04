@@ -22,9 +22,9 @@ class BatchEditor extends Page
 
     protected static ?string $navigationIcon = 'heroicon-o-table-cells';
     protected static ?string $navigationLabel = 'Пакетний редактор';
-    protected static ?string $navigationGroup = 'Система';
+    protected static ?string $navigationGroup = 'Обслуговування';
     protected static ?string $title = 'Пакетний редактор';
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 10;
 
     protected static string $view = 'filament.pages.batch-editor';
 

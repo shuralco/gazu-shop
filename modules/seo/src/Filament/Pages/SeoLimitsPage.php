@@ -26,7 +26,7 @@ class SeoLimitsPage extends Page implements HasActions, HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-adjustments-horizontal';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
     protected static ?string $title = 'SEO Ліміти';
 
@@ -34,7 +34,7 @@ class SeoLimitsPage extends Page implements HasActions, HasForms
 
     protected static string $view = 'filament.pages.seo-limits-page';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 140;
 
     public ?array $data = [];
 

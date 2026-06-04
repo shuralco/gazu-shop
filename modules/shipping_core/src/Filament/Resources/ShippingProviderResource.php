@@ -16,7 +16,7 @@ class ShippingProviderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $navigationLabel = 'Провайдери доставки';
 
@@ -24,7 +24,7 @@ class ShippingProviderResource extends Resource
 
     protected static ?string $label = 'Провайдер доставки';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 70;
 
     /**
      * Hidden from sidebar — this CRUD duplicates the cards on /admin/integrations-page.

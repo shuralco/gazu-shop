@@ -28,15 +28,15 @@ class NpShipmentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $modelLabel = 'ТТН';
 
     protected static ?string $pluralModelLabel = 'ТТН (Нова Пошта)';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 110;
 
-    protected static ?string $navigationLabel = 'ТТН Нова Пошта';
+    protected static ?string $navigationLabel = 'Нова Пошта: ТТН';
 
     public static function getNavigationBadge(): ?string
     {

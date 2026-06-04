@@ -17,11 +17,11 @@ class Error404Settings extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-exclamation-triangle';
 
-    protected static ?string $navigationLabel = 'Налаштування 404';
+    protected static ?string $navigationLabel = 'Сторінка 404';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 8;
+    protected static ?int $navigationSort = 150;
 
     protected static string $view = 'filament.pages.error404-settings';
 

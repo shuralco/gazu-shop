@@ -27,7 +27,7 @@ class FeedExport extends Page
 
     protected static ?string $title = 'Експорт фідів на маркетплейси';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 120;
 
     protected static ?string $slug = 'feed-export';
 

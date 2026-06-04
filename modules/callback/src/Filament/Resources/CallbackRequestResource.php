@@ -25,7 +25,7 @@ class CallbackRequestResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Заявки на дзвінок';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 80;
 
     public static function getNavigationBadge(): ?string
     {

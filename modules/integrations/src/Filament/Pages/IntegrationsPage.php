@@ -11,13 +11,13 @@ class IntegrationsPage extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-puzzle-piece';
 
-    protected static ?string $navigationLabel = '🔌 Інтеграції';
+    protected static ?string $navigationLabel = 'Інтеграції';
 
     protected static ?string $title = 'Інтеграції та сервіси';
 
     protected static ?string $navigationGroup = 'Система';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 10;
 
     protected static string $view = 'filament.pages.integrations';
 

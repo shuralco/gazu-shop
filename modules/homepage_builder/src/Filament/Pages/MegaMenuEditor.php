@@ -13,9 +13,9 @@ class MegaMenuEditor extends Page
 
     protected static ?string $navigationLabel = 'Мега-меню';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 90;
 
     protected static ?string $title = 'Налаштування меню';
 

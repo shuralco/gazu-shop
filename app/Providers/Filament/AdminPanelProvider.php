@@ -37,10 +37,11 @@ class AdminPanelProvider extends PanelProvider
             ->navigationGroups([
                 'Каталог',
                 'Продажі',
-                'Доставка та оплата',
-                'Контент та SEO',
+                'Склад і доставка',
+                'Контент і SEO',
                 'Аналітика',
                 'Налаштування',
+                'Обслуговування',
                 'Система',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')

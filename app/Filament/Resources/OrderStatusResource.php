@@ -19,7 +19,7 @@ class OrderStatusResource extends Resource
     protected static ?string $navigationLabel = 'Статуси замовлень';
     protected static ?string $modelLabel = 'статус замовлення';
     protected static ?string $pluralModelLabel = 'Статуси замовлень';
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 30;
 
     private const COLORS = [
         'gray' => 'Сірий', 'primary' => 'Основний', 'info' => 'Синій',

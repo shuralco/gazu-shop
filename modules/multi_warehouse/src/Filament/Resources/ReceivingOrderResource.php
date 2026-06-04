@@ -25,7 +25,7 @@ class ReceivingOrderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-inbox-arrow-down';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $navigationLabel = 'Приходування товару';
 
@@ -33,7 +33,7 @@ class ReceivingOrderResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Приходування';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form
     {

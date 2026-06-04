@@ -31,9 +31,9 @@ class LayoutBuilderPage extends Page implements HasForms
 
     protected static ?string $navigationLabel = 'Зони layout';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 3;
+    protected static ?int $navigationSort = 100;
 
     protected static ?string $title = 'Конструктор зон layout (OpenCart-стиль)';
 

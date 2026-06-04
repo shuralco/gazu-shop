@@ -20,7 +20,7 @@ class EmailTemplateResource extends Resource
     protected static ?string $navigationLabel = 'Шаблони листів';
     protected static ?string $modelLabel = 'Шаблон листа';
     protected static ?string $pluralModelLabel = 'Шаблони листів';
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 30;
 
     public static function form(Form $form): Form
     {

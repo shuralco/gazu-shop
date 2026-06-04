@@ -23,15 +23,15 @@ class UpShipmentResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-envelope';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
-    protected static ?string $navigationLabel = 'ТТН (УкрПошта)';
+    protected static ?string $navigationLabel = 'УкрПошта: ТТН';
 
     protected static ?string $modelLabel = 'УП ТТН';
 
     protected static ?string $pluralModelLabel = 'УП ТТН';
 
-    protected static ?int $navigationSort = 11;
+    protected static ?int $navigationSort = 160;
 
     public static function getNavigationBadge(): ?string
     {

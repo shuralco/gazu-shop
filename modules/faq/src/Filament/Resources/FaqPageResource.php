@@ -16,13 +16,14 @@ class FaqPageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-question-mark-circle';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
+    protected static ?string $navigationLabel = 'FAQ';
 
     protected static ?string $modelLabel = 'FAQ Сторінка';
 
     protected static ?string $pluralModelLabel = 'FAQ Сторінки';
 
-    protected static ?int $navigationSort = 7;
+    protected static ?int $navigationSort = 40;
 
     public static function form(Form $form): Form
     {

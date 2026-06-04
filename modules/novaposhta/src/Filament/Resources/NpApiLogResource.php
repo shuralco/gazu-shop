@@ -20,15 +20,15 @@ class NpApiLogResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-bug-ant';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
-    protected static ?string $navigationLabel = 'API логи доставки';
+    protected static ?string $navigationLabel = 'Нова Пошта: API-логи';
 
     protected static ?string $modelLabel = 'API лог';
 
     protected static ?string $pluralModelLabel = 'API логи';
 
-    protected static ?int $navigationSort = 31;
+    protected static ?int $navigationSort = 140;
 
     public static function getNavigationBadge(): ?string
     {

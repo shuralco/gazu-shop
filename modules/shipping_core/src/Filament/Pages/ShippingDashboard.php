@@ -11,13 +11,13 @@ class ShippingDashboard extends Page
 {
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
 
     protected static ?string $title = 'Панель доставки';
 
     protected static ?string $navigationLabel = 'Панель доставки';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 10;
 
     protected static string $view = 'filament.pages.shipping-dashboard';
 

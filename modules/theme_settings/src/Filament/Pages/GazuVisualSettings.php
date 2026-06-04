@@ -27,7 +27,7 @@ class GazuVisualSettings extends Page implements HasForms
 
     protected static ?string $title = 'GAZU — візуальні налаштування storefront';
 
-    protected static ?int $navigationSort = 49;
+    protected static ?int $navigationSort = 50;
 
     protected static ?string $slug = 'gazu-visual';
 

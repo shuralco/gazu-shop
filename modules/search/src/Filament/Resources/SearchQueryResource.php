@@ -18,7 +18,7 @@ class SearchQueryResource extends Resource
     protected static ?string $navigationLabel = 'Пошукові запити';
     protected static ?string $modelLabel = 'Пошуковий запит';
     protected static ?string $pluralModelLabel = 'Пошукові запити';
-    protected static ?int $navigationSort = 20;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationBadge(): ?string
     {

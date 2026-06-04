@@ -21,13 +21,14 @@ class PageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
+    protected static ?string $navigationLabel = 'Сторінки';
 
     protected static ?string $modelLabel = 'Сторінка';
 
     protected static ?string $pluralModelLabel = 'Сторінки';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
     {

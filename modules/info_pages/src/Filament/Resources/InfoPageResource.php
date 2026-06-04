@@ -16,15 +16,15 @@ class InfoPageResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
-    protected static ?string $navigationLabel = 'Інфо сторінки';
+    protected static ?string $navigationLabel = 'Інфо-сторінки';
 
     protected static ?string $pluralModelLabel = 'Інфо сторінки';
 
     protected static ?string $modelLabel = 'Інфо сторінка';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 10;
+    protected static ?int $navigationSort = 50;
 
     public static function form(Form $form): Form
     {

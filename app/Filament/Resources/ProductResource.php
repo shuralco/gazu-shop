@@ -23,12 +23,13 @@ class ProductResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-shopping-bag';
 
     protected static ?string $navigationGroup = 'Каталог';
+    protected static ?string $navigationLabel = 'Товари';
 
     protected static ?string $modelLabel = 'Товар';
 
     protected static ?string $pluralModelLabel = 'Товари';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 10;
 
     public static function getNavigationBadge(): ?string
     {

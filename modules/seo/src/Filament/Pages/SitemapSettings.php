@@ -21,11 +21,11 @@ class SitemapSettings extends Page implements HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-map';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 130;
 
-    protected static ?string $navigationLabel = 'Налаштування Sitemap';
+    protected static ?string $navigationLabel = 'Sitemap';
 
     protected static ?string $title = 'Налаштування Sitemap';
 

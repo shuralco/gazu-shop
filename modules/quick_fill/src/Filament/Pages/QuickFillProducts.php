@@ -41,7 +41,7 @@ class QuickFillProducts extends Page implements HasForms
 
     protected static ?string $title = 'Швидке наповнення (китайський постачальник)';
 
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 110;
 
     protected static ?string $slug = 'quick-fill';
 

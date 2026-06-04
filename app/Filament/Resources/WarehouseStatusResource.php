@@ -15,11 +15,11 @@ class WarehouseStatusResource extends Resource
     protected static ?string $model = WarehouseStatus::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-flag';
-    protected static ?string $navigationGroup = 'Доставка та оплата';
+    protected static ?string $navigationGroup = 'Склад і доставка';
     protected static ?string $navigationLabel = 'Статуси складів';
     protected static ?string $modelLabel = 'статус складу';
     protected static ?string $pluralModelLabel = 'Статуси складів';
-    protected static ?int $navigationSort = 9;
+    protected static ?int $navigationSort = 50;
 
     private const COLORS = [
         'gray' => 'Сірий', 'primary' => 'Основний', 'info' => 'Синій',

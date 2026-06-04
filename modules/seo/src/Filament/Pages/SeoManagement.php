@@ -24,7 +24,7 @@ class SeoManagement extends Page implements HasActions, HasForms
 
     protected static ?string $navigationIcon = 'heroicon-o-chart-bar';
 
-    protected static ?string $navigationGroup = 'Контент та SEO';
+    protected static ?string $navigationGroup = 'Контент і SEO';
 
     protected static ?string $title = 'SEO Управління';
 
@@ -32,7 +32,7 @@ class SeoManagement extends Page implements HasActions, HasForms
 
     protected static string $view = 'filament.pages.seo-management';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 110;
 
     public function getActions(): array
     {

@@ -18,7 +18,7 @@ class CarMakeResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-truck';
 
-    protected static ?string $navigationGroup = 'Авто-сумісність';
+    protected static ?string $navigationGroup = 'Каталог';
 
     protected static ?string $navigationLabel = 'Марки авто';
 
@@ -26,7 +26,7 @@ class CarMakeResource extends Resource
 
     protected static ?string $label = 'Марка';
 
-    protected static ?int $navigationSort = 1;
+    protected static ?int $navigationSort = 80;
 
     public static function form(Form $form): Form
     {

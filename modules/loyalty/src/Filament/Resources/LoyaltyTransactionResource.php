@@ -24,12 +24,13 @@ class LoyaltyTransactionResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
 
     protected static ?string $navigationGroup = 'Продажі';
+    protected static ?string $navigationLabel = 'Транзакції балів';
 
     protected static ?string $modelLabel = 'Транзакція балів';
 
     protected static ?string $pluralModelLabel = 'Транзакції балів';
 
-    protected static ?int $navigationSort = 6;
+    protected static ?int $navigationSort = 50;
 
     public static function canCreate(): bool
     {
