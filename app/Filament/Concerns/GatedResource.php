@@ -3,6 +3,7 @@
 namespace App\Filament\Concerns;
 
 use App\Support\Access\AccessControl;
+use App\Support\Access\NavPreferences;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -20,6 +21,14 @@ trait GatedResource
     public static function canViewAny(): bool
     {
         return static::moduleGateOpen() && AccessControl::can(static::class, 'view');
+    }
+
+    /** Nav visibility: access + module gate + not personally hidden by the user. */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return static::moduleGateOpen()
+            && AccessControl::can(static::class, 'view')
+            && ! NavPreferences::isHidden(static::class);
     }
 
     /** Compose the module gate (RequiresModule) when present, else open. */

@@ -18,14 +18,10 @@ use App\Support\ModuleManager;
  */
 trait RequiresModule
 {
-    public static function shouldRegisterNavigation(): bool
-    {
-        return static::moduleEnabled();
-    }
-
-    // canAccess()/canViewAny() are intentionally NOT defined here — the access
-    // gate lives in GatedResource/GatedPage, which compose moduleEnabled() so a
-    // disabled module is also denied. (Avoids a trait-method collision.)
+    // shouldRegisterNavigation()/canAccess()/canViewAny() are intentionally NOT
+    // defined here — they live in GatedResource/GatedPage, which compose
+    // moduleEnabled() (so a disabled module is denied + hidden). This avoids a
+    // trait-method collision when both traits are used together.
 
     public static function moduleEnabled(): bool
     {

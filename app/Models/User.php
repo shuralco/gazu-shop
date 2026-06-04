@@ -28,6 +28,7 @@ class User extends Authenticatable implements FilamentUser
         'password',
         'is_admin',
         'access_preset_id',
+        'nav_preferences',
         'avatar',
         'phone',
         'birthdate',
@@ -64,6 +65,7 @@ class User extends Authenticatable implements FilamentUser
             'loyalty_points' => 'integer',
             'total_spent' => 'decimal:2',
             'notification_preferences' => 'array',
+            'nav_preferences' => 'array',
             'last_login_at' => 'datetime',
         ];
     }

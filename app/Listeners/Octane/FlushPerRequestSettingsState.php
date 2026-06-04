@@ -25,5 +25,6 @@ class FlushPerRequestSettingsState
         DisplaySetting::resetRequestCache();
         ThemeManager::clearCache();
         \App\Support\Access\AccessControl::flush();
+        \App\Support\Access\NavPreferences::flush();
     }
 }
