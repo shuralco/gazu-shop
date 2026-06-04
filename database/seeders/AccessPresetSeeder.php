@@ -17,11 +17,11 @@ class AccessPresetSeeder extends Seeder
     {
         $sections = AccessControl::sections();
 
-        // grant: for sections matching $groups, give listed abilities (others false)
-        $grant = function (array $groups, array $abilities) use ($sections): array {
+        // grant: for sections matching $groups (minus $exceptKeys), give listed abilities
+        $grant = function (array $groups, array $abilities, array $exceptKeys = []) use ($sections): array {
             $map = [];
             foreach ($sections as $s) {
-                if (! in_array($s['group'], $groups, true)) {
+                if (! in_array($s['group'], $groups, true) || in_array($s['section'], $exceptKeys, true)) {
                     continue;
                 }
                 $map[$s['section']] = collect($s['abilities'])
@@ -36,6 +36,12 @@ class AccessPresetSeeder extends Seeder
         $presets = [
             ['admin_full', 'Адміністратор', 'Повний доступ до всіх розділів.', true, 0,
                 $grant($allGroups, ['view', 'create', 'update', 'delete'])],
+            ['client_admin', 'Адмін клієнта', 'Повне керування магазином без системних/dev-розділів (модулі, інтеграції, обслуговування, доступ, демо-генератор).', false, 5,
+                $grant(
+                    ['Каталог', 'Продажі', 'Склад і доставка', 'Контент і SEO', 'Аналітика', 'Налаштування'],
+                    ['view', 'create', 'update', 'delete'],
+                    ['DemoCatalogGenerator'],
+                )],
             ['orders_manager', 'Менеджер замовлень', 'Замовлення, платежі, клієнти; каталог — перегляд.', false, 10,
                 array_replace($grant(['Продажі'], ['view', 'create', 'update']), $grant(['Каталог'], ['view']))],
             ['content_editor', 'Контент-менеджер', 'Контент і SEO повністю; каталог/аналітика — перегляд.', false, 20,
