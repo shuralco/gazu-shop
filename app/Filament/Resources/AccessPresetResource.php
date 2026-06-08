@@ -119,7 +119,9 @@ class AccessPresetResource extends Resource
                         $replica->is_system = false;
                     }),
                 Tables\Actions\DeleteAction::make()
-                    ->hidden(fn (AccessPreset $r) => $r->is_system),
+                    // Не даємо видалити системний АБО призначений пресет — інакше
+                    // користувачі лишаться без preset → втратять доступ до панелі.
+                    ->hidden(fn (AccessPreset $r) => $r->is_system || $r->users()->exists()),
             ]);
     }
 

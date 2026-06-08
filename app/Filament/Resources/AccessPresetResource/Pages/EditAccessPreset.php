@@ -13,7 +13,8 @@ class EditAccessPreset extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            Actions\DeleteAction::make()->hidden(fn () => $this->record->is_system),
+            Actions\DeleteAction::make()
+                ->hidden(fn () => $this->record->is_system || $this->record->users()->exists()),
         ];
     }
 }

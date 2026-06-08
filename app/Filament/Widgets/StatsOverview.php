@@ -15,6 +15,11 @@ use Illuminate\Support\Facades\Schema;
 
 class StatsOverview extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('OrderResource', 'view');
+    }
+
     protected static ?int $sort = 0;
 
     protected int|string|array $columnSpan = 'full';

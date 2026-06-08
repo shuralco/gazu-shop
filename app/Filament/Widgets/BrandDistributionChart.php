@@ -8,6 +8,11 @@ use Filament\Widgets\ChartWidget;
 
 class BrandDistributionChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('ProductResource', 'view');
+    }
+
     protected static ?string $heading = 'Топ-12 брендів за SKU';
 
     protected static ?int $sort = 4;

@@ -48,6 +48,32 @@ class AppServiceProvider extends ServiceProvider
             \Log::warning("Lazy loading [{$relation}] on " . get_class($model));
         });
 
+        // Deny-by-default аудит: гучно попереджає, якщо якийсь admin Resource/Page
+        // лишився БЕЗ гейту доступу (немає трейта GatedResource/GatedPage і власного
+        // canAccess) — такий розділ був би видимий УСІМ пресетам. Dev/staging only.
+        if (! app()->isProduction()) {
+            $this->app->booted(function () {
+                try {
+                    $panel = \Filament\Facades\Filament::getPanel('admin');
+                    $ungated = [];
+                    foreach (array_merge($panel->getResources(), $panel->getPages()) as $cls) {
+                        if ($cls === \App\Filament\Pages\Dashboard::class) {
+                            continue;
+                        }
+                        $decl = (new \ReflectionMethod($cls, 'canAccess'))->getDeclaringClass()->getName();
+                        if (str_starts_with($decl, 'Filament\\')) {
+                            $ungated[] = class_basename($cls);
+                        }
+                    }
+                    if ($ungated) {
+                        \Log::warning('[access] Незахищені admin-розділи (видимі всім пресетам — додай Gated* трейт або canAccess): '.implode(', ', $ungated));
+                    }
+                } catch (\Throwable) {
+                    // panel may be unavailable in some console contexts — ignore
+                }
+            });
+        }
+
         // Force HTTPS asset/route URLs when behind a TLS-terminating proxy
         // (Traefik / Caddy / nginx). Without this, Vite-rendered <link href>
         // and asset() helpers emit http:// — browsers then block mixed

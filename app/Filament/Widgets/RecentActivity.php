@@ -13,6 +13,11 @@ use Filament\Widgets\TableWidget as BaseWidget;
  */
 class RecentActivity extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->is_admin === true;
+    }
+
     protected static ?string $heading = 'Останні додані товари';
 
     protected static ?int $sort = 10;

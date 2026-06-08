@@ -9,6 +9,11 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class TopProducts extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('OrderResource', 'view');
+    }
+
     protected static ?string $heading = 'Топ товарів';
 
     protected int|string|array $columnSpan = 'full';

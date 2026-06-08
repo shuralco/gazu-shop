@@ -17,6 +17,11 @@ use Illuminate\Support\Facades\Cache;
 
 class SeoOverviewWidget extends Widget implements HasActions, HasForms
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('SeoMetaResource', 'view');
+    }
+
     use InteractsWithActions;
     use InteractsWithForms;
 

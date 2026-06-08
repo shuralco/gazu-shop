@@ -10,6 +10,11 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class LatestOrders extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('OrderResource', 'view');
+    }
+
     protected static ?string $heading = 'Останні замовлення';
 
     protected int|string|array $columnSpan = 'full';

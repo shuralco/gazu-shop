@@ -31,6 +31,12 @@ class IntegrationConfigPage extends Page implements HasForms
 
     protected static bool $shouldRegisterNavigation = false;
 
+    /** Sub-page configuring integration secrets — super-admin only. */
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->is_admin === true;
+    }
+
     public string $key = '';
 
     public ?array $data = [];

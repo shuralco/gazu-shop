@@ -7,6 +7,11 @@ use Filament\Widgets\ChartWidget;
 
 class OrdersChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('OrderResource', 'view');
+    }
+
     protected static ?string $heading = 'Огляд замовлень';
 
     protected static ?int $sort = 7;

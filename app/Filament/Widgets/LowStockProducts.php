@@ -9,6 +9,11 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class LowStockProducts extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('ProductResource', 'view');
+    }
+
     protected static ?string $heading = 'Низький залишок (1–5 шт.)';
 
     protected static ?int $sort = 9;

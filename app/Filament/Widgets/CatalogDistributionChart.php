@@ -8,6 +8,11 @@ use Filament\Widgets\ChartWidget;
 
 class CatalogDistributionChart extends ChartWidget
 {
+    public static function canView(): bool
+    {
+        return \App\Support\Access\AccessControl::can('ProductResource', 'view');
+    }
+
     protected static ?string $heading = 'Каталог за категоріями (L1)';
 
     protected static ?int $sort = 3;
