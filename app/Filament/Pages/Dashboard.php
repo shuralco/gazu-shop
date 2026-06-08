@@ -28,7 +28,9 @@ class Dashboard extends BaseDashboard
             \App\Filament\Widgets\NovaPoshtaWidget::class,
             \App\Filament\Widgets\ShippingApiHealthWidget::class,
             \App\Filament\Widgets\OrdersChart::class,
-            // Row 4 — таблиці
+            // Row 4 — карта географії доставок (full-width)
+            \App\Filament\Widgets\DeliveryMapWidget::class,
+            // Row 5 — таблиці
             \App\Filament\Widgets\LowStockProducts::class,
             \App\Filament\Widgets\RecentActivity::class,
             \App\Filament\Widgets\LatestOrders::class,
