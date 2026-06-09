@@ -15,6 +15,12 @@ return new class extends Migration
 
     public function up(): void
     {
+        // SQLite (тести) типонезалежний — enum там і так зберігається як TEXT,
+        // кастомні ключі вже працюють; MODIFY не підтримується. Гард по драйверу.
+        if (DB::getDriverName() !== 'mysql' && DB::getDriverName() !== 'mariadb') {
+            return;
+        }
+
         foreach ($this->tables as $t) {
             if (Schema::hasColumn($t, 'stock_status')) {
                 DB::statement("ALTER TABLE `{$t}` MODIFY `stock_status` VARCHAR(64) NOT NULL DEFAULT 'in_stock'");
@@ -24,6 +30,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (DB::getDriverName() !== 'mysql' && DB::getDriverName() !== 'mariadb') {
+            return;
+        }
+
         foreach ($this->tables as $t) {
             if (Schema::hasColumn($t, 'stock_status')) {
                 DB::statement("ALTER TABLE `{$t}` MODIFY `stock_status` ENUM('in_stock','out_of_stock','preorder') NOT NULL DEFAULT 'in_stock'");
