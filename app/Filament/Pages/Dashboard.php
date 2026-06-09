@@ -21,20 +21,21 @@ class Dashboard extends BaseDashboard
         return [
             // StatsOverview прибрано — його 12 карток замінила багатша
             // перетягувана сітка показників у верхній частині view.
-            // Row 2 — два графіки розподілу
+            //
+            // Row 1 — географія доставок (full-width) + останні замовлення
+            \App\Filament\Widgets\DeliveryMapWidget::class,
+            \App\Filament\Widgets\LatestOrders::class,
+            // Row 2 — графіки
+            \App\Filament\Widgets\OrdersChart::class,
             \App\Filament\Widgets\CatalogDistributionChart::class,
             \App\Filament\Widgets\BrandDistributionChart::class,
-            // Row 3 — shipping health + графік замовлень
+            // Row 3 — перемикачі (стан shipping-API)
             \App\Filament\Widgets\NovaPoshtaWidget::class,
             \App\Filament\Widgets\ShippingApiHealthWidget::class,
-            \App\Filament\Widgets\OrdersChart::class,
-            // Row 4 — карта географії доставок (full-width)
-            \App\Filament\Widgets\DeliveryMapWidget::class,
-            // Row 5 — таблиці
+            // Row 4 — решта таблиць
+            \App\Filament\Widgets\TopProducts::class,
             \App\Filament\Widgets\LowStockProducts::class,
             \App\Filament\Widgets\RecentActivity::class,
-            \App\Filament\Widgets\LatestOrders::class,
-            \App\Filament\Widgets\TopProducts::class,
         ];
     }
 
