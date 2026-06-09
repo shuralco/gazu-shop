@@ -293,6 +293,14 @@ class ProductResource extends Resource
 
                                 Forms\Components\Fieldset::make('Статус товару')
                                     ->schema([
+                                        Forms\Components\Select::make('stock_status')
+                                            ->label('Наявність')
+                                            ->options(fn () => \App\Models\StockStatus::options())
+                                            ->default(fn () => \App\Models\StockStatus::defaultKey())
+                                            ->required()
+                                            ->native(false)
+                                            ->helperText('Довідник: Каталог → Статуси наявності')
+                                            ->columnSpanFull(),
                                         Forms\Components\Toggle::make('is_hit')
                                             ->label('Популярний товар')
                                             ->helperText('Відображається в секції хітів'),

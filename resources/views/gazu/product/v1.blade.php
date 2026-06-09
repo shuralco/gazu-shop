@@ -15,6 +15,11 @@
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
+    // Статус наявності з довідника StockStatus (key) — перекриває qty-логіку.
+    $stockStatus = is_object($p) ? ($p->stock_status ?? null) : ($p['stock_status'] ?? null);
+    $stockStatusModel = $stockStatus ? \App\Models\StockStatus::byKey($stockStatus) : null;
+    $availabilitySchema = $stockStatusModel?->availability
+        ?? ($qty > 0 ? 'InStock' : 'OutOfStock');
     $rating = is_object($p) ? (float)($p->rating ?? 0) : (float)($p['rating'] ?? 0);
     $reviews = is_object($p) ? (int)($p->reviews ?? 0) : (int)($p['reviews'] ?? 0);
     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
@@ -116,7 +121,7 @@
             '@type' => 'Offer',
             'price' => number_format($price, 2, '.', ''),
             'priceCurrency' => 'UAH',
-            'availability' => $qty > 0 ? 'https://schema.org/InStock' : 'https://schema.org/OutOfStock',
+            'availability' => 'https://schema.org/'.$availabilitySchema,
             'itemCondition' => $conditionMap[$condition ?? 'new'] ?? 'https://schema.org/NewCondition',
             'url' => url()->current(),
             'priceValidUntil' => now()->addYear()->format('Y-m-d'),
@@ -325,6 +330,11 @@
                     {{-- Central column — condition · brand · article · availability
                          + warehouse picker. Syncs the buy-panel via `warehouse-selected`. --}}
                     <div>
+                        @if($stockStatusModel)
+                            <div class="mb-2.5">
+                                <x-gazu.stock :status="$stockStatus"/>
+                            </div>
+                        @endif
                         <x-gazu.warehouse-selector
                             :warehouseStocks="$warehouseStocks ?? collect()"
                             :closestWarehouseId="$closestWarehouseId ?? null"

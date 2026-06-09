@@ -252,12 +252,15 @@
 
                             @if(in_array('stock_status', $visibleColumns))
                             <td class="px-3 py-1.5">
-                                @php $stockVal = $editedData[$product->id]['stock_status'] ?? $product->stock_status ?? 'in_stock'; @endphp
+                                @php
+                                    $stockVal = $editedData[$product->id]['stock_status'] ?? $product->stock_status ?? \App\Models\StockStatus::defaultKey();
+                                    $stockOptions = \App\Models\StockStatus::options();
+                                @endphp
                                 <select wire:change="updateField({{ $product->id }}, 'stock_status', $event.target.value)"
                                     class="text-xs w-full py-1 px-1.5 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-200 border border-gray-200 dark:border-gray-600 {{ isset($editedData[$product->id]['stock_status']) ? 'bg-warning-100 dark:bg-warning-400/20 border-warning-400' : '' }}">
-                                    <option value="in_stock" {{ $stockVal === 'in_stock' ? 'selected' : '' }}>В наявності</option>
-                                    <option value="out_of_stock" {{ $stockVal === 'out_of_stock' ? 'selected' : '' }}>Немає</option>
-                                    <option value="preorder" {{ $stockVal === 'preorder' ? 'selected' : '' }}>Предзамовл.</option>
+                                    @foreach($stockOptions as $key => $label)
+                                        <option value="{{ $key }}" {{ $stockVal === $key ? 'selected' : '' }}>{{ $label }}</option>
+                                    @endforeach
                                 </select>
                             </td>
                             @endif

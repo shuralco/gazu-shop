@@ -21,6 +21,7 @@
     // $p->reviews може бути HasMany Collection (Eloquent) — захищаємось.
     $rawQty = is_object($p) ? ($p->qty ?? $p->quantity ?? 0) : ($p['qty'] ?? 0);
     $qty = is_numeric($rawQty) ? (int) $rawQty : 0;
+    $stockStatus = is_object($p) ? ($p->stock_status ?? null) : ($p['stock_status'] ?? null);
     $rawRating = is_object($p) ? ($p->rating ?? 0) : ($p['rating'] ?? 0);
     $rating = is_numeric($rawRating) ? (float) $rawRating : 0.0;
     $rawReviews = is_object($p) ? ($p->reviews_count ?? $p->reviews ?? 0) : ($p['reviews'] ?? 0);
@@ -115,7 +116,7 @@
             </div>
         @endif
 
-        <x-gazu.stock qty="{{ $qty }}"/>
+        <x-gazu.stock qty="{{ $qty }}" :status="$stockStatus"/>
 
         <div class="flex items-end gap-2 mt-1 flex-wrap">
             @if($oldPrice)
