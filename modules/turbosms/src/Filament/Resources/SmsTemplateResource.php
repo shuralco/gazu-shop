@@ -51,6 +51,7 @@ class SmsTemplateResource extends Resource
                         ->default(SmsTemplate::CHANNEL_HYBRID)
                         ->required()
                         ->native(false)
+                        ->live()
                         ->helperText('Гібрид: спершу Viber, при недоставці TurboSMS сам шле SMS (тарифікується доставлений канал)'),
                     Forms\Components\Toggle::make('is_active')
                         ->label('Активний')
@@ -74,6 +75,41 @@ class SmsTemplateResource extends Resource
                         ->rows(4)
                         ->maxLength(1000)
                         ->helperText('Окремий довший текст для Viber (емодзі, переноси). Порожньо = текст SMS.'),
+                ]),
+
+            Forms\Components\Section::make('Viber-опції')
+                ->description('Кнопка з лінком, картинка, пріоритет. URL кнопки підтримує плейсхолдери — напр. https://novaposhta.ua/tracking/?cargo_number={{order.ttn}}')
+                ->visible(fn (Forms\Get $get) => $get('channel') !== SmsTemplate::CHANNEL_SMS)
+                ->collapsible()
+                ->schema([
+                    Forms\Components\Grid::make(2)->schema([
+                        Forms\Components\TextInput::make('viber_button_text')
+                            ->label('Текст кнопки')
+                            ->placeholder('Відстежити 📦')
+                            ->maxLength(30),
+                        Forms\Components\TextInput::make('viber_button_url')
+                            ->label('URL кнопки')
+                            ->placeholder('https://… ({{order.ttn}} підставиться)')
+                            ->maxLength(500)
+                            ->requiredWith('viber_button_text'),
+                    ]),
+                    Forms\Components\Grid::make(3)->schema([
+                        Forms\Components\TextInput::make('viber_image_url')
+                            ->label('Картинка (URL)')
+                            ->url()
+                            ->maxLength(500),
+                        Forms\Components\Toggle::make('viber_transactional')
+                            ->label('Транзакційне')
+                            ->helperText('Вищий пріоритет доставки')
+                            ->default(true)
+                            ->inline(false),
+                        Forms\Components\TextInput::make('viber_ttl')
+                            ->label('TTL, сек')
+                            ->numeric()
+                            ->minValue(60)
+                            ->maxValue(86400)
+                            ->placeholder('3600 (дефолт шлюзу)'),
+                    ]),
                 ]),
         ]);
     }

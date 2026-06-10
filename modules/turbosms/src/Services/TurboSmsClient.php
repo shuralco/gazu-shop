@@ -46,10 +46,16 @@ class TurboSmsClient
      * sms — лише sms; viber — лише viber; hybrid — обидва (TurboSMS сам
      * зробить fallback Viber→SMS, тарифікується лише доставлений канал).
      *
+     * Viber-опції ($viberOpts, усі необовʼязкові):
+     *   button_text + button_url — кнопка під повідомленням (API: caption+action)
+     *   image_url               — картинка у повідомленні
+     *   is_transactional        — транзакційний пріоритет доставки
+     *   ttl                     — час життя Viber-повідомлення, сек (60–86400)
+     *
      * @param  list<string>  $recipients  номери у форматі 380XXXXXXXXX
      * @return array{ok:bool, code:int, status:string, message_ids:array<string,string>, error:?string, raw:array}
      */
-    public function send(array $recipients, string $channel, string $smsText, ?string $viberText = null): array
+    public function send(array $recipients, string $channel, string $smsText, ?string $viberText = null, array $viberOpts = []): array
     {
         if (! $this->configured()) {
             return ['ok' => false, 'code' => -1, 'status' => 'NOT_CONFIGURED', 'message_ids' => [], 'error' => 'TurboSMS token не задано (адмінка → TurboSMS)', 'raw' => []];
@@ -61,7 +67,22 @@ class TurboSmsClient
             $payload['sms'] = ['sender' => $this->smsSender(), 'text' => $smsText];
         }
         if (in_array($channel, [SmsChannel::VIBER, SmsChannel::HYBRID], true)) {
-            $payload['viber'] = ['sender' => $this->viberSender(), 'text' => $viberText ?: $smsText];
+            $viber = ['sender' => $this->viberSender(), 'text' => $viberText ?: $smsText];
+            if (! empty($viberOpts['button_text']) && ! empty($viberOpts['button_url'])) {
+                $viber['caption'] = (string) $viberOpts['button_text'];
+                $viber['action'] = (string) $viberOpts['button_url'];
+                $viber['count_clicks'] = 1; // обовʼязковий при caption/action — лічильник переходів
+            }
+            if (! empty($viberOpts['image_url'])) {
+                $viber['image_url'] = (string) $viberOpts['image_url'];
+            }
+            if (! empty($viberOpts['is_transactional'])) {
+                $viber['is_transactional'] = 1;
+            }
+            if (! empty($viberOpts['ttl'])) {
+                $viber['ttl'] = max(60, min(86400, (int) $viberOpts['ttl']));
+            }
+            $payload['viber'] = $viber;
         }
 
         try {

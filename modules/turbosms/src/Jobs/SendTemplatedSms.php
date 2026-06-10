@@ -59,7 +59,7 @@ class SendTemplatedSms implements ShouldQueue
             'order_id' => $this->orderId,
         ]);
 
-        $result = $client->send([$phone], $rendered['channel'], $rendered['sms_text'], $rendered['viber_text']);
+        $result = $client->send([$phone], $rendered['channel'], $rendered['sms_text'], $rendered['viber_text'], $rendered['viber_opts'] ?? []);
 
         $log->update([
             'status' => $result['ok'] ? 'sent' : 'failed',

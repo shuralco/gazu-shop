@@ -23,11 +23,15 @@ class SmsTemplate extends Model
 
     protected $fillable = [
         'key', 'name', 'channel', 'text', 'viber_text',
+        'viber_button_text', 'viber_button_url', 'viber_image_url',
+        'viber_transactional', 'viber_ttl',
         'variables_help', 'is_active',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'viber_transactional' => 'boolean',
+        'viber_ttl' => 'integer',
         'variables_help' => 'array',
     ];
 
@@ -47,17 +51,34 @@ class SmsTemplate extends Model
     }
 
     /**
-     * @return array{sms_text:?string, viber_text:?string, channel:string}
+     * @return array{sms_text:string, viber_text:string, channel:string, viber_opts:array}
      */
     public function render(array $vars = []): array
     {
         $sms = $this->replace($this->text, $vars);
         $viber = $this->viber_text ? $this->replace($this->viber_text, $vars) : $sms;
 
+        // Viber-опції: button_url теж рендериться ({{order.ttn}} у трекінг-лінку).
+        $opts = [];
+        if ($this->viber_button_text && $this->viber_button_url) {
+            $opts['button_text'] = $this->replace($this->viber_button_text, $vars);
+            $opts['button_url'] = $this->replace($this->viber_button_url, $vars);
+        }
+        if ($this->viber_image_url) {
+            $opts['image_url'] = $this->viber_image_url;
+        }
+        if ($this->viber_transactional) {
+            $opts['is_transactional'] = true;
+        }
+        if ($this->viber_ttl) {
+            $opts['ttl'] = $this->viber_ttl;
+        }
+
         return [
             'sms_text' => $sms,
             'viber_text' => $viber,
             'channel' => $this->channel,
+            'viber_opts' => $opts,
         ];
     }
 
