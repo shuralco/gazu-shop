@@ -24,14 +24,20 @@ class InfoController extends Controller
             ]);
         }
 
-        $page = $this->pages()[$slug] ?? null;
+        $page = self::defaults()[$slug] ?? null;
         if (! $page) {
             throw new NotFoundHttpException();
         }
         return view('gazu.info.page', $page + ['activeNav' => null]);
     }
 
-    private function pages(): array
+    /**
+     * Дефолтний контент інфо-сторінок. Джерело істини і для фолбеку рендера,
+     * і для InfoPageSeeder (щоб сторінки стали редаговані в адмінці).
+     *
+     * @return array<string, array{title:string, intro?:string, sections?:array}>
+     */
+    public static function defaults(): array
     {
         return [
             'about' => [

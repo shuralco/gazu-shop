@@ -47,6 +47,11 @@ class DatabaseSeeder extends Seeder
             AccessPresetSeeder::class,    // RBAC presets (roles)
         ]);
 
+        // Content
+        $this->call([
+            InfoPageSeeder::class,        // Legal/info pages (editable in admin)
+        ]);
+
         // Test data
         $this->call([
             TestOrdersSeeder::class,      // Sample orders
