@@ -32,6 +32,10 @@ services:
       - MEILISEARCH_HOST=http://meilisearch:7700
       - MEILISEARCH_KEY=masterKey
     volumes:
+      # Хостовий .env як файл у контейнері: інакше він живе лише в RW-шарі
+      # і ЗНИКАЄ при кожному recreate (env_file дає env-vars, але не файл —
+      # а дещо читає саме файл: module:enable/disable, tests-діагностика).
+      - ./.env:/var/www/html/.env
       - ./app:/var/www/html/app
       - ./resources:/var/www/html/resources
       - ./routes:/var/www/html/routes
@@ -119,6 +123,7 @@ services:
     volumes:
       # свіжий entrypoint (поважає CMD → реально стартує queue:work, а не supervisord)
       - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./.env:/var/www/html/.env
       - ./app:/var/www/html/app
       - ./resources:/var/www/html/resources
       - ./routes:/var/www/html/routes
@@ -166,6 +171,7 @@ services:
     # Live-код як в app (див. коментар у queue)
     volumes:
       - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./.env:/var/www/html/.env
       - ./app:/var/www/html/app
       - ./resources:/var/www/html/resources
       - ./routes:/var/www/html/routes

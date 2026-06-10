@@ -155,6 +155,13 @@ return [
         'requires' => [],
     ],
 
+    'turbosms' => [
+        'name' => 'TurboSMS (SMS + Viber)',
+        'description' => 'SMS/Viber через шлюз TurboSMS: повідомлення по подіях замовлення, шаблони текстів у БД, журнал відправок, гібрид Viber→SMS.',
+        'enabled' => env('MODULE_TURBOSMS', false),
+        'requires' => [],
+    ],
+
     'callback' => [
         'name' => 'Замовити дзвінок',
         'description' => 'Форма callback-запиту з phone + name + admin CRUD.',

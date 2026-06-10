@@ -1,0 +1,19 @@
+{
+    "name": "turbosms",
+    "label": "TurboSMS (SMS + Viber)",
+    "description": "Відправка SMS/Viber через шлюз TurboSMS: транзакційні повідомлення по подіях замовлення (створено / оплачено / ТТН / зміна статусу), шаблони текстів у БД (редаговані в адмінці), журнал відправок, гібридна доставка Viber→SMS.",
+    "version": "1.0.0",
+    "engine": ">=2.0",
+    "php": ">=8.2",
+    "providers": ["Modules\\TurboSms\\TurboSmsServiceProvider"],
+    "filament_resources": [
+        "App\\Filament\\Resources\\SmsTemplateResource"
+    ],
+    "filament_pages": [
+        "App\\Filament\\Pages\\TurboSmsSettings"
+    ],
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "turbosms",
+    "enabled_by_default": false
+}
