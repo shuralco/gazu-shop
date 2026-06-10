@@ -108,4 +108,13 @@ echo "[entrypoint] Starting supervisord..."
   done
 ) &
 
+# Якщо контейнеру передано CMD (queue: "php artisan queue:work...",
+# scheduler: "php artisan schedule:work") — виконуємо ЙОГО, а не supervisord.
+# Раніше entrypoint завжди стартував supervisord (nginx+fpm) → queue-воркер
+# НІКОЛИ не працював, queued-листи (замовлення/ТТН) вічно висіли в Redis.
+if [ "$#" -gt 0 ]; then
+    echo "[entrypoint] exec CMD: $*"
+    exec "$@"
+fi
+
 exec /usr/bin/supervisord -c /etc/supervisord.conf

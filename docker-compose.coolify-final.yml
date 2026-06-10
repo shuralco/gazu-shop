@@ -114,6 +114,26 @@ services:
     image: simpleshop:local
     restart: unless-stopped
     command: php artisan queue:work --sleep=3 --tries=3 --max-time=3600
+    # Той самий live-код, що в app: інакше воркер працює зі СТАРИМ запеченим
+    # кодом (були відсутні нові Mailable-класи → "incomplete object" у джобах).
+    volumes:
+      # свіжий entrypoint (поважає CMD → реально стартує queue:work, а не supervisord)
+      - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./app:/var/www/html/app
+      - ./resources:/var/www/html/resources
+      - ./routes:/var/www/html/routes
+      - ./config:/var/www/html/config
+      - ./database:/var/www/html/database
+      - ./bootstrap:/var/www/html/bootstrap
+      - ./lang:/var/www/html/lang
+      - ./vendor:/var/www/html/vendor
+      - ./composer.json:/var/www/html/composer.json:ro
+      - ./composer.lock:/var/www/html/composer.lock:ro
+      - ./modules:/var/www/html/modules
+      - ./themes:/var/www/html/themes
+      - ./presets:/var/www/html/presets
+      - app_storage:/var/www/html/storage/app
+      - app_logs:/var/www/html/storage/logs
     env_file:
       - .env
     environment:
@@ -143,6 +163,24 @@ services:
     restart: unless-stopped
     entrypoint: ["sh", "-c"]
     command: ["while true; do php artisan schedule:run --verbose --no-interaction; sleep 60; done"]
+    # Live-код як в app (див. коментар у queue)
+    volumes:
+      - ./docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh:ro
+      - ./app:/var/www/html/app
+      - ./resources:/var/www/html/resources
+      - ./routes:/var/www/html/routes
+      - ./config:/var/www/html/config
+      - ./database:/var/www/html/database
+      - ./bootstrap:/var/www/html/bootstrap
+      - ./lang:/var/www/html/lang
+      - ./vendor:/var/www/html/vendor
+      - ./composer.json:/var/www/html/composer.json:ro
+      - ./composer.lock:/var/www/html/composer.lock:ro
+      - ./modules:/var/www/html/modules
+      - ./themes:/var/www/html/themes
+      - ./presets:/var/www/html/presets
+      - app_storage:/var/www/html/storage/app
+      - app_logs:/var/www/html/storage/logs
     env_file:
       - .env
     environment:
