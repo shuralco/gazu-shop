@@ -212,7 +212,8 @@
     <div class="mt-4 p-3 border border-dashed border-[var(--gazu-line-2)] rounded-lg flex gap-2.5 items-center">
         <x-gazu.icon name="chat" size="20" stroke="var(--gazu-blue)" class="shrink-0"/>
         <div class="text-xs text-[var(--gazu-graphite)] leading-relaxed">
-            Не впевнені в підборі? <a href="tel:0800751024" class="text-[var(--gazu-blue)] font-medium hover:underline no-underline">Запитайте менеджера</a> — відповість за 5 хв.
+            @php $gazuPhoneTel = preg_replace('/\D+/', '', ($gazuSettings ?? [])['gazu_phone'] ?? '0 800 750 010'); @endphp
+            Не впевнені в підборі? <a href="tel:{{ $gazuPhoneTel }}" class="text-[var(--gazu-blue)] font-medium hover:underline no-underline">Запитайте менеджера</a> — відповість за 5 хв.
         </div>
     </div>
 </div>
