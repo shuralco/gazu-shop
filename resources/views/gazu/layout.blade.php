@@ -153,8 +153,8 @@
         <meta property="og:image" content="@yield('og_image')">
         <meta name="twitter:image" content="@yield('og_image')">
     @else
-        <meta property="og:image" content="{{ url('/og-default.svg') }}">
-        <meta name="twitter:image" content="{{ url('/og-default.svg') }}">
+        <meta property="og:image" content="{{ url('/og-default.png') }}">
+        <meta name="twitter:image" content="{{ url('/og-default.png') }}">
     @endif
 
     <style>
@@ -184,7 +184,7 @@
                     '@id' => url('/').'#organization',
                     'name' => 'GAZU',
                     'url' => url('/'),
-                    'logo' => url('/og-default.svg'),
+                    'logo' => url('/og-default.png'),
                     'sameAs' => array_values(array_filter([
                         $gazuSettings['gazu_social_facebook'] ?? null,
                         $gazuSettings['gazu_social_instagram'] ?? null,

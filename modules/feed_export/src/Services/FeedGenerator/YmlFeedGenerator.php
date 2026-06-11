@@ -49,7 +49,7 @@ class YmlFeedGenerator
 
     private function buildYmlFeed(string $type, array $options): string
     {
-        $shopName = shopSetting('shop_name', 'SimpleShop');
+        $shopName = shopSetting('shop_name', 'GAZU');
         $shopUrl = config('app.url');
         $currency = shopSetting('shop_currency', 'UAH');
 
@@ -94,7 +94,7 @@ class YmlFeedGenerator
     {
         $available = $product->stock_status === 'in_stock' ? 'true' : 'false';
         $xml = '<offer id="' . $product->id . '" available="' . $available . '">' . "\n";
-        $xml .= '<url>' . $shopUrl . '/uk/' . $product->getLocalizedSlug('uk') . '</url>' . "\n";
+        $xml .= '<url>' . $shopUrl . '/' . $product->getLocalizedSlug('uk') . '</url>' . "\n";
         $xml .= '<price>' . number_format($product->price, 2, '.', '') . '</price>' . "\n";
 
         if ($product->old_price > 0 && $product->old_price > $product->price) {
@@ -199,7 +199,7 @@ class YmlFeedGenerator
         }
         $description = strip_tags((string) $description);
 
-        $url = $shopUrl.'/uk/'.$product->getLocalizedSlug('uk');
+        $url = $shopUrl.'/'.$product->getLocalizedSlug('uk');
 
         $xml = '<ad id="'.$product->id.'">'."\n";
         $xml .= '  <title>'.htmlspecialchars(mb_substr($title, 0, 100)).'</title>'."\n";

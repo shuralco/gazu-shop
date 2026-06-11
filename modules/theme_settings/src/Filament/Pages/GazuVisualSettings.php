@@ -215,7 +215,7 @@ class GazuVisualSettings extends Page implements HasForms
             ['title' => 'Клієнтам', 'items' => ['Доставка та оплата', 'Гарантія та повернення', 'Питання та відповіді', 'Бонусна програма', 'Гуртовим клієнтам']],
             ['title' => 'Компанія', 'items' => ['Про нас', 'Контакти', 'Вакансії', 'Сертифікати', 'Публічна оферта']],
         ],
-        'gazu_footer_payments' => 'Visa, Mastercard, Apple Pay, Google Pay, Нова Пошта',
+        'gazu_footer_payments' => 'Накладений платіж, Нова Пошта, УкрПошта',
         'gazu_social_facebook' => '#',
         'gazu_social_instagram' => '#',
         'gazu_social_telegram' => '#',

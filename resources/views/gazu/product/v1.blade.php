@@ -115,7 +115,7 @@
         'sku' => (string) $oem,
         'mpn' => (string) $oem,
         'description' => $fits ?: $name,
-        'image' => $productImageUrl ?: url('/og-default.svg'),
+        'image' => $productImageUrl ?: url('/og-default.png'),
         'url' => url()->current(),
         'offers' => [
             '@type' => 'Offer',
