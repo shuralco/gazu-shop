@@ -36,7 +36,7 @@
         'Публічна оферта'       => route('gazu.offer'),
     ];
     $payments = $s['gazu_footer_payments'] ?? 'Накладений платіж, Нова Пошта, УкрПошта';
-    $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
+    $phone = $s['gazu_phone'] ?? '0 800 750 010';
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
     $social = [
         'FB' => $s['gazu_social_facebook'] ?? null,

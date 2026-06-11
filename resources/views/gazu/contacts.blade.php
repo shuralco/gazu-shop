@@ -4,7 +4,7 @@
 @section('content')
 @php
     $s = $gazuSettings ?? [];
-    $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
+    $phone = $s['gazu_phone'] ?? '0 800 750 010';
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
     $tg = $s['gazu_contacts_telegram'] ?? null;
     $viber = $s['gazu_contacts_viber'] ?? null;

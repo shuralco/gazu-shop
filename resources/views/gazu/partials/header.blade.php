@@ -131,7 +131,7 @@
 
         {{-- Phone --}}
         @php
-            $phone = $gazuSettings['gazu_phone'] ?? '0 800 75 10 24';
+            $phone = $gazuSettings['gazu_phone'] ?? '0 800 750 010';
             $phoneSubtitle = $gazuSettings['gazu_phone_subtitle'] ?? 'безкоштовно по Україні';
         @endphp
         @if($phone)
