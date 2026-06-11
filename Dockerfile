@@ -1,7 +1,14 @@
-FROM php:8.3-cli-alpine
+# Swoole 6.2.1 + Redis 6.3.0 + PHP 8.3.31 ВЖЕ скомпільовані в офіційному образі
+# phpswoole — це прибирає ~10-15хв `pecl install swoole` з КОЖНОГО деплою
+# (білд падає з ~20хв до ~6-9хв). Версії звірено runtime-екстракцією і вони
+# ідентичні попередньому проду: PHP 8.3.31, Swoole 6.2.1 (http2 + OpenSSL 3.5.7),
+# redis, pdo_mysql, mbstring, OPcache — усе present у базі.
+# Pin по digest (php8.3-alpine — moving tag) для відтворюваності. Bump digest
+# СВІДОМО лише під PHP/Swoole security-патч (див. docs нижче).
+FROM phpswoole/swoole@sha256:b12a5f4f73a6523a08eefa164bc0ee18a3d16a8569a0547c95c4682a92540bc8
 
-# Laravel Octane (Swoole) replaces php-fpm. Nginx залишається як reverse-proxy
-# на :80 + статика, Octane worker слухає 127.0.0.1:8000.
+# Системні пакети + nginx/supervisor + nodejs/npm (Vite). dev-libs для ext,
+# які доставляємо нижче.
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -15,31 +22,21 @@ RUN apk add --no-cache \
     libzip-dev \
     oniguruma-dev \
     icu-dev \
-    mysql-client
+    mysql-client \
+    nodejs \
+    npm
 
-# Install PHP extensions
+# Доставляємо ЛИШЕ ті ext, яких НЕМАЄ в базі (swoole/redis/opcache/pdo_mysql/
+# mbstring уже є). Це bundled-PHP розширення — компілюються за ~110с (а не
+# Swoole-pecl на 10-15хв). exif перевірено: у базі ВІДСУТНІЙ → ставимо.
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install \
-    pdo_mysql \
-    mbstring \
-    exif \
-    pcntl \
-    bcmath \
+    && docker-php-ext-install -j"$(nproc)" \
     gd \
-    zip \
     intl \
-    opcache
-
-# Install Redis + Swoole (Octane). Build deps installed once, both extensions
-# compiled, deps removed to keep image small.
-RUN apk add --no-cache --virtual .build-deps autoconf g++ make linux-headers openssl-dev curl-dev \
-    && pecl install redis \
-    && pecl install swoole \
-    && docker-php-ext-enable redis swoole \
-    && apk del .build-deps
-
-# Install Node.js + npm for Vite frontend build
-RUN apk add --no-cache nodejs npm
+    zip \
+    bcmath \
+    pcntl \
+    exif
 
 # Install Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
