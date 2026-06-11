@@ -1,1 +1,3 @@
-<?php // cache_manager — routes у core
+<?php
+
+// cache_manager — routes у core

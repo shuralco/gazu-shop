@@ -28,12 +28,16 @@ class CacheManagement extends Page
     use \App\Filament\Concerns\GatedPage;
 
     protected static ?string $navigationIcon = 'heroicon-o-server';
-    protected static ?string $navigationLabel = 'Керування кешами';
-    protected static ?string $title = 'Cache Control Panel';
-    protected static ?string $navigationGroup = 'Обслуговування';
-    protected static ?int $navigationSort = 30;
-    protected static string $view = 'filament.pages.cache-management';
 
+    protected static ?string $navigationLabel = 'Керування кешами';
+
+    protected static ?string $title = 'Cache Control Panel';
+
+    protected static ?string $navigationGroup = 'Обслуговування';
+
+    protected static ?int $navigationSort = 30;
+
+    protected static string $view = 'filament.pages.cache-management';
 
     public function getCacheStats(): array
     {
@@ -89,10 +93,20 @@ class CacheManagement extends Page
                         Artisan::call('config:clear');
                         Artisan::call('route:clear');
                         Artisan::call('view:clear');
-                        Artisan::call('optimize:clear');
-                        if (function_exists('opcache_reset')) opcache_reset();
-                        try { Artisan::call('octane:reload'); } catch (\Throwable $e) { /* not on octane env */ }
-                    }, '✅ Весь кеш очищено + Octane reload', 'Response + Application + Config + Routes + Views + OPcache + workers reload');
+                        Artisan::call('event:clear');
+                        Artisan::call('optimize:clear'); // config+route+view+event+compiled+cache
+                        try {
+                            Artisan::call('filament:clear-cached-components');
+                        } catch (\Throwable) { /* not cached */
+                        }
+                        if (function_exists('opcache_reset')) {
+                            opcache_reset();
+                        }
+                        try {
+                            Artisan::call('octane:reload');
+                        } catch (\Throwable $e) { /* not on octane env */
+                        }
+                    }, '✅ Весь кеш очищено + Octane reload', 'Response + Application + Config + Routes + Views + Events + Filament + OPcache + workers reload');
                 }),
 
             // ── PER-DRIVER actions grouped ──────────────────────────────────────
@@ -210,13 +224,24 @@ class CacheManagement extends Page
             // ── OPS actions ────────────────────────────────────────────────────
             ActionGroup::make([
                 Action::make('warm_up')
-                    ->label('Прогріти кеш')
+                    ->label('Прогріти кеш (швидко)')
                     ->icon('heroicon-o-arrow-trending-up')
                     ->action(fn () => $this->safely(
                         fn () => $this->warmCriticalCache(),
                         'Кеш прогрітий',
-                        'Запитано критичні сторінки + категорії'
+                        'Головна, каталог, новинки, хіти, акції, блог'
                     )),
+                Action::make('warm_full')
+                    ->label('Прогріти ВЕСЬ кеш (усі категорії/бренди)')
+                    ->icon('heroicon-o-fire')
+                    ->requiresConfirmation()
+                    ->modalDescription('Обходить усі категорії, бренди й ключові сторінки зі sitemap і наповнює ResponseCache. Виконується У ФОНІ (черга) — може зайняти ~30-60с. Перший відвідувач кожної сторінки отримає теплий кеш.')
+                    ->modalSubmitActionLabel('Запустити прогрів')
+                    ->action(fn () => $this->safely(function () {
+                        // У фоні через чергу — синхронно блокувало б запит на хвилини.
+                        // --products: разом зі сторінками товарів (їх 1000+).
+                        \Illuminate\Support\Facades\Artisan::queue('cache:warm', ['--products' => true]);
+                    }, 'Повний прогрів запущено', 'Завдання в черзі — категорії, бренди й усі товари наповнять кеш за кілька хвилин (потрібен активний queue worker)')),
                 Action::make('octane_reload')
                     ->label('Octane reload')
                     ->icon('heroicon-o-arrow-path')
@@ -276,7 +301,8 @@ class CacheManagement extends Page
         if (config('session.driver') === 'redis') {
             try {
                 Redis::connection()->flushdb();
-            } catch (\Throwable $e) { /* keep going */ }
+            } catch (\Throwable $e) { /* keep going */
+            }
         }
         $sessionPath = storage_path('framework/sessions');
         if (File::exists($sessionPath)) {
@@ -298,7 +324,8 @@ class CacheManagement extends Page
             try {
                 $client = new \GuzzleHttp\Client(['timeout' => 10, 'verify' => false]);
                 $client->get(config('app.url').$url);
-            } catch (\Throwable $e) { /* network might be unavailable, skip */ }
+            } catch (\Throwable $e) { /* network might be unavailable, skip */
+            }
         }
     }
 
@@ -317,13 +344,17 @@ class CacheManagement extends Page
                 continue;
             }
         }
+
         return $size;
     }
 
     private function formatBytes(int $bytes): string
     {
         $units = ['B', 'KB', 'MB', 'GB'];
-        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) $bytes /= 1024;
+        for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+            $bytes /= 1024;
+        }
+
         return round($bytes, 2).' '.$units[$i];
     }
 

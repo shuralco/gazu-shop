@@ -14,6 +14,7 @@ class CacheService
      * Cache TTL constants in seconds.
      */
     private const TTL_LONG = 3600;    // 1 hour
+
     private const TTL_MEDIUM = 1800;  // 30 minutes
 
     /**

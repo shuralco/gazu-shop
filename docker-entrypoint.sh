@@ -105,7 +105,9 @@ if [ "$WARM_CACHE_AFTER_DEPLOY" != "false" ]; then
     for i in $(seq 1 80); do
       if curl -fsS -o /dev/null --max-time 5 "http://127.0.0.1:80/" 2>/dev/null; then
         echo "[entrypoint] Octane відповідає — прогрів ResponseCache..."
-        php artisan cache:warm 2>&1 | sed 's/^/[warm] /'
+        # --products: прогріваємо й сторінки товарів (1000+) — клієнти заходять
+        # на них з Google, холодний хіт ~1с. Послідовно, у фоні — навантаження низьке.
+        php artisan cache:warm --products 2>&1 | sed 's/^/[warm] /'
         break
       fi
       sleep 3

@@ -23,14 +23,18 @@ use Spatie\ResponseCache\Facades\ResponseCache;
 class CacheSettings extends Page implements HasForms
 {
     use \App\Filament\Concerns\GatedPage;
-
     use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-rocket-launch';
+
     protected static ?string $navigationLabel = 'Cache налаштування';
+
     protected static ?string $title = 'Швидкість & Cache налаштування';
+
     protected static ?string $navigationGroup = 'Обслуговування';
+
     protected static ?int $navigationSort = 20;
+
     protected static string $view = 'filament.pages.cache-settings';
 
     public ?array $data = [];
@@ -165,6 +169,7 @@ class CacheSettings extends Page implements HasForms
                                             $html .= '<tr><td class="py-1 pr-3 text-gray-500">'.e($k).'</td><td class="py-1 font-mono font-semibold">'.e($v).'</td></tr>';
                                         }
                                         $html .= '</tbody></table>';
+
                                         return new \Illuminate\Support\HtmlString($html);
                                     }),
                             ]),
@@ -177,7 +182,9 @@ class CacheSettings extends Page implements HasForms
     {
         $values = $this->form->getState();
         foreach ($values as $key => $value) {
-            if (is_bool($value)) $value = $value ? '1' : '0';
+            if (is_bool($value)) {
+                $value = $value ? '1' : '0';
+            }
             DisplaySetting::updateOrCreate(
                 ['key' => $key],
                 ['value' => (string) $value, 'is_active' => true]
@@ -199,6 +206,7 @@ class CacheSettings extends Page implements HasForms
         try {
             $redis = Redis::connection();
             $info = $redis->info('stats');
+
             return [
                 'keyspace_hits' => $info['Stats']['keyspace_hits'] ?? $info['keyspace_hits'] ?? 0,
                 'keyspace_misses' => $info['Stats']['keyspace_misses'] ?? $info['keyspace_misses'] ?? 0,
