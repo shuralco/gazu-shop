@@ -18,10 +18,15 @@ class SmsTemplateResource extends Resource
     protected static ?string $model = SmsTemplate::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-chat-bubble-left-ellipsis';
+
     protected static ?string $navigationGroup = 'Налаштування';
+
     protected static ?string $navigationLabel = 'Шаблони SMS/Viber';
+
     protected static ?string $modelLabel = 'шаблон SMS';
+
     protected static ?string $pluralModelLabel = 'Шаблони SMS/Viber';
+
     protected static ?int $navigationSort = 31; // одразу після «Шаблони листів» (30)
 
     public static function moduleEnabled(): bool

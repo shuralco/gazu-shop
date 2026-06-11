@@ -24,7 +24,7 @@ return new class extends Migration
                 $table->string('name');                // людська назва в адмінці
                 $table->string('channel', 16)->default('hybrid'); // sms | viber | hybrid (viber→sms fallback)
                 $table->text('text');                  // текст SMS (і Viber, якщо viber_text порожній)
-                $table->text('viber_text')->nullable();// окремий текст для Viber (довший/з емодзі)
+                $table->text('viber_text')->nullable(); // окремий текст для Viber (довший/з емодзі)
                 $table->json('variables_help')->nullable(); // підказка змінних для адміна
                 $table->boolean('is_active')->default(true);
                 $table->timestamps();

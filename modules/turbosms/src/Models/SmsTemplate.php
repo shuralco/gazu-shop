@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\Cache;
 class SmsTemplate extends Model
 {
     public const CHANNEL_SMS = 'sms';
+
     public const CHANNEL_VIBER = 'viber';
+
     public const CHANNEL_HYBRID = 'hybrid'; // Viber → SMS fallback (TurboSMS робить сам)
 
     public const CHANNELS = [

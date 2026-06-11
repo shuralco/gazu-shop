@@ -6,6 +6,8 @@ namespace App\Services\TurboSms;
 final class SmsChannel
 {
     public const SMS = 'sms';
+
     public const VIBER = 'viber';
+
     public const HYBRID = 'hybrid';
 }

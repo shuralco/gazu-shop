@@ -19,14 +19,18 @@ use Filament\Pages\Page;
  */
 class TurboSmsSettings extends Page implements HasForms
 {
-    use InteractsWithForms;
     use \App\Filament\Concerns\GatedPage;
     use \App\Filament\Concerns\RequiresModule;
+    use InteractsWithForms;
 
     protected static ?string $navigationIcon = 'heroicon-o-device-phone-mobile';
+
     protected static ?string $navigationGroup = 'Налаштування';
+
     protected static ?string $navigationLabel = 'TurboSMS';
+
     protected static ?string $title = 'TurboSMS — SMS і Viber';
+
     protected static ?int $navigationSort = 32;
 
     protected static string $view = 'turbosms::settings';
