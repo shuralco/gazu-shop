@@ -114,6 +114,7 @@
                     :selected-make="$selectedMake ?? ''"
                     :selected-model="$selectedModel ?? ''"
                     :selected-engine="$selectedEngine ?? ''"
+                    :category-url="$category ? request()->url() : null"
                 />
             </div>
         @endif

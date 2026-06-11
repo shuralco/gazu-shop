@@ -4,6 +4,7 @@
     'selectedModel' => null,
     'selectedEngine' => null,
     'initialMakes' => [],  // SSR-prefetched brand list — уникає pop-in після Alpine fetch
+    'categoryUrl' => null, // якщо задано — фільтр марки лишається в межах цієї категорії
 ])
 @php
     $apiMakes   = route('gazu.api.cars.makes');
@@ -22,6 +23,7 @@
         initialEngine: @js((string) $selectedEngine),
         initialMakes: @js($initialMakes),
         catalogUrl: @js($catalogUrl),
+        categoryUrl: @js($categoryUrl),
         autoSubmit: true,
         api: { makes: @js($apiMakes), models: @js($apiModels), engines: @js($apiEngines) },
      })"
@@ -231,6 +233,13 @@
                     const l = this.activeLevel();
                     if (l === 'make') {
                         this.make = item.slug; this.model = ''; this.engine = ''; this.models = []; this.engines = [];
+                        // У межах категорії фільтруємо одразу по марці (лишаючись на сторінці
+                        // категорії). У глобальному каталозі — продовжуємо каскад до двигуна.
+                        if (opts.categoryUrl) {
+                            this._redirecting = true;
+                            setTimeout(() => this.submit(), 250);
+                            return;
+                        }
                         this.fetchModels();
                     } else if (l === 'model') {
                         this.model = item.slug; this.engine = ''; this.engines = [];
@@ -264,11 +273,23 @@
                 reset() {
                     this.make = ''; this.model = ''; this.engine = '';
                     this.models = []; this.engines = []; this.search = ''; this.expanded = false;
-                    if (window.location.search) window.location.assign(opts.catalogUrl);
+                    // У категорії reset веде назад на чисту категорію, не на /catalog.
+                    if (window.location.search) window.location.assign(opts.categoryUrl || opts.catalogUrl);
                 },
                 submit() {
+                    // У МЕЖАХ КАТЕГОРІЇ: лишаємось на її URL, марку/модель/двигун
+                    // додаємо як query-параметри (контролер фільтрує cat+make+...).
+                    if (opts.categoryUrl) {
+                        if (!this.make) return;
+                        const qs = new URLSearchParams();
+                        qs.set('make', this.make);
+                        if (this.model)  qs.set('model', this.model);
+                        if (this.engine) qs.set('engine', this.engine);
+                        window.location.assign(opts.categoryUrl + '?' + qs.toString());
+                        return;
+                    }
+                    // ГЛОБАЛЬНИЙ каталог: pretty URL /zapchastyny/{make}/{model}/{engine}
                     if (!(this.make && this.model && this.engine)) return;
-                    // Pretty URL: /zapchastyny/{make}/{model}/{engine}
                     const segs = ['zapchastyny', this.make, this.model, this.engine].map(encodeURIComponent);
                     window.location.assign(window.location.origin + '/' + segs.join('/'));
                 },
