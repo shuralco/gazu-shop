@@ -123,6 +123,17 @@ class ModuleDiscovery
             }
             $path = $manifest['_path'];
 
+            // Провайдери модулів, увімкнених ЛИШЕ через БД (config/ENV default
+            // = false, як у installable-модулів): registerProviders() у register()
+            // фазі їх пропускає (там не можна чіпати БД), тож реєструємо тут —
+            // ця фаза DB-aware. Laravel boot'ить провайдер одразу. Ідемпотентно:
+            // якщо вже зареєстрований у register(), повторний register() — no-op.
+            foreach ($manifest['providers'] ?? [] as $providerClass) {
+                if (is_string($providerClass) && class_exists($providerClass) && ! $app->providerIsLoaded($providerClass)) {
+                    $app->register($providerClass);
+                }
+            }
+
             // Views with namespace from manifest (e.g. view('loyalty::tier.show'))
             if (! empty($manifest['views_path'])) {
                 $viewsDir = $path.'/'.ltrim($manifest['views_path'], '/');

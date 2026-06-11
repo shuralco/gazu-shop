@@ -26,6 +26,12 @@ class TurboSmsClient
         return $this->token() !== '';
     }
 
+    /** Режим імітації: відправка не б'є API, логується як «simulated». */
+    public function simulating(): bool
+    {
+        return (bool) DisplaySetting::get('turbosms_simulate', false);
+    }
+
     public function token(): string
     {
         return trim((string) DisplaySetting::get('turbosms_token', ''));
@@ -57,6 +63,16 @@ class TurboSmsClient
      */
     public function send(array $recipients, string $channel, string $smsText, ?string $viberText = null, array $viberOpts = []): array
     {
+        // Режим імітації — повний шлях без реального API (не витрачає баланс).
+        if ($this->simulating()) {
+            $ids = [];
+            foreach ($recipients as $r) {
+                $ids[$r] = 'SIM-'.substr(md5($r.$smsText), 0, 12);
+            }
+
+            return ['ok' => true, 'code' => 0, 'status' => 'SIMULATED', 'message_ids' => $ids, 'error' => null, 'raw' => ['simulated' => true, 'channel' => $channel, 'viber_opts' => $viberOpts]];
+        }
+
         if (! $this->configured()) {
             return ['ok' => false, 'code' => -1, 'status' => 'NOT_CONFIGURED', 'message_ids' => [], 'error' => 'TurboSMS token не задано (адмінка → TurboSMS)', 'raw' => []];
         }

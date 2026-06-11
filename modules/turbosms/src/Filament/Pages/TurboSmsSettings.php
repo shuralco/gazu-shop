@@ -38,8 +38,13 @@ class TurboSmsSettings extends Page implements HasForms
     public ?array $data = [];
 
     private const KEYS = [
-        'turbosms_token', 'turbosms_sms_sender', 'turbosms_viber_sender',
+        'turbosms_token', 'turbosms_sms_sender', 'turbosms_viber_sender', 'turbosms_simulate',
         'turbosms_event_order_created', 'turbosms_event_order_paid',
+        'turbosms_event_order_shipped', 'turbosms_event_status_changed',
+    ];
+
+    private const BOOL_KEYS = [
+        'turbosms_simulate', 'turbosms_event_order_created', 'turbosms_event_order_paid',
         'turbosms_event_order_shipped', 'turbosms_event_status_changed',
     ];
 
@@ -52,7 +57,7 @@ class TurboSmsSettings extends Page implements HasForms
     {
         $state = [];
         foreach (self::KEYS as $key) {
-            $state[$key] = DisplaySetting::get($key, str_contains($key, '_event_') ? false : '');
+            $state[$key] = DisplaySetting::get($key, in_array($key, self::BOOL_KEYS, true) ? false : '');
         }
         $this->form->fill($state);
     }
@@ -76,6 +81,10 @@ class TurboSmsSettings extends Page implements HasForms
                         ->label('Відправник Viber')
                         ->placeholder('= відправник SMS')
                         ->maxLength(50),
+                    Forms\Components\Toggle::make('turbosms_simulate')
+                        ->label('Режим імітації')
+                        ->helperText('Повідомлення НЕ йдуть у TurboSMS — лише пишуться в журнал як «simulated». Для тесту ланцюга без витрати балансу.')
+                        ->columnSpanFull(),
                 ])->columns(3),
 
             Forms\Components\Section::make('Події (кому і коли слати)')
@@ -101,7 +110,7 @@ class TurboSmsSettings extends Page implements HasForms
     {
         $state = $this->form->getState();
         foreach (self::KEYS as $key) {
-            DisplaySetting::set($key, $state[$key] ?? (str_contains($key, '_event_') ? false : ''));
+            DisplaySetting::set($key, $state[$key] ?? (in_array($key, self::BOOL_KEYS, true) ? false : ''));
         }
 
         Notification::make()->title('Збережено')->success()->send();

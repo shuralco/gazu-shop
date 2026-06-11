@@ -133,6 +133,36 @@ class TurboSmsTest extends TestCase
         Http::assertSent(fn ($req) => isset($req['sms']) && ! isset($req['viber']));
     }
 
+    public function test_simulate_mode_sends_no_http_and_returns_simulated(): void
+    {
+        DisplaySetting::set('turbosms_simulate', true);
+        DisplaySetting::set('turbosms_token', ''); // навіть без токена — імітація працює
+        DisplaySetting::resetRequestCache();
+        Http::fake();
+
+        $res = app(TurboSmsClient::class)->send(['380671234567'], 'hybrid', 'text');
+
+        $this->assertTrue($res['ok']);
+        $this->assertSame('SIMULATED', $res['status']);
+        $this->assertStringStartsWith('SIM-', $res['message_ids']['380671234567']);
+        Http::assertNothingSent();
+    }
+
+    public function test_job_in_simulate_mode_logs_simulated_status(): void
+    {
+        DisplaySetting::set('turbosms_simulate', true);
+        DisplaySetting::resetRequestCache();
+        Http::fake();
+
+        (new SendTemplatedSms('order.created', '0671234567', ['order' => ['id' => '9', 'total' => '50']]))
+            ->handle(app(TurboSmsClient::class));
+
+        $log = SmsMessage::sole();
+        $this->assertSame('simulated', $log->status);
+        $this->assertStringStartsWith('SIM-', $log->message_id);
+        Http::assertNothingSent();
+    }
+
     public function test_client_without_token_returns_not_configured_without_http(): void
     {
         DisplaySetting::set('turbosms_token', '');

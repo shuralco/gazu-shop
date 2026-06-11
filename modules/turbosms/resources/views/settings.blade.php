@@ -36,7 +36,7 @@
                                 <td class="py-2 pr-4"><x-filament::badge color="gray">{{ $m->template_key ?? 'ручна' }}</x-filament::badge></td>
                                 <td class="py-2 pr-4">{{ $m->channel }}</td>
                                 <td class="py-2 pr-4">
-                                    <x-filament::badge :color="match($m->status){'sent','delivered','read'=>'success','failed','rejected'=>'danger',default=>'warning'}">
+                                    <x-filament::badge :color="match($m->status){'sent','delivered','read'=>'success','failed','rejected'=>'danger','simulated'=>'info',default=>'warning'}">
                                         {{ $m->status }}
                                     </x-filament::badge>
                                 </td>
