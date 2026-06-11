@@ -95,6 +95,24 @@ if [ "$SCOUT_DRIVER" = "meilisearch" ]; then
     php artisan search:setup 2>&1 || echo "[entrypoint] WARNING: search:setup failed, continuing..."
 fi
 
+# Авто-прогрів ResponseCache: вище ми його очистили (щоб не віддавати HTML зі
+# старими asset-хешами), тож перший хіт кожної сторінки — холодний рендер (~1с
+# проти ~0.18с з кешу). У фоні чекаємо, поки Octane почне відповідати, і
+# обходимо ключові сторінки (sitemap) проти APP_URL — перший реальний
+# відвідувач отримує вже теплий кеш. Вимикається WARM_CACHE_AFTER_DEPLOY=false.
+if [ "$WARM_CACHE_AFTER_DEPLOY" != "false" ]; then
+  (
+    for i in $(seq 1 80); do
+      if curl -fsS -o /dev/null --max-time 5 "http://127.0.0.1:80/" 2>/dev/null; then
+        echo "[entrypoint] Octane відповідає — прогрів ResponseCache..."
+        php artisan cache:warm 2>&1 | sed 's/^/[warm] /'
+        break
+      fi
+      sleep 3
+    done
+  ) &
+fi
+
 echo "[entrypoint] Starting supervisord..."
 
 # Background tail of laravel.log so Coolify "logs" tab streams exceptions
