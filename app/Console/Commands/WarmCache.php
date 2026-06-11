@@ -64,17 +64,22 @@ class WarmCache extends Command
         }
 
         $this->info("Прогрів {$total} URL → {$base}");
-        @ini_set('memory_limit', '256M');
+        @ini_set('memory_limit', '512M');
         $ok = 0;
         $fail = 0;
         $t0 = microtime(true);
 
-        // Послідовно з негайним звільненням тіла — прогрів не потребує тіла
-        // відповіді (важливо лише, щоб запит дійшов і ResponseCache наповнився).
-        // Http::pool тримав би всі HTML у памʼяті → OOM на 200+ сторінках.
+        // Послідовно, БЕЗ завантаження тіла у памʼять (sink=/dev/null) — прогрів
+        // не потребує HTML, лише щоб запит дійшов і ResponseCache наповнився.
+        // На 1000+ товарах навіть відкинуте тіло + об'єкти Guzzle накопичувались
+        // → OOM. Тут: stream без буфера тіла + періодичний gc_collect_cycles.
+        $i = 0;
         foreach ($urls as $u) {
             try {
-                $code = Http::timeout(30)->withHeaders(['X-Warm' => '1'])->get($u)->status();
+                $code = Http::timeout(30)
+                    ->withHeaders(['X-Warm' => '1'])
+                    ->withOptions(['sink' => '/dev/null', 'allow_redirects' => false])
+                    ->get($u)->status();
             } catch (\Throwable) {
                 $code = 0;
             }
@@ -85,6 +90,9 @@ class WarmCache extends Command
                 if ($this->getOutput()->isVerbose()) {
                     $this->warn('  ✗ '.$u.' ('.$code.')');
                 }
+            }
+            if (++$i % 50 === 0) {
+                gc_collect_cycles();
             }
         }
 
