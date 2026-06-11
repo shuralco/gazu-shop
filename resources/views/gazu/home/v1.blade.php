@@ -12,7 +12,7 @@
                     $s = $gazuSettings ?? [];
                     $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Запчастини для китайських авто';
                     $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Підбір по авто';
-                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">марку</span> і двигун.';
+                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">маркою</span> і двигуном.';
                 @endphp
                 <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5">{{ $heroSubtitle }}</div>
                 <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(28px, 5.2vw, 52px); line-height: 1.05; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">

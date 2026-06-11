@@ -116,17 +116,12 @@ class GazuVisualSettings extends Page implements HasForms
 
         // Contacts
         'gazu_contacts_map' => null,            // Google Maps iframe embed або URL
-        'gazu_contacts_email' => 'support@gazu.ua',
-        'gazu_contacts_telegram' => '@gazu_support',
-        'gazu_contacts_viber' => '+380 67 123 45 67',
-        'gazu_contacts_offices' => [
-            ['city' => 'Київ', 'addr' => 'вул. Хрещатик, 22'],
-            ['city' => 'Львів', 'addr' => 'вул. Городоцька, 134'],
-            ['city' => 'Дніпро', 'addr' => 'пр. Поля, 18'],
-            ['city' => 'Одеса', 'addr' => 'вул. Грушевського, 17'],
-            ['city' => 'Харків', 'addr' => 'вул. Сумська, 56'],
-            ['city' => 'Запоріжжя', 'addr' => 'пр. Соборний, 91'],
-        ],
+        // Реальні контакти/адреси вписує клієнт (Налаштування → GAZU візуальні
+        // блоки → Контакти). Дефолти нейтральні: НЕ вигадуємо месенджери/адреси.
+        'gazu_contacts_email' => 'info@gazu.uno',
+        'gazu_contacts_telegram' => '',
+        'gazu_contacts_viber' => '',
+        'gazu_contacts_offices' => [],
 
         // 404 / cart empty
         'gazu_404_title' => 'Запчастину не знайдено',
@@ -172,7 +167,7 @@ class GazuVisualSettings extends Page implements HasForms
         // Hero
         'gazu_hero_subtitle' => 'Запчастини для китайських авто',
         'gazu_hero_title_1' => 'Підбір по авто',
-        'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">марку</span> і двигун.',
+        'gazu_hero_title_2_html' => 'за <span style="color:var(--gazu-blue)">маркою</span> і двигуном.',
         'gazu_hero_description' => null, // composed from shopStats.warehouses_label
 
         // Hero V1 — visual картка справа (демо-товар у hero)
