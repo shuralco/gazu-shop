@@ -61,17 +61,17 @@
                 @endif
                 <div>
                     <div class="text-xs text-[var(--gazu-graphite)] mb-0.5">Доставка</div>
-                    <div class="text-[var(--gazu-ink)]">{{ ucfirst($order->shipping_method ?? '—') }}</div>
+                    <div class="text-[var(--gazu-ink)]">{{ \App\Support\OrderLabels::shipping($order->shipping_method) }}@if($t = \App\Support\OrderLabels::shippingType($order->shipping_warehouse_type)) · {{ $t }}@endif</div>
                     @if($order->shipping_city || $order->shipping_warehouse)
                         <div class="text-xs text-[var(--gazu-graphite)]">{{ trim(($order->shipping_city ?? '').' · '.($order->shipping_warehouse ?? '')) }}</div>
                     @endif
                 </div>
                 <div>
                     <div class="text-xs text-[var(--gazu-graphite)] mb-0.5">Оплата</div>
-                    <div class="text-[var(--gazu-ink)]">{{ ucfirst($order->payment_method ?? '—') }}</div>
+                    <div class="text-[var(--gazu-ink)]">{{ \App\Support\OrderLabels::payment($order->payment_method) }}</div>
                     <div class="text-xs gazu-mono inline-block px-2 py-0.5 rounded mt-0.5"
                          style="background: var(--gazu-{{ $order->payment_status === 'paid' ? 'success' : 'warn' }}-bg); color: var(--gazu-{{ $order->payment_status === 'paid' ? 'success' : 'warn' }})">
-                        {{ $order->payment_status === 'paid' ? 'Сплачено' : 'Очікує оплати' }}
+                        {{ \App\Support\OrderLabels::paymentStatus($order->payment_status) }}
                     </div>
                 </div>
                 @if($order->note)

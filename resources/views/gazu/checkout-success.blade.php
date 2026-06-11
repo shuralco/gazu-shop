@@ -2,12 +2,9 @@
 @section('title', 'Замовлення оформлено — GAZU')
 
 @php
-    $methodLabels = ['novaposhta' => 'Нова Пошта', 'ukrposhta' => 'УкрПошта', 'pickup' => 'Самовивіз з магазину'];
-    $typeLabels = ['branch' => 'Відділення', 'postomat' => 'Поштомат', 'np_courier' => 'Курʼєр НП'];
-    $paymentLabels = ['card' => 'Картою онлайн', 'applepay' => 'Apple Pay / Google Pay', 'cod' => 'Накладений платіж', 'invoice' => 'Рахунок (гуртом)'];
     $shippingData = is_array($order->shipping_data) ? $order->shipping_data : (json_decode($order->shipping_data ?? '[]', true) ?: []);
-    $shippingMethod = $methodLabels[$order->shipping_method ?? ''] ?? ucfirst($order->shipping_method ?? '—');
-    $shippingType = $typeLabels[$order->shipping_warehouse_type ?? ''] ?? null;
+    $shippingMethod = \App\Support\OrderLabels::shipping($order->shipping_method);
+    $shippingType = \App\Support\OrderLabels::shippingType($order->shipping_warehouse_type);
     $items = $order->orderProducts ?? collect();
 @endphp
 
@@ -113,7 +110,7 @@
         <div class="bg-[var(--gazu-paper)] rounded-lg p-5 mb-6">
             <div class="flex justify-between mb-2 text-sm">
                 <span class="text-[var(--gazu-graphite)]">Спосіб оплати</span>
-                <span class="font-medium">{{ $paymentLabels[$order->payment_method ?? ''] ?? ucfirst($order->payment_method ?? '—') }}</span>
+                <span class="font-medium">{{ \App\Support\OrderLabels::payment($order->payment_method) }}</span>
             </div>
             @if((float) $order->shipping_cost > 0)
                 <div class="flex justify-between mb-2 text-sm">
