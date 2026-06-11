@@ -15,7 +15,11 @@ return [
     |
     */
 
-    'default' => env('CACHE_STORE', 'database'),
+    // Fallback на легасі CACHE_DRIVER: Laravel 11 перейменував env на
+    // CACHE_STORE, але багато .env (вкл. наш прод) досі мають CACHE_DRIVER=redis.
+    // Без цього fallback cache.default мовчки = 'database' → кеш у MySQL-таблицю
+    // (на сторінці категорії це давало 500+ зайвих SQL-запитів до `cache`).
+    'default' => env('CACHE_STORE', env('CACHE_DRIVER', 'database')),
 
     /*
     |--------------------------------------------------------------------------
