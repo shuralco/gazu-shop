@@ -85,9 +85,10 @@ class TurboSmsClient
         if (in_array($channel, [SmsChannel::VIBER, SmsChannel::HYBRID], true)) {
             $viber = ['sender' => $this->viberSender(), 'text' => $viberText ?: $smsText];
             if (! empty($viberOpts['button_text']) && ! empty($viberOpts['button_url'])) {
+                // Задокументована пара для кнопки. Зайвих полів НЕ додаємо —
+                // невідоме поле шлюз може відхилити (перевірка наживо не робилась).
                 $viber['caption'] = (string) $viberOpts['button_text'];
                 $viber['action'] = (string) $viberOpts['button_url'];
-                $viber['count_clicks'] = 1; // обовʼязковий при caption/action — лічильник переходів
             }
             if (! empty($viberOpts['image_url'])) {
                 $viber['image_url'] = (string) $viberOpts['image_url'];

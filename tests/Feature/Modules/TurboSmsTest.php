@@ -115,7 +115,7 @@ class TurboSmsTest extends TestCase
             return $req['sms']['sender'] === 'GAZU'
                 && $req['viber']['caption'] === 'Відстежити'
                 && $req['viber']['action'] === 'https://x/1'
-                && $req['viber']['count_clicks'] === 1
+                && ! isset($req['viber']['count_clicks']) // зайвих полів не шлемо
                 && $req['viber']['is_transactional'] === 1
                 && $req['viber']['ttl'] === 7200;
         });

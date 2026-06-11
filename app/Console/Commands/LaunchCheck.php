@@ -96,6 +96,18 @@ class LaunchCheck extends Command
             ? $add('OK', 'Онлайн-оплата', 'увімкнена (перевірте ключі шлюзу і SANDBOX=false)')
             : $add('WARN', 'Онлайн-оплата', 'вимкнена (gazu_payment_enabled=false) — лише накладений платіж');
 
+        // --- 5b. SMS/TurboSMS — щоб не відвантажити «налаштований» модуль у
+        // режимі імітації (виглядає робочим, але реальні SMS НЕ йдуть). ---------
+        if (class_exists(\App\Support\ModuleManager::class) && \App\Support\ModuleManager::for('turbosms')->enabled()) {
+            if (DisplaySetting::get('turbosms_simulate', false)) {
+                $add('FAIL', 'TurboSMS', 'РЕЖИМ ІМІТАЦІЇ увімкнено — реальні SMS НЕ відправляються (адмінка → TurboSMS → вимкнути)');
+            } elseif (! trim((string) DisplaySetting::get('turbosms_token', ''))) {
+                $add('WARN', 'TurboSMS', 'модуль увімкнено, але токен не заданий — відправки логуються як NOT_CONFIGURED');
+            } else {
+                $add('OK', 'TurboSMS', 'токен заданий, режим бойовий');
+            }
+        }
+
         // --- 6. Середовище ---------------------------------------------------------
         config('app.debug')
             ? $add('FAIL', 'APP_DEBUG', 'true — на проді має бути false')
