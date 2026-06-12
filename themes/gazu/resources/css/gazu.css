@@ -434,14 +434,14 @@ a:focus-visible {
 /* Поля форми: мʼякий нейтральний focus-ring замість різкої синьої рамки
  * з відступом. Текстові інпути завжди матчать :focus-visible (навіть при
  * програмному .focus()), тому автофокусні поля (1-click модалка) відкривались
- * обрамлені синім — виглядало як «постійно активне синє поле». Тепер фокус
- * показується тонким ink-ореолом, узгоджено з per-component focus:border. */
+ * обрамлені синім — виглядало як «постійно активне синє поле». Тепер фокус =
+ * лише чиста ink-рамка (узгоджено з per-component focus:border). БЕЗ box-shadow
+ * ореолу — у компактних popover (callback, 1-click) він виглядав важко/«фоново». */
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
     outline: none;
     border-color: var(--gazu-ink);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gazu-ink) 12%, transparent);
 }
 /* Hide outline для mouse interactions (стандартна Tailwind поведінка) */
 :focus:not(:focus-visible) {
