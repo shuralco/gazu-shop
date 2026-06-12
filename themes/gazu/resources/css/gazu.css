@@ -115,8 +115,11 @@ html.gazu, body.gazu {
 .gazu-grid-buy-left { display: grid; gap: 32px; grid-template-columns: 1fr; }
 @media (min-width: 1024px) { .gazu-grid-buy-left { grid-template-columns: 480px 1fr; } }
 
-.gazu-grid-cart { display: grid; gap: 28px; grid-template-columns: 1fr; }
-@media (min-width: 1024px) { .gazu-grid-cart { grid-template-columns: 1fr 360px; } }
+/* minmax(0,…) дозволяє трекам стискатися нижче min-content дитини — інакше
+   широкий нерозривний контент (телефонні маски, інпути) роздував 1fr-колонку
+   ширше за viewport → горизонтальний скрол на мобільному (cart + checkout). */
+.gazu-grid-cart { display: grid; gap: 28px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) { .gazu-grid-cart { grid-template-columns: minmax(0, 1fr) 360px; } }
 
 .gazu-grid-account { display: grid; gap: 28px; grid-template-columns: 1fr; }
 @media (min-width: 1024px) { .gazu-grid-account { grid-template-columns: 280px 1fr; } }
