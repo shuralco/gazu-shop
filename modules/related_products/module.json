@@ -14,12 +14,19 @@
     "filament_resources": [
         "App\\Filament\\Resources\\FilterLandingResource"
     ],
-    "filament_pages": [],
+    "filament_pages": [
+        "App\\Filament\\Pages\\VariantPickerSettings"
+    ],
     "migrations_path": "database/migrations",
     "views_path": "resources/views",
     "views_namespace": "related_products",
     "routes": "routes/web.php",
     "settings_schema": {
+        "picker_enabled": {
+            "type": "boolean",
+            "default": true,
+            "label": "Показувати variant picker на сторінці товару"
+        },
         "max_variants_displayed": {
             "type": "integer",
             "default": 50,
