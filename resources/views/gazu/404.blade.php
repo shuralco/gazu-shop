@@ -19,11 +19,14 @@
 @endphp
 <section class="gazu-container py-12 sm:py-20">
     <div class="max-w-2xl mx-auto text-center">
+        @php $badge404 = trim((string) ($s['gazu_404_badge'] ?? '')); @endphp
         <div class="relative inline-block">
             <div class="gazu-display font-bold text-[var(--gazu-ink)] m-0 leading-none tracking-tight" style="font-size: clamp(80px, 16vw, 160px); letter-spacing: -0.05em;">404</div>
-            <div class="absolute -top-2 -right-6 sm:-right-10 rotate-12">
-                <span class="inline-block px-3 py-1 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] rounded-md gazu-mono text-[11px] uppercase tracking-widest font-bold shadow-[0_8px_16px_-8px_rgba(178,59,59,0.4)]">Loose</span>
-            </div>
+            @if($badge404 !== '')
+                <div class="absolute -top-2 -right-6 sm:-right-10 rotate-12">
+                    <span class="inline-block px-3 py-1 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] rounded-md gazu-mono text-[11px] uppercase tracking-widest font-bold shadow-[0_8px_16px_-8px_rgba(178,59,59,0.4)]">{{ $badge404 }}</span>
+                </div>
+            @endif
         </div>
 
         <h1 class="gazu-display text-[24px] sm:text-[32px] font-semibold text-[var(--gazu-ink)] mt-5 mb-3 leading-tight">{{ $title }}</h1>
