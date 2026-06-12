@@ -1,6 +1,6 @@
 @extends('gazu.layout')
-@section('title', $title . ' — GAZU')
-@section('description', $intro ?? $title)
+@section('title', \App\Support\SeoTemplates::title('page', ['name' => $title]))
+@section('description', ($intro ?? null) ?: \App\Support\SeoTemplates::description('page', ['name' => $title]))
 
 @section('content')
 <div class="gazu-container py-8 max-w-3xl">

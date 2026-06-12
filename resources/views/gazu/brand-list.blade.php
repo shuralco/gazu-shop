@@ -1,5 +1,6 @@
 @extends('gazu.layout')
-@section('title', 'Усі бренди — GAZU')
+@section('title', \App\Support\SeoTemplates::title('brands'))
+@section('description', \App\Support\SeoTemplates::description('brands'))
 
 @section('content')
 <div class="gazu-container">

@@ -553,17 +553,16 @@ class ProductResource extends Resource
                                                 $set('slug', $urlService->generateSlug($title));
                                             }
 
-                                            // Генеруємо SEO title
-                                            $titleTemplate = \App\Models\DisplaySetting::get('seo_product_title_template', 'Купити %s | SimpleShop');
-                                            $seoTitle = sprintf($titleTemplate, $title);
-                                            $set('seo_title', $seoTitle);
-
-                                            // Генеруємо SEO description
-                                            $price = $get('price') ?: '0';
-                                            $descriptionTemplate = \App\Models\DisplaySetting::get('seo_product_description_template', 'Купити %s за найкращою ціною %s грн. %s. Швидка доставка по Україні.');
-                                            $productDescription = $description ? substr(strip_tags($description), 0, 100) : 'Якісний товар';
-                                            $seoDescription = sprintf($descriptionTemplate, $title, $price, $productDescription);
-                                            $set('seo_description', $seoDescription);
+                                            // Генеруємо SEO title/description за шаблонами таксономії «Товари»
+                                            $seoVars = [
+                                                'name' => $title,
+                                                'price' => number_format((float) ($get('price') ?: 0), 0, '.', ' '),
+                                                'sku' => (string) ($get('sku') ?? ''),
+                                                'brand' => (string) ($get('manufacturer') ?? ''),
+                                                'excerpt' => $description ? \Illuminate\Support\Str::limit(strip_tags($description), 100, '') : '',
+                                            ];
+                                            $set('seo_title', \App\Support\SeoTemplates::title('product', $seoVars));
+                                            $set('seo_description', \App\Support\SeoTemplates::description('product', $seoVars));
 
                                             // Генеруємо keywords
                                             $keywords = [strtolower($title)];

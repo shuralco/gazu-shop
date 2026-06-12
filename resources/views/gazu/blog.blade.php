@@ -1,5 +1,6 @@
 @extends('gazu.layout')
-@section('title', 'Блог — GAZU')
+@section('title', \App\Support\SeoTemplates::title('blog'))
+@section('description', \App\Support\SeoTemplates::description('blog'))
 
 @php
     $imgKinds = ['oil','wiper','pad','bearing','spark','filter','bulb','shock'];

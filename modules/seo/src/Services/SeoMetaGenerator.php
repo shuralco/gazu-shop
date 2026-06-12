@@ -109,11 +109,12 @@ class SeoMetaGenerator
 
     public function generateForCategory(Category $category, string $language = 'uk'): array
     {
-        $titleTemplate = DisplaySetting::get('seo_category_title_template', '%s | SimpleShop');
-        $descriptionTemplate = DisplaySetting::get('seo_category_description_template', 'Великий вибір товарів у категорії %s. Швидка доставка по Україні. Гарантія якості.');
-
-        $title = sprintf($titleTemplate, $category->title);
-        $description = sprintf($descriptionTemplate, $category->title);
+        $vars = [
+            'name' => (string) $category->title,
+            'count' => \plural_uk_count($category->products()->where('is_active', true)->count(), 'товар', 'товари', 'товарів'),
+        ];
+        $title = \App\Support\SeoTemplates::title('category', $vars);
+        $description = \App\Support\SeoTemplates::description('category', $vars);
         $keywords = $category->title.', купити '.strtolower($category->title).', '.strtolower($category->title).' ціна';
 
         return [
@@ -127,12 +128,17 @@ class SeoMetaGenerator
 
     public function generateForProduct(Product $product, string $language = 'uk'): array
     {
-        $titleTemplate = DisplaySetting::get('seo_product_title_template', 'Купити %s за %s грн | SimpleShop');
-        $descriptionTemplate = DisplaySetting::get('seo_product_description_template', 'Купити %s за найкращою ціною %s грн. %s. Швидка доставка по Україні.');
-
         $formattedPrice = number_format($product->price, 0, ',', ' ');
-        $title = sprintf($titleTemplate, $product->title, $formattedPrice);
-        $description = sprintf($descriptionTemplate, $product->title, $formattedPrice, $product->excerpt ?? 'Якісний товар');
+        $vars = [
+            'name' => (string) $product->title,
+            'price' => $formattedPrice,
+            'sku' => (string) ($product->sku ?? ''),
+            'brand' => (string) ($product->manufacturer ?? $product->brandModel?->name ?? ''),
+            'category' => (string) ($product->category?->title ?? ''),
+            'excerpt' => \Illuminate\Support\Str::limit(strip_tags((string) ($product->excerpt ?? '')), 100, ''),
+        ];
+        $title = \App\Support\SeoTemplates::title('product', $vars);
+        $description = \App\Support\SeoTemplates::description('product', $vars);
         $keywords = $product->title.', купити '.strtolower($product->title).', '.strtolower($product->title).' ціна, '.($product->category?->title ?? 'товари');
 
         return [

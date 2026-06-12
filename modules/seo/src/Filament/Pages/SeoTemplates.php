@@ -39,84 +39,72 @@ class SeoTemplates extends Page implements HasForms
 
     public function mount(): void
     {
-        $this->form->fill([
-            'category_title_template' => DisplaySetting::get('seo_category_title_template', '%s | SimpleShop'),
-            'category_description_template' => DisplaySetting::get('seo_category_description_template', 'Великий вибір товарів у категорії %s. Швидка доставка по Україні. Гарантія якості.'),
-            'product_title_template' => DisplaySetting::get('seo_product_title_template', 'Купити %s за %s грн | SimpleShop'),
-            'product_description_template' => DisplaySetting::get('seo_product_description_template', 'Купити %s за найкращою ціною %s грн. %s. Швидка доставка по Україні.'),
-            'page_title_template' => DisplaySetting::get('seo_page_title_template', '%s | SimpleShop'),
-            'page_description_template' => DisplaySetting::get('seo_page_description_template', '%s - корисна інформація від SimpleShop.'),
-            'home_title' => DisplaySetting::get('seo_home_title', 'SimpleShop - Інтернет-магазин якісних товарів'),
-            'home_description' => DisplaySetting::get('seo_home_description', 'Великий вибір якісних товарів за найкращими цінами. Швидка доставка по Україні. Гарантія якості.'),
-            'robots_txt_content' => $this->getCurrentRobotsContent(),
-        ]);
+        $this->form->fill(array_merge(
+            $this->templateState(),
+            ['robots_txt_content' => $this->getCurrentRobotsContent()],
+        ));
     }
+
+    /**
+     * Поточний стан усіх шаблонів: override з DisplaySetting або базовий
+     * GAZU-дефолт із \App\Support\SeoTemplates::DEFAULTS (єдине джерело).
+     */
+    private function templateState(): array
+    {
+        $state = [];
+        foreach (\App\Support\SeoTemplates::DEFAULTS as $key => $fields) {
+            foreach (['title', 'description'] as $field) {
+                $state[$this->fieldName($key, $field)] = \App\Support\SeoTemplates::template($key, $field);
+            }
+        }
+
+        return $state;
+    }
+
+    /** Ім'я поля форми: home → home_title, інші → {key}_{field}_template. */
+    private function fieldName(string $key, string $field): string
+    {
+        return $key === 'home' ? "home_{$field}" : "{$key}_{$field}_template";
+    }
+
+    /** Розділи шаблонів: ключ таксономії => [заголовок секції, доступні плейсхолдери]. */
+    private const SECTIONS = [
+        'home' => ['🏠 Головна сторінка', '{shop}'],
+        'category' => ['🏷️ Категорії', '{name} — назва категорії, {count} — к-сть товарів, {shop}'],
+        'product' => ['📦 Товари', '{name}, {price}, {sku}, {brand} — виробник, {category}, {excerpt}, {shop}'],
+        'brand' => ['🏭 Сторінка бренду', '{name} — назва бренду, {count} — к-сть товарів, {shop}'],
+        'brands' => ['🗂️ Список усіх брендів', '{shop}'],
+        'car' => ['🚗 Каталог за авто (марка/модель/рік)', '{car} — напр. «Chery Tiggo 7 2020», {count}, {shop}'],
+        'search' => ['🔍 Результати пошуку', '{query} — запит, {count} — знайдено, {shop}'],
+        'page' => ['📄 Інфо-сторінки', '{name} — назва сторінки, {shop}'],
+        'blog' => ['📰 Блог (список статей)', '{shop}'],
+        'blog_post' => ['📝 Стаття блогу', '{name} — заголовок статті, {shop}'],
+    ];
 
     public function form(Form $form): Form
     {
+        $sections = [];
+        foreach (self::SECTIONS as $key => [$label, $placeholders]) {
+            $sections[] = Section::make($label)
+                ->collapsible()
+                ->collapsed($key !== 'home')
+                ->schema([
+                    TextInput::make($this->fieldName($key, 'title'))
+                        ->label('Шаблон заголовку (title)')
+                        ->helperText('Плейсхолдери: '.$placeholders)
+                        ->required(),
+                    Textarea::make($this->fieldName($key, 'description'))
+                        ->label('Шаблон опису (description)')
+                        ->helperText('Плейсхолдери: '.$placeholders)
+                        ->rows(3)
+                        ->required(),
+                ])
+                ->columns(1);
+        }
+
         return $form
             ->schema([
-                Section::make('🏠 Головна сторінка')
-                    ->schema([
-                        TextInput::make('home_title')
-                            ->label('Заголовок головної сторінки')
-                            ->maxLength(60)
-                            ->required(),
-                        Textarea::make('home_description')
-                            ->label('Опис головної сторінки')
-                            ->maxLength(160)
-                            ->rows(3)
-                            ->required(),
-                    ])
-                    ->columns(1),
-
-                Section::make('🏷️ Шаблони для категорій')
-                    ->schema([
-                        TextInput::make('category_title_template')
-                            ->label('Шаблон заголовку')
-                            ->placeholder('%s - назва категорії')
-                            ->helperText('Використовуйте %s для підстановки назви категорії')
-                            ->required(),
-                        Textarea::make('category_description_template')
-                            ->label('Шаблон опису')
-                            ->placeholder('Великий вибір товарів у категорії %s')
-                            ->helperText('Використовуйте %s для підстановки назви категорії')
-                            ->rows(3)
-                            ->required(),
-                    ])
-                    ->columns(1),
-
-                Section::make('📦 Шаблони для товарів')
-                    ->schema([
-                        TextInput::make('product_title_template')
-                            ->label('Шаблон заголовку')
-                            ->placeholder('Купити %s за %s грн')
-                            ->helperText('Перший %s - назва товару, другий %s - ціна')
-                            ->required(),
-                        Textarea::make('product_description_template')
-                            ->label('Шаблон опису')
-                            ->placeholder('Купити %s за найкращою ціною %s грн. %s.')
-                            ->helperText('Перший %s - назва, другий %s - ціна, третій %s - опис')
-                            ->rows(3)
-                            ->required(),
-                    ])
-                    ->columns(1),
-
-                Section::make('📄 Шаблони для статичних сторінок')
-                    ->schema([
-                        TextInput::make('page_title_template')
-                            ->label('Шаблон заголовку')
-                            ->placeholder('%s | SimpleShop')
-                            ->helperText('Використовуйте %s для підстановки назви сторінки')
-                            ->required(),
-                        Textarea::make('page_description_template')
-                            ->label('Шаблон опису')
-                            ->placeholder('%s - корисна інформація від SimpleShop')
-                            ->helperText('Використовуйте %s для підстановки назви сторінки')
-                            ->rows(3)
-                            ->required(),
-                    ])
-                    ->columns(1),
+                ...$sections,
 
                 Section::make('🤖 Robots.txt')
                     ->schema([
@@ -199,7 +187,9 @@ class SeoTemplates extends Page implements HasForms
 
         foreach ($data as $key => $value) {
             if ($key === 'robots_txt_content') {
-                \Illuminate\Support\Facades\Storage::disk('public')->put('robots.txt', $value);
+                // Пишемо туди ж, звідки читає getCurrentRobotsContent() і
+                // звідки реально серветься /robots.txt (public/, не storage/).
+                @file_put_contents(public_path('robots.txt'), $value);
 
                 continue;
             }
@@ -228,17 +218,15 @@ class SeoTemplates extends Page implements HasForms
 
     public function resetToDefaults(): void
     {
-        $this->form->fill([
-            'category_title_template' => '%s | SimpleShop',
-            'category_description_template' => 'Великий вибір товарів у категорії %s. Швидка доставка по Україні. Гарантія якості.',
-            'product_title_template' => 'Купити %s за %s грн | SimpleShop',
-            'product_description_template' => 'Купити %s за найкращою ціною %s грн. %s. Швидка доставка по Україні.',
-            'page_title_template' => '%s | SimpleShop',
-            'page_description_template' => '%s - корисна інформація від SimpleShop.',
-            'home_title' => 'SimpleShop - Інтернет-магазин якісних товарів',
-            'home_description' => 'Великий вибір якісних товарів за найкращими цінами. Швидка доставка по Україні. Гарантія якості.',
-            'robots_txt_content' => $this->getDefaultRobotsContent(),
-        ]);
+        $defaults = [];
+        foreach (\App\Support\SeoTemplates::DEFAULTS as $key => $fields) {
+            foreach (['title', 'description'] as $field) {
+                $defaults[$this->fieldName($key, $field)] = $fields[$field] ?? '';
+            }
+        }
+        $defaults['robots_txt_content'] = $this->getDefaultRobotsContent();
+
+        $this->form->fill($defaults);
 
         Notification::make()
             ->title('Шаблони скинуто')
@@ -317,8 +305,20 @@ Allow: /
             'category_description_template' => 'Шаблон опису категорії',
             'product_title_template' => 'Шаблон заголовку товару',
             'product_description_template' => 'Шаблон опису товару',
+            'brand_title_template' => 'Шаблон заголовку бренду',
+            'brand_description_template' => 'Шаблон опису бренду',
+            'brands_title_template' => 'Шаблон заголовку списку брендів',
+            'brands_description_template' => 'Шаблон опису списку брендів',
+            'car_title_template' => 'Шаблон заголовку каталогу за авто',
+            'car_description_template' => 'Шаблон опису каталогу за авто',
+            'search_title_template' => 'Шаблон заголовку пошуку',
+            'search_description_template' => 'Шаблон опису пошуку',
             'page_title_template' => 'Шаблон заголовку сторінки',
             'page_description_template' => 'Шаблон опису сторінки',
+            'blog_title_template' => 'Шаблон заголовку блогу',
+            'blog_description_template' => 'Шаблон опису блогу',
+            'blog_post_title_template' => 'Шаблон заголовку статті блогу',
+            'blog_post_description_template' => 'Шаблон опису статті блогу',
             'home_title' => 'Заголовок головної сторінки',
             'home_description' => 'Опис головної сторінки',
         ];
