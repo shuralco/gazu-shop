@@ -234,12 +234,15 @@ class CheckoutController extends Controller
         try {
             $vars = ['order' => [
                 'id' => $order->id,
-                'customer_name' => $order->name ?: ($order->email ?: 'Клієнт'),
+                'customer_name' => $order->name
+                    ?: (trim(($order->first_name ?? '').' '.($order->last_name ?? ''))
+                        ?: ($order->email ?: 'Клієнт')),
                 'phone' => $order->phone ?? '',
                 'email' => $order->email ?? '',
                 'total' => number_format((float) ($order->total ?? 0), 0, '.', ' '),
-                'delivery_method' => $order->delivery_method ?? '—',
-                'delivery_city' => $order->delivery_city ?? '',
+                // Реальні поля Order — shipping_*, не delivery_* (раніше → завжди «—»/порожньо).
+                'delivery_method' => $order->shipping_method ?: '—',
+                'delivery_city' => $order->shipping_city ?: '',
                 'url' => url('/kabinet/zamovlennya/'.$order->id),
                 'admin_url' => url('/admin/orders/'.$order->id.'/edit'),
             ]];

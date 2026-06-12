@@ -69,7 +69,11 @@ return [
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => (int) env('REDIS_QUEUE_RETRY_AFTER', 90),
             'block_for' => null,
-            'after_commit' => false,
+            // true: queued-джоби, диспатчені всередині DB::transaction (напр.
+            // OrderObserver::created → OrderCreated/NewOrderAdmin нотифікації),
+            // чекають коміту. Інакше воркер бере джобу до коміту → order ще не
+            // видно → ModelNotFoundException, лист про замовлення не доходить.
+            'after_commit' => true,
         ],
 
     ],
