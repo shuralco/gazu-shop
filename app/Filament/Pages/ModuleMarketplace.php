@@ -157,11 +157,19 @@ class ModuleMarketplace extends Page
         foreach (app(IntegrationManager::class)->all() as $key => $integration) {
             $group = $intGroupMap[$integration->getGroup()] ?? 'tools';
             $status = method_exists($integration, 'getStatus') ? $integration->getStatus() : [];
-            $configUrl = null;
+
+            // Завжди даємо робочий лінк на універсальну config-сторінку
+            // (/admin/integration-config/{key} рендерить getConfigFields()).
+            // Якщо інтеграція має dedicated-сторінку — getSettingsRoute()
+            // повертає ІМʼЯ роуту, резолвимо його через route().
+            $configUrl = url('/admin/integration-config/'.$key);
             try {
-                $configUrl = $integration->getSettingsRoute() ?: $integration->getGenericConfigUrl();
+                $route = $integration->getSettingsRoute();
+                if (is_string($route) && $route !== '') {
+                    $configUrl = route($route);
+                }
             } catch (\Throwable) {
-                $configUrl = null;
+                // лишаємо універсальний URL
             }
 
             $groups[$group]['items'][] = [
