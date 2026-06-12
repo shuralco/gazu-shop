@@ -427,12 +427,21 @@ html.gazu, body.gazu {
     border-radius: 3px;
 }
 button:focus-visible,
-a:focus-visible,
+a:focus-visible {
+    outline: 2px solid var(--gazu-blue);
+    outline-offset: 2px;
+}
+/* Поля форми: мʼякий нейтральний focus-ring замість різкої синьої рамки
+ * з відступом. Текстові інпути завжди матчать :focus-visible (навіть при
+ * програмному .focus()), тому автофокусні поля (1-click модалка) відкривались
+ * обрамлені синім — виглядало як «постійно активне синє поле». Тепер фокус
+ * показується тонким ink-ореолом, узгоджено з per-component focus:border. */
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-    outline: 2px solid var(--gazu-blue);
-    outline-offset: 2px;
+    outline: none;
+    border-color: var(--gazu-ink);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--gazu-ink) 12%, transparent);
 }
 /* Hide outline для mouse interactions (стандартна Tailwind поведінка) */
 :focus:not(:focus-visible) {
