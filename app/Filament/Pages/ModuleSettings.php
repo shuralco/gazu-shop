@@ -40,6 +40,16 @@ class ModuleSettings extends Page
     protected static string $view = 'filament.pages.module-settings';
 
     /**
+     * Приховано з меню — обʼєднано в єдину сторінку «Розширення»
+     * (App\Filament\Pages\ModuleMarketplace). Лишається доступною за URL
+     * /admin/modules заради старих закладок і прямих посилань.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
+    /**
      * @var array<string,array<string,mixed>>  key → settings array
      */
     public array $settings = [];

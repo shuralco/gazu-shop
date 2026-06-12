@@ -3,6 +3,8 @@
 namespace App\Filament\Pages;
 
 use App\Models\Module;
+use App\Services\Integrations\IntegrationManager;
+use App\Services\Marketplace\LicenseClient;
 use App\Support\ModuleDiscovery;
 use App\Support\ModuleManager;
 use App\Support\Modules\ModuleActivityLogger;
@@ -37,13 +39,13 @@ class ModuleMarketplace extends Page
 
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
 
-    protected static ?string $navigationGroup = 'Налаштування';
+    protected static ?string $navigationGroup = 'Система';
 
-    protected static ?string $navigationLabel = 'Маркетплейс модулів';
+    protected static ?string $navigationLabel = 'Розширення';
 
-    protected static ?string $title = 'Маркетплейс модулів';
+    protected static ?string $title = 'Розширення';
 
-    protected static ?int $navigationSort = 52;
+    protected static ?int $navigationSort = 18;
 
     protected static ?string $slug = 'module-marketplace';
 
@@ -64,13 +66,13 @@ class ModuleMarketplace extends Page
     }
 
     /**
-     * Прихований з навігації — функціонал злито в єдину сторінку «Модулі»
-     * (App\Filament\Pages\ModuleSettings, slug `modules`). Сторінка лишається
-     * доступною за прямим URL заради старих закладок, але не дублює меню.
+     * Канонічна сторінка «Розширення» — єдина точка для модулів, інтеграцій
+     * і майбутнього магазину. Старі сторінки «Модулі» (ModuleSettings) та
+     * «Інтеграції» (IntegrationsPage) приховані з меню, але доступні за URL.
      */
     public static function shouldRegisterNavigation(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -79,82 +81,105 @@ class ModuleMarketplace extends Page
      *
      * @return array<string,array{label:string,icon:string,modules:array<int,array<string,mixed>>}>
      */
+    /**
+     * Уніфікована вітрина: модулі (ModuleManager) + інтеграції
+     * (IntegrationManager) розкладені в ОДНУ таксономію категорій. Кожна
+     * картка має 'type' => 'module' | 'integration'.
+     *
+     * @return array<string,array{label:string,icon:string,items:array<int,array<string,mixed>>}>
+     */
     public function getCategories(): array
     {
         $groups = [
-            'shipping' => ['label' => 'Доставка', 'icon' => 'heroicon-o-truck', 'modules' => []],
-            'inventory' => ['label' => 'Склад / B2B', 'icon' => 'heroicon-o-cube', 'modules' => []],
-            'marketing' => ['label' => 'Маркетинг / лояльність', 'icon' => 'heroicon-o-megaphone', 'modules' => []],
-            'content' => ['label' => 'Контент / SEO', 'icon' => 'heroicon-o-document-text', 'modules' => []],
-            'payments' => ['label' => 'Оплата', 'icon' => 'heroicon-o-credit-card', 'modules' => []],
-            'auto' => ['label' => 'Auto-parts', 'icon' => 'heroicon-o-wrench-screwdriver', 'modules' => []],
-            'tools' => ['label' => 'Інструменти', 'icon' => 'heroicon-o-cog-6-tooth', 'modules' => []],
+            'payments' => ['label' => 'Платежі', 'icon' => 'heroicon-o-credit-card', 'items' => []],
+            'shipping' => ['label' => 'Доставка', 'icon' => 'heroicon-o-truck', 'items' => []],
+            'fiscal' => ['label' => 'Фіскалізація', 'icon' => 'heroicon-o-receipt-percent', 'items' => []],
+            'inventory' => ['label' => 'Склад / B2B', 'icon' => 'heroicon-o-cube', 'items' => []],
+            'marketing' => ['label' => 'Маркетинг / лояльність', 'icon' => 'heroicon-o-megaphone', 'items' => []],
+            'analytics' => ['label' => 'Аналітика', 'icon' => 'heroicon-o-chart-bar', 'items' => []],
+            'communication' => ['label' => 'Комунікація / сповіщення', 'icon' => 'heroicon-o-chat-bubble-left-right', 'items' => []],
+            'content' => ['label' => 'Контент / SEO', 'icon' => 'heroicon-o-document-text', 'items' => []],
+            'search' => ['label' => 'Пошук', 'icon' => 'heroicon-o-magnifying-glass', 'items' => []],
+            'auto' => ['label' => 'Auto-parts', 'icon' => 'heroicon-o-wrench-screwdriver', 'items' => []],
+            'tools' => ['label' => 'Інструменти', 'icon' => 'heroicon-o-cog-6-tooth', 'items' => []],
         ];
 
+        // --- Модулі ---
         $categoryMap = [
-            'novaposhta' => 'shipping',
-            'ukrposhta' => 'shipping',
-            'rozetka_delivery' => 'shipping',
-            'meest_express' => 'shipping',
-            'shipping_core' => 'shipping',
-            'multi_warehouse' => 'inventory',
-            'wholesale' => 'inventory',
-            'batch_editor' => 'inventory',
-            'loyalty' => 'marketing',
-            'coupons' => 'marketing',
-            'reviews' => 'marketing',
-            'comparison' => 'marketing',
-            'feed_export' => 'marketing',
-            'wishlist' => 'marketing',
-            'recently_viewed' => 'marketing',
-            'related_products' => 'marketing',
-            'stock_notifications' => 'marketing',
-            'callback' => 'marketing',
-            'blog' => 'content',
-            'cms_pages' => 'content',
-            'info_pages' => 'content',
-            'faq' => 'content',
-            'seo' => 'content',
-            'search' => 'content',
-            'homepage_builder' => 'content',
-            'email_templates' => 'content',
-            'theme_settings' => 'content',
-            'ai_content' => 'content',
-            'payments' => 'payments',
-            'fiscal_checkbox' => 'payments',
-            'currency' => 'payments',
-            'gazu_garage' => 'auto',
-            'auto_parts_seed' => 'auto',
-            'quick_fill' => 'tools',
-            'cache_manager' => 'tools',
-            'image_optimization' => 'tools',
-            'error_pages' => 'tools',
-            'integrations' => 'tools',
-            'telegram_notify' => 'tools',
+            'novaposhta' => 'shipping', 'ukrposhta' => 'shipping', 'rozetka_delivery' => 'shipping',
+            'meest_express' => 'shipping', 'shipping_core' => 'shipping',
+            'multi_warehouse' => 'inventory', 'wholesale' => 'inventory', 'batch_editor' => 'inventory',
+            'loyalty' => 'marketing', 'coupons' => 'marketing', 'reviews' => 'marketing',
+            'comparison' => 'marketing', 'feed_export' => 'marketing', 'wishlist' => 'marketing',
+            'recently_viewed' => 'marketing', 'related_products' => 'marketing',
+            'stock_notifications' => 'communication', 'callback' => 'communication', 'telegram_notify' => 'communication',
+            'blog' => 'content', 'cms_pages' => 'content', 'info_pages' => 'content', 'faq' => 'content',
+            'seo' => 'content', 'homepage_builder' => 'content', 'email_templates' => 'content',
+            'theme_settings' => 'content', 'ai_content' => 'content',
+            'search' => 'search',
+            'payments' => 'payments', 'currency' => 'payments',
+            'fiscal_checkbox' => 'fiscal',
+            'gazu_garage' => 'auto', 'auto_parts_seed' => 'auto',
+            'quick_fill' => 'tools', 'cache_manager' => 'tools', 'image_optimization' => 'tools',
+            'error_pages' => 'tools', 'integrations' => 'tools',
         ];
 
         $manifests = ModuleDiscovery::manifests();
 
         foreach (ModuleManager::all() as $key => $manager) {
             $manifest = $manifests[$key] ?? [];
-            $group = $categoryMap[$key] ?? 'tools';
+            $group = $manifest['category'] ?? $categoryMap[$key] ?? 'tools';
+            if (! isset($groups[$group])) {
+                $group = 'tools';
+            }
 
-            $groups[$group]['modules'][] = [
+            $groups[$group]['items'][] = [
+                'type' => 'module',
                 'key' => $key,
                 'name' => $manifest['label'] ?? $manager->name(),
                 'description' => $manifest['description'] ?? $manager->description(),
                 'enabled' => $manager->enabled(),
                 'version' => $manifest['version'] ?? null,
-                'author' => $manifest['author'] ?? null,
+                'icon_emoji' => $manifest['icon'] ?? null,
                 'requires' => $manager->requires(),
                 'in_modules_dir' => isset($manifests[$key]),
-                'has_settings' => ! empty($manifest['settings_schema']),
+                'config_url' => url('/admin/modules/view?key='.$key),
             ];
         }
 
-        // Sort each category's cards: enabled first, then alpha by name.
+        // --- Інтеграції ---
+        $intGroupMap = [
+            'payments' => 'payments', 'shipping' => 'shipping', 'fiscal' => 'fiscal',
+            'analytics' => 'analytics', 'marketing' => 'marketing', 'communication' => 'communication',
+            'search' => 'search', 'tools' => 'tools',
+        ];
+
+        foreach (app(IntegrationManager::class)->all() as $key => $integration) {
+            $group = $intGroupMap[$integration->getGroup()] ?? 'tools';
+            $status = method_exists($integration, 'getStatus') ? $integration->getStatus() : [];
+            $configUrl = null;
+            try {
+                $configUrl = $integration->getSettingsRoute() ?: $integration->getGenericConfigUrl();
+            } catch (\Throwable) {
+                $configUrl = null;
+            }
+
+            $groups[$group]['items'][] = [
+                'type' => 'integration',
+                'key' => $key,
+                'name' => $integration->getName(),
+                'description' => $integration->getDescription(),
+                'enabled' => $integration->isEnabled(),
+                'icon_emoji' => $integration->getIcon(),
+                'status_level' => $status['level'] ?? null,
+                'status_message' => $status['message'] ?? null,
+                'config_url' => $configUrl,
+            ];
+        }
+
+        // Sort each category: enabled first, then alpha by name.
         foreach ($groups as &$g) {
-            usort($g['modules'], function ($a, $b) {
+            usort($g['items'], function ($a, $b) {
                 if ($a['enabled'] !== $b['enabled']) {
                     return $a['enabled'] ? -1 : 1;
                 }
@@ -164,18 +189,74 @@ class ModuleMarketplace extends Page
         }
         unset($g);
 
-        // Drop empty categories so the catalog stays tidy.
-        return array_filter($groups, fn ($g) => ! empty($g['modules']));
+        return array_filter($groups, fn ($g) => ! empty($g['items']));
     }
 
     public function getStats(): array
     {
-        $all = ModuleManager::all();
+        $modules = ModuleManager::all();
+        $integrations = collect(app(IntegrationManager::class)->all());
 
         return [
-            'total' => $all->count(),
-            'enabled' => $all->filter(fn ($m) => $m->enabled())->count(),
+            'total' => $modules->count() + $integrations->count(),
+            'enabled' => $modules->filter(fn ($m) => $m->enabled())->count()
+                + $integrations->filter(fn ($i) => $i->isEnabled())->count(),
+            'modules' => $modules->count(),
+            'integrations' => $integrations->count(),
         ];
+    }
+
+    /**
+     * Магазин розширень (ліцензійний сервер Lionex). Зараз — стуб-каталог.
+     *
+     * @return array<int,array<string,mixed>>
+     */
+    public function getStoreCatalog(): array
+    {
+        return app(LicenseClient::class)->catalog();
+    }
+
+    public function isStoreConfigured(): bool
+    {
+        return app(LicenseClient::class)->isConfigured();
+    }
+
+    /**
+     * Увімкнути/вимкнути інтеграцію прямо з вітрини (логіку взято з
+     * IntegrationsPage::toggleIntegration).
+     */
+    public function toggleIntegration(string $key): void
+    {
+        $integration = app(IntegrationManager::class)->get($key);
+        if (! $integration) {
+            Notification::make()->title('Невідома інтеграція')->danger()->send();
+
+            return;
+        }
+
+        if ($integration->isEnabled()) {
+            $integration->disable();
+            \Illuminate\Support\Facades\Cache::forget("shop_setting_integration_{$key}_enabled");
+            Notification::make()->title("{$integration->getName()} вимкнено")->warning()->send();
+        } else {
+            $integration->enable();
+            \Illuminate\Support\Facades\Cache::forget("shop_setting_integration_{$key}_enabled");
+            Notification::make()->title("{$integration->getName()} увімкнено")->success()->send();
+        }
+    }
+
+    /**
+     * Купівля розширення з ліцензійного сервера — стуб (див. LicenseClient).
+     */
+    public function purchaseModule(string $key): void
+    {
+        $result = app(LicenseClient::class)->purchase($key);
+
+        Notification::make()
+            ->title($result['ok'] ? 'Готово' : 'Магазин розширень')
+            ->body($result['message'])
+            ->{$result['ok'] ? 'success' : 'info'}()
+            ->send();
     }
 
     /**

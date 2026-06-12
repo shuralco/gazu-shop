@@ -23,6 +23,16 @@ class IntegrationsPage extends Page
 
     protected static string $view = 'filament.pages.integrations';
 
+    /**
+     * Приховано з меню — обʼєднано в єдину сторінку «Розширення»
+     * (App\Filament\Pages\ModuleMarketplace). Лишається доступною за URL
+     * /admin/integrations-page. Перекриває GatedPage::shouldRegisterNavigation.
+     */
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     public array $configData = [];
 
     public ?string $editingIntegration = null;
