@@ -10,10 +10,46 @@ use Illuminate\Support\Facades\URL;
 
 class SitemapController extends Controller
 {
+    /** Усі ключі кешу sitemap — єдиний реєстр для генерації та чистки. */
+    public const CACHE_KEYS = [
+        'sitemap_index_v3',
+        'sitemap_main_v3',
+        'sitemap_categories_v3',
+        'sitemap_products_v3',
+        'sitemap_brands_v1',
+    ];
+
+    /** Скинути весь кеш sitemap (адмінка «Sitemap», SEO Dashboard). */
+    public static function flushCache(): void
+    {
+        foreach (self::CACHE_KEYS as $key) {
+            Cache::forget($key);
+        }
+    }
+
+    /** TTL кешу в секундах: налаштування адмінки (хвилини) → секунди. */
+    private function cacheTtl(): int
+    {
+        $minutes = (int) \App\Models\DisplaySetting::get(
+            'sitemap_cache_duration',
+            config('seo.sitemap.cache_duration', 1440),
+        );
+
+        return max(60, $minutes) * 60;
+    }
+
+    /** Changefreq з налаштувань адмінки. */
+    private function changefreq(string $type, string $default): string
+    {
+        $val = (string) \App\Models\DisplaySetting::get("sitemap_{$type}_changefreq", $default);
+
+        return in_array($val, ['always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'], true) ? $val : $default;
+    }
+
     public function index(): Response
     {
         $cacheKey = 'sitemap_index_v3';
-        $cacheDuration = config('seo.sitemap.cache_duration', 1440);
+        $cacheDuration = $this->cacheTtl();
 
         try {
             $sitemap = Cache::remember($cacheKey, $cacheDuration, function () {
@@ -57,7 +93,11 @@ class SitemapController extends Controller
     private function cachedXml(string $key, \Closure $generator): Response
     {
         try {
-            $sitemap = Cache::remember($key, config('seo.sitemap.cache_duration', 1440), $generator);
+            $sitemap = Cache::remember($key, $this->cacheTtl(), function () use ($generator) {
+                Cache::forever('sitemap_last_generated', now()->format('d.m.Y H:i'));
+
+                return $generator();
+            });
         } catch (\Throwable $e) {
             \Log::error('[sitemap '.$key.'] '.$e->getMessage(), [
                 'file' => $e->getFile(),
@@ -119,7 +159,8 @@ class SitemapController extends Controller
     private function generateCategoriesSitemap(): string
     {
         $urls = [];
-        Category::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(500, function ($rows) use (&$urls) {
+        $freq = $this->changefreq('category', 'weekly');
+        Category::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(500, function ($rows) use (&$urls, $freq) {
             foreach ($rows as $cat) {
                 $slug = $cat->getRawOriginal('slug');
                 if (is_string($slug) && str_starts_with($slug, '{')) {
@@ -131,7 +172,7 @@ class SitemapController extends Controller
                     // SEO URL: `/category-slug` (resolveSlug dispatches to catalog).
                     'loc' => URL::to('/'.$slug),
                     'lastmod' => optional($cat->updated_at)->toISOString() ?? now()->toISOString(),
-                    'changefreq' => 'weekly',
+                    'changefreq' => $freq,
                     'priority' => 0.7,
                 ];
             }
@@ -167,7 +208,8 @@ class SitemapController extends Controller
     private function generateProductsSitemap(): string
     {
         $urls = [];
-        Product::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(1000, function ($rows) use (&$urls) {
+        $freq = $this->changefreq('product', 'weekly');
+        Product::query()->where('is_active', true)->select(['id', 'slug', 'updated_at'])->chunk(1000, function ($rows) use (&$urls, $freq) {
             foreach ($rows as $product) {
                 $rawSlug = $product->getRawOriginal('slug');
                 // Unwrap translatable JSON column → plain slug.
@@ -180,7 +222,7 @@ class SitemapController extends Controller
                     // Root-level Rozetka-style URL: `/<slug>` (no /product/ prefix).
                     'loc' => URL::to('/'.$slug),
                     'lastmod' => optional($product->updated_at)->toISOString() ?? now()->toISOString(),
-                    'changefreq' => 'weekly',
+                    'changefreq' => $freq,
                     'priority' => 0.8,
                 ];
             }
@@ -210,16 +252,9 @@ class SitemapController extends Controller
 
     public function clearCache(): Response
     {
-        $cacheKeys = [
-            'sitemap_index_v2',
-            'sitemap_main_v2',
-            'sitemap_categories_v2',
-            'sitemap_products_v2',
-        ];
-
-        foreach ($cacheKeys as $key) {
-            Cache::forget($key);
-        }
+        // FIX: тут чистились застарілі ключі *_v2, а кеш живе у *_v3 —
+        // «перегенерація» нічого не робила. Тепер єдиний реєстр CACHE_KEYS.
+        self::flushCache();
 
         return response()->json([
             'success' => true,
@@ -235,6 +270,13 @@ class SitemapController extends Controller
         if ($noindexAll) {
             $robots = "User-agent: *\nDisallow: /\n";
             return response($robots)->header('Content-Type', 'text/plain; charset=UTF-8');
+        }
+
+        // Кастомний robots.txt з адмінки («Шаблони SEO» / «SEO Управління»).
+        // Єдине джерело істини — DisplaySetting, не файли у public|storage.
+        $custom = trim((string) \App\Models\DisplaySetting::get('seo_robots_custom', ''));
+        if ($custom !== '') {
+            return response($custom)->header('Content-Type', 'text/plain; charset=UTF-8');
         }
 
         $robots = "User-agent: *\n";

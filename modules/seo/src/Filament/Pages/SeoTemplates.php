@@ -187,9 +187,10 @@ class SeoTemplates extends Page implements HasForms
 
         foreach ($data as $key => $value) {
             if ($key === 'robots_txt_content') {
-                // Пишемо туди ж, звідки читає getCurrentRobotsContent() і
-                // звідки реально серветься /robots.txt (public/, не storage/).
-                @file_put_contents(public_path('robots.txt'), $value);
+                // /robots.txt серветься динамічним роутом (SitemapController),
+                // який читає seo_robots_custom — НЕ пишемо файли у public/
+                // (статичний файл обходив би noindex-перемикач).
+                DisplaySetting::set('seo_robots_custom', (string) $value);
 
                 continue;
             }
@@ -237,12 +238,9 @@ class SeoTemplates extends Page implements HasForms
 
     private function getCurrentRobotsContent(): string
     {
-        $robotsPath = public_path('robots.txt');
-        if (file_exists($robotsPath)) {
-            return file_get_contents($robotsPath);
-        }
+        $custom = trim((string) DisplaySetting::get('seo_robots_custom', ''));
 
-        return $this->getDefaultRobotsContent();
+        return $custom !== '' ? $custom : $this->getDefaultRobotsContent();
     }
 
     protected function getFormActions(): array

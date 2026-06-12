@@ -135,19 +135,12 @@ class SeoManagement extends Page implements HasActions, HasForms
                 ->label('🧹 SEO кеш')
                 ->color('gray')
                 ->action(function () {
-                    $cacheKeys = [
-                        'sitemap_index',
-                        'sitemap_main',
-                        'sitemap_categories',
-                        'sitemap_products',
-                    ];
-
-                    foreach ($cacheKeys as $key) {
-                        Cache::forget($key);
-                    }
+                    // Єдиний реєстр ключів — інакше чистились неіснуючі ключі.
+                    \App\Http\Controllers\SitemapController::flushCache();
 
                     Notification::make()
                         ->title('SEO кеш очищено')
+                        ->body('Sitemap-кеш скинуто, перегенерується при наступному запиті')
                         ->success()
                         ->send();
                 }),
@@ -172,15 +165,17 @@ class SeoManagement extends Page implements HasActions, HasForms
                     \Filament\Forms\Components\Textarea::make('robots_content')
                         ->label('Вміст robots.txt')
                         ->rows(10)
-                        ->default($this->getDefaultRobotsContent())
-                        ->helperText('Налаштуйте правила для пошукових роботів'),
+                        ->default(fn () => trim((string) \App\Models\DisplaySetting::get('seo_robots_custom', '')) ?: $this->getDefaultRobotsContent())
+                        ->helperText('Серветься на /robots.txt динамічно. УВАГА: поки увімкнено «noindex всього сайту» (seo_noindex_all), віддається Disallow: / незалежно від цього вмісту.'),
                 ])
                 ->action(function (array $data) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->put('robots.txt', $data['robots_content']);
+                    // Єдине джерело robots.txt — DisplaySetting (динамічний роут
+                    // SitemapController::robotsTxt), не файли у public|storage.
+                    \App\Models\DisplaySetting::set('seo_robots_custom', (string) $data['robots_content']);
 
                     Notification::make()
                         ->title('Robots.txt оновлено')
-                        ->body('Файл robots.txt збережено в public/storage/')
+                        ->body('Вміст збережено — віддається на /robots.txt (якщо вимкнено глобальний noindex)')
                         ->success()
                         ->send();
                 }),

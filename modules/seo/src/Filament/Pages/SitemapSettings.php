@@ -252,37 +252,35 @@ class SitemapSettings extends Page implements HasForms
 
     public function pingGoogle(): void
     {
-        try {
-            $sitemapUrl = url('/sitemap.xml');
-            $pingUrl = 'https://www.google.com/ping?sitemap='.urlencode($sitemapUrl);
+        // Google ping-endpoint офіційно вимкнений (червень 2023) — Google
+        // знаходить sitemap через robots.txt і Search Console. Реальний
+        // активний пінг сьогодні — Bing (IndexNow-екосистема).
+        $sitemapUrl = url('/sitemap.xml');
+        $ok = false;
 
-            // Симуляція ping Google (в реальності тут був би HTTP запит)
-            Notification::make()
-                ->title('Google сповіщено')
-                ->body('Sitemap URL відправлено до Google для індексації')
-                ->success()
-                ->send();
-        } catch (\Exception $e) {
-            Notification::make()
-                ->title('Помилка сповіщення')
-                ->body('Не вдалося сповістити Google: '.$e->getMessage())
-                ->danger()
-                ->send();
+        try {
+            $resp = \Illuminate\Support\Facades\Http::timeout(8)
+                ->get('https://www.bing.com/ping', ['sitemap' => $sitemapUrl]);
+            $ok = $resp->successful();
+        } catch (\Throwable) {
+            // мережа недоступна — повідомимо нижче
         }
+
+        DisplaySetting::set('google_last_pinged', now()->format('d.m.Y H:i'));
+
+        Notification::make()
+            ->title($ok ? 'Пошуковики сповіщено' : 'Пінг надіслано частково')
+            ->body('Bing ping: '.($ok ? 'OK' : 'недоступний').'. Google ping-endpoint вимкнений з 2023 — Google читає sitemap з robots.txt автоматично; для прискорення використовуйте Search Console.')
+            ->{$ok ? 'success' : 'warning'}()
+            ->duration(10000)
+            ->send();
     }
 
     private function clearSitemapCache(): void
     {
-        $cacheKeys = [
-            'sitemap_index',
-            'sitemap_main',
-            'sitemap_categories',
-            'sitemap_products',
-        ];
-
-        foreach ($cacheKeys as $key) {
-            Cache::forget($key);
-        }
+        // FIX: тут чистились ключі без версійного суфікса (sitemap_index),
+        // а контролер кешує під *_v3 — чистка не діяла. Тепер єдиний реєстр.
+        \App\Http\Controllers\SitemapController::flushCache();
     }
 
     private function getSettingTitle(string $key): string
