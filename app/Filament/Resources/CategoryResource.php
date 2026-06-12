@@ -305,13 +305,17 @@ class CategoryResource extends Resource
                     ->weight('bold')
                     ->formatStateUsing(function ($state, $record) {
                         $depth = $record->depth ?? 0;
-                        $indent = str_repeat('  ', $depth);
+                        // Відступ через &nbsp; (html()), а НЕ whitespace-pre: pre зберігав
+                        // би й технічні пробіли/переноси Blade-шаблону Filament навколо
+                        // значення → величезний відступ зліва. nbsp дають видимий tree-
+                        // indent, а звичайний whitespace-normal схлопує службові пробіли.
+                        $indent = str_repeat('&nbsp;&nbsp;&nbsp;&nbsp;', $depth);
                         $prefix = $depth > 0 ? '└─ ' : '';
                         $title = is_array($state) ? ($state['uk'] ?? $state['en'] ?? '') : $state;
-                        return $indent.$prefix.$title;
+                        return $indent.$prefix.e($title);
                     })
                     ->html()
-                    ->extraAttributes(['class' => 'font-mono whitespace-pre']),
+                    ->extraAttributes(['class' => 'font-mono']),
 
                 // Full breadcrumb path (для children — щоб зразу видно куди веде)
                 Tables\Columns\TextColumn::make('full_path')
