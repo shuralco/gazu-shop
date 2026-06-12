@@ -391,6 +391,19 @@ class Product extends Model
             ->withTimestamps();
     }
 
+    /**
+     * Товари-аналоги (замінники) — реальні товари каталогу через
+     * related_products(type=analog). withPivotValue і фільтрує по типу,
+     * і проставляє type=analog при attach/sync з адмінки.
+     */
+    public function analogProducts(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'related_products', 'product_id', 'related_product_id')
+            ->withPivotValue('type', 'analog')
+            ->withPivot('sort_order')
+            ->withTimestamps();
+    }
+
     public function filters(): BelongsToMany
     {
         return $this->belongsToMany(Filter::class, 'filter_products')

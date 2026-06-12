@@ -57,6 +57,22 @@ class ProductResource extends Resource
         return "Низький залишок: {$low} · Немає: {$out}";
     }
 
+    /** Підпис опції товару-аналога: SKU · назва · виробник · ціна. */
+    public static function analogOptionLabel(Product $p): string
+    {
+        $title = is_array($p->title)
+            ? ($p->title['uk'] ?? (array_values($p->title)[0] ?? ''))
+            : (string) $p->title;
+        $parts = array_filter([
+            $p->sku,
+            $title,
+            $p->manufacturer,
+            $p->price > 0 ? number_format((float) $p->price, 0, '.', ' ').' ₴' : null,
+        ]);
+
+        return implode(' · ', $parts);
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -775,37 +791,36 @@ class ProductResource extends Resource
                                     ]),
 
                                 Forms\Components\Section::make('Аналоги / замінники')
-                                    ->description('Аналогічні артикули від інших виробників')
+                                    ->description('Реальні товари каталогу, що можуть замінити цей — показуються у вкладці «Аналоги» на сторінці товару')
                                     ->collapsible()
                                     ->collapsed()
                                     ->schema([
-                                        Forms\Components\Repeater::make('analogs')
-                                            ->label('Аналоги')
-                                            ->schema([
-                                                Forms\Components\Grid::make(5)->schema([
-                                                    // Бренд аналога — з brands (пошук). Наявні значення (навіть
-                                                    // поза каталогом, напр. "ContiTech") зберігаються через merge.
-                                                    Forms\Components\Select::make('brand')
-                                                        ->label('Бренд')
-                                                        ->options(function (Forms\Get $get) {
-                                                            $opts = \App\Models\Brand::query()->where('is_active', true)
-                                                                ->orderBy('sort_order')->orderBy('name')->get()
-                                                                ->pluck('name', 'name')->filter()->all();
-                                                            $cur = $get('brand');
-                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
-                                                            return $opts;
-                                                        })
-                                                        ->searchable()
-                                                        ->required(),
-                                                    Forms\Components\TextInput::make('oem')->label('OEM/артикул')->required(),
-                                                    Forms\Components\TextInput::make('price')->label('Ціна, ₴')->numeric()->step('0.01'),
-                                                    Forms\Components\TextInput::make('qty')->label('Залишок')->numeric()->default(0),
-                                                    Forms\Components\TextInput::make('rating')->label('Рейтинг')->numeric()->step('0.1')->minValue(0)->maxValue(5),
-                                                ]),
-                                            ])
-                                            ->itemLabel(fn (array $state) => trim(($state['brand'] ?? '').' '.($state['oem'] ?? '')))
-                                            ->reorderable()
-                                            ->collapsible()
+                                        Forms\Components\Select::make('analogProducts')
+                                            ->label('Товари-аналоги')
+                                            ->relationship('analogProducts', 'title')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->getSearchResultsUsing(function (string $search, ?Product $record) {
+                                                return Product::query()
+                                                    ->where('is_active', true)
+                                                    ->when($record, fn ($q) => $q->where('id', '!=', $record->id))
+                                                    ->where(function ($q) use ($search) {
+                                                        $like = '%'.$search.'%';
+                                                        $q->where('sku', 'like', $like)
+                                                            ->orWhere('title', 'like', $like)
+                                                            ->orWhere('manufacturer', 'like', $like);
+                                                    })
+                                                    ->limit(30)
+                                                    ->get()
+                                                    ->mapWithKeys(fn (Product $p) => [$p->id => static::analogOptionLabel($p)]);
+                                            })
+                                            ->getOptionLabelsUsing(fn (array $values) => Product::query()
+                                                ->whereIn('id', $values)
+                                                ->get()
+                                                ->mapWithKeys(fn (Product $p) => [$p->id => static::analogOptionLabel($p)])
+                                                ->all())
+                                            ->placeholder('Пошук за назвою, SKU або виробником…')
+                                            ->helperText('Підбирайте ту саму деталь від інших виробників. Ціна та наявність підтягнуться автоматично з картки товару.')
                                             ->columnSpanFull(),
                                     ]),
                             ]),
