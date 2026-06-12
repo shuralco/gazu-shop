@@ -1,12 +1,15 @@
 <x-filament-panels::page>
-    <x-filament::section icon="heroicon-o-information-circle" icon-color="info">
-        <x-slot name="heading">Конструктор зон layout (OpenCart-стиль)</x-slot>
+    {{-- Без власного дубль-заголовка — назву сторінки вже рендерить Filament
+         ($title), повтор виглядав як «дубль» на сторінці. --}}
+    <x-filament::section icon="heroicon-o-information-circle" icon-color="info" collapsible collapsed>
+        <x-slot name="heading">Довідка по зонах</x-slot>
         <div class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
             <div>Призначайте блоки у іменовані зони storefront.</div>
             <ul class="list-disc list-inside text-xs space-y-0.5">
                 <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.home.top</code> — верх головної</li>
                 <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.home.bottom</code> — низ головної</li>
                 <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.product.sidebar</code> — сайдбар картки товару</li>
+                <li><code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout.page.top / layout.page.bottom</code> — CMS-сторінки (/page/{slug}); ключ <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">pages</code> обмежує блок конкретними slug</li>
                 <li>Дані зберігаються у <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">layout_blocks</code>, рендеряться через <code class="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-xs dark:bg-white/10">&#64;hookAction</code> у темі</li>
             </ul>
         </div>
