@@ -30,11 +30,135 @@ class MegaMenuBuilder
 
     public function build(): array
     {
-        $tree = $this->fromDatabase();
+        // Глобальний вимикач з редактора «Мега-меню».
+        try {
+            if (! filter_var(\App\Models\DisplaySetting::get('mega_menu_enabled', true), FILTER_VALIDATE_BOOL)) {
+                return [];
+            }
+        } catch (\Throwable) {
+            // settings недоступні (install phase) — продовжуємо
+        }
+
+        // 1) Структура, збережена в /admin/mega-menu-editor — джерело істини.
+        $tree = $this->fromSavedStructure();
+
+        // 2) Фолбек: автогенерація з дерева категорій.
+        if (empty($tree)) {
+            $tree = $this->fromDatabase();
+        }
         if (empty($tree)) {
             $tree = $this->fallback();
         }
         return $tree;
+    }
+
+    /**
+     * Дерево з main_mega_menu_structure (редактор мега-меню). Конвертує
+     * editor-формат (columns → items{type,title,slug,category_id,children})
+     * у формат фронту (roots{id,icon,slug,label,count,groups}).
+     */
+    private function fromSavedStructure(): array
+    {
+        try {
+            $structure = \App\Models\DisplaySetting::get('main_mega_menu_structure');
+            if (is_string($structure)) {
+                $structure = json_decode($structure, true);
+            }
+            $columns = is_array($structure) ? ($structure['columns'] ?? []) : [];
+            if (empty($columns)) {
+                return [];
+            }
+
+            $roots = [];
+            foreach ($columns as $column) {
+                foreach ((array) $column as $item) {
+                    if (! is_array($item)) {
+                        continue;
+                    }
+                    $title = is_array($item['title'] ?? null) ? ($item['title']['uk'] ?? '') : (string) ($item['title'] ?? '');
+                    if ($title === '') {
+                        continue;
+                    }
+
+                    if (($item['type'] ?? 'category') === 'custom_link') {
+                        $url = (string) ($item['url'] ?? '/');
+                        $roots[] = [
+                            'id' => 'link-'.substr(md5($url.$title), 0, 8),
+                            'icon' => $this->iconKey('', $title),
+                            'slug' => ltrim($url, '/'),
+                            'label' => $title,
+                            'count' => 0,
+                            'image' => null,
+                            'groups' => [],
+                        ];
+                        continue;
+                    }
+
+                    $category = ! empty($item['category_id']) ? Category::find($item['category_id']) : null;
+                    $slug = is_array($item['slug'] ?? null) ? ($item['slug']['uk'] ?? '') : (string) ($item['slug'] ?? '');
+                    $children = array_values(array_filter((array) ($item['children'] ?? []), 'is_array'));
+
+                    // Лічильники по slug дочірніх категорій (best-effort).
+                    $childSlugs = array_filter(array_map(
+                        fn ($c) => is_array($c['slug'] ?? null) ? ($c['slug']['uk'] ?? '') : (string) ($c['slug'] ?? ''),
+                        $children,
+                    ));
+                    $countsBySlug = [];
+                    if ($childSlugs) {
+                        try {
+                            foreach (Category::query()->where(function ($q) use ($childSlugs) {
+                                foreach ($childSlugs as $s) {
+                                    $q->orWhere('slug', $s)->orWhere('slug->uk', $s);
+                                }
+                            })->get(['id', 'slug']) as $cc) {
+                                $ccSlug = is_array($cc->slug) ? ($cc->slug['uk'] ?? '') : (string) $cc->slug;
+                                $countsBySlug[$ccSlug] = $this->totalCount($cc);
+                            }
+                        } catch (\Throwable) {
+                            // лічильники необов'язкові
+                        }
+                    }
+
+                    $items = array_map(function ($c) use ($countsBySlug) {
+                        $cTitle = is_array($c['title'] ?? null) ? ($c['title']['uk'] ?? '—') : (string) ($c['title'] ?? '—');
+                        $cSlug = is_array($c['slug'] ?? null) ? ($c['slug']['uk'] ?? '') : (string) ($c['slug'] ?? '');
+
+                        return [$cTitle, (int) ($countsBySlug[$cSlug] ?? 0), $cSlug];
+                    }, $children);
+
+                    $groups = [];
+                    if ($items) {
+                        $cols = max(1, min(4, (int) ceil(count($items) / 6)));
+                        $perCol = (int) ceil(count($items) / $cols);
+                        for ($i = 0; $i < $cols; $i++) {
+                            $slice = array_slice($items, $i * $perCol, $perCol);
+                            if ($slice) {
+                                $groups[] = ['title' => $i === 0 ? 'Підкатегорії' : '', 'items' => $slice];
+                            }
+                        }
+                    }
+
+                    $img = $category?->image;
+                    $roots[] = [
+                        'id' => ($slug ?: 'cat-'.($item['category_id'] ?? count($roots))),
+                        'icon' => $this->iconKey($this->slugify($slug ?: $title), $title),
+                        'slug' => $slug,
+                        'label' => $title,
+                        'count' => $category ? $this->totalCount($category) : array_sum(array_column($items, 1)),
+                        'image' => $img
+                            ? (\Illuminate\Support\Str::startsWith($img, ['http://', 'https://', '/']) ? $img : asset('storage/'.ltrim($img, '/')))
+                            : null,
+                        'groups' => $groups,
+                    ];
+                }
+            }
+
+            return $roots;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return [];
+        }
     }
 
     /**

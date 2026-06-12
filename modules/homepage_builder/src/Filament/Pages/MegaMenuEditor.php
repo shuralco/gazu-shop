@@ -87,6 +87,12 @@ class MegaMenuEditor extends Page
             $this->megaMenuColumns = $structure['columns'] ?? [];
         }
 
+        // Структура ще не збережена → префіл з реальних категорій (те, що
+        // зараз показує фронт). Редактор більше не відкривається порожнім.
+        if (empty($this->megaMenuColumns)) {
+            $this->megaMenuColumns = $this->buildColumnsFromCategories();
+        }
+
         // Promo
         $this->showPromo = (bool) DisplaySetting::get('main_show_promo', true);
         $this->promoTitle = (string) (DisplaySetting::get('main_mega_menu_promo_title', 'АКЦІЇ ТИЖНЯ') ?: '');
@@ -366,13 +372,30 @@ class MegaMenuEditor extends Page
 
     public function autoGenerateMegaMenu(): void
     {
+        $this->megaMenuColumns = $this->buildColumnsFromCategories();
+        Notification::make()->success()->title('Мега-меню згенеровано з категорій')->send();
+    }
+
+    /**
+     * Колонки редактора з дерева категорій — та сама вибірка/дедуплікація,
+     * що й у MegaMenuBuilder::fromDatabase() (фронт), тому редактор
+     * відображає реальний стан меню.
+     */
+    private function buildColumnsFromCategories(): array
+    {
         $categories = Category::where(function ($q) {
             $q->whereNull('parent_id')->orWhere('parent_id', 0);
         })
             ->where('is_active', true)
             ->with(['children' => fn ($q) => $q->where('is_active', true)->orderBy('sort_order')])
             ->orderBy('sort_order')
-            ->get();
+            ->limit(40)
+            ->get()
+            // Той самий дедуп, що в MegaMenuBuilder — сідер колись наплодив
+            // дублікати категорій через JSON-обгорнутий slug.
+            ->unique(fn (Category $r) => mb_strtolower(trim((string) ($r->title ?? ''))))
+            ->take(12)
+            ->values();
 
         $columns = [];
         $columnItems = [];
@@ -397,8 +420,7 @@ class MegaMenuEditor extends Page
             }
         }
 
-        $this->megaMenuColumns = $columns;
-        Notification::make()->success()->title('Мега-меню згенеровано з категорій')->send();
+        return $columns;
     }
 
     public function autoGenerateHorizontal(): void
@@ -527,6 +549,16 @@ class MegaMenuEditor extends Page
         cache()->forget('header_config');
         cache()->forget('header_main_config');
         DisplaySetting::flushHeaderCache();
+
+        // GAZU storefront: кеш дерева мега-меню (gazu_mega_*) + повний
+        // response-кеш сторінок — інакше фронт показує старе меню до 10 хв
+        // (а ResponseCache — і довше).
+        \App\View\Composers\GazuMenuComposer::flushMenuCache();
+        try {
+            \Illuminate\Support\Facades\Artisan::call('responsecache:clear');
+        } catch (\Throwable) {
+            // responsecache може бути не встановлений — не критично
+        }
 
         // Footer
         DisplaySetting::set('gazu_footer_about', $this->footerAbout);

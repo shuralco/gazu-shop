@@ -215,6 +215,15 @@ class CacheManagement extends Page
                     ->label('Склади + інвентар')
                     ->icon('heroicon-o-building-storefront')
                     ->action(fn () => $this->flushDomain('warehouses', 'Склади')),
+                Action::make('tag_menu')
+                    ->label('Меню (мега-меню, бренди, марки)')
+                    ->icon('heroicon-o-bars-3')
+                    ->action(fn () => $this->safely(function () {
+                        // Не tag-based: ключі gazu_mega_* + повний response-кеш,
+                        // бо хедер з меню закешований на кожній сторінці.
+                        \App\View\Composers\GazuMenuComposer::flushMenuCache();
+                        ResponseCache::clear();
+                    }, 'Кеш меню очищено', 'gazu_mega_tree/brands/carmakes + Response cache скинуто')),
             ])
                 ->label('По домену')
                 ->icon('heroicon-o-tag')

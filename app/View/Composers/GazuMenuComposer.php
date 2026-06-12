@@ -17,28 +17,35 @@ use Illuminate\View\View;
  */
 class GazuMenuComposer
 {
-    private static ?array $cachedTree = null;
-    private static ?array $cachedBrands = null;
-
+    /**
+     * УВАГА (Octane): НЕ кешуємо у static-властивості — воркер живе довго,
+     * і редактор меню не міг інвалідувати такий кеш («фронт не співпадає
+     * з адмінкою»). Кеш лише у сторі (10 хв) + flushMenuCache() при
+     * збереженні у MegaMenuEditor.
+     */
     public function __construct(private MegaMenuBuilder $builder) {}
+
+    /** Скинути кеш меню (викликається з редактора меню та cache-сторінки). */
+    public static function flushMenuCache(): void
+    {
+        Cache::forget('gazu_mega_tree');
+        Cache::forget('gazu_mega_brands');
+        Cache::forget('gazu_mega_carmakes');
+    }
 
     public function compose(View $view): void
     {
-        if (self::$cachedTree === null) {
-            self::$cachedTree = $this->builder->build();
-        }
-        if (self::$cachedBrands === null) {
-            self::$cachedBrands = $this->builder->brands();
-        }
+        $tree = Cache::remember('gazu_mega_tree', 600, fn () => $this->builder->build());
+        $brands = Cache::remember('gazu_mega_brands', 600, fn () => $this->builder->brands());
 
-        $view->with('megaTree', self::$cachedTree);
+        $view->with('megaTree', $tree);
 
         // Composer's `$brands` is for header/mega-menu/brand-strip — do NOT
         // clobber a `$brands` already passed by a controller (e.g. brand-list
         // page passes a Brand-Collection with products_count). Set only when
         // missing.
         if (! array_key_exists('brands', $view->getData())) {
-            $view->with('brands', self::$cachedBrands);
+            $view->with('brands', $brands);
         }
 
         // Live cart count — не кешуємо, має оновлюватись на кожен запит.
