@@ -103,3 +103,17 @@
   --color-gray-900: rgb(var(--gray-900));
   --color-gray-950: rgb(var(--gray-950));
 }
+
+/* ── Toggle knob fix (Tailwind v3↔v4 translate conflict) ──────────────────
+   Filament's vendor CSS (Tailwind v3) positions the toggle knob with
+   `transform: translateX(...)` via `translate-x-5`. This additive layer is
+   Tailwind v4, where the SAME `translate-x-5` class emits the modern
+   `translate:` CSS property instead. Both stylesheets match the knob, so the
+   two displacements STACK — the knob shifts 2× (40px on a 44px track) and
+   spills off the track (visible on /admin/my-menu-preferences and every other
+   toggle). Neutralize the v4 `translate` on the knob so only the vendor
+   `transform` applies. Scoped to the toggle so nothing else is affected. */
+.fi-fo-toggle > span,
+.fi-fo-toggle [aria-hidden="true"] {
+  translate: none !important;
+}
