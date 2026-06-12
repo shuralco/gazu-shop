@@ -109,6 +109,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 : url('/');
             return redirect()
                 ->to($request->headers->get('Referer') ?: $fallback)
+                ->withInput()
                 ->with('error', 'Сесія застаріла — спробуйте ще раз.');
         });
     })->create();

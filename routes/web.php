@@ -84,6 +84,12 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/checkout/success/{order}', [$checkout, 'success'])->name('checkout.success');
     Route::post('/checkout/one-click', [$checkout, 'oneClick'])->name('checkout.one-click');
 
+    // Свіжий CSRF-токен для клієнта (keep-alive). Лежить у web-групі (StartSession
+    // активна → токен прив'язаний до поточної сесії і її TTL оновлюється при пінгу).
+    // Виключений з ResponseCache у GazuCacheProfile, інакше токен «замерзне» в кеші.
+    Route::get('/csrf-token', fn () => response()->json(['token' => csrf_token()])
+        ->header('Cache-Control', 'no-store, private'))->name('csrf-token');
+
     $auth = \App\Http\Controllers\Gazu\AuthController::class;
     Route::get('/login', [$auth, 'show'])->name('auth');
     Route::get('/auth', fn () => redirect('/login', 301)); // legacy 301

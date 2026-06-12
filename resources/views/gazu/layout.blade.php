@@ -30,6 +30,27 @@
             if (tokenInput) tokenInput.value = window.GAZU_CSRF;
         }, true);
 
+        // CSRF keep-alive: токен у сторінці «замерзає» при завантаженні. Якщо
+        // серверна сесія протермінується (TTL 120хв) або ротується (логін
+        // викликає session()->regenerate() → новий токен), будь-який POST
+        // («У кошик», checkout, 1-click) падає 419 «Сесія застаріла». Періодично
+        // + при поверненні на вкладку / bfcache-відновленні підтягуємо свіжий
+        // токен (запит до /csrf-token також оновлює TTL сесії).
+        window.gazuRefreshCsrf = function () {
+            return fetch('{{ route('gazu.csrf-token') }}', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) {
+                    if (!d || !d.token) return;
+                    window.GAZU_CSRF = d.token;
+                    var m = document.querySelector('meta[name=csrf-token]');
+                    if (m) m.setAttribute('content', d.token);
+                })
+                .catch(function () {});
+        };
+        setInterval(window.gazuRefreshCsrf, 10 * 60 * 1000); // кожні 10хв (< 120хв TTL)
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) window.gazuRefreshCsrf(); });
+        window.addEventListener('pageshow', function (e) { if (e.persisted) window.gazuRefreshCsrf(); });
+
         // Wishlist: гість зберігає в localStorage (без авторизації), залогінений —
         // на сервері. Перегляд /wishlist потребує логіну. window.gazuWishlistToggle()
         // — єдина точка для всіх сердечок.
@@ -589,6 +610,9 @@
 @endif
 @if($errors->any())
     <script>setTimeout(() => window.gazuToast && window.gazuToast(@json($errors->first()), 'error'), 100);</script>
+@endif
+@if(session('error'))
+    <script>setTimeout(() => window.gazuToast && window.gazuToast(@json(session('error')), 'error'), 100);</script>
 @endif
 
 @livewireScripts
