@@ -15,7 +15,11 @@
     $views = $page->views ?? 0;
 @endphp
 
-@section('title', ($page->meta_title ? (is_array($page->meta_title) ? ($page->meta_title['uk'] ?? $title) : $page->meta_title) : $title).' — GAZU блог')
+@php
+    $postMetaTitle = $page->meta_title ? (is_array($page->meta_title) ? ($page->meta_title['uk'] ?? '') : $page->meta_title) : '';
+@endphp
+@section('title', $postMetaTitle !== '' ? $postMetaTitle : \App\Support\SeoTemplates::title('blog_post', ['name' => $title]))
+@section('description', ($excerpt !== '' ? $excerpt : \App\Support\SeoTemplates::description('blog_post', ['name' => $title])))
 
 @section('content')
 <div class="gazu-container py-6 sm:py-10">

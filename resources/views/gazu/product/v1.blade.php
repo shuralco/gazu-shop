@@ -1,9 +1,23 @@
 @extends('gazu.layout')
 
-@section('title', ($p->name ?? 'Товар') . ' — GAZU')
-@section('description', 'Купити '.($p->name ?? 'товар').' за '.number_format((float)($p->price ?? 0), 0, '.', ' ').' ₴. '
-    .(is_object($p) && $p->brand ? 'Бренд: '.$p->brand.'. ' : '')
-    .'Артикул: '.($p->sku ?? '—').'. Доставка Новою Поштою, гарантія, повернення 14 днів.')
+@php
+    // SEO: персональні meta_title/meta_description товару (SEO-таб адмінки)
+    // мають пріоритет; інакше — базовий шаблон таксономії «Товари».
+    $seoProductVars = [
+        'name' => is_object($p) ? ($p->name ?? 'Товар') : 'Товар',
+        'price' => number_format((float) (is_object($p) ? ($p->price ?? 0) : 0), 0, '.', ' '),
+        'sku' => is_object($p) ? ($p->sku ?? ($p->oem ?? '')) : '',
+        'brand' => is_object($p) ? ($p->brand ?? '') : '',
+        'category' => (is_object($p) && isset($p->category) && is_object($p->category))
+            ? (is_array($p->category->title) ? ($p->category->title['uk'] ?? '') : (string) ($p->category->title ?? ''))
+            : '',
+        'excerpt' => is_object($p) ? \Illuminate\Support\Str::limit(strip_tags((string) ($p->excerpt ?? '')), 100, '') : '',
+    ];
+    $seoMetaTitle = is_object($p) ? trim((string) ($p->meta_title ?? '')) : '';
+    $seoMetaDescription = is_object($p) ? trim((string) ($p->meta_description ?? '')) : '';
+@endphp
+@section('title', $seoMetaTitle !== '' ? $seoMetaTitle : \App\Support\SeoTemplates::title('product', $seoProductVars))
+@section('description', $seoMetaDescription !== '' ? $seoMetaDescription : \App\Support\SeoTemplates::description('product', $seoProductVars))
 @section('og_type', 'product')
 
 @php

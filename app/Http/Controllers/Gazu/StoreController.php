@@ -496,13 +496,14 @@ class StoreController extends Controller
         // fallback to category-mate suggestion.
         $analogs = collect();
         if (isset($product->id) && $product->id) {
-            $pivotAnalogs = \App\Models\Product::query()
-                ->with(['category', 'brand', 'inventory.warehouse'])
-                ->whereHas('relatedProducts', fn ($q) => $q
-                    ->where('related_products.product_id', $product->id)
-                    ->where('related_products.type', 'analog'))
-                ->limit(8)
-                ->get();
+            $pivotAnalogs = ($product instanceof Product)
+                ? $product->analogProducts()
+                    ->with(['category', 'brand', 'inventory.warehouse'])
+                    ->where('products.is_active', true)
+                    ->orderBy('related_products.sort_order')
+                    ->limit(8)
+                    ->get()
+                : collect();
             if ($pivotAnalogs->isNotEmpty()) {
                 $analogs = $pivotAnalogs->map(fn ($x) => $this->decorate($x));
             } elseif (($product instanceof Product) && $product->category_id) {

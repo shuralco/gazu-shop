@@ -193,6 +193,13 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/certificates', [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'certificates')->name('certificates');
     Route::get('/offer',        [\App\Http\Controllers\Gazu\InfoController::class, 'show'])->defaults('slug', 'offer')->name('offer');
 
+    // CMS-сторінки (/admin/pages, модуль cms_pages) — довільні сторінки
+    // з блоками зон layout.page.* (Конструктор зон, OpenCart-стиль).
+    Route::get('/page/{slug}', [\App\Http\Controllers\Gazu\CmsPageController::class, 'show'])
+        ->middleware('module:cms_pages')
+        ->where('slug', '[a-z0-9]+(?:-[a-z0-9]+)*')
+        ->name('cms.page');
+
     // Root-level catch-all: resolveSlug dispatches to product (slug ends in
     // -\d+, Rozetka-style) or category (no numeric suffix). Must be LAST in
     // the group so every specific path above wins. Same URL pattern serves

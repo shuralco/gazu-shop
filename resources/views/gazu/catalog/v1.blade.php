@@ -26,7 +26,27 @@
     }
 @endphp
 
-@section('title', ($carSeo && ! empty($carSeo['metaTitle']) ? $carSeo['metaTitle'] : $title . ' — GAZU'))
+@php
+    // SEO-шаблони таксономій: пер-категорійний meta_title має пріоритет,
+    // далі carSeo (підбір по авто), далі базові шаблони (category/search/car).
+    $catalogCount = plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів');
+    $catalogSeoTitle = null;
+    if ($carSeo && ! empty($carSeo['metaTitle'])) {
+        $catalogSeoTitle = $carSeo['metaTitle'];
+    } elseif ($carSeo && ! empty($carSeo['contextTitle'])) {
+        $catalogSeoTitle = \App\Support\SeoTemplates::title('car', ['car' => $carSeo['contextTitle'], 'count' => $catalogCount]);
+    } elseif (! empty($searchQuery)) {
+        $catalogSeoTitle = \App\Support\SeoTemplates::title('search', ['query' => $searchQuery, 'count' => $catalogCount]);
+    } elseif ($category) {
+        $catalogSeoTitle = ! empty($category->meta_title)
+            ? (is_array($category->meta_title) ? ($category->meta_title['uk'] ?? '') : (string) $category->meta_title)
+            : '';
+        if ($catalogSeoTitle === '') {
+            $catalogSeoTitle = \App\Support\SeoTemplates::title('category', ['name' => $title, 'count' => $catalogCount]);
+        }
+    }
+@endphp
+@section('title', $catalogSeoTitle ?: $title . ' — GAZU')
 
 {{-- OG image: перший товар з listing або category fallback --}}
 @php
@@ -77,15 +97,24 @@
     @endphp
     <script type="application/ld+json">{!! json_encode($breadcrumbLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !!}</script>
 @endsection
-@section('description', $carSeo && ! empty($carSeo['metaDescription'])
-    ? $carSeo['metaDescription']
-    : ($carSeo && ! empty($carSeo['contextTitle'])
-        ? $carSeo['contextTitle'].' — оригінали та аналоги. У наявності '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').'. Доставка по Україні, гарантія.'
-        : ($category && $category->meta_description
-            ? $category->meta_description
-            : ($category
-                ? 'Купити '.$category->title.' для китайських авто (BYD, Chery, Geely, Haval). У наявності '.\plural_uk_count($totalCount, 'товар', 'товари', 'товарів').'. Доставка Новою Поштою, гарантія.'
-                : 'Каталог автозапчастин · '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').' · доставка по Україні'))))
+@php
+    $catalogSeoDescription = null;
+    if ($carSeo && ! empty($carSeo['metaDescription'])) {
+        $catalogSeoDescription = $carSeo['metaDescription'];
+    } elseif ($carSeo && ! empty($carSeo['contextTitle'])) {
+        $catalogSeoDescription = \App\Support\SeoTemplates::description('car', ['car' => $carSeo['contextTitle'], 'count' => $catalogCount]);
+    } elseif (! empty($searchQuery)) {
+        $catalogSeoDescription = \App\Support\SeoTemplates::description('search', ['query' => $searchQuery, 'count' => $catalogCount]);
+    } elseif ($category) {
+        $catalogSeoDescription = $category->meta_description
+            ? (is_array($category->meta_description) ? ($category->meta_description['uk'] ?? '') : (string) $category->meta_description)
+            : '';
+        if ($catalogSeoDescription === '') {
+            $catalogSeoDescription = \App\Support\SeoTemplates::description('category', ['name' => $title, 'count' => $catalogCount]);
+        }
+    }
+@endphp
+@section('description', $catalogSeoDescription ?: 'Каталог автозапчастин · '.$catalogCount.' · доставка по Україні')
 
 @section('content')
     <div class="gazu-container">

@@ -1,5 +1,12 @@
 @extends('gazu.layout')
-@section('title', ($brand->name ?? 'Бренд') . ' — GAZU')
+@php
+    $brandSeoVars = [
+        'name' => $brand->name ?? 'Бренд',
+        'count' => plural_uk_count($productsCount ?? 0, 'товар', 'товари', 'товарів'),
+    ];
+@endphp
+@section('title', \App\Support\SeoTemplates::title('brand', $brandSeoVars))
+@section('description', \App\Support\SeoTemplates::description('brand', $brandSeoVars))
 
 @section('content')
 <div class="gazu-container">

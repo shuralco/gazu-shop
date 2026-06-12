@@ -5,37 +5,68 @@
      Очікує: $p (Product instance). Виноситься з gazu/product/v1.blade.php
      при увімкненні модуля related_products. --}}
 @php
-    $maxVariants = (int) (module('related_products')->setting('max_variants_displayed') ?? 50);
-    $currentSpecs = is_array($p->specifications) ? $p->specifications : (json_decode((string) $p->specifications, true) ?: []);
-    $variants = $p->relatedProducts()
-        ->where('related_products.type', 'related')
-        ->limit($maxVariants)
-        ->get(['products.id', 'products.title', 'products.slug', 'products.price', 'products.specifications', 'products.image']);
+    $rpModule = module('related_products');
+    $pickerEnabled = (bool) ($rpModule->setting('picker_enabled') ?? true);
+    $maxVariants = (int) ($rpModule->setting('max_variants_displayed') ?? 50);
 
-    $variantGroups = [];
-    foreach ($variants as $v) {
-        $vs = is_array($v->specifications) ? $v->specifications : (json_decode((string) $v->specifications, true) ?: []);
-        if (! is_array($vs)) continue;
-        foreach ($currentSpecs as $k => $curVal) {
-            if (! isset($vs[$k])) continue;
-            if ((string) $vs[$k] !== (string) $curVal) {
-                $variantGroups[$k][] = [
-                    'id' => $v->id,
-                    'value' => (string) $vs[$k],
-                    'slug' => is_array($v->slug) ? ($v->slug['uk'] ?? '') : (string) $v->slug,
-                    'price' => $v->price,
-                ];
-                break;
-            }
+    // Конфіг характеристик зі сторінки «Зв'язки товарів» (HPM-стиль):
+    // spec_key => [label, display(button|dropdown|image|image_button), show].
+    // Порожній конфіг = легасі-поведінка (всі відмінні характеристики, pills).
+    $pickerCfg = [];
+    foreach ((array) ($rpModule->setting('picker_characteristics') ?? []) as $row) {
+        if (! empty($row['spec_key'])) {
+            $pickerCfg[(string) $row['spec_key']] = [
+                'label' => trim((string) ($row['label'] ?? '')) ?: (string) $row['spec_key'],
+                'display' => in_array($row['display'] ?? 'button', ['button', 'dropdown', 'image', 'image_button'], true) ? $row['display'] : 'button',
+                'show' => array_key_exists('show', $row) ? (bool) $row['show'] : true,
+            ];
         }
     }
-    foreach ($variantGroups as $k => $list) {
-        $seen = [];
-        $variantGroups[$k] = array_values(array_filter($list, function ($v) use (&$seen) {
-            if (isset($seen[$v['value']])) return false;
-            $seen[$v['value']] = true;
-            return true;
-        }));
+
+    $currentSpecs = is_array($p->specifications) ? $p->specifications : (json_decode((string) $p->specifications, true) ?: []);
+    $variantGroups = [];
+
+    if ($pickerEnabled) {
+        $variants = $p->relatedProducts()
+            ->where('related_products.type', 'related')
+            ->limit($maxVariants)
+            ->get(['products.id', 'products.title', 'products.slug', 'products.price', 'products.specifications', 'products.image']);
+
+        $imgKind = is_object($p) ? ($p->image_kind ?? 'filter') : 'filter';
+        foreach ($variants as $v) {
+            $vs = is_array($v->specifications) ? $v->specifications : (json_decode((string) $v->specifications, true) ?: []);
+            if (! is_array($vs)) continue;
+            foreach ($currentSpecs as $k => $curVal) {
+                if (! isset($vs[$k])) continue;
+                if ($pickerCfg && ! isset($pickerCfg[$k])) continue; // характеристика не вибрана в налаштуваннях
+                if ((string) $vs[$k] !== (string) $curVal) {
+                    $vTitle = is_array($v->title) ? ($v->title['uk'] ?? '') : (string) $v->title;
+                    $variantGroups[$k][] = [
+                        'id' => $v->id,
+                        'value' => (string) $vs[$k],
+                        'slug' => is_array($v->slug) ? ($v->slug['uk'] ?? '') : (string) $v->slug,
+                        'price' => $v->price,
+                        'image' => \App\Support\PartImage::resolve(explicit: $v->image, kind: $imgKind, seed: $v->id, title: $vTitle),
+                    ];
+                    break;
+                }
+            }
+        }
+        foreach ($variantGroups as $k => $list) {
+            $seen = [];
+            $variantGroups[$k] = array_values(array_filter($list, function ($v) use (&$seen) {
+                if (isset($seen[$v['value']])) return false;
+                $seen[$v['value']] = true;
+                return true;
+            }));
+        }
+
+        // Прибираємо приховані та сортуємо за порядком конфігу.
+        if ($pickerCfg) {
+            $variantGroups = array_filter($variantGroups, fn ($_, $k) => $pickerCfg[$k]['show'] ?? true, ARRAY_FILTER_USE_BOTH);
+            $order = array_flip(array_keys($pickerCfg));
+            uksort($variantGroups, fn ($a, $b) => ($order[$a] ?? 99) <=> ($order[$b] ?? 99));
+        }
     }
 @endphp
 @if(! empty($variantGroups))
@@ -66,27 +97,73 @@
                 }
              }">
         @foreach($variantGroups as $specKey => $options)
-            <div class="flex flex-wrap items-baseline gap-2 mb-3 last:mb-0">
-                <span class="text-sm text-[var(--gazu-graphite)] mr-2">{{ $specKey }}:</span>
-                @php $currentValue = (string) ($currentSpecs[$specKey] ?? ''); @endphp
-                @if($currentValue !== '')
-                    <button type="button"
-                            @click="switchTo({{ (int) $p->id }}, '{{ is_array($p->slug) ? ($p->slug['uk'] ?? '') : $p->slug }}')"
-                            :class="activeId === {{ (int) $p->id }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)]'"
-                            class="inline-flex items-center px-2.5 py-1 text-sm font-medium rounded-md ring-1 transition-colors">
-                        {{ $currentValue }}
-                    </button>
-                @endif
-                @foreach($options as $opt)
-                    <button type="button"
-                            @click="switchTo({{ (int) $opt['id'] }}, '{{ $opt['slug'] }}')"
+            @php
+                $label = $pickerCfg[$specKey]['label'] ?? $specKey;
+                $display = $pickerCfg[$specKey]['display'] ?? 'button';
+                $currentValue = (string) ($currentSpecs[$specKey] ?? '');
+                $curSlug = is_array($p->slug) ? ($p->slug['uk'] ?? '') : $p->slug;
+            @endphp
+            <div class="flex flex-wrap items-center gap-2 mb-3 last:mb-0">
+                <span class="text-sm text-[var(--gazu-graphite)] mr-2">{{ $label }}:</span>
+
+                @if($display === 'dropdown')
+                    {{-- Випадаючий список: поточне значення + варіанти --}}
+                    <select class="text-sm border border-[var(--gazu-line)] rounded-md px-2.5 py-1.5 bg-white text-[var(--gazu-ink)] cursor-pointer focus:outline-none focus:border-[var(--gazu-ink)]"
                             :disabled="switching"
-                            :class="activeId === {{ (int) $opt['id'] }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)]'"
-                            class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-md ring-1 transition-colors disabled:opacity-50 disabled:cursor-wait">
-                        <span>{{ $opt['value'] }}</span>
-                        <span class="text-xs opacity-70">{{ number_format($opt['price'], 0, '.', ' ') }} ₴</span>
-                    </button>
-                @endforeach
+                            @change="const [id, slug] = $event.target.value.split('|'); switchTo(parseInt(id), slug)">
+                        @if($currentValue !== '')
+                            <option value="{{ (int) $p->id }}|{{ $curSlug }}" selected>{{ $currentValue }}</option>
+                        @endif
+                        @foreach($options as $opt)
+                            <option value="{{ (int) $opt['id'] }}|{{ $opt['slug'] }}">{{ $opt['value'] }} — {{ number_format($opt['price'], 0, '.', ' ') }} ₴</option>
+                        @endforeach
+                    </select>
+
+                @elseif($display === 'image' || $display === 'image_button')
+                    {{-- Картинки (з підписом для image_button) --}}
+                    @if($currentValue !== '')
+                        <button type="button"
+                                @click="switchTo({{ (int) $p->id }}, '{{ $curSlug }}')"
+                                :class="activeId === {{ (int) $p->id }} ? 'ring-2 ring-[var(--gazu-ink)]' : 'ring-1 ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)]'"
+                                class="flex flex-col items-center gap-1 p-1.5 rounded-md bg-white transition-all"
+                                title="{{ $currentValue }}">
+                            <img src="{{ \App\Support\PartImage::resolve(explicit: $p->image ?? null, kind: $imgKind, seed: (int) $p->id, title: (string) ($p->name ?? '')) }}" alt="{{ $currentValue }}" class="w-12 h-12 object-contain rounded" loading="lazy">
+                            @if($display === 'image_button')<span class="text-xs font-medium text-[var(--gazu-ink)] max-w-[72px] truncate">{{ $currentValue }}</span>@endif
+                        </button>
+                    @endif
+                    @foreach($options as $opt)
+                        <button type="button"
+                                @click="switchTo({{ (int) $opt['id'] }}, '{{ $opt['slug'] }}')"
+                                :disabled="switching"
+                                :class="activeId === {{ (int) $opt['id'] }} ? 'ring-2 ring-[var(--gazu-ink)]' : 'ring-1 ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)]'"
+                                class="flex flex-col items-center gap-1 p-1.5 rounded-md bg-white transition-all disabled:opacity-50 disabled:cursor-wait"
+                                title="{{ $opt['value'] }} — {{ number_format($opt['price'], 0, '.', ' ') }} ₴">
+                            <img src="{{ $opt['image'] }}" alt="{{ $opt['value'] }}" class="w-12 h-12 object-contain rounded" loading="lazy">
+                            @if($display === 'image_button')<span class="text-xs text-[var(--gazu-ink)] max-w-[72px] truncate">{{ $opt['value'] }}</span>@endif
+                        </button>
+                    @endforeach
+
+                @else
+                    {{-- Кнопки (pills) — стандартний вигляд --}}
+                    @if($currentValue !== '')
+                        <button type="button"
+                                @click="switchTo({{ (int) $p->id }}, '{{ $curSlug }}')"
+                                :class="activeId === {{ (int) $p->id }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)]'"
+                                class="inline-flex items-center px-2.5 py-1 text-sm font-medium rounded-md ring-1 transition-colors">
+                            {{ $currentValue }}
+                        </button>
+                    @endif
+                    @foreach($options as $opt)
+                        <button type="button"
+                                @click="switchTo({{ (int) $opt['id'] }}, '{{ $opt['slug'] }}')"
+                                :disabled="switching"
+                                :class="activeId === {{ (int) $opt['id'] }} ? 'bg-[var(--gazu-ink)] text-white ring-[var(--gazu-ink)]' : 'bg-white text-[var(--gazu-ink)] ring-[var(--gazu-line)] hover:ring-[var(--gazu-ink)] hover:bg-[var(--gazu-paper)]'"
+                                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-sm rounded-md ring-1 transition-colors disabled:opacity-50 disabled:cursor-wait">
+                            <span>{{ $opt['value'] }}</span>
+                            <span class="text-xs opacity-70">{{ number_format($opt['price'], 0, '.', ' ') }} ₴</span>
+                        </button>
+                    @endforeach
+                @endif
             </div>
         @endforeach
     </section>

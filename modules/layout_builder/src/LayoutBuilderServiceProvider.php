@@ -26,6 +26,8 @@ class LayoutBuilderServiceProvider extends ServiceProvider
         'layout.home.top' => 'home.top',
         'layout.home.bottom' => 'home.bottom',
         'layout.product.sidebar' => 'product.sidebar',
+        'layout.page.top' => 'page.top',
+        'layout.page.bottom' => 'page.bottom',
     ];
 
     public function boot(): void
@@ -54,6 +56,23 @@ class LayoutBuilderServiceProvider extends ServiceProvider
             }
 
             $blocks = LayoutBlock::renderable($zoneKey);
+
+            // Зони CMS-сторінок: блок можна обмежити конкретними сторінками
+            // через config.pages = "slug1, slug2" (OpenCart-стиль layout
+            // assignment). Порожній/відсутній список = всі сторінки.
+            if (str_starts_with($zoneKey, 'page.')) {
+                $slug = (string) ($args[0] ?? '');
+                $blocks = $blocks->filter(function (LayoutBlock $b) use ($slug) {
+                    $pages = trim((string) ($b->config['pages'] ?? ''));
+                    if ($pages === '') {
+                        return true;
+                    }
+                    $list = array_filter(array_map('trim', explode(',', $pages)));
+
+                    return $slug !== '' && in_array($slug, $list, true);
+                })->values();
+            }
+
             if ($blocks->isEmpty()) {
                 return null;
             }

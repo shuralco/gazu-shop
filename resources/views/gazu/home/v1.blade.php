@@ -1,6 +1,7 @@
 @extends('gazu.layout')
 
-@section('title', 'GAZU — пошук автозапчастин за артикулом')
+@section('title', \App\Support\SeoTemplates::title('home'))
+@section('description', \App\Support\SeoTemplates::description('home'))
 
 @section('content')
     @hookAction('layout.home.top')

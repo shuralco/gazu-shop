@@ -69,7 +69,7 @@ class PageResource extends Resource
                     ->label('URL (slug)')
                     ->maxLength(255)
                     ->alphaDash()
-                    ->helperText('Автоматично генерується з заголовку. Це поле перекладається для кожної мови.')
+                    ->helperText('Автоматично генерується з заголовку. Сторінка доступна на сайті за адресою /page/{slug}. Блоки зверху/знизу призначаються у «Зони layout» (зони «CMS-сторінка — верх/низ», ключ pages = цей slug).')
                     ->columnSpanFull(),
 
                 Forms\Components\Textarea::make('excerpt')
@@ -378,6 +378,17 @@ class PageResource extends Resource
                 ]),
             ])
             ->striped();
+    }
+
+    /**
+     * Блог-пости живуть у цій же таблиці (template=blog_post) і мають власний
+     * Resource у модулі blog — тут показуємо лише справжні CMS-сторінки,
+     * інакше список перетворюється на смітник.
+     */
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        return parent::getEloquentQuery()
+            ->where(fn ($q) => $q->whereNull('template')->orWhere('template', '!=', 'blog_post'));
     }
 
     public static function getRelations(): array

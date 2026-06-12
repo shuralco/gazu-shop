@@ -39,6 +39,8 @@ class LayoutBlock extends Model
         'home.top' => 'Головна — верх (layout.home.top)',
         'home.bottom' => 'Головна — низ (layout.home.bottom)',
         'product.sidebar' => 'Картка товару — сайдбар (layout.product.sidebar)',
+        'page.top' => 'CMS-сторінка — верх (layout.page.top)',
+        'page.bottom' => 'CMS-сторінка — низ (layout.page.bottom)',
     ];
 
     /** Типи блоків. */
