@@ -182,6 +182,17 @@
                                 @if (! empty($item['in_modules_dir']))
                                     <x-filament::button wire:click="exportModule('{{ $item['key'] }}')" wire:loading.attr="disabled" wire:target="exportModule" color="gray" size="sm" outlined icon="heroicon-m-arrow-down-tray">Експорт</x-filament::button>
                                 @endif
+                                @if (! empty($item['in_modules_dir']) && ! $item['enabled'])
+                                    <x-filament::button
+                                        wire:click="deleteModule('{{ $item['key'] }}')"
+                                        wire:confirm="Видалити модуль «{{ $item['key'] }}»? Папку modules/{{ $item['key'] }} буде видалено з диска. Дані в БД лишаться; повторне встановлення відновить роботу."
+                                        wire:loading.attr="disabled"
+                                        wire:target="deleteModule"
+                                        color="danger"
+                                        size="sm"
+                                        icon="heroicon-m-trash"
+                                    >Видалити</x-filament::button>
+                                @endif
                             @endif
                         </div>
                     </div>

@@ -443,6 +443,43 @@ class ModuleMarketplace extends Page
     }
 
     /**
+     * Видалити модуль з диска (soft uninstall — reuse ModuleInstaller::uninstall).
+     * Видаляє лише папку modules/{key}; дані в БД (таблиці модуля) лишаються
+     * недоторканими. uninstall() сам відмовить, якщо модуль увімкнено або від
+     * нього залежать активні модулі. Доступно лише для модулів у modules/ —
+     * інтеграції (код у застосунку) та config-only модулі видалити не можна.
+     */
+    public function deleteModule(string $key): void
+    {
+        try {
+            $result = ModuleInstaller::uninstall($key, false);
+        } catch (\Throwable $e) {
+            Notification::make()
+                ->title('Не вдалося видалити')
+                ->body($e->getMessage())
+                ->danger()
+                ->send();
+
+            return;
+        }
+
+        Module::query()->where('key', $key)->delete();
+        ModuleManager::clearCache();
+        Artisan::call('responsecache:clear');
+        Artisan::call('view:clear');
+        Artisan::call('route:clear');
+        $this->rebuildFilamentCache();
+
+        Notification::make()
+            ->title("Модуль «{$key}» видалено")
+            ->body("Файлів видалено: {$result['files_removed']}. Дані в БД збережено — повторне встановлення відновить роботу.")
+            ->success()
+            ->send();
+
+        $this->redirect(url('/admin/module-marketplace'), navigate: false);
+    }
+
+    /**
      * Перебудувати кеш Filament-панелі після зміни складу модулів.
      * Без цього вимкнений модуль лишається у сайдбарі (закешований
      * bootstrap/cache/filament має пріоритет над живою реєстрацією).
