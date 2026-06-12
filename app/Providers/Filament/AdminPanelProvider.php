@@ -51,7 +51,14 @@ class AdminPanelProvider extends PanelProvider
                 'Система',
             ])
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
-            ->resources($this->collectModuleResources())
+            // Довідник авто (марки/моделі) — CORE, завжди доступний у адмінці,
+            // незалежно від модуля gazu_garage. Сам «гараж» (UserCar, особисті
+            // авто клієнта) лишається module-owned і ховається при вимкненні.
+            // Класи фізично у modules/gazu_garage/src (App\ namespace, classmap).
+            ->resources(array_merge([
+                \App\Filament\Resources\CarMakeResource::class,
+                \App\Filament\Resources\CarModelResource::class,
+            ], $this->collectModuleResources()))
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages(array_merge([
                 // Лише справжні core-сторінки. ThemeSettings (theme_settings) та
