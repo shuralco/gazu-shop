@@ -160,6 +160,10 @@
         {{-- Site-wide no-index for staging/презентаційний домен --}}
         <meta name="robots" content="noindex,nofollow">
     @else
+        @hasSection('robots')
+            {{-- Пер-сторінковий robots (напр. CMS-сторінка з is_indexable=false) --}}
+            <meta name="robots" content="@yield('robots')">
+        @endif
         <link rel="canonical" href="{{ $canonical }}">
     @endif
 

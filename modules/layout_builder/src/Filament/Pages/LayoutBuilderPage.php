@@ -81,6 +81,7 @@ class LayoutBuilderPage extends Page implements HasForms
                                     ->label('Зона')
                                     ->options(LayoutBlock::ZONES)
                                     ->required()
+                                    ->live()
                                     ->native(false),
                                 Select::make('type')
                                     ->label('Тип блоку')
@@ -100,12 +101,20 @@ class LayoutBuilderPage extends Page implements HasForms
                                     ->label('Налаштування')
                                     ->keyLabel('Ключ')
                                     ->valueLabel('Значення')
-                                    ->helperText(fn (callable $get) => match ($get('type')) {
-                                        'banner' => 'image_url, link_url, alt',
-                                        'featured' => 'limit (1-12), source (new|promo|latest)',
-                                        default => 'Додаткові параметри блоку',
+                                    ->helperText(function (callable $get) {
+                                        $hint = match ($get('type')) {
+                                            'banner' => 'image_url, link_url, alt',
+                                            'featured' => 'limit (1-12), source (new|promo|latest)',
+                                            default => 'Додаткові параметри блоку',
+                                        };
+                                        if (str_starts_with((string) $get('zone'), 'page.')) {
+                                            $hint .= ' · pages — обмежити сторінками: "about-company, dostavka" (порожньо = всі CMS-сторінки)';
+                                        }
+
+                                        return $hint;
                                     })
-                                    ->visible(fn (callable $get) => in_array($get('type'), ['banner', 'featured'], true))
+                                    ->visible(fn (callable $get) => in_array($get('type'), ['banner', 'featured'], true)
+                                        || str_starts_with((string) $get('zone'), 'page.'))
                                     ->columnSpanFull(),
                                 TextInput::make('sort_order')
                                     ->label('Сортування')
