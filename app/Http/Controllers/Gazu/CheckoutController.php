@@ -209,6 +209,7 @@ class CheckoutController extends Controller
 
         Cart::clearCart();
         $this->sendOrderEmails($order);
+        $this->rememberPlacedOrder($order->id);
 
         return redirect()->route('gazu.checkout.success', ['order' => $order->id])
             ->with('order_message', 'Замовлення створено. Менеджер передзвонить.');
@@ -263,10 +264,32 @@ class CheckoutController extends Controller
         $orderModel = Order::with('orderProducts')->find($order);
         if (! $orderModel) abort(404);
 
+        // Захист від IDOR / витоку ПДн: сторінку успіху бачить ЛИШЕ той, хто
+        // щойно оформив замовлення в цій сесії (гість/1-клік без user_id), АБО
+        // авторизований власник. Інакше перебором /checkout/success/1..N можна
+        // було зібрати ПІБ/телефон/email/адресу всіх клієнтів.
+        $placed = array_map('intval', (array) session()->get('gazu.placed_orders', []));
+        $ownsOrder = auth()->check() && (int) $orderModel->user_id === (int) auth()->id();
+        if (! in_array((int) $orderModel->id, $placed, true) && ! $ownsOrder) {
+            abort(403);
+        }
+
         return view('gazu.checkout-success', [
             'order' => $orderModel,
             'activeNav' => null,
         ]);
+    }
+
+    /**
+     * Запамʼятати у сесії замовлення, щойно оформлене цим відвідувачем, щоб
+     * дозволити йому (і тільки йому) переглянути сторінку успіху. Обмежуємо
+     * останніми 20, щоб не роздувати сесію.
+     */
+    private function rememberPlacedOrder(int $orderId): void
+    {
+        $ids = array_map('intval', (array) session()->get('gazu.placed_orders', []));
+        $ids[] = $orderId;
+        session()->put('gazu.placed_orders', array_slice(array_values(array_unique($ids)), -20));
     }
 
     /**
@@ -325,6 +348,8 @@ class CheckoutController extends Controller
         });
 
         try { $this->sendOrderEmails($order); } catch (\Throwable $e) { report($e); }
+
+        $this->rememberPlacedOrder($order->id);
 
         $msg = 'Замовлення №'.$order->id.' прийнято. Передзвонимо за '.$data['phone'];
         if ($request->wantsJson()) {
