@@ -34,7 +34,12 @@ class HelpArticlesSeeder extends Seeder
 
     private function img(string $slug): string
     {
-        return "![Скриншот розділу](/img/help/{$slug}.png)";
+        // Скриншот розділу. Файл кладеться у public/img/help/{slug}.png — його
+        // можна завантажити через редактор «Статті довідки» (drag-drop у Markdown)
+        // або покласти у public/img/help/. Поки файлу нема — блок не показуємо.
+        $path = public_path("img/help/{$slug}.png");
+
+        return is_file($path) ? "![Скриншот розділу]( /img/help/{$slug}.png )" : '';
     }
 
     private function articles(): array
