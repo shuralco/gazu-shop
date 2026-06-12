@@ -422,6 +422,15 @@ class ModuleSettings extends Page
         } catch (\Throwable $e) {
             \Log::warning('[ModuleSettings] filament:cache-components failed: '.$e->getMessage());
         }
+        // Перезавантажити воркери Octane: роути/Filament-панель реєструються лише
+        // при boot воркера, тож без reload щойно ввімкнений модуль не зʼявиться
+        // (його роути → 404), а вимкнений лишиться в памʼяті. SIGUSR1 graceful —
+        // zero-downtime (тут лише стан БД змінився, не код, тож opcache не заважає).
+        try {
+            Artisan::call('octane:reload', ['--server' => 'swoole']);
+        } catch (\Throwable $e) {
+            \Log::warning('[ModuleSettings] octane:reload failed: '.$e->getMessage());
+        }
     }
 
     public function saveModuleSettings(string $key): void

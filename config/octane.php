@@ -38,7 +38,10 @@ return [
     |
     */
 
-    'server' => env('OCTANE_SERVER', 'roadrunner'),
+    // Дефолт swoole: реально запускаємо swoole (--server=swoole у supervisord).
+    // Раніше дефолт roadrunner ламав `octane:reload` (читає config('octane.server')
+    // → йшов RoadRunner-шляхом → "Undefined array key rpcPort" на swoole-стані).
+    'server' => env('OCTANE_SERVER', 'swoole'),
 
     /*
     |--------------------------------------------------------------------------
