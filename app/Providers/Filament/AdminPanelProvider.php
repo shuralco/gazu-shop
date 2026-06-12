@@ -9,6 +9,7 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\View\PanelsRenderHook;
 use Filament\Widgets;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
@@ -34,6 +35,11 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->darkMode()
             ->sidebarCollapsibleOnDesktop()
+            // Контекстна кнопка «Довідка» у топбарі → /admin/help (тема за поточним розділом).
+            ->renderHook(
+                PanelsRenderHook::TOPBAR_END,
+                fn (): string => view('filament.partials.help-button')->render(),
+            )
             ->navigationGroups([
                 'Каталог',
                 'Продажі',
