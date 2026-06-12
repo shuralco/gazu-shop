@@ -109,37 +109,65 @@ responsecache: enabled=true, store=redis, lifetime=604800s (7 днів)
 
 ## 6. Як правильно деплоїти / робити hotfix
 
-Через `validate_timestamps=0` + Octane in-memory:
+> **Оновлено 2026-06-12:** `octane:reload` полагоджено + Coolify health-check
+> увімкнено → деплої тепер фактично **zero-downtime** (див. §7).
 
-| Тип зміни | Що достатньо | Чому |
+**Золоте правило:** для повного деплою — **Coolify `deploy`** (rolling: новий
+контейнер healthy → свап → старий стоп = свіжий код + свіжий OPcache, без
+даунтайму). `docker restart` — лише крайній випадок (дає ~12–18 с даунтайму).
+
+| Тип зміни | Рекомендований шлях | Чому |
 |---|---|---|
-| **PHP-код** (класи, провайдери, конфіг, module.json) | `docker cp` → **`docker restart <container>`** | і OPcache (timestamps off), і воркери Octane тримають старе в памʼяті. |
-| **Blade / view** | `docker cp` → `php artisan view:clear` (рестарт не обовʼязковий) | blade компілюється в кеш, який можна скинути. |
+| **PHP-код / конфіг / module.json** | `git push` → **Coolify `deploy`** (zero-downtime) | новий контейнер = свіжий OPcache (`validate_timestamps=0`) + новий autoload. Reload сам по собі НЕ підхопить PHP (opcache віддає старий байткод із SHM). |
+| **Стан БД без зміни коду** (toggle модуля, налаштування) | зміна → **`octane:reload`** (zero-downtime) | воркери re-boot'яться й перечитують стан із БД. Код не змінився → opcache не заважає. |
+| **Blade / view** | `docker cp` → `php artisan view:clear` | blade-кеш скидається, новий процес компілює заново. |
 | **Статика / public-asset** (svg, png) | `docker cp` → готово | віддає nginx напряму. |
-| **CSS/JS через Vite** | новий бандл (хеш) → `docker cp build/` → **`docker restart`** | Vite-manifest кешується в памʼяті воркера → без рестарту HTML тягне старий хеш. |
-| **Вмикання/вимикання модуля** | зміна в БД → **`docker restart`** | роути/Filament-панель реєструються лише при boot воркера. |
-| **Чистий повний деплой** | Coolify `deploy` (за потреби `force_rebuild:true`) | пересборка образу + `composer install` (оновлює autoload) + `npm build`. |
+| **CSS/JS через Vite** | новий бандл → `docker cp build/` → **`octane:reload`** | reload скидає закешований Vite-manifest у памʼяті воркера. |
 
-### ⚠️ Заборонено / не працює
+### `octane:reload` — тепер працює (zero-downtime)
+```
+php artisan octane:reload            # працює, бо config('octane.server')=swoole
+php artisan octane:reload --server=swoole   # явно, на будь-який випадок
+```
+Надсилає SIGUSR1 swoole-майстру → graceful recycle воркерів (in-flight запити
+доживають). Перевірено: сайт тримає 200 під час reload. **Важливо:** reload НЕ
+оновлює PHP-код при `validate_timestamps=0` — для коду потрібен Coolify deploy
+(свіжий контейнер) або `docker restart`.
+
+### ⚠️ Заборонено / не варто
 - ❌ `pkill swoole_http_server` — вбиває воркери, master лишається без них → **сайт падає (HTTP 000)**.
-- ❌ `php artisan octane:reload` — на цьому setup кидає `Undefined array key "rpcPort"` (баг ServerProcessInspector). **Не використовувати** — замість нього `docker restart`.
+- ❌ `docker restart` як рутинний деплой — дає даунтайм; використовуй Coolify `deploy` (rolling).
 - ❌ `php -r opcache_reset()` у CLI — це окремий CLI-OPcache, на воркери Swoole не впливає.
 
 ---
 
-## 7. Знайдені проблеми / рекомендації
+## 7. Статус проблем (що полагоджено 2026-06-12)
 
-1. **JIT вимкнено попри `jit=tracing`** — `jit_buffer_size=0`.
-   Якщо хочемо спробувати JIT: виставити `opcache.jit_buffer_size=64M` (+ `opcache.jit=1255`).
-   *Застереження:* для типового web-навантаження Laravel JIT майже не дає виграшу (виграє CPU-bound код), тож це **низький пріоритет**. Без бенчмарку вмикати не варто.
+1. ✅ **`octane:reload` полагоджено** (commit `5986fe74`). Причина бага `Undefined
+   array key "rpcPort"`: `octane:reload` обирає стратегію за `config('octane.server')`,
+   а той був `roadrunner` → йшов RoadRunner-інспектором по swoole-стані. Фікс: дефолт
+   `config/octane.php` → `swoole` + `OCTANE_SERVER=swoole` у Coolify env. Тепер reload
+   працює zero-downtime (перевірено: 200 під час reload).
 
-2. **`octane:reload` зламаний (`rpcPort`)** — поки лагодити нема потреби (рестарт працює), але це причина, чому деплої роблять `docker restart` із коротким даунтаймом ~12–18 с. Якщо критично прибрати даунтайм — варто полагодити reload або перейти на graceful USR1.
+2. ✅ **Coolify zero-downtime увімкнено.** Раніше `health_check_enabled=false` →
+   Coolify не вмів rolling. Увімкнув health-check (`GET / → 200`, start_period 30s).
+   Тест деплою: **299/300 запитів = 200**, 1 короткий 502 у мить свапу Traefik
+   (проти 12–18 с даунтайму при `docker restart`). Новий контейнер «healthy» перед
+   свапом. *Лишається 1 блип на свапі Traefik — якщо потрібен абсолютний 0, налаштувати
+   connection-draining у Traefik (низький пріоритет).*
 
-3. **Вмикання модуля через UI не перереєстровує роути** до рестарту воркера (див. §2) — потенційна пастка для клієнта: «увімкнув модуль, а нічого не зʼявилось». Варто, щоб toggle модуля автоматично тригерив reload воркерів.
+3. ✅ **Toggle модуля авто-reload'ить воркери** (commit `5986fe74`). У
+   `ModuleMarketplace`/`ModuleSettings` після зміни стану викликається
+   `octane:reload --server=swoole`. Більше немає пастки «увімкнув модуль → 404 до
+   рестарту» — роути зʼявляються одразу, без даунтайму.
 
-4. **`config/octane.php` каже `roadrunner`, а реально Swoole** — неузгодженість конфігу й факту. Не критично (старт явно задає `--server=swoole`), але краще вирівняти дефолт у конфізі на `swoole`, щоб не вводити в оману.
+4. ✅ **Конфіг вирівняно** — `config/octane.php` дефолт тепер `swoole` (відповідає факту).
 
-5. **Redis здоровий** — 0 evictions, 98% hit, 62% памʼяті. Дій не потрібно. Якщо ключів стане суттєво більше — підняти `maxmemory` або рознести cache/session по різних інстансах.
+5. ⏸️ **JIT вимкнено** (`jit=tracing`, `jit_buffer_size=0`) — **навмисно лишено**.
+   Для web-навантаження Laravel JIT майже не дає виграшу (виграє CPU-bound код).
+   Вмикати лише за наявності бенчмарку (`opcache.jit_buffer_size=64M`, `opcache.jit=1255`).
+
+6. ✅ **Redis здоровий** — 0 evictions, 98% hit, 62% памʼяті. Дій не потрібно.
 
 ---
 
@@ -155,4 +183,7 @@ responsecache: enabled=true, store=redis, lifetime=604800s (7 днів)
 | **MySQL 8** | ✅ працює | основне сховище |
 | **Env** | ✅ prod | `APP_DEBUG=false` |
 
-Стек налаштований правильно для продакшену. Головне операційне правило: **PHP-зміни та вмикання модулів вимагають `docker restart`** (через OPcache `validate_timestamps=0` + in-memory Octane).
+Стек налаштований правильно для продакшену. Головне операційне правило (після фіксів 2026-06-12):
+- **PHP-код/конфіг** → `git push` + **Coolify `deploy`** (zero-downtime, свіжий контейнер).
+- **Стан БД / toggle модуля** → **`octane:reload`** (zero-downtime, без зміни коду).
+- `docker restart` — лише крайній випадок (дає даунтайм).
