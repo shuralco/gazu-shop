@@ -24,6 +24,10 @@
             <span>Якщо забули пароль — зверніться до головного адміністратора.</span>
         </div>
 
+        <a href="https://lionex.com.ua" target="_blank" rel="nofollow noopener" class="gazu-auth-dev-card">
+            Розроблено <strong>LIONEX</strong> · lionex.com.ua
+        </a>
+
         {{-- Left rail with brand splash, anchored to viewport via fixed positioning --}}
         <aside class="gazu-auth-rail" aria-hidden="true">
             <div class="gazu-auth-pattern"></div>
@@ -47,6 +51,11 @@
                     <li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg> Замовлення Nova Poshta / Ukrposhta</li>
                     <li><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5L20 7"/></svg> Multi-warehouse · TTN · аналітика</li>
                 </ul>
+
+                <a href="https://lionex.com.ua" target="_blank" rel="nofollow noopener" class="gazu-auth-dev">
+                    <span>Розроблено</span>
+                    <img src="{{ asset('lionex-logo.svg') }}" alt="LIONEX" />
+                </a>
 
                 <div class="gazu-auth-foot">
                     <span>© {{ date('Y') }} GAZU</span>
@@ -198,5 +207,31 @@
     }
     .gazu-auth-foot-link { color: #c8d0e1; text-decoration: none; transition: color 0.15s; }
     .gazu-auth-foot-link:hover { color: #fff; }
+
+    /* ─── «Розроблено LIONEX» — rail (dark, white logo) ─── */
+    .gazu-auth-dev {
+        display: inline-flex; align-items: center; gap: 9px;
+        margin-top: 26px; padding-top: 18px;
+        border-top: 1px solid rgba(255,255,255,0.08);
+        text-decoration: none;
+        font-family: 'JetBrains Mono', ui-monospace, monospace;
+        font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+        color: #6a7a96; transition: color 0.15s, opacity 0.15s;
+    }
+    .gazu-auth-dev img { height: 19px; width: auto; display: block; opacity: 0.85; transition: opacity 0.15s; }
+    .gazu-auth-dev:hover { color: #c8d0e1; }
+    .gazu-auth-dev:hover img { opacity: 1; }
+
+    /* ─── «Розроблено LIONEX» — card fallback (light bg, mobile) ─── */
+    .gazu-auth-dev-card {
+        display: block; margin-top: 18px; text-align: center;
+        font-size: 11.5px; letter-spacing: 0.02em;
+        color: #98a2b6; text-decoration: none; transition: color 0.15s;
+    }
+    .gazu-auth-dev-card strong { color: var(--gz-ink); font-weight: 700; }
+    .dark .gazu-auth-dev-card strong { color: #fff; }
+    .gazu-auth-dev-card:hover { color: var(--gz-blue); }
+    .gazu-auth-dev-card:hover strong { color: var(--gz-blue); }
+    @media (min-width: 1024px) { .gazu-auth-dev-card { display: none; } } /* rail shows it on desktop */
     </style>
 </x-filament-panels::page.simple>

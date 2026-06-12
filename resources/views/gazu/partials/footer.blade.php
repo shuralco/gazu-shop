@@ -85,6 +85,11 @@
     </div>
     <div class="border-t border-[#1A2740] gazu-container py-5 flex items-center gap-6 text-xs text-[#5A6573] flex-wrap">
         <span>© {{ date('Y') }} {{ $s['gazu_brand_name'] ?? 'GAZU' }}. Всі права захищені.</span>
+        <a href="https://lionex.com.ua" target="_blank" rel="nofollow noopener"
+           class="inline-flex items-center gap-1.5 text-[#5A6573] no-underline hover:text-[var(--gazu-on-brand)] transition-colors">
+            Розроблено
+            <img src="{{ asset('lionex-logo.svg') }}" alt="LIONEX" style="height:16px;width:auto;display:inline-block;opacity:.85">
+        </a>
         <span class="flex-1"></span>
         @foreach(array_filter(array_map('trim', explode(',', $payments))) as $pay)
             <span>{{ $pay }}</span>
