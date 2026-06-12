@@ -6,197 +6,260 @@ use App\Models\CarEngine;
 use App\Models\CarMake;
 use App\Models\CarModel;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
+/**
+ * РЕАЛЬНИЙ каталог авто клієнта (Google Drive «Каталог автівок», власник
+ * maxkurkowork@gmail.com). Замінює попередню демо-базу (ICE BYD F3, Chery
+ * Tiggo тощо) на актуальний EV/PHEV-модельний ряд: BYD, Volkswagen (ID-серія),
+ * Audi (e-tron).
+ *
+ * Колонки джерела: Бренд · Модель · Роки випуску · Модифікація.
+ * Модифікація (варіант батареї/комплектації) маппиться на car_engines:
+ *   label = повний текст модифікації, fuel_type = electric | hybrid (DM-i/PHEV),
+ *   code = унікальний slug, years_range = роки рядка.
+ * displacement/hp = null (електро — без обʼєму/паспортних к.с. у джерелі).
+ *
+ * РУЙНІВНИЙ: повністю очищує car_makes (FK-каскад → car_models → car_engines →
+ * product_compatibility), потім засіває реальні дані. Запускати свідомо:
+ *   php artisan db:seed --class=CarVehicleSeeder --force
+ */
 class CarVehicleSeeder extends Seeder
 {
-    /**
-     * Seed марки → моделі → двигуни for the car-selector widget.
-     * Focused on the Ukrainian market: Chinese brands (GAZU specialization)
-     * + VAG (most common second-hand market).
-     *
-     * Idempotent: uses firstOrCreate so re-running is safe.
-     */
+    /** Бренд → [slug, відображувана назва, лого]. */
+    private array $makeMeta = [
+        'BYD'  => ['byd', 'BYD', '/img/car-makes/byd.svg'],
+        'VW'   => ['vw', 'Volkswagen', '/img/car-makes/vw.svg'],
+        'Audi' => ['audi', 'Audi', '/img/car-makes/audi.svg'],
+    ];
+
+    /** Назва моделі → тип кузова (факт, для бейджа в селекторі). */
+    private array $bodyByModel = [
+        'Song Plus EV' => 'suv', 'Song L EV' => 'suv', 'Song L DM-i' => 'suv',
+        'Sealion 07 EV' => 'suv', 'Sealion 07 DM-i' => 'suv',
+        'Sealion 06 EV' => 'suv', 'Sealion 06 DM-i' => 'suv',
+        'Sealion 05 EV' => 'suv', 'Sealion 05 DM-i' => 'suv',
+        'Seagull' => 'hatchback', 'Dolphin' => 'hatchback',
+        'Yuan UP' => 'crossover', 'Yuan Plus' => 'crossover',
+        'ID.3' => 'hatchback', 'ID.4' => 'suv', 'ID.4 X' => 'suv', 'ID.4 Crozz' => 'suv',
+        'ID.5' => 'crossover', 'ID.6 X' => 'suv', 'ID.6 Crozz' => 'suv', 'ID. UNYX 06' => 'suv',
+        'ID.7' => 'sedan', 'ID.7 Tourer' => 'wagon', 'ID.7 Vizzion' => 'sedan',
+        'Q4 e-tron' => 'suv', 'Q4 Sportback e-tron' => 'suv', 'Q5 e-tron' => 'suv',
+    ];
+
     public function run(): void
     {
-        $tree = $this->tree();
+        // Очистити демо-базу. car_models/car_engines/product_compatibility
+        // видаляться FK-каскадом (constrained()->cascadeOnDelete()).
+        DB::table('car_makes')->delete();
+
+        $rows = $this->rows();
+
+        // Згрупувати за маркою → моделлю, зберігаючи порядок появи.
+        $byMakeModel = [];
+        foreach ($rows as [$brand, $model, $years, $mod]) {
+            $byMakeModel[$brand][$model][] = ['years' => $years, 'mod' => trim($mod)];
+        }
+
         $makeSort = 0;
-        foreach ($tree as $makeSlug => $makeData) {
-            $make = CarMake::firstOrCreate(
-                ['slug' => $makeSlug],
-                ['name' => $makeData['name'], 'sort_order' => $makeSort++, 'is_active' => true]
-            );
+        foreach ($byMakeModel as $brand => $models) {
+            [$makeSlug, $makeName, $logo] = $this->makeMeta[$brand]
+                ?? [Str::slug($brand), $brand, null];
+
+            $make = CarMake::create([
+                'slug' => $makeSlug,
+                'name' => $makeName,
+                'logo_path' => $logo,
+                'sort_order' => $makeSort++,
+                'is_active' => true,
+            ]);
 
             $modelSort = 0;
-            foreach ($makeData['models'] as $modelSlug => $modelData) {
-                $model = CarModel::firstOrCreate(
-                    ['make_id' => $make->id, 'slug' => $modelSlug],
-                    [
-                        'name' => $modelData['name'],
-                        'body_type' => $modelData['body'] ?? null,
-                        'years_range' => $modelData['years'] ?? null,
-                        'sort_order' => $modelSort++,
-                        'is_active' => true,
-                    ]
-                );
+            foreach ($models as $modelName => $variants) {
+                $allYears = array_map(fn ($v) => $v['years'], $variants);
+
+                $model = CarModel::create([
+                    'make_id' => $make->id,
+                    'slug' => $this->modelSlug($modelName),
+                    'name' => $modelName,
+                    'body_type' => $this->bodyByModel[$modelName] ?? null,
+                    'years_range' => $this->mergeYears($allYears),
+                    'sort_order' => $modelSort++,
+                    'is_active' => true,
+                ]);
 
                 $engineSort = 0;
-                foreach ($modelData['engines'] as $code => $engineData) {
-                    CarEngine::firstOrCreate(
-                        ['model_id' => $model->id, 'code' => $code],
-                        [
-                            'label' => $engineData['label'] ?? $code,
-                            'fuel_type' => $engineData['fuel'] ?? 'petrol',
-                            'displacement' => $engineData['cc'] ?? null,
-                            'hp' => $engineData['hp'] ?? null,
-                            'years_range' => $engineData['years'] ?? null,
-                            'sort_order' => $engineSort++,
-                            'is_active' => true,
-                        ]
-                    );
+                $usedCodes = [];
+                foreach ($variants as $v) {
+                    CarEngine::create([
+                        'model_id' => $model->id,
+                        'code' => $this->engineCode($v['mod'], $usedCodes),
+                        'label' => $v['mod'],
+                        'fuel_type' => $this->fuelType($v['mod']),
+                        'displacement' => null,
+                        'hp' => null,
+                        'years_range' => $this->normYears($v['years']),
+                        'sort_order' => $engineSort++,
+                        'is_active' => true,
+                    ]);
                 }
             }
         }
     }
 
-    /** @return array<string, array{name:string, models:array}> */
-    private function tree(): array
+    private function modelSlug(string $name): string
+    {
+        // "ID.4 X" → "id-4-x", "ID. UNYX 06" → "id-unyx-06", "Q4 e-tron" → "q4-e-tron"
+        return Str::slug(str_replace('.', ' ', $name)) ?: Str::slug($name);
+    }
+
+    /** Унікальний (per-model) код двигуна зі slug модифікації, max 40 символів. */
+    private function engineCode(string $mod, array &$used): string
+    {
+        $base = substr(Str::slug(str_replace('.', ' ', $mod)) ?: 'var', 0, 40);
+        $code = $base;
+        $i = 2;
+        while (isset($used[$code])) {
+            $code = substr($base, 0, 38).'-'.$i;
+            $i++;
+        }
+        $used[$code] = true;
+
+        return $code;
+    }
+
+    private function fuelType(string $mod): string
+    {
+        return (stripos($mod, 'PHEV') !== false || stripos($mod, 'DM-i') !== false)
+            ? 'hybrid'
+            : 'electric';
+    }
+
+    /** "2020–2023" → "2020-2023", "2024–" → "2024-". */
+    private function normYears(string $y): string
+    {
+        return trim(str_replace(['–', '—'], '-', $y));
+    }
+
+    /** Обʼєднати роки всіх модифікацій моделі в один діапазон. */
+    private function mergeYears(array $years): ?string
+    {
+        $starts = [];
+        $ends = [];
+        $open = false;
+        foreach ($years as $y) {
+            $y = $this->normYears($y);
+            if (preg_match('/(\d{4})/', $y, $m)) {
+                $starts[] = (int) $m[1];
+            }
+            if (preg_match('/-\s*(\d{4})/', $y, $m)) {
+                $ends[] = (int) $m[1];
+            } elseif (str_ends_with($y, '-')) {
+                $open = true;
+            }
+        }
+        if (! $starts) {
+            return null;
+        }
+        $start = min($starts);
+
+        if ($open || ! $ends) {
+            return $start.'-';
+        }
+
+        return $start.'-'.max($ends);
+    }
+
+    /** @return array<int, array{0:string,1:string,2:string,3:string}> [brand, model, years, modification] */
+    private function rows(): array
     {
         return [
-            'byd' => [
-                'name' => 'BYD',
-                'models' => [
-                    'f3' => ['name' => 'F3', 'body' => 'sedan', 'years' => '2005-2014', 'engines' => [
-                        '1.5'    => ['label' => '1.5 (BYD473QE)', 'cc' => 1.5, 'hp' => 109],
-                        '1.6'    => ['label' => '1.6 (BYD483QB)', 'cc' => 1.6, 'hp' => 105],
-                    ]],
-                    'han' => ['name' => 'Han', 'body' => 'sedan', 'years' => '2020-', 'engines' => [
-                        'ev'     => ['label' => 'EV (електро)', 'fuel' => 'electric', 'hp' => 517],
-                        'dm-i'   => ['label' => 'DM-i 1.5T гібрид', 'fuel' => 'hybrid', 'cc' => 1.5, 'hp' => 218],
-                    ]],
-                    'song-plus' => ['name' => 'Song Plus', 'body' => 'suv', 'years' => '2020-', 'engines' => [
-                        'dm-i'   => ['label' => 'DM-i 1.5T гібрид', 'fuel' => 'hybrid', 'cc' => 1.5, 'hp' => 197],
-                    ]],
-                    'seal'  => ['name' => 'Seal', 'body' => 'sedan', 'years' => '2022-', 'engines' => [
-                        'ev'     => ['label' => 'EV', 'fuel' => 'electric', 'hp' => 530],
-                    ]],
-                    'tang'  => ['name' => 'Tang', 'body' => 'suv', 'years' => '2018-', 'engines' => [
-                        '2.0t'   => ['label' => '2.0T бензин', 'cc' => 2.0, 'hp' => 208],
-                        'ev'     => ['label' => 'EV', 'fuel' => 'electric', 'hp' => 489],
-                    ]],
-                ],
-            ],
-            'chery' => [
-                'name' => 'Chery',
-                'models' => [
-                    'tiggo-4' => ['name' => 'Tiggo 4', 'body' => 'suv', 'years' => '2017-', 'engines' => [
-                        '1.5'    => ['label' => '1.5 (SQR481FE)', 'cc' => 1.5, 'hp' => 106],
-                        '1.5t'   => ['label' => '1.5T (SQRE4T15)', 'cc' => 1.5, 'hp' => 147],
-                    ]],
-                    'tiggo-7-pro' => ['name' => 'Tiggo 7 Pro', 'body' => 'suv', 'years' => '2020-', 'engines' => [
-                        '1.5t'   => ['label' => '1.5T (SQRF4J15B)', 'cc' => 1.5, 'hp' => 147],
-                        '2.0t'   => ['label' => '2.0T (SQRF4J20B)', 'cc' => 2.0, 'hp' => 197],
-                    ]],
-                    'tiggo-8-pro' => ['name' => 'Tiggo 8 Pro', 'body' => 'suv', 'years' => '2021-', 'engines' => [
-                        '1.6t'   => ['label' => '1.6T (SQRF4J16)', 'cc' => 1.6, 'hp' => 184],
-                        '2.0t'   => ['label' => '2.0T (SQRF4J20)', 'cc' => 2.0, 'hp' => 254],
-                    ]],
-                    'arrizo-5' => ['name' => 'Arrizo 5', 'body' => 'sedan', 'years' => '2016-', 'engines' => [
-                        '1.5'    => ['label' => '1.5 (SQR481FE)', 'cc' => 1.5, 'hp' => 106],
-                        '1.5t'   => ['label' => '1.5T (SQRE4T15)', 'cc' => 1.5, 'hp' => 147],
-                    ]],
-                ],
-            ],
-            'geely' => [
-                'name' => 'Geely',
-                'models' => [
-                    'atlas' => ['name' => 'Atlas', 'body' => 'suv', 'years' => '2016-', 'engines' => [
-                        '2.0'    => ['label' => '2.0 (JLY-4G20)', 'cc' => 2.0, 'hp' => 141],
-                        '2.4'    => ['label' => '2.4 (JLY-4G24)', 'cc' => 2.4, 'hp' => 149],
-                    ]],
-                    'coolray' => ['name' => 'Coolray', 'body' => 'crossover', 'years' => '2018-', 'engines' => [
-                        '1.5t'   => ['label' => '1.5T (JLH-3G15)', 'cc' => 1.5, 'hp' => 177],
-                    ]],
-                    'monjaro' => ['name' => 'Monjaro', 'body' => 'suv', 'years' => '2021-', 'engines' => [
-                        '2.0t'   => ['label' => '2.0T (JLH-4G20)', 'cc' => 2.0, 'hp' => 238],
-                    ]],
-                    'tugella' => ['name' => 'Tugella', 'body' => 'suv', 'years' => '2019-', 'engines' => [
-                        '2.0t'   => ['label' => '2.0T (JLH-4G20)', 'cc' => 2.0, 'hp' => 238],
-                    ]],
-                ],
-            ],
-            'haval' => [
-                'name' => 'Haval',
-                'models' => [
-                    'h6' => ['name' => 'H6', 'body' => 'suv', 'years' => '2011-', 'engines' => [
-                        '1.5t'   => ['label' => '1.5T (GW4G15B)', 'cc' => 1.5, 'hp' => 150],
-                        '2.0t'   => ['label' => '2.0T (GW4C-20)', 'cc' => 2.0, 'hp' => 197],
-                    ]],
-                    'h9' => ['name' => 'H9', 'body' => 'suv', 'years' => '2014-', 'engines' => [
-                        '2.0t'   => ['label' => '2.0T (GW4C-20)', 'cc' => 2.0, 'hp' => 218],
-                    ]],
-                    'jolion' => ['name' => 'Jolion', 'body' => 'crossover', 'years' => '2020-', 'engines' => [
-                        '1.5t'   => ['label' => '1.5T (GW4B15)', 'cc' => 1.5, 'hp' => 150],
-                    ]],
-                    'dargo' => ['name' => 'Dargo', 'body' => 'suv', 'years' => '2020-', 'engines' => [
-                        '2.0t'   => ['label' => '2.0T (GW4C-20)', 'cc' => 2.0, 'hp' => 211],
-                    ]],
-                ],
-            ],
-            'great-wall' => [
-                'name' => 'Great Wall',
-                'models' => [
-                    'wingle-7' => ['name' => 'Wingle 7', 'body' => 'pickup', 'years' => '2018-', 'engines' => [
-                        '2.0d'   => ['label' => '2.0D (GW4D20M)', 'fuel' => 'diesel', 'cc' => 2.0, 'hp' => 150],
-                    ]],
-                    'hover-h5' => ['name' => 'Hover H5', 'body' => 'suv', 'years' => '2010-2016', 'engines' => [
-                        '2.4'    => ['label' => '2.4 бензин', 'cc' => 2.4, 'hp' => 122],
-                        '2.0d'   => ['label' => '2.0 турбодизель', 'fuel' => 'diesel', 'cc' => 2.0, 'hp' => 150],
-                    ]],
-                ],
-            ],
-            'jac' => [
-                'name' => 'JAC',
-                'models' => [
-                    's3' => ['name' => 'S3', 'body' => 'crossover', 'years' => '2014-', 'engines' => [
-                        '1.5'    => ['label' => '1.5', 'cc' => 1.5, 'hp' => 111],
-                        '1.6'    => ['label' => '1.6', 'cc' => 1.6, 'hp' => 126],
-                    ]],
-                    's5' => ['name' => 'S5', 'body' => 'suv', 'years' => '2013-', 'engines' => [
-                        '2.0'    => ['label' => '2.0', 'cc' => 2.0, 'hp' => 134],
-                        '2.0t'   => ['label' => '2.0T', 'cc' => 2.0, 'hp' => 190],
-                    ]],
-                ],
-            ],
-            'mg' => [
-                'name' => 'MG',
-                'models' => [
-                    'zs'  => ['name' => 'ZS', 'body' => 'crossover', 'years' => '2017-', 'engines' => [
-                        '1.5'    => ['label' => '1.5', 'cc' => 1.5, 'hp' => 113],
-                        'ev'     => ['label' => 'EV', 'fuel' => 'electric', 'hp' => 142],
-                    ]],
-                    'hs'  => ['name' => 'HS', 'body' => 'suv', 'years' => '2018-', 'engines' => [
-                        '1.5t'   => ['label' => '1.5T', 'cc' => 1.5, 'hp' => 169],
-                        '2.0t'   => ['label' => '2.0T', 'cc' => 2.0, 'hp' => 224],
-                    ]],
-                ],
-            ],
-            'vw' => [
-                'name' => 'Volkswagen',
-                'models' => [
-                    'golf-vii'  => ['name' => 'Golf VII', 'body' => 'hatchback', 'years' => '2012-2020', 'engines' => [
-                        '1.4tsi' => ['label' => '1.4 TSI (CZCA/CHPA)', 'cc' => 1.4, 'hp' => 125],
-                        '2.0tdi' => ['label' => '2.0 TDI (DCYA/DEJA)', 'fuel' => 'diesel', 'cc' => 2.0, 'hp' => 150],
-                    ]],
-                    'passat-b8' => ['name' => 'Passat B8', 'body' => 'sedan', 'years' => '2014-2022', 'engines' => [
-                        '1.8tsi' => ['label' => '1.8 TSI (CJSA)', 'cc' => 1.8, 'hp' => 180],
-                        '2.0tdi' => ['label' => '2.0 TDI (CRLB)', 'fuel' => 'diesel', 'cc' => 2.0, 'hp' => 150],
-                    ]],
-                    'tiguan-ii' => ['name' => 'Tiguan II', 'body' => 'suv', 'years' => '2016-', 'engines' => [
-                        '1.4tsi' => ['label' => '1.4 TSI (CZDA)', 'cc' => 1.4, 'hp' => 150],
-                        '2.0tsi' => ['label' => '2.0 TSI (CZPB)', 'cc' => 2.0, 'hp' => 220],
-                    ]],
-                ],
-            ],
+            ['BYD', 'Song Plus EV', '2021-2023', '71.7 kWh'],
+            ['BYD', 'Song Plus EV', '2023-', '71.8 kWh Champion Edition'],
+            ['BYD', 'Song Plus EV', '2023-', '87 kWh Champion Edition'],
+            ['BYD', 'Song Plus EV', '2024-', '71.8 kWh Honor Edition'],
+            ['BYD', 'Song Plus EV', '2024-', '87 kWh Honor Edition'],
+            ['BYD', 'Song Plus EV', '2025-', '71.8 kWh Smart Drive Edition'],
+            ['BYD', 'Song Plus EV', '2025-', '87 kWh Smart Drive Edition'],
+
+            ['VW', 'ID.4 X', '2021-', '45–82 kWh Pure / Pro'],
+            ['VW', 'ID.4 X', '2021-', '82 kWh Prime AWD'],
+            ['VW', 'ID.4 Crozz', '2021-', '45–82 kWh Pure / Pro'],
+            ['VW', 'ID.4 Crozz', '2021-', '82 kWh Prime AWD'],
+            ['VW', 'ID.4', '2020–2023', '55–62 kWh Pure (EU)'],
+            ['VW', 'ID.4', '2020–2023', '82 kWh Pro (EU/USA)'],
+            ['VW', 'ID.4', '2021–2023', '82 kWh GTX / AWD 4MOTION (EU/USA)'],
+            ['VW', 'ID.4', '2024–', '52–62 kWh Pure (EU/USA)'],
+            ['VW', 'ID.4', '2024–', '82 kWh Pro / Pro S (EU/USA)'],
+            ['VW', 'ID.4', '2024–', '82 kWh GTX / AWD Pro S (EU/USA)'],
+            ['VW', 'ID.3', '2019–2023', '45 kWh Pure / Pure Performance (EU)'],
+            ['VW', 'ID.3', '2019–2023', '58 kWh Pro / Pro Performance (EU)'],
+            ['VW', 'ID.3', '2019–2023', '77 kWh Pro S (EU)'],
+            ['VW', 'ID.3', '2023–', '58 kWh Pro (EU)'],
+            ['VW', 'ID.3', '2023–', '77 kWh Pro S / GTX (EU)'],
+            ['VW', 'ID.3', '2021–', '45–62 kWh Smart Edition (CN)'],
+            ['VW', 'ID.6 X', '2021–', '55 kWh Pure'],
+            ['VW', 'ID.6 X', '2021–', '82 kWh Pro'],
+            ['VW', 'ID.6 X', '2021–', '82 kWh Prime AWD'],
+            ['VW', 'ID.6 Crozz', '2021–2026', '55 kWh Pure'],
+            ['VW', 'ID.6 Crozz', '2021–2026', '82 kWh Pro'],
+            ['VW', 'ID.6 Crozz', '2021–2026', '82 kWh Prime AWD'],
+            ['VW', 'ID. UNYX 06', '2025–', '54 kWh Pure'],
+            ['VW', 'ID. UNYX 06', '2025–', '80 kWh Pro / Ultra / Max'],
+            ['VW', 'ID. UNYX 06', '2025–', '80 kWh Max AWD'],
+            ['VW', 'ID.5', '2022–2023', '82 kWh Pro'],
+            ['VW', 'ID.5', '2022–2023', '82 kWh GTX AWD'],
+            ['VW', 'ID.5', '2024–', '82 kWh Pro / Pro S'],
+            ['VW', 'ID.5', '2024–', '82 kWh GTX AWD'],
+            ['VW', 'ID.7', '2023–', '77 kWh Pro'],
+            ['VW', 'ID.7', '2023–', '86 kWh Pro S'],
+            ['VW', 'ID.7', '2023–', '86 kWh GTX AWD'],
+            ['VW', 'ID.7 Tourer', '2024–', '77 kWh Pro'],
+            ['VW', 'ID.7 Tourer', '2024–', '86 kWh Pro S'],
+            ['VW', 'ID.7 Tourer', '2024–', '86 kWh GTX AWD'],
+            ['VW', 'ID.7 Vizzion', '2023–', '77–86 kWh'],
+
+            ['Audi', 'Q4 e-tron', '2021–2023', '52 kWh 35 e-tron (EU)'],
+            ['Audi', 'Q4 e-tron', '2021–2023', '82 kWh 40 e-tron (EU)'],
+            ['Audi', 'Q4 e-tron', '2021–2023', '82 kWh 45 / 50 e-tron quattro (EU)'],
+            ['Audi', 'Q4 e-tron', '2024–', '52 kWh 35 e-tron (EU)'],
+            ['Audi', 'Q4 e-tron', '2024–', '82 kWh 40 e-tron (EU)'],
+            ['Audi', 'Q4 e-tron', '2024–', '82 kWh 45 / 50 e-tron quattro (EU)'],
+            ['Audi', 'Q4 e-tron', '2022–', '82 kWh 40 / 50 quattro (CN)'],
+            ['Audi', 'Q4 Sportback e-tron', '2021–2023', '52 kWh 35 e-tron'],
+            ['Audi', 'Q4 Sportback e-tron', '2021–2023', '82 kWh 40 / 45 / 50 e-tron'],
+            ['Audi', 'Q4 Sportback e-tron', '2024–', '52 kWh 35 e-tron'],
+            ['Audi', 'Q4 Sportback e-tron', '2024–', '82 kWh 40 / 50 e-tron'],
+            ['Audi', 'Q5 e-tron', '2022–', '83 kWh 40 e-tron'],
+            ['Audi', 'Q5 e-tron', '2022–', '83 kWh 50 e-tron quattro AWD'],
+
+            ['BYD', 'Sealion 07 EV', '2024–', '72 kWh RWD (CN)'],
+            ['BYD', 'Sealion 07 EV', '2024–', '81 kWh AWD (CN)'],
+            ['BYD', 'Sealion 07 DM-i', '2025–', '27 kWh PHEV (CN)'],
+            ['BYD', 'Song L EV', '2023–', '72 kWh RWD'],
+            ['BYD', 'Song L EV', '2023–', '87 kWh RWD'],
+            ['BYD', 'Song L EV', '2023–', '87 kWh AWD'],
+            ['BYD', 'Song L DM-i', '2024–', '13 kWh PHEV'],
+            ['BYD', 'Song L DM-i', '2024–', '18–27 kWh PHEV'],
+            ['BYD', 'Seagull', '2023–', '30 kWh Vitality / Freedom'],
+            ['BYD', 'Seagull', '2023–', '39 kWh Flying'],
+            ['BYD', 'Sealion 06 EV', '2025–', '65 kWh RWD'],
+            ['BYD', 'Sealion 06 EV', '2025–', '79 kWh RWD'],
+            ['BYD', 'Sealion 06 EV', '2025–', '79 kWh AWD'],
+            ['BYD', 'Sealion 06 DM-i', '2025–', '18–27 kWh PHEV'],
+            ['BYD', 'Sealion 05 DM-i', '2024–2026', '18–27 kWh PHEV'],
+            ['BYD', 'Sealion 05 DM-i', '2026–', '27–34 kWh PHEV'],
+            ['BYD', 'Sealion 05 EV', '2024–2026', '50–61 kWh'],
+            ['BYD', 'Sealion 05 EV', '2026–', '58–69 kWh'],
+            ['BYD', 'Dolphin', '2021–2025', '31 kWh Standard Range'],
+            ['BYD', 'Dolphin', '2021–2025', '45–50 kWh Extended / Performance'],
+            ['BYD', 'Dolphin', '2025–', '45–50 kWh'],
+            ['BYD', 'Yuan UP', '2024–', '32 kWh (CN)'],
+            ['BYD', 'Yuan UP', '2024–', '45 kWh (CN)'],
+            ['BYD', 'Yuan Plus', '2022–2026', '50 kWh'],
+            ['BYD', 'Yuan Plus', '2022–2026', '60 kWh'],
+            ['BYD', 'Yuan Plus', '2026–', '58–69 kWh'],
         ];
     }
 }
