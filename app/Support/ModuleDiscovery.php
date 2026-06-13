@@ -192,7 +192,10 @@ class ModuleDiscovery
                         }
                     }
                     if ($commands) {
-                        \Illuminate\Support\Facades\Artisan::starting(
+                        // ВАЖЛИВО: Console\Application::starting (а НЕ фасад Artisan →
+                        // Kernel, у якого немає starting()). Саме так робить
+                        // ServiceProvider::commands().
+                        \Illuminate\Console\Application::starting(
                             fn ($artisan) => $artisan->resolveCommands($commands)
                         );
                     }
