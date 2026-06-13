@@ -256,7 +256,12 @@
          causing 'Detected multiple instances of Alpine running' + every
          x-on/@click handler firing TWICE = cart fetch + page navigation
          race = ERR_NETWORK_CHANGED + 'page jumping'. --}}
-    <script defer src="{{ asset('assets/js/gazu-np-map.js') }}"></script>
+    {{-- Nova Poshta map (Leaflet з unpkg) потрібна ЛИШЕ на checkout (#gazu-np-map).
+         Раніше вантажилась глобально → зайвий ресурс + 3rd-party CDN на КОЖНІЙ
+         сторінці каталогу/головній. Тепер — тільки де реально є мапа. --}}
+    @if(request()->routeIs('gazu.checkout'))
+        <script defer src="{{ asset('assets/js/gazu-np-map.js') }}"></script>
+    @endif
     <script defer src="{{ asset('assets/js/gazu-fx.js') }}"></script>
 </head>
 <body class="gazu gazu-theme min-h-screen flex flex-col">
