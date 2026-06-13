@@ -40,9 +40,41 @@ class ResponseCacheObserver
         'display_settings_all',
     ];
 
-    public function saved($model): void   { $this->flush(); }
+    public function saved($model): void
+    {
+        // Inventory змінюється ДУЖЕ часто (кожне замовлення / резерв / np:sync).
+        // Раніше КОЖНА така зміна робила повний ResponseCache::clear() → весь
+        // storefront стирався багато разів на день → постійні cold-вікна.
+        // Тепер флашимо лише коли реально перемкнувся СТАТУС наявності
+        // (в наявності ↔ немає) — саме він видимий на сторінці. Чисті зміни
+        // кількості (резерв 5→4) кеш не чіпають.
+        if ($model instanceof \App\Models\Inventory && ! $this->inventoryStatusFlipped($model)) {
+            return;
+        }
+
+        $this->flush();
+    }
+
     public function deleted($model): void { $this->flush(); }
     public function restored($model): void { $this->flush(); }
+
+    /**
+     * Чи перемкнувся статус наявності цього inventory-рядка (0 ↔ >0)?
+     * Нова інвентаризація або зміна, що перетинає нуль — так; інакше ні.
+     */
+    private function inventoryStatusFlipped($inv): bool
+    {
+        if ($inv->wasRecentlyCreated) {
+            return true;
+        }
+        if (! $inv->wasChanged('quantity')) {
+            return false;
+        }
+        $orig = (int) $inv->getOriginal('quantity');
+        $new = (int) ($inv->quantity ?? 0);
+
+        return ($orig > 0) !== ($new > 0);
+    }
 
     private function flush(): void
     {
@@ -59,6 +91,14 @@ class ResponseCacheObserver
             } catch (\Throwable $e) {
                 report($e);
             }
+        }
+
+        // Fragment-кеш мега-меню (відрендерений HTML нав-дерева) — інвалідувати
+        // при зміні категорій/брендів/товарів (рахунки в меню). Tag-store (redis).
+        try {
+            Cache::tags(['gazu-menu'])->flush();
+        } catch (\Throwable $e) {
+            report($e);
         }
     }
 }

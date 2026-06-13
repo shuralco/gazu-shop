@@ -233,7 +233,24 @@
                      рендер. Контент лишається в HTML-джерелі (<template> інертний),
                      тож лінки доступні крадлерам; відкриття миттєве (клієнтський x-if). --}}
                 <template x-if="megaOpen">
-                    @include('gazu.partials.mega-menu', ['activeMega' => 'engine'])
+                    {{-- Fragment-кеш: мега-меню (повне дерево категорій ~300KB)
+                         рендериться сервером на КОЖНІЙ сторінці. HTML ідентичний
+                         для всіх (нав-меню, без цін/персональних даних), тож
+                         кешуємо відрендерений фрагмент → cold-рендер сторінки й
+                         cache:warm стають помітно швидшими. Tag 'gazu-menu'
+                         флашиться ResponseCacheObserver при зміні категорій/
+                         брендів/товарів. Без Vite-asset-хешів (іконки inline-SVG),
+                         тож деплой не ламає; entrypoint cache:clear все одно скидає. --}}
+                    {!! \Illuminate\Support\Facades\Cache::tags(['gazu-menu'])->remember(
+                        'gazu:megamenu:html:'.app()->getLocale(),
+                        86400,
+                        fn () => view('gazu.partials.mega-menu', [
+                            'megaTree' => $megaTree ?? [],
+                            'brands' => $brands ?? [],
+                            'cars' => $cars ?? [],
+                            'activeMega' => 'engine',
+                        ])->render()
+                    ) !!}
                 </template>
             </div>
         </div>
