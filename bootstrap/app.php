@@ -56,6 +56,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectUsersTo(fn () => route('gazu.home'));
     })
     ->withExceptions(function (Exceptions $exceptions) {
+        // Sentry — репорт незловлених винятків (no-op доки SENTRY_LARAVEL_DSN не заданий).
+        \Sentry\Laravel\Integration::handles($exceptions);
+
         $exceptions->shouldRenderJsonWhen(function (\Illuminate\Http\Request $request, \Throwable $e) {
             return $request->is('api/*') || $request->expectsJson();
         });

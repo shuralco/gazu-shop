@@ -20,6 +20,7 @@
         "livewire/livewire": "^3.6",
         "meilisearch/meilisearch-php": "^1.0",
         "ryangjchandler/blade-capture-directive": "^1.1",
+        "sentry/sentry-laravel": "^4.26",
         "spatie/laravel-responsecache": "*",
         "wayforpay/php-sdk": "^1.0",
         "yr4ik/meest-express-api-v3": "^1.1"
