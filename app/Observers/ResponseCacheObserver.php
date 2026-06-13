@@ -104,23 +104,34 @@ class ResponseCacheObserver
 
         $urls = [];
         try {
-            $slug = $product->slug ?: $product->id;
-            if (is_array($slug)) {
-                $slug = $slug['uk'] ?? reset($slug) ?: $product->id;
+            // B: URL через контракт моделі ($model->url()) — observer лишається
+            // theme-agnostic; нова тема визначає свій URL у моделі, не тут.
+            if (method_exists($product, 'url')) {
+                $urls[] = $product->url();
+            } else {
+                // Fallback (GAZU-роут) для моделей без url().
+                $slug = $product->slug ?: $product->id;
+                if (is_array($slug)) {
+                    $slug = $slug['uk'] ?? reset($slug) ?: $product->id;
+                }
+                $urls[] = route('gazu.product.show', ['slug' => $slug]);
+                $urls[] = route('gazu.product.show', ['slug' => $product->id]);
             }
-            $urls[] = route('gazu.product.show', ['slug' => $slug]);
-            $urls[] = route('gazu.product.show', ['slug' => $product->id]);
 
             // Категорія товару + предки (де він у лістингу зі stock-бейджем).
             $cat = $product->category;
             $guard = 0;
             while ($cat && $guard++ < 6) {
-                $cs = $cat->slug ?? null;
-                if (is_array($cs)) {
-                    $cs = $cs['uk'] ?? reset($cs) ?: null;
-                }
-                if ($cs) {
-                    $urls[] = url('/'.ltrim((string) $cs, '/'));
+                if (method_exists($cat, 'url')) {
+                    $urls[] = $cat->url();
+                } else {
+                    $cs = $cat->slug ?? null;
+                    if (is_array($cs)) {
+                        $cs = $cs['uk'] ?? reset($cs) ?: null;
+                    }
+                    if ($cs) {
+                        $urls[] = url('/'.ltrim((string) $cs, '/'));
+                    }
                 }
                 $cat = $cat->parent;
             }
@@ -176,7 +187,13 @@ class ResponseCacheObserver
      */
     private function forgetDerived(): void
     {
-        foreach (self::DERIVED_KEYS as $key) {
+        // Список явних ключів — з config('storefront.derived_cache_keys')
+        // (нова тема задає свої БЕЗ правки цього класу); fallback = GAZU-const.
+        $keys = config('storefront.derived_cache_keys');
+        if (! is_array($keys) || $keys === []) {
+            $keys = self::DERIVED_KEYS;
+        }
+        foreach ($keys as $key) {
             try {
                 Cache::forget($key);
             } catch (\Throwable $e) {
@@ -184,11 +201,19 @@ class ResponseCacheObserver
             }
         }
 
-        // Fragment-кеш мега-меню (відрендерений HTML нав-дерева) — tag-store (redis).
-        try {
-            Cache::tags(['gazu-menu'])->flush();
-        } catch (\Throwable $e) {
-            report($e);
+        // Tag-flush: будь-який Cache::tags([derived_tag])->remember(...) інвалідовується
+        // АВТОМАТИЧНО — це шлях, яким нова тема інтегрує кешування без списку ключів.
+        // + fragment-кеш меню. Теги з config (дефолти GAZU).
+        $tags = array_filter([
+            config('storefront.derived_cache_tag', 'storefront'),
+            config('storefront.menu_cache_tag', 'gazu-menu'),
+        ]);
+        foreach (array_unique($tags) as $tag) {
+            try {
+                Cache::tags([$tag])->flush();
+            } catch (\Throwable $e) {
+                report($e);
+            }
         }
     }
 }

@@ -195,6 +195,16 @@ class Product extends Model
     }
 
     /**
+     * Канонічний публічний URL товару. Контракт для theme-agnostic
+     * cache-інвалідації (ResponseCacheObserver використовує $model->url()
+     * замість хардкод-роуту). Нова тема перевизначає тут.
+     */
+    public function url(): string
+    {
+        return route('gazu.product.show', ['slug' => $this->getLocalizedSlug() ?: (string) $this->id]);
+    }
+
+    /**
      * Find a product by its locale-specific slug.
      */
     public static function findBySlug(string $slug, ?string $locale = null): ?self

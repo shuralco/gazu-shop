@@ -44,7 +44,12 @@ class EnsureWarm extends Command
         $host = parse_url((string) config('app.url'), PHP_URL_HOST) ?: 'localhost';
         $cold = false;
         $samples = [];
-        foreach (['/', '/catalog'] as $path) {
+        // Ключові сторінки — з config (нова тема задає свої БЕЗ правки команди).
+        $probePaths = config('storefront.warm_probe_paths');
+        if (! is_array($probePaths) || $probePaths === []) {
+            $probePaths = ['/', '/catalog'];
+        }
+        foreach ($probePaths as $path) {
             try {
                 $start = microtime(true);
                 $resp = Http::withHeaders(['Host' => $host])

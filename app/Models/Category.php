@@ -76,6 +76,17 @@ class Category extends Model
     }
 
     /**
+     * Канонічний публічний URL категорії. Контракт для theme-agnostic
+     * cache-інвалідації (ResponseCacheObserver). Нова тема перевизначає тут.
+     */
+    public function url(): string
+    {
+        $slug = $this->getLocalizedSlug();
+
+        return $slug ? url('/'.ltrim($slug, '/')) : route('gazu.catalog');
+    }
+
+    /**
      * Find a category by its locale-specific slug.
      */
     public static function findBySlug(string $slug, ?string $locale = null): ?self

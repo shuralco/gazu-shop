@@ -20,14 +20,30 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class GazuCacheProfile extends BaseCacheProfile
 {
-    /** Paths excluded from cache. */
-    protected array $excludedPathPrefixes = [
-        'admin', 'cart', 'checkout', 'account', 'login', 'register', 'logout',
-        'api', 'storage', 'livewire', 'sanctum', 'horizon', 'telescope', 'csrf-token',
-        // User-specific — ніколи не кешувати (інакше guest empty-state «протікає»
-        // авторизованим або навпаки).
-        'wishlist', 'obrane', 'kabinet', 'zamovlennya', 'garazh',
-    ];
+    /**
+     * Paths excluded from cache. Джерело — config('storefront.excluded_cache_prefixes')
+     * (нова тема задає свої БЕЗ правки цього класу). Fallback = поточний GAZU.
+     *
+     * @var array<int,string>|null
+     */
+    private static ?array $excludedPathPrefixes = null;
+
+    /** @return array<int,string> */
+    private function excludedPrefixes(): array
+    {
+        if (self::$excludedPathPrefixes !== null) {
+            return self::$excludedPathPrefixes;
+        }
+
+        $cfg = config('storefront.excluded_cache_prefixes');
+
+        return self::$excludedPathPrefixes = (is_array($cfg) && $cfg !== []) ? array_values($cfg) : [
+            'admin', 'cart', 'checkout', 'account', 'login', 'register', 'logout',
+            'api', 'storage', 'livewire', 'sanctum', 'horizon', 'telescope', 'csrf-token',
+            // User-specific — ніколи не кешувати.
+            'wishlist', 'obrane', 'kabinet', 'zamovlennya', 'garazh',
+        ];
+    }
 
     public function shouldCacheRequest(Request $request): bool
     {
@@ -46,7 +62,7 @@ class GazuCacheProfile extends BaseCacheProfile
         }
 
         $path = trim($request->path(), '/');
-        foreach ($this->excludedPathPrefixes as $prefix) {
+        foreach ($this->excludedPrefixes() as $prefix) {
             if ($path === $prefix || str_starts_with($path.'/', $prefix.'/')) {
                 return false;
             }
