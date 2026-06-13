@@ -203,7 +203,7 @@ class ProductResource extends Resource
 
                                 Forms\Components\RichEditor::make('content')
                                     ->label('Детальний опис')
-                                    ->required()
+                                    ->helperText('Необовʼязково — можна лишити порожнім при масовому наповненні.')
                                     ->columnSpanFull()
                                     ->toolbarButtons([
                                         'bold',

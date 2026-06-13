@@ -12,14 +12,38 @@
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
 
-    $rawSpecs = is_object($p) ? ($p->specifications ?? null) : ($p['specifications'] ?? null);
-    if (is_array($rawSpecs) && ! empty($rawSpecs)) {
-        $specs = [];
-        foreach ($rawSpecs as $k => $v) {
-            $isMono = preg_match('/^\d|[\.,×]|^[A-Z]\d/', (string) $v);
-            $specs[] = [(string) $k, (string) $v, (bool) $isMono];
+    // Характеристики з ТАКСОНОМІЇ — призначені фільтри товару, згруповані за
+    // FilterGroup (Виробник, Положення, Тип, В'язкість…). Підтягуються авто з
+    // pivot filter_products. Доповнюються free-form specifications (екстра-поля).
+    $specs = [];
+    $monoRe = '/^\d|[\.,×]|^[A-Z]\d/';
+    if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('filters')) {
+        $byGroup = [];
+        foreach ($p->filters as $f) {
+            $label = optional($f->filterGroup)->title ?: optional($f->filterGroup)->name;
+            $val = $f->name ?: $f->title;
+            if ($label && $val) {
+                $byGroup[$label][] = (string) $val;
+            }
         }
-    } else {
+        foreach ($byGroup as $label => $vals) {
+            $v = implode(', ', array_values(array_unique($vals)));
+            $specs[] = [(string) $label, $v, (bool) preg_match($monoRe, $v)];
+        }
+    }
+    // free-form specifications — додаємо лише назви, яких ще немає з таксономії.
+    $rawSpecs = is_object($p) ? ($p->specifications ?? null) : ($p['specifications'] ?? null);
+    if (is_array($rawSpecs)) {
+        $have = array_map(fn ($s) => mb_strtolower($s[0]), $specs);
+        foreach ($rawSpecs as $k => $v) {
+            if (in_array(mb_strtolower((string) $k), $have, true)) {
+                continue;
+            }
+            $specs[] = [(string) $k, (string) $v, (bool) preg_match($monoRe, (string) $v)];
+        }
+    }
+    // Fallback коли товар ще без характеристик.
+    if (empty($specs)) {
         $specs = [
             ['Виробник', $brand ?: '—', false],
             ['Артикул', $oem ?: '—', true],

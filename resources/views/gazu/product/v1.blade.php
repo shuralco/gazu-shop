@@ -39,15 +39,36 @@
     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
     $fits = is_object($p) ? ($p->fits ?? null) : ($p['fits'] ?? null);
 
-    // Specifications: з БД (Product->specifications). Fallback — лише базові поля товару.
-    $rawSpecs = is_object($p) ? ($p->specifications ?? null) : ($p['specifications'] ?? null);
-    if (is_array($rawSpecs) && ! empty($rawSpecs)) {
-        $specs = [];
-        foreach ($rawSpecs as $k => $v) {
-            $isMono = preg_match('/^\d|[\.,×]|^[A-Z]\d/', (string) $v); // мономо для кодів/розмірів
-            $specs[] = [(string) $k, (string) $v, (bool) $isMono];
+    // Характеристики: спершу з ТАКСОНОМІЇ (призначені фільтри товару, згруповані за
+    // FilterGroup: Виробник, Положення, Тип, В'язкість…) — підтягуються авто з
+    // pivot filter_products. Потім доповнюємо free-form Product->specifications.
+    $specs = [];
+    $monoRe = '/^\d|[\.,×]|^[A-Z]\d/'; // мономо для кодів/розмірів
+    if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('filters')) {
+        $byGroup = [];
+        foreach ($p->filters as $f) {
+            $label = optional($f->filterGroup)->title ?: optional($f->filterGroup)->name;
+            $val = $f->name ?: $f->title;
+            if ($label && $val) {
+                $byGroup[$label][] = (string) $val;
+            }
         }
-    } else {
+        foreach ($byGroup as $label => $vals) {
+            $v = implode(', ', array_values(array_unique($vals)));
+            $specs[] = [(string) $label, $v, (bool) preg_match($monoRe, $v)];
+        }
+    }
+    $rawSpecs = is_object($p) ? ($p->specifications ?? null) : ($p['specifications'] ?? null);
+    if (is_array($rawSpecs)) {
+        $have = array_map(fn ($s) => mb_strtolower($s[0]), $specs);
+        foreach ($rawSpecs as $k => $v) {
+            if (in_array(mb_strtolower((string) $k), $have, true)) {
+                continue;
+            }
+            $specs[] = [(string) $k, (string) $v, (bool) preg_match($monoRe, (string) $v)];
+        }
+    }
+    if (empty($specs)) {
         $specs = [
             ['Виробник', $brand ?: '—', false],
             ['Артикул', $oem ?: '—', true],
