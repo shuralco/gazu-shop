@@ -3,15 +3,17 @@
 Тема = **візуальна особистість** вітрини (кольори, заокруглення, шрифти). Бізнес-логіка
 (модулі) від теми не залежить — будь-який модуль працює під будь-якою темою.
 
-Є **два рівні** кастомізації:
+Є **три рівні** кастомізації:
 
 | Рівень | Що міняє | Потрібен `npm run build`? | Складність |
 |---|---|---|---|
 | **1. Токени теми** (рекомендований) | Кольори + заокруглення + шрифти — через один `theme.json` | **НІ** (рантайм-інжекція) | тривіальна |
 | **2. Глибока тема** | Власний CSS-entry, перевизначення blade-шаблонів, розкладка | так | висока |
+| **3. Кешування** (за потреби) | Своя кеш-інтеграція: теги, виключення шляхів, `url()`-контракт | ні (config) | середня |
 
 > Для «натягування дизайну» (зокрема згенерованого Claude) майже завжди достатньо **Рівня 1** —
-> один файл, миттєвий ре-скін без перебудови.
+> один файл, миттєвий ре-скін без перебудови. Рівень 3 потрібен лише якщо тема має іншу
+> структуру сторінок/роутів і кеш має інвалідуватись по-своєму.
 
 ---
 
@@ -175,8 +177,75 @@ themes/{name}/
 
 - **Blade-оверрайди**: `themes/{name}/resources/views/` препендиться у view-finder →
   `view('gazu.layout')` спершу шукає у темі, потім у core. Копіюй лише ті файли, що міняєш.
+  Шлях береться з маніфест-ключа **`views_path`** (дефолт `resources/views`) — можна тримати
+  views де завгодно (`ThemeDiscovery::bootActiveTheme` → `ThemeManager::viewsPath()`).
 - **Власний CSS**: додай у `vite.config.js` `input`, постав `css_entry` на нього, `npm run build`.
 - Деталі — `themes/README.md` + код `app/Support/ThemeDiscovery.php`.
+
+---
+
+## Рівень 3 — Кешування для нової теми (портативність)
+
+Storefront-кеш (повносторінковий Spatie ResponseCache + DB-derived `Cache::remember`)
+**розчеплений від GAZU** — нова тема інтегрує його БЕЗ правки core-файлів кешу. Усе
+керується через `config/storefront.php` (дефолти = поточний GAZU).
+
+### `config/storefront.php` — що перевизначає тема
+
+| Ключ | Для чого | ENV |
+|---|---|---|
+| `excluded_cache_prefixes` | Префікси шляхів, які НЕ кешуються повносторінково (cart/checkout/кабінет тощо). Інша тема з іншими slug'ами задає свій набір. | `STOREFRONT_EXCLUDED_PREFIXES` (csv) |
+| `warm_probe_paths` | Ключові сторінки, які guard `gazu:ensure-warm` пробує на «холод» (дефолт `/,/catalog`). | `STOREFRONT_PROBE_PATHS` (csv) |
+| `derived_cache_keys` | Явні `Cache::remember`-ключі, що стають stale при зміні storefront-моделі (мега-меню, статистика, featured). | — |
+| `derived_cache_tag` | Тег для derived-кешів теми (дефолт `storefront`). | `STOREFRONT_DERIVED_TAG` |
+| `menu_cache_tag` | Тег fragment-кешу навігації. | `STOREFRONT_MENU_TAG` |
+
+Споживачі (читають config, fallback = GAZU-дефолти):
+`GazuCacheProfile` (виключення) · `EnsureWarm` (probe) · `ResponseCacheObserver` (інвалідація).
+
+### Як інтегрувати кеш у нову тему — 2 шляхи
+
+**A. Теги (рекомендовано — без списку ключів).**
+Будь-який кеш, який рендерить дані вітрини, тегуй `storefront`-тегом:
+```php
+Cache::tags([config('storefront.derived_cache_tag')])->remember('my-theme:hero', 600, fn () => …);
+```
+`ResponseCacheObserver` автоматично флашить цей тег на будь-яку зміну storefront-моделі —
+**нічого не треба додавати у core**. (Меню → тег `menu_cache_tag`.)
+
+**B. Явний список ключів** (якщо кеш без тегів): додай ключі у `derived_cache_keys`
+свого `config/storefront.php`.
+
+### Контракт `$model->url()` (scoped-інвалідація)
+
+`ResponseCacheObserver` при зміні товару/складу робить **точкову** інвалідацію (forget лише
+сторінки товару + його категорій, а не весь storefront) через **`$model->url()`**:
+- `App\Models\Product::url()` і `Category::url()` повертають канонічний URL.
+- Якщо нова тема має ІНШІ роути сторінок — перевизнач `url()` у моделі (або підмінь модель).
+  Observer лишається theme-agnostic (викликає `$model->url()`, не хардкод-роут).
+
+### Прогрів кешу (працює для будь-якої теми)
+
+| Механізм | Що робить |
+|---|---|
+| `php artisan cache:warm [--products]` | гріє URL із sitemap (тема-agnostic) — home/категорії/бренди (+товари) |
+| `php artisan gazu:ensure-warm` (cron щохв) | детектить cold (`warm_probe_paths`) і сам доварює ≤60с |
+| `docker-entrypoint.sh` | `view:cache` + фоновий `cache:warm` після кожного деплою |
+| кнопка «Очистити ВЕСЬ кеш» (адмінка) | clear → `optimize` → `octane:reload` → `cache:warm` (не лишає холодним) |
+
+⚠️ **НІКОЛИ не роби голий `view:clear`** (лишає сторінки холодними ~500ms на перший хіт) —
+у коді є `gazu:views:refresh` (clear+cache), для прод-hotfix — `scripts/blade-hotfix.sh`.
+Деталі: `docs/INFRASTRUCTURE.md` §6.
+
+---
+
+## Чеклист нової теми
+
+1. `cp -r themes/_template themes/<slug>` → заповнити `name`/`label`/`tokens` (+опц. `radii`/`fonts`/`font_links`).
+2. (опц.) Override-блейди → `themes/<slug>/resources/views/gazu/...` (дзеркалять core).
+3. (опц.) Власний CSS-entry → `vite.config.js` input + `css_entry` + `npm run build`.
+4. (опц.) Кеш: тегуй свої `Cache::remember` тегом `storefront`; за потреби — свій `config/storefront.php` (excluded/probe paths).
+5. Активувати `/admin/theme-settings` → перевірити в інкогніто.
 
 ---
 
@@ -221,10 +290,11 @@ themes/{name}/
 
 ## Reference (код)
 
-- `app/Support/ThemeManager.php` — резолв активної теми, `cssVarOverrides()`, `fontLinks()`
-- `app/Support/ThemeDiscovery.php` — препенд view-finder
+- `app/Support/ThemeManager.php` — резолв активної теми, `cssVarOverrides()`, `fontLinks()`, `viewsPath()`
+- `app/Support/ThemeDiscovery.php` — препенд view-finder (за `views_path` маніфесту)
 - `modules/theme_settings/src/Console/Commands/ThemeSetCommand.php` — `theme:set`
 - `modules/theme_settings/src/Filament/Pages/ThemeSettings.php` — адмін-перемикач
 - `resources/views/gazu/layout.blade.php` — інжекція `<style id="gazu-theme-vars">` + `font_links`
 - `themes/gazu/theme.json` — еталонний маніфест · `themes/_template/theme.json` — шаблон-спец
+- **Кеш (Рівень 3):** `config/storefront.php` (портативні ключі) · `app/Support/Cache/GazuCacheProfile.php` (виключення) · `app/Observers/ResponseCacheObserver.php` (scoped-інвалідація + теги) · `app/Console/Commands/{WarmCache,EnsureWarm,ViewsRefresh}.php` · `scripts/blade-hotfix.sh` · `docs/INFRASTRUCTURE.md` §6
 - `config/themes.php` — дефолтна тема
