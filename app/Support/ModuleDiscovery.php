@@ -168,6 +168,36 @@ class ModuleDiscovery
                     $app->make('translator')->addNamespace($name, $langDir);
                 }
             }
+
+            // Console commands — modules/<name>/src/Console/Commands/*.php.
+            // Laravel auto-discover'ить ЛИШЕ app/Console/Commands; модульні
+            // команди фізично в modules/ (autoload через composer classmap), тож
+            // НІКОЛИ не реєструвались → scheduled-крони (np:track, up:track,
+            // loyalty:*, checkbox:*, feeds:*, …) падали з NamespaceNotFoundException
+            // на КОЖЕН запуск. Реєструємо тут для enabled-модулів.
+            if ($app->runningInConsole()) {
+                $cmdDir = $path.'/src/Console/Commands';
+                if (is_dir($cmdDir)) {
+                    $commands = [];
+                    foreach (glob($cmdDir.'/*.php') ?: [] as $file) {
+                        $src = @file_get_contents($file);
+                        if (! $src || ! preg_match('/^namespace\s+([^;]+);/m', $src, $m)) {
+                            continue;
+                        }
+                        $class = trim($m[1]).'\\'.basename($file, '.php');
+                        if (class_exists($class)
+                            && is_subclass_of($class, \Illuminate\Console\Command::class)
+                            && ! (new \ReflectionClass($class))->isAbstract()) {
+                            $commands[] = $class;
+                        }
+                    }
+                    if ($commands) {
+                        \Illuminate\Support\Facades\Artisan::starting(
+                            fn ($artisan) => $artisan->resolveCommands($commands)
+                        );
+                    }
+                }
+            }
         }
     }
 
