@@ -227,7 +227,14 @@
                         lg:left-1/2 lg:right-auto lg:top-[105px] lg:bottom-auto
                         lg:-translate-x-1/2 lg:w-[min(1280px,calc(100vw-48px))]"
                  @click.outside="megaOpen = false">
-                @include('gazu.partials.mega-menu', ['activeMega' => 'engine'])
+                {{-- Lazy: мега-меню (повне дерево категорій ~300KB) рендериться як
+                     LIVE DOM лише при першому відкритті. Раніше teleport віддавав
+                     його в DOM на КОЖНІЙ сторінці → роздутий DOM (794KB) → повільний
+                     рендер. Контент лишається в HTML-джерелі (<template> інертний),
+                     тож лінки доступні крадлерам; відкриття миттєве (клієнтський x-if). --}}
+                <template x-if="megaOpen">
+                    @include('gazu.partials.mega-menu', ['activeMega' => 'engine'])
+                </template>
             </div>
         </div>
     </template>
