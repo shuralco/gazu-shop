@@ -229,17 +229,7 @@
                 @else
                     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 mt-4 gazu-stagger">
                         @foreach($products as $p)
-                            @php
-                                // Fragment-кеш картки: рендер 24 карток ≈ головна
-                                // вартість cold-MISS. Ключ самоінвалідний — id +
-                                // updated_at (бамп на зміну ціни/назви → новий ключ,
-                                // НЕ застаріла ціна) + статус наявності + eager.
-                                // Deploy чистить cache; TTL 6год доварює рідкісне
-                                // (rename бренду / лічильник відгуків).
-                                $eager = $loop->index < 4;
-                                $cardKey = 'card:'.($p->id ?? 'x').':'.(optional($p->updated_at)->timestamp ?? '0').':'.((($p->qty ?? 0) > 0) ? 1 : 0).':c'.($eager ? 'e' : 'n');
-                            @endphp
-                            {!! \Illuminate\Support\Facades\Cache::remember($cardKey, 21600, fn () => \Illuminate\Support\Facades\Blade::render('<x-gazu.product-card :p="$p" :compact="true" :eager="$eager"/>', ['p' => $p, 'eager' => $eager])) !!}
+                            <x-gazu.product-card :p="$p" :compact="true" :eager="$loop->index < 4"/>
                         @endforeach
                     </div>
                     <x-gazu.pagination :paginator="$paginator"/>

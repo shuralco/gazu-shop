@@ -45,11 +45,7 @@
     </div>
     <div class="grid grid-cols-2 gap-2.5">
         @foreach($products as $p)
-            @php
-                $eager = $loop->index < 4;
-                $cardKey = 'card:'.($p->id ?? 'x').':'.(optional($p->updated_at)->timestamp ?? '0').':'.((($p->qty ?? 0) > 0) ? 1 : 0).':c'.($eager ? 'e' : 'n');
-            @endphp
-            {!! \Illuminate\Support\Facades\Cache::remember($cardKey, 21600, fn () => \Illuminate\Support\Facades\Blade::render('<x-gazu.product-card :p="$p" :compact="true" :eager="$eager"/>', ['p' => $p, 'eager' => $eager])) !!}
+            <x-gazu.product-card :p="$p" :compact="true" :eager="$loop->index < 4"/>
         @endforeach
     </div>
 </div>
