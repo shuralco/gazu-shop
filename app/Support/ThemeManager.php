@@ -171,6 +171,27 @@ class ThemeManager
     }
 
     /**
+     * Абсолютний шлях до blade-views активної теми (для override core-блейдів
+     * через View::prependLocation). null якщо теки немає.
+     *
+     * Так НОВИЙ ШАБЛОН перекриває будь-який core-blade, просто дзеркалячи його
+     * шлях у themes/<name>/resources/views/ (напр. gazu/home/v1.blade.php) —
+     * БЕЗ правки core. GAZU має 0 override-views → поведінка незмінна.
+     */
+    public static function viewsPath(?string $name = null): ?string
+    {
+        $root = self::path($name);
+        if ($root === null) {
+            return null;
+        }
+        $name ??= self::active();
+        $rel = self::themes()[$name]['views_path'] ?? 'resources/views';
+        $dir = rtrim($root, '/').'/'.ltrim((string) $rel, '/');
+
+        return is_dir($dir) ? $dir : null;
+    }
+
+    /**
      * Path to the active theme's root directory (or null if not installed).
      */
     public static function path(?string $name = null): ?string

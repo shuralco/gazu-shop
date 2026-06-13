@@ -22,13 +22,11 @@ class ThemeDiscovery
 {
     public static function bootActiveTheme(Application $app): void
     {
-        $themePath = ThemeManager::path();
-        if ($themePath === null) {
-            return;
-        }
-
-        $viewsDir = $themePath.'/resources/views';
-        if (! is_dir($viewsDir)) {
+        // Views активної теми з урахуванням маніфест-ключа views_path (раніше
+        // хардкод '/resources/views' ігнорував його). Для gazu — той самий
+        // resources/views, тож поведінка незмінна.
+        $viewsDir = ThemeManager::viewsPath();
+        if ($viewsDir === null) {
             return;
         }
 
