@@ -43,20 +43,101 @@ class ResponseCacheObserver
     public function saved($model): void
     {
         // Inventory змінюється ДУЖЕ часто (кожне замовлення / резерв / np:sync).
-        // Раніше КОЖНА така зміна робила повний ResponseCache::clear() → весь
-        // storefront стирався багато разів на день → постійні cold-вікна.
-        // Тепер флашимо лише коли реально перемкнувся СТАТУС наявності
-        // (в наявності ↔ немає) — саме він видимий на сторінці. Чисті зміни
-        // кількості (резерв 5→4) кеш не чіпають.
-        if ($model instanceof \App\Models\Inventory && ! $this->inventoryStatusFlipped($model)) {
+        // 1) Чисті зміни кількості (резерв 5→4) — кеш не чіпаємо взагалі.
+        // 2) Перемикання СТАТУСУ наявності (в наявності ↔ немає) — це видимо на
+        //    сторінці, АЛЕ робимо SCOPED-інвалідацію (лише сторінка товару + його
+        //    категорії), а НЕ повний ResponseCache::clear() усього storefront.
+        //    Інакше кожне замовлення, що вибиває товар зі stock, стирало весь
+        //    кеш → постійні cold-вікна (~0.9с перший хіт). Див. memory.
+        if ($model instanceof \App\Models\Inventory) {
+            if ($this->inventoryStatusFlipped($model)) {
+                $this->flushProduct($model->product);
+            }
+
             return;
         }
 
+        // Зміна самого товару — scoped (товар рідко редагують, але нащо валити
+        // весь storefront заради одного товару).
+        if ($model instanceof \App\Models\Product) {
+            $this->flushProduct($model);
+
+            return;
+        }
+
+        // Категорії/бренди/налаштування/нав-моделі впливають на багато сторінок
+        // одразу (меню, лічильники) і змінюються рідко (admin) → повний flush.
         $this->flush();
     }
 
-    public function deleted($model): void { $this->flush(); }
-    public function restored($model): void { $this->flush(); }
+    public function deleted($model): void { $this->flushFor($model); }
+    public function restored($model): void { $this->flushFor($model); }
+
+    private function flushFor($model): void
+    {
+        if ($model instanceof \App\Models\Inventory) {
+            $this->flushProduct($model->product);
+
+            return;
+        }
+        if ($model instanceof \App\Models\Product) {
+            $this->flushProduct($model);
+
+            return;
+        }
+        $this->flush();
+    }
+
+    /**
+     * Scoped-інвалідація для одного товару: forget сторінки товару + сторінок
+     * його категорій (де він з'являється в лістингу), + DB-derived кеші + меню.
+     * НЕ робить повний ResponseCache::clear() → решта storefront лишається теплою.
+     */
+    private function flushProduct(?\App\Models\Product $product): void
+    {
+        if (! $product) {
+            // Не змогли резолвити товар (напр. видалений) → безпечний фолбек.
+            $this->flush();
+
+            return;
+        }
+
+        $urls = [];
+        try {
+            $slug = $product->slug ?: $product->id;
+            if (is_array($slug)) {
+                $slug = $slug['uk'] ?? reset($slug) ?: $product->id;
+            }
+            $urls[] = route('gazu.product.show', ['slug' => $slug]);
+            $urls[] = route('gazu.product.show', ['slug' => $product->id]);
+
+            // Категорія товару + предки (де він у лістингу зі stock-бейджем).
+            $cat = $product->category;
+            $guard = 0;
+            while ($cat && $guard++ < 6) {
+                $cs = $cat->slug ?? null;
+                if (is_array($cs)) {
+                    $cs = $cs['uk'] ?? reset($cs) ?: null;
+                }
+                if ($cs) {
+                    $urls[] = url('/'.ltrim((string) $cs, '/'));
+                }
+                $cat = $cat->parent;
+            }
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        foreach (array_unique(array_filter($urls)) as $url) {
+            try {
+                ResponseCache::forget($url);
+            } catch (\Throwable $e) {
+                report($e);
+            }
+        }
+
+        $this->forgetDerived();
+    }
 
     /**
      * Чи перемкнувся статус наявності цього inventory-рядка (0 ↔ >0)?
@@ -85,6 +166,16 @@ class ResponseCacheObserver
             report($e);
         }
 
+        $this->forgetDerived();
+    }
+
+    /**
+     * DB-derived Cache::remember ключі + fragment-кеш меню + catalog-агрегати.
+     * Спільне для повного flush і scoped-інвалідації (це дешеві ключі, тож
+     * чистимо їх завжди — інакше storefront re-render'иться зі старих даних).
+     */
+    private function forgetDerived(): void
+    {
         foreach (self::DERIVED_KEYS as $key) {
             try {
                 Cache::forget($key);
@@ -93,8 +184,7 @@ class ResponseCacheObserver
             }
         }
 
-        // Fragment-кеш мега-меню (відрендерений HTML нав-дерева) — інвалідувати
-        // при зміні категорій/брендів/товарів (рахунки в меню). Tag-store (redis).
+        // Fragment-кеш мега-меню (відрендерений HTML нав-дерева) — tag-store (redis).
         try {
             Cache::tags(['gazu-menu'])->flush();
         } catch (\Throwable $e) {
