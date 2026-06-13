@@ -120,9 +120,15 @@ responsecache: enabled=true, store=redis, lifetime=604800s (7 днів)
 |---|---|---|
 | **PHP-код / конфіг / module.json** | `git push` → **Coolify `deploy`** (zero-downtime) | новий контейнер = свіжий OPcache (`validate_timestamps=0`) + новий autoload. Reload сам по собі НЕ підхопить PHP (opcache віддає старий байткод із SHM). |
 | **Стан БД без зміни коду** (toggle модуля, налаштування) | зміна → **`octane:reload`** (zero-downtime) | воркери re-boot'яться й перечитують стан із БД. Код не змінився → opcache не заважає. |
-| **Blade / view** | `docker cp` → `php artisan view:clear` | blade-кеш скидається, новий процес компілює заново. |
+| **Blade / view** | `scripts/blade-hotfix.sh <src> <dest>` (cp → **view:cache** → responsecache:clear → cache:warm) | ⛔ НІКОЛИ голий `view:clear` — лишає storefront холодним (рекомпіляція ~394 blade ≈500ms на перший хіт). Скрипт робить безпечну послідовність. Краще — Coolify `deploy`. |
 | **Статика / public-asset** (svg, png) | `docker cp` → готово | віддає nginx напряму. |
 | **CSS/JS через Vite** | новий бандл → `docker cp build/` → **`octane:reload`** | reload скидає закешований Vite-manifest у памʼяті воркера. |
+
+> ⛔ **НІКОЛИ не роби `view:clear` як останній крок** (ні в коді, ні руками). Він
+> лишає Blade нескомпільованим → перший хіт кожного типу сторінки рекомпілює
+> ~394 шаблони (~500ms). Завжди clear+`view:cache` разом — у коді є команда
+> **`gazu:views:refresh`**, для прода — `scripts/blade-hotfix.sh`. Захист у глибину
+> (Шар 4): `gazu:ensure-warm` щохвилини сам доварює будь-який cold-стан ≤60с.
 
 ### `octane:reload` — тепер працює (zero-downtime)
 ```

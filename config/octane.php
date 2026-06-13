@@ -71,6 +71,15 @@ return [
         WorkerStarting::class => [
             EnsureUploadedFilesAreValid::class,
             EnsureUploadedFilesCanBeMoved::class,
+            // Self-heal: якщо Blade-view не скомпільовані (після view:clear /
+            // частого рестарту) — компілюємо ОДРАЗУ при старті воркера, не
+            // чекаючи першого хіта (інакше перший відвідувач ловить ~500ms
+            // recompile-спайк). Idempotent guard → у нормі no-op.
+            function () {
+                if (count(glob(storage_path('framework/views/*.php')) ?: []) === 0) {
+                    \Illuminate\Support\Facades\Artisan::call('view:cache');
+                }
+            },
         ],
 
         RequestReceived::class => [

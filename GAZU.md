@@ -246,16 +246,16 @@ Preview action (sample data) + Send Test (на свій email).
 - **Manual deploy:** `mcp__coolify__deployments` (force=false уникає docker no-cache якщо можливо)
 
 ### SSH hotfix flow
-Для швидких view-only фіксів без deploy:
+⛔ **НЕ роби голий `view:clear`** — лишає storefront холодним (рекомпіляція ~394
+blade ≈500ms на перший хіт кожної сторінки). Використовуй безпечний скрипт:
 ```bash
-scp file root@23.88.115.55:/tmp/
-ssh root@23.88.115.55 'CID=$(docker ps --filter "name=bgkgc8ww0co8w4wo0kw0osck-" --format "{{.Names}}" | head -1) && \
-  docker cp /tmp/file $CID:/var/www/html/path/to/file && \
-  docker exec $CID php artisan view:clear && \
-  docker exec $CID php artisan responsecache:clear'
+scripts/blade-hotfix.sh resources/views/.../file.blade.php \
+                        /var/www/html/resources/views/.../file.blade.php
+# робить: cp → view:cache (НЕ голий view:clear) → responsecache:clear → cache:warm
 ```
-
-PHP code зміни (Controller/Service) потребують `docker restart $CID` для Octane reload.
+Краще взагалі — повний `Coolify deploy` (контейнер image-based; docker cp зникає
+на наступному деплої). PHP code зміни потребують Coolify deploy (свіжий opcache)
+або `docker restart $CID`.
 
 ### Migrations
 ```bash
@@ -264,8 +264,11 @@ docker exec $CID php artisan db:seed --class=Seeder --force
 ```
 
 ### Cache flush на prod
+⚠️ Після clear ОБОВʼЯЗКОВО re-cache+warm (інакше cold storefront ~500ms).
+В адмінці кнопка «Очистити ВЕСЬ кеш» уже робить це правильно (clear→optimize→
+octane:reload→cache:warm). Вручну:
 ```bash
-docker exec $CID php artisan view:clear
+docker exec $CID php artisan view:cache       # НЕ голий view:clear
 docker exec $CID php artisan route:clear
 docker exec $CID php artisan responsecache:clear
 docker exec $CID php artisan cache:clear

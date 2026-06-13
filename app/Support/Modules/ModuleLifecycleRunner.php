@@ -150,7 +150,7 @@ class ModuleLifecycleRunner
         exec($cmd, $output, $exitCode);
         if ($exitCode === 0) {
             $report['actions'][] = 'autoload: refreshed';
-            Artisan::call('view:clear');
+            Artisan::call('gazu:views:refresh');
             Artisan::call('filament:cache-components');
         } else {
             $report['actions'][] = 'autoload: failed';

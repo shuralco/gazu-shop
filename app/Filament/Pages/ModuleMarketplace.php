@@ -334,7 +334,7 @@ class ModuleMarketplace extends Page
 
         ModuleManager::clearCache();
         Artisan::call('responsecache:clear');
-        Artisan::call('view:clear');
+        Artisan::call('gazu:views:refresh');
         Artisan::call('route:clear');
         $this->rebuildFilamentCache();
 
@@ -466,7 +466,7 @@ class ModuleMarketplace extends Page
         Module::query()->where('key', $key)->delete();
         ModuleManager::clearCache();
         Artisan::call('responsecache:clear');
-        Artisan::call('view:clear');
+        Artisan::call('gazu:views:refresh');
         Artisan::call('route:clear');
         $this->rebuildFilamentCache();
 

@@ -591,7 +591,7 @@ class ModuleInstaller
             $cmd = $composer.' dump-autoload --no-interaction --no-scripts 2>&1';
             exec($cmd, $output, $exitCode);
             if ($exitCode === 0) {
-                Artisan::call('view:clear');
+                Artisan::call('gazu:views:refresh');
                 Artisan::call('cache:clear');
                 Artisan::call('responsecache:clear');
                 Artisan::call('filament:cache-components');

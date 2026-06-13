@@ -84,16 +84,12 @@ class CacheManagement extends Page
                 ->icon('heroicon-o-fire')
                 ->requiresConfirmation()
                 ->modalHeading('Очистити абсолютно весь кеш + reload Octane?')
-                ->modalDescription('Response cache + application + config + routes + views + OPcache + Octane workers. Це знадобиться після деплою, коли потрібно щоб нові assets / config підхопились без рестарту контейнера.')
+                ->modalDescription('Очистить, ПОТІМ автоматично перебудує (config/route/view) і прогріє сторінки у фоні — storefront не лишиться «холодним» (~500ms). Response + application + config + routes + views + OPcache + Octane workers.')
                 ->modalSubmitActionLabel('ТАК, ОЧИСТИТИ')
                 ->action(function () {
                     $this->safely(function () {
+                        // 1) Чистимо все.
                         ResponseCache::clear();
-                        Artisan::call('cache:clear');
-                        Artisan::call('config:clear');
-                        Artisan::call('route:clear');
-                        Artisan::call('view:clear');
-                        Artisan::call('event:clear');
                         Artisan::call('optimize:clear'); // config+route+view+event+compiled+cache
                         try {
                             Artisan::call('filament:clear-cached-components');
@@ -102,11 +98,22 @@ class CacheManagement extends Page
                         if (function_exists('opcache_reset')) {
                             opcache_reset();
                         }
+                        // 2) ВІДРАЗУ перебудовуємо (config+route+view+event) — інакше
+                        //    перший хіт кожної сторінки рекомпілює ~394 blade (~500ms).
+                        Artisan::call('optimize');
+                        // 3) Reload воркерів зі свіжим кодом/view (zero-downtime).
                         try {
-                            Artisan::call('octane:reload');
+                            Artisan::call('octane:reload', ['--server' => 'swoole']);
                         } catch (\Throwable $e) { /* not on octane env */
                         }
-                    }, '✅ Весь кеш очищено + Octane reload', 'Response + Application + Config + Routes + Views + Events + Filament + OPcache + workers reload');
+                        // 4) Прогрів ResponseCache у ЧЕРЗІ (не блокує клік; redis-черга є).
+                        //    Гість після цього отримає теплу сторінку, не cold-render.
+                        try {
+                            Artisan::queue('cache:warm');
+                        } catch (\Throwable $e) {
+                            // черга недоступна — ensure-warm guard доварить за ≤60с
+                        }
+                    }, '✅ Кеш очищено + перебудовано + прогрів у черзі', 'Cleared → optimize (config/route/view) → octane:reload → cache:warm (queued). Storefront лишиться теплим.');
                 }),
 
             // ── PER-DRIVER actions grouped ──────────────────────────────────────
@@ -139,7 +146,7 @@ class CacheManagement extends Page
                     ->label('View cache (Blade)')
                     ->icon('heroicon-o-eye')
                     ->action(fn () => $this->safely(
-                        fn () => Artisan::call('view:clear'),
+                        fn () => Artisan::call('gazu:views:refresh'),
                         'View cache очищено',
                         'Compiled Blade views видалено'
                     )),

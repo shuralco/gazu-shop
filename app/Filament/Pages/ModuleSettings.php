@@ -228,7 +228,7 @@ class ModuleSettings extends Page
 
         ModuleManager::clearCache();
         Artisan::call('responsecache:clear');
-        Artisan::call('view:clear');
+        Artisan::call('gazu:views:refresh');
         Artisan::call('route:clear');
         // CRITICAL: перебудувати кеш Filament-компонентів. Без цього вимкнений
         // модуль ЛИШАЄТЬСЯ в адмін-навігації (його Resources/Pages залишаються

@@ -330,7 +330,7 @@ class ShopSettings extends Page implements HasForms
                 ->action(function () {
                     Cache::flush();
                     Artisan::call('cache:clear');
-                    Artisan::call('view:clear');
+                    Artisan::call('gazu:views:refresh');
 
                     Notification::make()
                         ->success()

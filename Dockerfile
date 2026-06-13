@@ -85,6 +85,14 @@ RUN npm ci --no-audit --no-fund \
     && npm run build \
     && rm -rf node_modules
 
+# Запекти скомпільовані Blade-view в образ → контейнер ЗАВЖДИ стартує з теплими
+# view (entrypoint все одно перевиконує view:cache, але це гарантія навіть якщо
+# entrypoint-крок пропущено/впав). Без цього образ шипиться з 0 compiled-view →
+# перший хіт кожної сторінки рекомпілює ~394 шаблони (~500ms). `|| true` — щоб
+# build не падав якщо середовище білда не дозволяє (entrypoint/WorkerStarting доварять).
+RUN mkdir -p storage/framework/views \
+    && php artisan view:cache 2>/dev/null || echo "[build] view:cache skipped (entrypoint will redo)"
+
 # Copy nginx and supervisor configs
 RUN mkdir -p /run/nginx
 COPY docker/nginx.conf /etc/nginx/http.d/default.conf

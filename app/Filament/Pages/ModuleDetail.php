@@ -196,7 +196,7 @@ class ModuleDetail extends Page
 
         ModuleManager::clearCache();
         Artisan::call('responsecache:clear');
-        Artisan::call('view:clear');
+        Artisan::call('gazu:views:refresh');
         Artisan::call('route:clear');
         // Перебудувати кеш Filament-панелі — інакше вимкнений модуль лишається
         // у сайдбарі (закешовані Resources/Pages). Див. ModuleSettings::rebuildFilamentCache.
@@ -293,7 +293,7 @@ class ModuleDetail extends Page
     {
         ModuleManager::clearCache();
         Artisan::call('responsecache:clear');
-        Artisan::call('view:clear');
+        Artisan::call('gazu:views:refresh');
         Artisan::call('route:clear');
 
         Notification::make()

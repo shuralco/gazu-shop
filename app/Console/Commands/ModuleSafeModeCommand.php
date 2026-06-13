@@ -63,7 +63,7 @@ class ModuleSafeModeCommand extends Command
 
         ModuleManager::clearCache();
         Artisan::call('config:clear');
-        Artisan::call('view:clear');
+        Artisan::call('gazu:views:refresh');
         Artisan::call('cache:clear');
         Artisan::call('responsecache:clear');
         Artisan::call('filament:cache-components');

@@ -30,3 +30,11 @@ Schedule::command('np:clean-api-logs')->dailyAt('02:30');
 Schedule::command('up:sync-references --regions')->weeklyOn(1, '03:00');
 Schedule::command('up:sync-references --cities')->weeklyOn(1, '03:30');
 Schedule::command('up:track')->everyThirtyMinutes();
+
+// Cold-cache safety-net: cause-agnostic guard щохвилини детектить холодний
+// storefront (нескомпільовані view / повільний TTFB) і сам доварює → будь-яке
+// cold-вікно ≤60с. Плюс легкий плановий warm (home+категорії+бренди) кожні
+// 30хв і повний (з товарами) щогодини. Див. app/Console/Commands/EnsureWarm.php.
+Schedule::command('gazu:ensure-warm')->everyMinute()->withoutOverlapping(5)->runInBackground();
+Schedule::command('cache:warm')->everyThirtyMinutes()->withoutOverlapping();
+Schedule::command('cache:warm --products')->hourly()->withoutOverlapping();
