@@ -232,7 +232,7 @@
                          адмінці: Оплата і доставка). Коди novaposhta/ukrposhta/
                          pickup збережено — від них залежить JS вибору відділень. --}}
                     @foreach($shippingOptions as $opt)
-                        @php($key = $opt['code'])
+                        @php $key = $opt['code']; @endphp
                         <label class="flex items-center gap-3 p-3 border rounded-md cursor-pointer"
                                :class="method === '{{ $key }}' ? 'border-[var(--gazu-ink)] bg-[var(--gazu-paper)]' : 'border-[var(--gazu-line)]'">
                             <input type="radio" name="shipping_method" value="{{ $key }}" x-model="method" class="sr-only">
@@ -547,13 +547,18 @@
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]">3</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Спосіб оплати</h3>
                 </div>
-                @php($defaultPm = old('payment_method', $paymentMethods[0]['code'] ?? 'card'))
+                @php $defaultPm = old('payment_method', $paymentMethods[0]['code'] ?? 'card'); @endphp
                 {{-- Способи оплати — активні з БД (керуються в адмінці:
                      Оплата і доставка), у порядку sort_order. --}}
                 <div class="grid gap-2 pl-11" x-data="{ pm: @js($defaultPm) }">
                     @foreach($paymentMethods as $pmOpt)
-                        @php($key = $pmOpt['code'])
-                        @php($feeNote = !empty($pmOpt['fee']) && $pmOpt['fee'] > 0 ? ' · доплата '.rtrim(rtrim(number_format((float) $pmOpt['fee'], 2, '.', ''), '0'), '.').'%' : '')
+                        @php
+                            $key = $pmOpt['code'];
+                            $fee = (float) ($pmOpt['fee'] ?? 0);
+                            $feeNote = $fee > 0
+                                ? ' · доплата '.rtrim(rtrim(number_format($fee, 2, '.', ''), '0'), '.').'%'
+                                : '';
+                        @endphp
                         <label class="flex items-center gap-3 p-3 border rounded-md cursor-pointer"
                                :class="pm === '{{ $key }}' ? 'border-[var(--gazu-ink)] bg-[var(--gazu-paper)]' : 'border-[var(--gazu-line)]'">
                             <input type="radio" name="payment_method" value="{{ $key }}" x-model="pm" class="sr-only">
