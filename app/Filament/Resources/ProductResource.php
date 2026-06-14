@@ -317,6 +317,10 @@ class ProductResource extends Resource
                                             ->native(false)
                                             ->helperText('Довідник: Каталог → Статуси наявності')
                                             ->columnSpanFull(),
+                                        Forms\Components\Toggle::make('is_active')
+                                            ->label('Активний (показувати на сайті)')
+                                            ->default(true)
+                                            ->helperText('Вимкніть, щоб приховати товар із вітрини без видалення'),
                                         Forms\Components\Toggle::make('is_hit')
                                             ->label('Популярний товар')
                                             ->helperText('Відображається в секції хітів'),
@@ -971,6 +975,10 @@ class ProductResource extends Resource
                     ->relationship('brandModel', 'name')
                     ->searchable()
                     ->preload(),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Активність')
+                    ->trueLabel('Активні')
+                    ->falseLabel('Приховані'),
                 Tables\Filters\TernaryFilter::make('is_hit')
                     ->label('Популярні товари'),
                 Tables\Filters\TernaryFilter::make('is_new')
@@ -1057,6 +1065,20 @@ class ProductResource extends Resource
                         ->icon('heroicon-o-sparkles')
                         ->color('success')
                         ->action(fn ($records) => $records->each->update(['is_new' => true]))
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('activate')
+                        ->label('Активувати (показати)')
+                        ->icon('heroicon-o-eye')
+                        ->color('success')
+                        ->requiresConfirmation()
+                        ->action(fn ($records) => $records->each->update(['is_active' => true]))
+                        ->deselectRecordsAfterCompletion(),
+                    Tables\Actions\BulkAction::make('deactivate')
+                        ->label('Деактивувати (приховати)')
+                        ->icon('heroicon-o-eye-slash')
+                        ->color('warning')
+                        ->requiresConfirmation()
+                        ->action(fn ($records) => $records->each->update(['is_active' => false]))
                         ->deselectRecordsAfterCompletion(),
                 ]),
             ])
