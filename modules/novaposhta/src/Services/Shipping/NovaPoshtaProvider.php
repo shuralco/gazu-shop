@@ -24,10 +24,17 @@ class NovaPoshtaProvider implements ShippingProviderInterface
     {
         // Отримуємо конфігурацію з бази даних (налаштування провайдера)
         $provider = \App\Models\ShippingProvider::where('code', 'novaposhta')->first();
-        $config = $provider->configuration ?? [];
+        $config = $provider?->configuration ?? [];
 
-        $this->apiKey = $config['api_key'] ?? config('novaposhta.api_key');
-        $this->apiUrl = config('novaposhta.api_url', 'https://api.novaposhta.ua/v2.0/json/');
+        // Ключ/URL із тих самих джерел, що й NovaPoshtaApiService — інакше, коли
+        // ключ заданий лише через services.nova_poshta (env NOVA_POSHTA_API_KEY),
+        // цей провайдер лишався без ключа → getCities() порожній → пошук міста у
+        // формі замовлення «не працював». ?: (не ??) щоб порожні рядки падали далі.
+        $this->apiKey = ($config['api_key'] ?? null)
+            ?: config('services.nova_poshta.api_key')
+            ?: config('novaposhta.api_key', '');
+        $this->apiUrl = config('services.nova_poshta.api_url')
+            ?: config('novaposhta.api_url', 'https://api.novaposhta.ua/v2.0/json/');
         $this->sandbox = $config['sandbox'] ?? config('novaposhta.sandbox', false);
     }
 
