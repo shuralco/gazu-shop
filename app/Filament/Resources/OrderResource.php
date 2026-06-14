@@ -229,16 +229,18 @@ class OrderResource extends Resource
                                         return [];
                                     })
                                     ->getSearchResultsUsing(function (string $search) {
-                                        if (strlen($search) < 2) {
+                                        if (mb_strlen($search) < 2) {
                                             return [];
                                         }
 
+                                        // Робочий сервіс (той самий, що й публічний /api/np/cities).
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $cities = $provider->getCities($search);
+                                            $r = app(\App\Services\NovaPoshtaApiService::class)->searchCities($search, 20);
 
-                                            return $cities->take(20)->pluck('name', 'ref')->toArray();
-                                        } catch (\Exception $e) {
+                                            return collect($r['data'] ?? [])
+                                                ->mapWithKeys(fn ($c) => [$c['Ref'] => $c['Description']])
+                                                ->toArray();
+                                        } catch (\Throwable $e) {
                                             return [];
                                         }
                                     })
@@ -318,11 +320,9 @@ class OrderResource extends Resource
 
                                         // Завантажити всі відділення для вибраного міста
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $warehouses = $provider->getWarehouses($cityRef);
-
-                                            $warehouseOptions = $warehouses->take(50)->mapWithKeys(function ($warehouse) {
-                                                return [$warehouse['ref'] => "№{$warehouse['number']} - {$warehouse['description']}"];
+                                            $resp = app(\App\Services\NovaPoshtaApiService::class)->getWarehouses($cityRef, '', 50);
+                                            $warehouseOptions = collect($resp['data'] ?? [])->mapWithKeys(function ($w) {
+                                                return [$w['Ref'] => '№'.($w['Number'] ?? '').' - '.($w['Description'] ?? '')];
                                             })->toArray();
 
                                             // Об'єднати з поточним відділенням якщо воно є
@@ -331,7 +331,7 @@ class OrderResource extends Resource
                                             }
 
                                             return $warehouseOptions;
-                                        } catch (\Exception $e) {
+                                        } catch (\Throwable $e) {
                                             return isset($currentWarehouse) ? $currentWarehouse : [];
                                         }
                                     })
@@ -342,20 +342,18 @@ class OrderResource extends Resource
                                         }
 
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $warehouses = $provider->getWarehouses($cityRef);
-
-                                            if ($search && strlen($search) >= 1) {
-                                                $warehouses = $warehouses->filter(function ($warehouse) use ($search) {
-                                                    return str_contains(strtolower($warehouse['description']), strtolower($search)) ||
-                                                           str_contains(strtolower($warehouse['number']), strtolower($search));
-                                                });
+                                            $resp = app(\App\Services\NovaPoshtaApiService::class)->getWarehouses($cityRef, '', 500);
+                                            $items = collect($resp['data'] ?? []);
+                                            if ($search !== '') {
+                                                $s = mb_strtolower($search);
+                                                $items = $items->filter(fn ($w) => str_contains(mb_strtolower($w['Description'] ?? ''), $s)
+                                                    || str_contains(mb_strtolower((string) ($w['Number'] ?? '')), $s));
                                             }
 
-                                            return $warehouses->take(50)->mapWithKeys(function ($warehouse) {
-                                                return [$warehouse['ref'] => "№{$warehouse['number']} - {$warehouse['description']}"];
+                                            return $items->take(50)->mapWithKeys(function ($w) {
+                                                return [$w['Ref'] => '№'.($w['Number'] ?? '').' - '.($w['Description'] ?? '')];
                                             })->toArray();
-                                        } catch (\Exception $e) {
+                                        } catch (\Throwable $e) {
                                             return [];
                                         }
                                     })
@@ -372,13 +370,12 @@ class OrderResource extends Resource
                                         }
 
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $warehouses = $provider->getWarehouses($cityRef);
-                                            $warehouse = $warehouses->firstWhere('ref', $value);
+                                            $resp = app(\App\Services\NovaPoshtaApiService::class)->getWarehouses($cityRef, '', 500);
+                                            $warehouse = collect($resp['data'] ?? [])->firstWhere('Ref', $value);
                                             if ($warehouse) {
-                                                return "№{$warehouse['number']} - {$warehouse['description']}";
+                                                return '№'.($warehouse['Number'] ?? '').' - '.($warehouse['Description'] ?? '');
                                             }
-                                        } catch (\Exception $e) {
+                                        } catch (\Throwable $e) {
                                             // Якщо помилка API, повернути value
                                         }
 
@@ -403,16 +400,17 @@ class OrderResource extends Resource
                                     })
                                     ->preload()
                                     ->getSearchResultsUsing(function (string $search) {
-                                        if (strlen($search) < 2) {
+                                        if (mb_strlen($search) < 2) {
                                             return [];
                                         }
 
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $cities = $provider->getCities($search);
+                                            $r = app(\App\Services\NovaPoshtaApiService::class)->searchCities($search, 20);
 
-                                            return $cities->take(20)->pluck('name', 'ref')->toArray();
-                                        } catch (\Exception $e) {
+                                            return collect($r['data'] ?? [])
+                                                ->mapWithKeys(fn ($c) => [$c['Ref'] => $c['Description']])
+                                                ->toArray();
+                                        } catch (\Throwable $e) {
                                             return [];
                                         }
                                     })
@@ -437,20 +435,17 @@ class OrderResource extends Resource
                                         $cityRef = $get('np_postomat_city');
                                         if ($cityRef) {
                                             try {
-                                                $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                                $warehouses = $provider->getWarehouses($cityRef);
+                                                $resp = app(\App\Services\NovaPoshtaApiService::class)->getWarehouses($cityRef, '', 500);
+                                                $postomats = collect($resp['data'] ?? [])->filter(function ($w) {
+                                                    $d = mb_strtolower($w['Description'] ?? '');
 
-                                                // Фільтруємо поштомати
-                                                $postomats = $warehouses->filter(function ($warehouse) {
-                                                    $description = mb_strtolower($warehouse['description'] ?? '');
-
-                                                    return str_contains($description, 'поштомат') || str_contains($description, 'poshtomat');
+                                                    return str_contains($d, 'поштомат') || str_contains($d, 'poshtomat');
                                                 });
 
-                                                return $postomats->take(50)->mapWithKeys(function ($postomat) {
-                                                    return [$postomat['ref'] => $postomat['description']];
+                                                return $postomats->take(50)->mapWithKeys(function ($w) {
+                                                    return [$w['Ref'] => $w['Description']];
                                                 })->toArray();
-                                            } catch (\Exception $e) {
+                                            } catch (\Throwable $e) {
                                                 return [];
                                             }
                                         }
@@ -464,26 +459,22 @@ class OrderResource extends Resource
                                         }
 
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $warehouses = $provider->getWarehouses($cityRef);
+                                            $resp = app(\App\Services\NovaPoshtaApiService::class)->getWarehouses($cityRef, '', 500);
+                                            $postomats = collect($resp['data'] ?? [])->filter(function ($w) {
+                                                $d = mb_strtolower($w['Description'] ?? '');
 
-                                            // Фільтруємо поштомати
-                                            $postomats = $warehouses->filter(function ($warehouse) {
-                                                $description = mb_strtolower($warehouse['description'] ?? '');
-
-                                                return str_contains($description, 'поштомат') || str_contains($description, 'poshtomat');
+                                                return str_contains($d, 'поштомат') || str_contains($d, 'poshtomat');
                                             });
 
-                                            if ($search) {
-                                                $postomats = $postomats->filter(function ($warehouse) use ($search) {
-                                                    return str_contains(mb_strtolower($warehouse['description']), mb_strtolower($search));
-                                                });
+                                            if ($search !== '') {
+                                                $s = mb_strtolower($search);
+                                                $postomats = $postomats->filter(fn ($w) => str_contains(mb_strtolower($w['Description'] ?? ''), $s));
                                             }
 
-                                            return $postomats->take(50)->mapWithKeys(function ($postomat) {
-                                                return [$postomat['ref'] => $postomat['description']];
+                                            return $postomats->take(50)->mapWithKeys(function ($w) {
+                                                return [$w['Ref'] => $w['Description']];
                                             })->toArray();
-                                        } catch (\Exception $e) {
+                                        } catch (\Throwable $e) {
                                             return [];
                                         }
                                     })
@@ -523,16 +514,17 @@ class OrderResource extends Resource
                                     })
                                     ->preload()
                                     ->getSearchResultsUsing(function (string $search) {
-                                        if (strlen($search) < 2) {
+                                        if (mb_strlen($search) < 2) {
                                             return [];
                                         }
 
                                         try {
-                                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                            $cities = $provider->getCities($search);
+                                            $r = app(\App\Services\NovaPoshtaApiService::class)->searchCities($search, 20);
 
-                                            return $cities->take(20)->pluck('name', 'ref')->toArray();
-                                        } catch (\Exception $e) {
+                                            return collect($r['data'] ?? [])
+                                                ->mapWithKeys(fn ($c) => [$c['Ref'] => $c['Description']])
+                                                ->toArray();
+                                        } catch (\Throwable $e) {
                                             return [];
                                         }
                                     })
