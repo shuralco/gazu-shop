@@ -21,6 +21,8 @@ class PartImage
     /** @var array<string,list<string>> Cached pool listing per kind. */
     private static array $poolCache = [];
 
+    private static ?array $pooledKindsCache = null;
+
     /**
      * @param  string|null  $explicit Direct image URL if uploaded (takes priority)
      * @param  string|null  $kind     Slug like "filter", "battery", "brake-disc"
@@ -88,6 +90,48 @@ class PartImage
         $files = is_dir($dir) ? (glob($dir.'/*.webp') ?: []) : [];
         sort($files);
         return self::$poolCache[$kind] = array_map('basename', $files);
+    }
+
+    /**
+     * Гарантовано повертає kind, що МАЄ фото-пул — щоб resolve() ніколи не падав
+     * у монограму (порожній SVG) там, де очікується реальне фото (напр. колонка
+     * товарів у списку замовлень). Спершу пробуємо мапу за назвою категорії;
+     * якщо вона нічого не дала або pool порожній — детермінований вибір за seed
+     * із наявних пулів (той самий товар → завжди те саме фото).
+     */
+    public static function guaranteedKind(?string $categoryTitle, int|string|null $seed): string
+    {
+        $kind = self::kindFromCategory($categoryTitle);
+        if ($kind && ! empty(self::pool($kind))) {
+            return $kind;
+        }
+
+        $kinds = self::pooledKinds();
+        if (empty($kinds)) {
+            return $kind ?? 'filter';
+        }
+        $idx = $seed !== null ? abs(crc32((string) $seed)) % count($kinds) : 0;
+
+        return $kinds[$idx];
+    }
+
+    /** Список kind'ів, що мають непорожній фото-пул (public/img/parts/<kind>/*.webp). */
+    public static function pooledKinds(): array
+    {
+        if (self::$pooledKindsCache !== null) {
+            return self::$pooledKindsCache;
+        }
+        $base = public_path('img/parts');
+        $dirs = is_dir($base) ? (glob($base.'/*', GLOB_ONLYDIR) ?: []) : [];
+        $kinds = [];
+        foreach ($dirs as $dir) {
+            if (glob($dir.'/*.webp')) {
+                $kinds[] = basename($dir);
+            }
+        }
+        sort($kinds);
+
+        return self::$pooledKindsCache = $kinds;
     }
 
     /**

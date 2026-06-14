@@ -1170,7 +1170,11 @@ class OrderResource extends Resource
                                 if (is_array($catTitle)) {
                                     $catTitle = $catTitle['uk'] ?? '';
                                 }
-                                $kind = \App\Support\PartImage::kindFromCategory((string) $catTitle);
+                                $seed = $op->product_id ?: $op->id;
+                                // guaranteedKind → завжди kind із реальним фото-пулом,
+                                // тож resolve() віддасть webp, а не порожню SVG-монограму
+                                // (як було, коли категорія не мапилась).
+                                $kind = \App\Support\PartImage::guaranteedKind((string) $catTitle, $seed);
                                 $title = $op->title ?? $op->product?->title ?? '';
                                 if (is_array($title)) {
                                     $title = $title['uk'] ?? '';
@@ -1178,7 +1182,7 @@ class OrderResource extends Resource
                                 return \App\Support\PartImage::resolve(
                                     explicit: null,
                                     kind: $kind,
-                                    seed: $op->product_id ?: $op->id,
+                                    seed: $seed,
                                     title: (string) $title,
                                 );
                             })
@@ -1204,6 +1208,7 @@ class OrderResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('customer_name')
                     ->label('Імʼя')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->getStateUsing(function (Order $record): string {
                         $parts = [];
                         if ($record->last_name) {
