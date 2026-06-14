@@ -469,7 +469,10 @@ class CatalogQuery
             'price-asc'  => $q->orderBy('price'),
             'price-desc' => $q->orderByDesc('price'),
             'new'        => $q->orderByDesc('id'),
-            default      => $q->orderByDesc('rating')->orderByDesc('reviews_count'),
+            // «Популярні» (дефолт): рейтинг → відгуки → новизна. Тай-брейк за id
+            // піднімає щойно додані товари (rating=0, reviews=0) на початок серед
+            // рівних, інакше вони губляться на 2-й сторінці категорії.
+            default      => $q->orderByDesc('rating')->orderByDesc('reviews_count')->orderByDesc('id'),
         };
     }
 }

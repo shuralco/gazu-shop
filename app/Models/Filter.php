@@ -27,6 +27,7 @@ class Filter extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'filter_products')
+            ->using(\App\Models\Pivots\FilterProduct::class)
             ->withPivot('filter_group_id');
     }
 

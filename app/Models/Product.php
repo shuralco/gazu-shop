@@ -417,6 +417,7 @@ class Product extends Model
     public function filters(): BelongsToMany
     {
         return $this->belongsToMany(Filter::class, 'filter_products')
+            ->using(\App\Models\Pivots\FilterProduct::class)
             ->withPivot('filter_group_id');
     }
 

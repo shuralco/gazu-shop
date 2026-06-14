@@ -678,6 +678,36 @@ class ProductResource extends Resource
                         Forms\Components\Tabs\Tab::make('GAZU автозапчастини')
                             ->icon('heroicon-o-wrench-screwdriver')
                             ->schema([
+                                // Характеристики з таксономії (Filter/FilterGroup) — призначаються
+                                // прямо тут, без переходу в режим редагування. Pivot filter_group_id
+                                // підставляється автоматично (App\Models\Pivots\FilterProduct) — він
+                                // потрібен faceted-фільтру каталогу.
+                                Forms\Components\Section::make('Характеристики (фільтри каталогу)')
+                                    ->description('Виробник, марка авто, тип, в\'язкість… — за ними працює фільтрація в каталозі')
+                                    ->collapsible()
+                                    ->schema([
+                                        Forms\Components\Select::make('filters')
+                                            ->label('Характеристики')
+                                            ->relationship(
+                                                name: 'filters',
+                                                titleAttribute: 'title',
+                                                modifyQueryUsing: fn ($query) => $query
+                                                    ->where('is_active', true)
+                                                    ->orderBy('filter_group_id')
+                                                    ->orderBy('sort_order'),
+                                            )
+                                            ->getOptionLabelFromRecordUsing(function (\App\Models\Filter $f) {
+                                                $group = optional($f->filterGroup)->title;
+                                                $value = $f->name ?: $f->title;
+                                                return $group ? "{$group}: {$value}" : $value;
+                                            })
+                                            ->multiple()
+                                            ->preload()
+                                            ->searchable()
+                                            ->helperText('Почніть вводити назву групи або значення. Групу характеристики додаємо автоматично.')
+                                            ->columnSpanFull(),
+                                    ]),
+
                                 Forms\Components\Section::make('Технічні характеристики')
                                     ->description('Ключ-значення (Висота: 79 мм, M20×1.5 і т.д.)')
                                     ->collapsible()
