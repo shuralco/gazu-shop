@@ -105,9 +105,43 @@ class AdminPanelProvider extends PanelProvider
                 \Filament\View\PanelsRenderHook::HEAD_END,
                 fn () => <<<'HTML'
                     <script>
+                    // CSRF keep-alive для адмінки: токен на сторінці «замерзає» при
+                    // завантаженні. Після ротації сесії (деплой/перезапуск контейнера,
+                    // TTL) Livewire-запит (логін, будь-яка дія) падає 419 і Filament
+                    // мовчки його ковтає → «не заходить» без жодного повідомлення.
+                    // Періодично + при поверненні на вкладку підтягуємо свіжий токен у
+                    // <meta> (Livewire читає його щозапиту), а 419 ловимо як safety-net.
+                    (function () {
+                        function refreshCsrf() {
+                            return fetch('/csrf-token', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                                .then(function (r) { return r.ok ? r.json() : null; })
+                                .then(function (d) {
+                                    if (!d || !d.token) return null;
+                                    var m = document.querySelector('meta[name="csrf-token"]');
+                                    if (m) m.setAttribute('content', d.token);
+                                    return d.token;
+                                })
+                                .catch(function () { return null; });
+                        }
+                        window.gazuAdminRefreshCsrf = refreshCsrf;
+                        setInterval(refreshCsrf, 10 * 60 * 1000); // кожні 10хв (< TTL сесії)
+                        document.addEventListener('visibilitychange', function () { if (!document.hidden) refreshCsrf(); });
+                        window.addEventListener('pageshow', function (e) { if (e.persisted) refreshCsrf(); });
+                    })();
+
                     document.addEventListener('livewire:init', () => {
                         Livewire.hook('request', ({ fail }) => {
                             fail(({ status, content, preventDefault }) => {
+                                if (status === 419) {
+                                    // Сесія/CSRF застаріли — підтягуємо свіжий токен і
+                                    // перезавантажуємо сторінку (форма логіну отримає
+                                    // дійсний токен замість тихого «нічого не сталось»).
+                                    preventDefault();
+                                    console.warn('[livewire] 419 — оновлюю CSRF і перезавантажую');
+                                    (window.gazuAdminRefreshCsrf ? window.gazuAdminRefreshCsrf() : Promise.resolve())
+                                        .then(function () { window.location.reload(); });
+                                    return;
+                                }
                                 if (status === 500 && content && content.includes('ComponentNotFoundException')) {
                                     preventDefault();
                                     console.warn('[livewire] component not found server-side — reloading');
