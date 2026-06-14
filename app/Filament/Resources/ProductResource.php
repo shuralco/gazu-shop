@@ -704,6 +704,19 @@ class ProductResource extends Resource
                                             ->multiple()
                                             ->preload()
                                             ->searchable()
+                                            // Filament sync() робить bulk-insert у pivot і НЕ запускає
+                                            // events моделі pivot, тож filter_group_id (NOT NULL,
+                                            // потрібен faceted-фільтру) підставляємо тут вручну,
+                                            // мапою filter_id → filter_group_id.
+                                            ->saveRelationshipsUsing(function (\App\Models\Product $record, $state): void {
+                                                $ids = collect($state)->filter()->values();
+                                                $groupByFilter = \App\Models\Filter::whereIn('id', $ids)
+                                                    ->pluck('filter_group_id', 'id');
+                                                $sync = $ids->mapWithKeys(fn ($id) => [
+                                                    $id => ['filter_group_id' => $groupByFilter[$id] ?? null],
+                                                ])->all();
+                                                $record->filters()->sync($sync);
+                                            })
                                             ->helperText('Почніть вводити назву групи або значення. Групу характеристики додаємо автоматично.')
                                             ->columnSpanFull(),
                                     ]),
