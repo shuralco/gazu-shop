@@ -112,8 +112,18 @@
    two displacements STACK — the knob shifts 2× (40px on a 44px track) and
    spills off the track (visible on /admin/my-menu-preferences and every other
    toggle). Neutralize the v4 `translate` on the knob so only the vendor
-   `transform` applies. Scoped to the toggle so nothing else is affected. */
+   `transform` applies. Scoped to the toggle so nothing else is affected.
+
+   ОНОВЛЕНО: той самий баг є і в ТАБЛИЧНОМУ ToggleColumn (обгортка
+   `.fi-ta-toggle`, а не `.fi-fo-toggle`) — кнопка-knob випадала з треку на
+   /admin/shipping-providers, /admin/payment-gateway-settings та всіх інших
+   таблицях із inline-перемикачем. Додаємо селектори для `.fi-ta-toggle` +
+   узагальнений `[role="switch"]` knob, щоб покрити обидва контексти. */
 .fi-fo-toggle > span,
-.fi-fo-toggle [aria-hidden="true"] {
+.fi-fo-toggle [aria-hidden="true"],
+.fi-ta-toggle [role="switch"] > span,
+.fi-ta-toggle [aria-hidden="true"],
+[role="switch"].translate-x-5 > span,
+[role="switch"] > span.translate-x-5 {
   translate: none !important;
 }
