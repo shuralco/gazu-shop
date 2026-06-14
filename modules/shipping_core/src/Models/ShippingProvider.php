@@ -14,14 +14,17 @@ class ShippingProvider extends Model
     protected $fillable = [
         'name',
         'code',
+        'description',
         'api_endpoint',
         'is_active',
         'configuration',
+        'sort_order',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
         'configuration' => 'array',
+        'sort_order' => 'integer',
     ];
 
     /**
@@ -66,5 +69,16 @@ class ShippingProvider extends Model
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('is_active', true);
+    }
+
+    /** Активні провайдери доставки у порядку sort_order — для checkout. */
+    public function scopeActiveOrdered(Builder $query): Builder
+    {
+        $query->where('is_active', true);
+        if (\Illuminate\Support\Facades\Schema::hasColumn('shipping_providers', 'sort_order')) {
+            $query->orderBy('sort_order');
+        }
+
+        return $query->orderBy('id');
     }
 }

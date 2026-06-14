@@ -18,9 +18,9 @@ class PaymentGatewaySettingsResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-credit-card';
 
-    protected static ?string $navigationGroup = 'Склад і доставка';
+    protected static ?string $navigationGroup = 'Оплата і доставка';
 
-    protected static ?string $navigationLabel = 'Платіжні системи';
+    protected static ?string $navigationLabel = 'Способи оплати';
 
     protected static ?string $pluralModelLabel = 'Платіжні системи';
 
@@ -51,9 +51,16 @@ class PaymentGatewaySettingsResource extends Resource
                             ->default(true)
                             ->helperText('Чи доступна платіжна система для використання'),
 
+                        Forms\Components\TextInput::make('sort_order')
+                            ->label('Порядок')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Менше число — вище на сторінці оформлення замовлення'),
+
                         Forms\Components\Textarea::make('description')
                             ->label('Опис')
                             ->rows(2)
+                            ->helperText('Показується підзаголовком на checkout')
                             ->columnSpanFull(),
                     ])
                     ->columns(2),
@@ -173,13 +180,17 @@ class PaymentGatewaySettingsResource extends Resource
                     ->badge()
                     ->searchable(),
 
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Активна')
-                    ->boolean(),
+                Tables\Columns\ToggleColumn::make('is_active')
+                    ->label('Активна'),
 
                 Tables\Columns\TextColumn::make('fee_percentage')
                     ->label('Комісія')
                     ->suffix('%')
+                    ->sortable(),
+
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Порядок')
+                    ->badge()
                     ->sortable(),
 
                 Tables\Columns\TextColumn::make('min_amount')
@@ -325,7 +336,8 @@ class PaymentGatewaySettingsResource extends Resource
                         ->color('danger'),
                 ]),
             ])
-            ->defaultSort('code');
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order');
     }
 
     public static function getRelations(): array

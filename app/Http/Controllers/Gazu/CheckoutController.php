@@ -32,7 +32,82 @@ class CheckoutController extends Controller
                 'discount' => (int) session('gazu.coupon.discount', 0),
                 'type' => session('gazu.coupon.type'),
             ],
+            // Способи оплати/доставки — єдине джерело з БД (керуються в адмінці).
+            'paymentMethods' => $this->checkoutPaymentMethods(),
+            'shippingOptions' => $this->checkoutShippingOptions(),
         ]);
+    }
+
+    /**
+     * Активні способи оплати для checkout (з БД, у порядку sort_order).
+     * Fallback на legacy-набір, якщо таблиця порожня/недоступна — щоб checkout
+     * ніколи не лишився без жодного способу оплати.
+     *
+     * @return array<int, array{code:string,label:string,desc:string,fee:float}>
+     */
+    private function checkoutPaymentMethods(): array
+    {
+        try {
+            if (class_exists(\App\Models\PaymentGatewaySettings::class)
+                && \Schema::hasTable('payment_gateway_settings')) {
+                $rows = \App\Models\PaymentGatewaySettings::activeOrdered()->get();
+                $methods = $rows->map(fn ($p) => [
+                    'code' => (string) $p->code,
+                    'label' => (string) $p->name,
+                    'desc' => (string) ($p->description ?? ''),
+                    'fee' => (float) ($p->fee_percentage ?? 0),
+                ])->all();
+                if (! empty($methods)) {
+                    return $methods;
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('checkoutPaymentMethods fallback: '.$e->getMessage());
+        }
+
+        return [
+            ['code' => 'card', 'label' => 'Оплата картою онлайн', 'desc' => 'Visa, Mastercard', 'fee' => 0.0],
+            ['code' => 'cod', 'label' => 'Накладений платіж', 'desc' => 'Оплата при отриманні', 'fee' => 0.0],
+            ['code' => 'invoice', 'label' => 'Рахунок для оплати', 'desc' => 'Безготівковий розрахунок для бізнесу', 'fee' => 0.0],
+        ];
+    }
+
+    /**
+     * Активні способи доставки для checkout (провайдери з БД, у порядку
+     * sort_order). Коди (novaposhta/ukrposhta/pickup) збережено — від них
+     * залежить JS вибору відділень. Fallback на legacy module-gating.
+     *
+     * @return array<int, array{code:string,label:string,desc:string}>
+     */
+    private function checkoutShippingOptions(): array
+    {
+        try {
+            if (class_exists(\App\Models\ShippingProvider::class)
+                && \Schema::hasTable('shipping_providers')) {
+                $rows = \App\Models\ShippingProvider::activeOrdered()->get();
+                $opts = $rows->map(fn ($p) => [
+                    'code' => (string) $p->code,
+                    'label' => (string) $p->name,
+                    'desc' => (string) ($p->description ?? ''),
+                ])->all();
+                if (! empty($opts)) {
+                    return $opts;
+                }
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('checkoutShippingOptions fallback: '.$e->getMessage());
+        }
+
+        $opts = [];
+        if (module('novaposhta')->enabled()) {
+            $opts[] = ['code' => 'novaposhta', 'label' => 'Нова Пошта', 'desc' => 'Відділення / Поштомат / Курʼєр НП — 1-3 дні'];
+        }
+        if (module('ukrposhta')->enabled()) {
+            $opts[] = ['code' => 'ukrposhta', 'label' => 'УкрПошта', 'desc' => 'Відділення / адреса · 3-5 днів, дешевше'];
+        }
+        $opts[] = ['code' => 'pickup', 'label' => 'Самовивіз з магазину', 'desc' => 'Безкоштовно'];
+
+        return $opts;
     }
 
     public function store(Request $request)

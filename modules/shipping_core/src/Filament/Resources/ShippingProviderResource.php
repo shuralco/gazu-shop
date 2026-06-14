@@ -18,21 +18,15 @@ class ShippingProviderResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static ?string $navigationGroup = 'Склад і доставка';
+    protected static ?string $navigationGroup = 'Оплата і доставка';
 
-    protected static ?string $navigationLabel = 'Провайдери доставки';
+    protected static ?string $navigationLabel = 'Способи доставки';
 
-    protected static ?string $pluralLabel = 'Провайдери доставки';
+    protected static ?string $pluralLabel = 'Способи доставки';
 
-    protected static ?string $label = 'Провайдер доставки';
+    protected static ?string $label = 'Спосіб доставки';
 
-    protected static ?int $navigationSort = 70;
-
-    /**
-     * Hidden from sidebar — this CRUD duplicates the cards on /admin/integrations-page.
-     * Still reachable directly via /admin/shipping-providers for legacy access.
-     */
-    protected static bool $shouldRegisterNavigation = false;
+    protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form
     {
@@ -61,7 +55,20 @@ class ShippingProviderResource extends Resource
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активний')
                             ->default(true)
-                            ->helperText('Чи доступний провайдер для використання'),
+                            ->helperText('Чи показувати на сторінці оформлення замовлення'),
+
+                        Forms\Components\TextInput::make('sort_order')
+                            ->label('Порядок')
+                            ->numeric()
+                            ->default(0)
+                            ->helperText('Менше число — вище на checkout'),
+
+                        Forms\Components\Textarea::make('description')
+                            ->label('Опис')
+                            ->rows(2)
+                            ->maxLength(255)
+                            ->helperText('Показується підзаголовком на checkout (напр. «1-3 дні»)')
+                            ->columnSpanFull(),
                     ])
                     ->columns(2),
 
@@ -184,9 +191,13 @@ class ShippingProviderResource extends Resource
                     ->badge()
                     ->searchable(),
 
-                Tables\Columns\IconColumn::make('is_active')
-                    ->label('Активний')
-                    ->boolean(),
+                Tables\Columns\ToggleColumn::make('is_active')
+                    ->label('Активний'),
+
+                Tables\Columns\TextColumn::make('sort_order')
+                    ->label('Порядок')
+                    ->badge()
+                    ->sortable(),
 
                 Tables\Columns\TextColumn::make('shippingMethods_count')
                     ->counts('shippingMethods')
@@ -359,7 +370,9 @@ class ShippingProviderResource extends Resource
                         ->requiresConfirmation()
                         ->color('danger'),
                 ]),
-            ]);
+            ])
+            ->reorderable('sort_order')
+            ->defaultSort('sort_order');
     }
 
     public static function getRelations(): array

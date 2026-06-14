@@ -2,6 +2,12 @@
 @section('title', 'Оформлення замовлення — GAZU')
 
 @section('content')
+@php
+    // Захисні дефолти — checkout завжди має набір способів (CheckoutController
+    // їх передає; це страховка від несподіваних шляхів рендеру).
+    $paymentMethods = $paymentMethods ?? [['code' => 'card', 'label' => 'Оплата картою онлайн', 'desc' => '', 'fee' => 0.0]];
+    $shippingOptions = $shippingOptions ?? [['code' => 'pickup', 'label' => 'Самовивіз з магазину', 'desc' => 'Безкоштовно']];
+@endphp
 <div class="gazu-container">
     <x-gazu.breadcrumbs :items="[['Головна', route('gazu.home')], ['Кошик', route('gazu.cart')], 'Оформлення']"/>
     <h1 class="gazu-display text-2xl sm:text-3xl md:text-4xl font-semibold text-[var(--gazu-ink)] m-0 mb-5">Оформлення замовлення</h1>
@@ -83,7 +89,9 @@
                 @php
                     // Default shipping method = first option in the list,
                     // so the form doesn't preselect a disabled provider.
-                    $defaultShippingMethod = $shippingOptions[0][0] ?? 'pickup';
+                    // $shippingOptions приходить з CheckoutController (активні
+                    // провайдери доставки з БД у порядку sort_order).
+                    $defaultShippingMethod = $shippingOptions[0]['code'] ?? 'pickup';
                 @endphp
                 <div class="grid gap-2 pl-11"
                      x-data="{
@@ -220,25 +228,11 @@
                                  });
                              },
                      }">
-                    @php
-                        // Build shipping options gated by module state.
-                        // pickup is always available (no module — it's core).
-                        $shippingOptions = [];
-                        if (module('novaposhta')->enabled()) {
-                            $shippingOptions[] = ['novaposhta', 'Нова Пошта', 'Відділення / Поштомат / Курʼєр НП — 1-3 дні'];
-                        }
-                        if (module('ukrposhta')->enabled()) {
-                            $shippingOptions[] = ['ukrposhta', 'УкрПошта', 'Відділення / адреса · 3-5 днів, дешевше'];
-                        }
-                        if (module('rozetka_delivery')->enabled()) {
-                            $shippingOptions[] = ['rozetka_delivery', 'Rozetka Delivery', 'Доставка через відділення Rozetka'];
-                        }
-                        if (module('meest_express')->enabled()) {
-                            $shippingOptions[] = ['meest_express', 'Meest Express', 'Доставка Meest — від 1 дня'];
-                        }
-                        $shippingOptions[] = ['pickup', 'Самовивіз з магазину', 'Безкоштовно'];
-                    @endphp
-                    @foreach($shippingOptions as [$key, $label, $desc])
+                    {{-- Способи доставки — активні провайдери з БД (керуються в
+                         адмінці: Оплата і доставка). Коди novaposhta/ukrposhta/
+                         pickup збережено — від них залежить JS вибору відділень. --}}
+                    @foreach($shippingOptions as $opt)
+                        @php($key = $opt['code'])
                         <label class="flex items-center gap-3 p-3 border rounded-md cursor-pointer"
                                :class="method === '{{ $key }}' ? 'border-[var(--gazu-ink)] bg-[var(--gazu-paper)]' : 'border-[var(--gazu-line)]'">
                             <input type="radio" name="shipping_method" value="{{ $key }}" x-model="method" class="sr-only">
@@ -247,8 +241,10 @@
                                 <span x-show="method === '{{ $key }}'" class="w-2 h-2 rounded-full bg-[var(--gazu-ink)]"></span>
                             </span>
                             <div class="flex-1 min-w-0">
-                                <div class="text-sm font-medium text-[var(--gazu-ink)]">{{ $label }}</div>
-                                <div class="text-xs text-[var(--gazu-graphite)]">{{ $desc }}</div>
+                                <div class="text-sm font-medium text-[var(--gazu-ink)]">{{ $opt['label'] }}</div>
+                                @if(!empty($opt['desc']))
+                                    <div class="text-xs text-[var(--gazu-graphite)]">{{ $opt['desc'] }}</div>
+                                @endif
                             </div>
                         </label>
                     @endforeach
@@ -551,13 +547,13 @@
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)]">3</div>
                     <h3 class="gazu-display text-lg font-semibold m-0">Спосіб оплати</h3>
                 </div>
-                <div class="grid gap-2 pl-11" x-data="{ pm: '{{ old('payment_method', 'card') }}' }">
-                    @foreach([
-                        ['card', 'Оплата картою онлайн', 'Visa, Mastercard через WayForPay'],
-                        ['applepay', 'Apple Pay / Google Pay', 'Швидка оплата'],
-                        ['cod', 'Накладений платіж', 'При отриманні · доплата 1.5%'],
-                        ['invoice', 'Рахунок для гуртових клієнтів', 'Безготівковий розрахунок'],
-                    ] as [$key, $label, $desc])
+                @php($defaultPm = old('payment_method', $paymentMethods[0]['code'] ?? 'card'))
+                {{-- Способи оплати — активні з БД (керуються в адмінці:
+                     Оплата і доставка), у порядку sort_order. --}}
+                <div class="grid gap-2 pl-11" x-data="{ pm: @js($defaultPm) }">
+                    @foreach($paymentMethods as $pmOpt)
+                        @php($key = $pmOpt['code'])
+                        @php($feeNote = !empty($pmOpt['fee']) && $pmOpt['fee'] > 0 ? ' · доплата '.rtrim(rtrim(number_format((float) $pmOpt['fee'], 2, '.', ''), '0'), '.').'%' : '')
                         <label class="flex items-center gap-3 p-3 border rounded-md cursor-pointer"
                                :class="pm === '{{ $key }}' ? 'border-[var(--gazu-ink)] bg-[var(--gazu-paper)]' : 'border-[var(--gazu-line)]'">
                             <input type="radio" name="payment_method" value="{{ $key }}" x-model="pm" class="sr-only">
@@ -566,8 +562,10 @@
                                 <span x-show="pm === '{{ $key }}'" class="w-2 h-2 rounded-full bg-[var(--gazu-ink)]"></span>
                             </span>
                             <div class="flex-1 min-w-0">
-                                <div class="text-sm font-medium text-[var(--gazu-ink)]">{{ $label }}</div>
-                                <div class="text-xs text-[var(--gazu-graphite)]">{{ $desc }}</div>
+                                <div class="text-sm font-medium text-[var(--gazu-ink)]">{{ $pmOpt['label'] }}</div>
+                                @if(!empty($pmOpt['desc']) || $feeNote)
+                                    <div class="text-xs text-[var(--gazu-graphite)]">{{ $pmOpt['desc'] }}{{ $feeNote }}</div>
+                                @endif
                             </div>
                         </label>
                     @endforeach
