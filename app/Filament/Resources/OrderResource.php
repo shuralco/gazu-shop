@@ -1193,7 +1193,22 @@ class OrderResource extends Resource
                     ->limitedRemainingText(isSeparate: true)
                     ->size(40)
                     ->extraImgAttributes(['class' => 'rounded-md ring-2 ring-white object-cover bg-gray-50'])
-                    ->checkFileExistence(false),
+                    ->checkFileExistence(false)
+                    // Назви товарів при наведенні на картинки.
+                    ->tooltip(function (Order $record): ?string {
+                        $record->loadMissing('orderProducts');
+                        $lines = $record->orderProducts->map(function ($op) {
+                            $title = $op->title ?? $op->product?->title ?? 'Товар';
+                            if (is_array($title)) {
+                                $title = $title['uk'] ?? reset($title) ?: 'Товар';
+                            }
+                            $qty = (int) ($op->quantity ?? 1);
+
+                            return $qty > 1 ? "{$title} × {$qty}" : (string) $title;
+                        })->all();
+
+                        return ! empty($lines) ? implode("\n", $lines) : null;
+                    }),
                 // Менеджер — toggleable hidden by default (не обов'язково за вимогою)
                 Tables\Columns\ImageColumn::make('user.avatar')
                     ->label('Менеджер')
