@@ -26,6 +26,10 @@ class ShippingProviderResource extends Resource
 
     protected static ?string $label = 'Спосіб доставки';
 
+    protected static ?string $modelLabel = 'спосіб доставки';
+
+    protected static ?string $pluralModelLabel = 'Способи доставки';
+
     protected static ?int $navigationSort = 10;
 
     public static function form(Form $form): Form

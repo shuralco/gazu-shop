@@ -22,9 +22,9 @@ class PaymentGatewaySettingsResource extends Resource
 
     protected static ?string $navigationLabel = 'Способи оплати';
 
-    protected static ?string $pluralModelLabel = 'Платіжні системи';
+    protected static ?string $pluralModelLabel = 'Способи оплати';
 
-    protected static ?string $modelLabel = 'Платіжна система';
+    protected static ?string $modelLabel = 'спосіб оплати';
 
     protected static ?int $navigationSort = 80;
 
