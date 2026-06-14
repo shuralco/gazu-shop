@@ -7,6 +7,13 @@
     // їх передає; це страховка від несподіваних шляхів рендеру).
     $paymentMethods = $paymentMethods ?? [['code' => 'card', 'label' => 'Оплата картою онлайн', 'desc' => '', 'fee' => 0.0]];
     $shippingOptions = $shippingOptions ?? [['code' => 'pickup', 'label' => 'Самовивіз з магазину', 'desc' => 'Безкоштовно']];
+    // Налаштування полів/кошика (модуль checkout_settings).
+    $cf = \App\Support\Checkout\CheckoutConfig::fields();
+    $cfCustom = \App\Support\Checkout\CheckoutConfig::customFields();
+    $cfMinOrder = \App\Support\Checkout\CheckoutConfig::minOrderAmount();
+    $cfFreeShip = \App\Support\Checkout\CheckoutConfig::freeShippingThreshold();
+    $cfPromo = \App\Support\Checkout\CheckoutConfig::promoEnabled();
+    $cfBelowMin = $cfMinOrder > 0 && (float) $cartTotal < $cfMinOrder;
 @endphp
 <div class="gazu-container">
     <x-gazu.breadcrumbs :items="[['Головна', route('gazu.home')], ['Кошик', route('gazu.cart')], 'Оформлення']"/>
@@ -59,24 +66,37 @@
                                class="w-full px-3 py-2.5 border @error('first_name') border-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)] @else border-[var(--gazu-line)] @enderror rounded-md outline-none focus:border-[var(--gazu-ink)]">
                         @error('first_name')<span class="text-xs text-[var(--gazu-danger)] mt-1 block">{{ $message }}</span>@enderror
                     </label>
+                    @if($cf['last_name']['visible'])
                     <label>
-                        <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">Прізвище</span>
-                        <input type="text" name="last_name" value="{{ old('last_name') }}"
+                        <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">{{ $cf['last_name']['label'] }}@if($cf['last_name']['required']) <span class="text-[var(--gazu-danger)]">*</span>@endif</span>
+                        <input type="text" name="last_name" value="{{ old('last_name') }}" @if($cf['last_name']['required']) required @endif placeholder="{{ $cf['last_name']['placeholder'] }}"
                                class="w-full px-3 py-2.5 border @error('last_name') border-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)] @else border-[var(--gazu-line)] @enderror rounded-md outline-none focus:border-[var(--gazu-ink)]">
                         @error('last_name')<span class="text-xs text-[var(--gazu-danger)] mt-1 block">{{ $message }}</span>@enderror
                     </label>
+                    @endif
                     <label>
                         <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">Телефон <span class="text-[var(--gazu-danger)]">*</span></span>
                         <input type="tel" name="phone" value="{{ old('phone', auth()->user()?->phone) }}" required placeholder="+380 67 123 45 67"
                                class="w-full px-3 py-2.5 border @error('phone') border-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)] @else border-[var(--gazu-line)] @enderror rounded-md outline-none focus:border-[var(--gazu-ink)] gazu-mono">
                         @error('phone')<span class="text-xs text-[var(--gazu-danger)] mt-1 block">{{ $message }}</span>@enderror
                     </label>
+                    @if($cf['email']['visible'])
                     <label>
-                        <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">Email</span>
-                        <input type="email" name="email" value="{{ old('email', auth()->user()?->email) }}"
+                        <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">{{ $cf['email']['label'] }}@if($cf['email']['required']) <span class="text-[var(--gazu-danger)]">*</span>@endif</span>
+                        <input type="email" name="email" value="{{ old('email', auth()->user()?->email) }}" @if($cf['email']['required']) required @endif placeholder="{{ $cf['email']['placeholder'] }}"
                                class="w-full px-3 py-2.5 border @error('email') border-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)] @else border-[var(--gazu-line)] @enderror rounded-md outline-none focus:border-[var(--gazu-ink)]">
                         @error('email')<span class="text-xs text-[var(--gazu-danger)] mt-1 block">{{ $message }}</span>@enderror
                     </label>
+                    @endif
+
+                    @foreach($cfCustom as $custom)
+                    <label>
+                        <span class="text-xs text-[var(--gazu-graphite)] mb-1 block">{{ $custom['label'] }}@if($custom['required']) <span class="text-[var(--gazu-danger)]">*</span>@endif</span>
+                        <input type="text" name="custom_{{ $custom['key'] }}" value="{{ old('custom_'.$custom['key']) }}" @if($custom['required']) required @endif placeholder="{{ $custom['placeholder'] }}"
+                               class="w-full px-3 py-2.5 border @error('custom_'.$custom['key']) border-[var(--gazu-danger)] bg-[var(--gazu-danger-bg)] @else border-[var(--gazu-line)] @enderror rounded-md outline-none focus:border-[var(--gazu-ink)]">
+                        @error('custom_'.$custom['key'])<span class="text-xs text-[var(--gazu-danger)] mt-1 block">{{ $message }}</span>@enderror
+                    </label>
+                    @endforeach
                 </div>
             </div>
 
@@ -578,20 +598,33 @@
             </div>
 
             {{-- 4. Коментар --}}
+            @if($cf['comment']['visible'])
             <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                 <div class="flex items-center gap-3 mb-3">
                     <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold bg-[var(--gazu-line)] text-[var(--gazu-graphite)]">4</div>
-                    <h3 class="gazu-display text-lg font-semibold m-0">Коментар (необовʼязково)</h3>
+                    <h3 class="gazu-display text-lg font-semibold m-0">{{ $cf['comment']['label'] }}</h3>
                 </div>
                 <div class="pl-11">
-                    <textarea name="note" rows="3" placeholder="Уточнення щодо доставки, монтажу тощо…"
-                              class="w-full px-3 py-2.5 border border-[var(--gazu-line)] rounded-md outline-none">{{ old('note') }}</textarea>
+                    <textarea name="note" rows="3" @if($cf['comment']['required']) required @endif placeholder="{{ $cf['comment']['placeholder'] }}"
+                              class="w-full px-3 py-2.5 border @error('note') border-[var(--gazu-danger)] @else border-[var(--gazu-line)] @enderror rounded-md outline-none">{{ old('note') }}</textarea>
+                    @error('note')<span class="text-xs text-[var(--gazu-danger)] mt-1 block">{{ $message }}</span>@enderror
                 </div>
             </div>
+            @endif
 
-            <button type="submit" class="gazu-btn-primary py-4 text-base">
-                Оформити замовлення на {{ number_format($cartTotal, 0, '.', ' ') }} ₴
-            </button>
+            @if($cfBelowMin)
+                <div class="p-3 rounded-md text-sm text-center bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)]">
+                    Мінімальна сума замовлення — {{ number_format($cfMinOrder, 0, '.', ' ') }} ₴.
+                    Додайте товарів ще на {{ number_format($cfMinOrder - $cartTotal, 0, '.', ' ') }} ₴.
+                </div>
+                <button type="submit" class="gazu-btn-primary py-4 text-base opacity-50 cursor-not-allowed" disabled>
+                    Оформити замовлення на {{ number_format($cartTotal, 0, '.', ' ') }} ₴
+                </button>
+            @else
+                <button type="submit" class="gazu-btn-primary py-4 text-base">
+                    Оформити замовлення на {{ number_format($cartTotal, 0, '.', ' ') }} ₴
+                </button>
+            @endif
             <p class="text-xs text-[var(--gazu-graphite)] text-center">
                 Натискаючи кнопку, ви погоджуєтесь з <a href="#" class="text-[var(--gazu-blue)]">умовами публічної оферти</a>.
             </p>
@@ -727,8 +760,16 @@
                           x-text="shippingLabel">розрахунок при отриманні</span>
                 </div>
 
-                {{-- Промокод (тільки якщо модуль coupons УВімкнено) --}}
-                @if(module('coupons')->enabled())
+                @if($cfFreeShip > 0)
+                    @if((float) $cartTotal >= $cfFreeShip)
+                        <div class="text-xs text-[var(--gazu-success)] font-medium mb-2">✓ Безкоштовна доставка від {{ number_format($cfFreeShip, 0, '.', ' ') }} ₴</div>
+                    @else
+                        <div class="text-xs text-[var(--gazu-graphite)] mb-2">Додайте на {{ number_format($cfFreeShip - $cartTotal, 0, '.', ' ') }} ₴ — і доставка безкоштовна</div>
+                    @endif
+                @endif
+
+                {{-- Промокод (модуль coupons УВімкнено + дозволено в налаштуваннях checkout) --}}
+                @if($cfPromo && module('coupons')->enabled())
                 <div class="my-3 pt-3 border-t border-[var(--gazu-line)]">
                     <template x-if="couponCode && discount > 0">
                         <div class="flex justify-between items-center mb-2">

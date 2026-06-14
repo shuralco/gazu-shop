@@ -134,6 +134,13 @@ return [
         'requires' => [],
     ],
 
+    'checkout_settings' => [
+        'name' => 'Налаштування кошика та оформлення',
+        'description' => 'Мін. сума замовлення, поріг безкоштовної доставки, 1-клік/промокоди, ліміти кількості, логіка полів checkout та кастомні поля.',
+        'enabled' => env('MODULE_CHECKOUT_SETTINGS', true),
+        'requires' => [],
+    ],
+
     'faq' => [
         'name' => 'FAQ — Часті питання',
         'description' => 'Сторінка частих питань з admin CRUD.',

@@ -117,11 +117,34 @@ class CheckoutController extends Controller
             return redirect()->route('gazu.cart.empty');
         }
 
-        $data = $request->validate([
+        // Мінімальна сума замовлення (модуль checkout_settings).
+        $minOrder = \App\Support\Checkout\CheckoutConfig::minOrderAmount();
+        if ($minOrder > 0 && (float) Cart::getCartTotal() < $minOrder) {
+            return redirect()->route('gazu.checkout')->withInput()->withErrors([
+                'cart' => 'Мінімальна сума замовлення — '.number_format($minOrder, 0, '.', ' ').' ₴.',
+            ]);
+        }
+
+        // Динамічні правила полів за налаштуваннями checkout_settings.
+        $fieldCfg = \App\Support\Checkout\CheckoutConfig::fields();
+        $lastNameReq = $fieldCfg['last_name']['visible'] && $fieldCfg['last_name']['required'];
+        $emailReq = $fieldCfg['email']['visible'] && $fieldCfg['email']['required'];
+        $noteReq = $fieldCfg['comment']['visible'] && $fieldCfg['comment']['required'];
+
+        $rules = [
             'first_name' => 'required|string|max:80',
-            'last_name'  => 'nullable|string|max:80',
+            'last_name'  => ($lastNameReq ? 'required' : 'nullable').'|string|max:80',
             'phone'      => 'required|string|max:30',
-            'email'      => 'nullable|email|max:120',
+            'email'      => ($emailReq ? 'required' : 'nullable').'|email|max:120',
+            'note'       => ($noteReq ? 'required' : 'nullable').'|string|max:1000',
+        ];
+        // Кастомні поля.
+        $customFields = \App\Support\Checkout\CheckoutConfig::customFields();
+        foreach ($customFields as $custom) {
+            $rules['custom_'.$custom['key']] = ($custom['required'] ? 'required' : 'nullable').'|string|max:300';
+        }
+
+        $data = $request->validate($rules + [
             'shipping_method' => 'nullable|string|max:60',
             'shipping_city' => 'nullable|string|max:120',
             'shipping_city_ref' => 'nullable|string|max:60',
@@ -178,6 +201,18 @@ class CheckoutController extends Controller
                 $data['shipping_warehouse'] = $data['shipping_up_office'];
             }
             $data['shipping_address'] = trim(($data['shipping_postcode'] ?? '').' '.($data['shipping_address'] ?? '')) ?: ($data['shipping_up_office'] ?? null);
+        }
+
+        // Кастомні поля checkout → дописуємо в коментар до замовлення.
+        $customLines = [];
+        foreach ($customFields as $custom) {
+            $val = $data['custom_'.$custom['key']] ?? null;
+            if (! empty($val)) {
+                $customLines[] = $custom['label'].': '.$val;
+            }
+        }
+        if (! empty($customLines)) {
+            $data['note'] = trim(($data['note'] ?? '')."\n".implode("\n", $customLines));
         }
 
         $shippingBreakdown = app(\App\Services\Cart\ShippingCalculator::class)->breakdown($cart);
@@ -375,6 +410,15 @@ class CheckoutController extends Controller
      */
     public function oneClick(Request $request)
     {
+        if (! \App\Support\Checkout\CheckoutConfig::oneClickEnabled()) {
+            $msg = 'Замовлення в 1 клік тимчасово недоступне. Скористайтесь кошиком.';
+            if ($request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => $msg], 422);
+            }
+
+            return back()->withErrors(['oneclick' => $msg]);
+        }
+
         $data = $request->validate([
             'product_id' => 'required|integer|exists:products,id',
             'phone'      => 'required|string|max:30',
