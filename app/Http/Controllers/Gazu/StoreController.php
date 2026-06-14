@@ -479,6 +479,13 @@ class StoreController extends Controller
         }
 
         if ($product) {
+            // Деактивований (is_active=false) товар не повинен відкриватись навіть
+            // за прямим URL — інакше «приховати» ховає лише зі списків каталогу,
+            // а сторінка лишається доступною. 404, якщо в каталозі є активні товари.
+            if ($product instanceof Product && ! $product->is_active
+                && Product::query()->where('is_active', true)->exists()) {
+                return $this->notFound();
+            }
             $product = $this->decorate($product);
         } else {
             // Якщо БД має товари — slug просто невалідний → 404.
