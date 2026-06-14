@@ -329,7 +329,40 @@
                 <span class="text-[var(--gazu-ink)] font-medium">До сплати</span>
                 <span x-ref="grandEl" x-text="fmt(total + ({{ (int) $shipping['shipping_total'] }})) + ' ₴'" class="gazu-display text-2xl font-bold text-[var(--gazu-ink)] gazu-count-up">{{ number_format($shipping['grand_total'], 0, '.', ' ') }} ₴</span>
             </div>
-            <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
+            @php
+                $ccFreeShip = \App\Support\Checkout\CheckoutConfig::freeShippingThreshold();
+                $ccMinOrder = \App\Support\Checkout\CheckoutConfig::minOrderAmount();
+                $ccTotal = (float) $cartTotal;
+                $ccBelowMin = $ccMinOrder > 0 && $ccTotal < $ccMinOrder;
+            @endphp
+
+            @if($ccFreeShip > 0)
+                @if($ccTotal >= $ccFreeShip)
+                    <div class="flex items-center gap-2 mb-3 text-sm text-[var(--gazu-success)] font-medium">
+                        <x-gazu.icon name="truck" size="16"/> Безкоштовна доставка застосована
+                    </div>
+                @else
+                    @php $ccPct = max(0, min(100, (int) round($ccTotal / $ccFreeShip * 100))); @endphp
+                    <div class="mb-3">
+                        <div class="text-xs text-[var(--gazu-graphite)] mb-1.5">
+                            Додайте на <span class="font-medium text-[var(--gazu-ink)]">{{ number_format($ccFreeShip - $ccTotal, 0, '.', ' ') }} ₴</span> — і доставка безкоштовна
+                        </div>
+                        <div class="h-2 rounded-full bg-[var(--gazu-line)] overflow-hidden">
+                            <div class="h-full rounded-full bg-[var(--gazu-success)] transition-all" style="width: {{ $ccPct }}%"></div>
+                        </div>
+                    </div>
+                @endif
+            @endif
+
+            @if($ccBelowMin)
+                <div class="p-3 rounded-md text-sm text-center mb-3 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)]">
+                    Мінімальна сума замовлення — {{ number_format($ccMinOrder, 0, '.', ' ') }} ₴.
+                    Додайте товарів ще на {{ number_format($ccMinOrder - $ccTotal, 0, '.', ' ') }} ₴.
+                </div>
+                <span class="gazu-btn-primary w-full no-underline opacity-50 cursor-not-allowed flex items-center justify-center" aria-disabled="true">Оформити замовлення →</span>
+            @else
+                <a wire:navigate href="{{ route('gazu.checkout') }}" class="gazu-btn-primary w-full no-underline">Оформити замовлення →</a>
+            @endif
         </div>
     </div>
 
