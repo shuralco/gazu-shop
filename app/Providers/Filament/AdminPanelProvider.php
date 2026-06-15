@@ -28,11 +28,15 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->brandName('GAZU · Адміністрування')
+            ->brandLogo(fn (): string => view('filament.partials.brand-logo')->render())
+            ->brandLogoHeight('2rem')
             ->favicon(asset('admin-favicon.svg'))
             ->colors([
-                'primary' => Color::Blue,
+                // Фірмовий синій GAZU (--gazu-blue #2453A6) замість generic Filament Blue.
+                'primary' => Color::hex('#2453A6'),
                 'gray' => Color::Slate,
             ])
+            ->maxContentWidth(\Filament\Support\Enums\MaxWidth::Full)
             ->darkMode()
             ->sidebarCollapsibleOnDesktop()
             // Контекстна кнопка «Довідка» у топбарі → /admin/help (тема за поточним розділом).
