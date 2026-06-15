@@ -21,7 +21,7 @@ class StockStatusResource extends Resource
     protected static ?string $navigationLabel = 'Статуси наявності';
     protected static ?string $modelLabel = 'статус наявності';
     protected static ?string $pluralModelLabel = 'Статуси наявності';
-    protected static ?int $navigationSort = 40;
+    protected static ?int $navigationSort = 45;
 
     private const COLORS = [
         'gray' => 'Сірий', 'primary' => 'Основний', 'info' => 'Синій',

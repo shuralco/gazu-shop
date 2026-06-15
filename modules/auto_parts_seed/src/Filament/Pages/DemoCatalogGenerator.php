@@ -37,6 +37,12 @@ class DemoCatalogGenerator extends Page implements HasForms
 
     protected static ?int $navigationSort = 130;
 
+    // Прибрано з меню (службовий інструмент). URL лишається доступним.
+    public static function shouldRegisterNavigation(): bool
+    {
+        return false;
+    }
+
     protected static ?string $slug = 'demo-catalog-generator';
 
     protected static string $view = 'filament.pages.demo-catalog-generator';

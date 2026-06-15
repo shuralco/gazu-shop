@@ -25,7 +25,7 @@ class FilterGroupResource extends Resource
 
     protected static ?string $pluralModelLabel = 'Групи характеристик';
 
-    protected static ?int $navigationSort = 50;
+    protected static ?int $navigationSort = 41;
 
     public static function form(Form $form): Form
     {
