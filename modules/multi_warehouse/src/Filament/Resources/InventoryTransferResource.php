@@ -163,6 +163,12 @@ class InventoryTransferResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // Eager-load складів — колонки from/toWarehouse.code інакше = N+1 щорядка.
+        return parent::getEloquentQuery()->with(['fromWarehouse', 'toWarehouse']);
+    }
+
     public static function getPages(): array
     {
         return [

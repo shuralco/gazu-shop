@@ -665,6 +665,12 @@ class SeoMetaResource extends Resource
         return [];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // Eager-load seoable (morphTo) — колонка seoable.title інакше = N+1 щорядка.
+        return parent::getEloquentQuery()->with(['seoable']);
+    }
+
     public static function getPages(): array
     {
         return [

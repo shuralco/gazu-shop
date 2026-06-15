@@ -142,6 +142,12 @@ class ReceivingOrderResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // Eager-load warehouse — колонка warehouse.code інакше = N+1 щорядка.
+        return parent::getEloquentQuery()->with(['warehouse']);
+    }
+
     public static function getPages(): array
     {
         return [

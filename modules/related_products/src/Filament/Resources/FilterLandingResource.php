@@ -182,6 +182,12 @@ class FilterLandingResource extends Resource
             ->reorderable('sort_order');
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // Eager-load category+brand — колонки category.title/brand.name інакше = N+1.
+        return parent::getEloquentQuery()->with(['category', 'brand']);
+    }
+
     public static function getPages(): array
     {
         return [

@@ -218,6 +218,13 @@ class UserResource extends Resource
         ];
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // Eager-load customerGroup — інакше колонка customerGroup.display_name
+        // довантажувала зв'язок щорядка (N+1).
+        return parent::getEloquentQuery()->with(['customerGroup']);
+    }
+
     public static function getPages(): array
     {
         return [

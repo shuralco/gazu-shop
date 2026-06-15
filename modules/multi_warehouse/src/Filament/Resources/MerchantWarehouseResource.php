@@ -253,6 +253,12 @@ class MerchantWarehouseResource extends Resource
             ->reorderable('sort_order');
     }
 
+    public static function getEloquentQuery(): \Illuminate\Database\Eloquent\Builder
+    {
+        // Eager-load manager — колонка manager.name інакше = N+1 щорядка.
+        return parent::getEloquentQuery()->with(['manager']);
+    }
+
     public static function getPages(): array
     {
         return [
