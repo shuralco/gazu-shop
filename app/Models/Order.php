@@ -35,6 +35,19 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * Каскад при видаленні: order_products.order_id має FK RESTRICT (без
+     * cascadeOnDelete), тож пряме видалення замовлення з позиціями падало на
+     * FK → 500 в адмінці. Чистимо позиції перед видаленням замовлення.
+     * (np_shipments каскадить на рівні БД, інші діти — теж.)
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (Order $order) {
+            $order->orderProducts()->delete();
+        });
+    }
+
     public function orderProducts(): HasMany
     {
         return $this->hasMany(OrderProduct::class);
