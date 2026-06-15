@@ -909,7 +909,8 @@ class ProductResource extends Resource
                         }
 
                         return str_replace('SKU-', '', $state);
-                    }),
+                    })
+                    ->toggleable(),
                 Tables\Columns\ImageColumn::make('image')
                     ->label('Фото')
                     ->size(56)
@@ -933,7 +934,8 @@ class ProductResource extends Resource
                             title: $title,
                         );
                     })
-                    ->checkFileExistence(false),
+                    ->checkFileExistence(false)
+                    ->toggleable(),
                 Tables\Columns\TextInputColumn::make('title')
                     ->label('Назва')
                     ->searchable()
@@ -947,22 +949,36 @@ class ProductResource extends Resource
                     ->label('Категорія')
                     ->badge()
                     ->color('primary')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('brand.name')
                     ->label('Бренд')
                     ->badge()
                     ->color('warning')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Ціна')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ' ').' грн')
                     ->sortable()
-                    ->weight('bold'),
+                    ->weight('bold')
+                    ->toggleable(),
                 Tables\Columns\TextColumn::make('old_price')
                     ->label('Стара ціна')
                     ->formatStateUsing(fn ($state) => $state > 0 ? number_format($state, 2, '.', ' ').' грн' : '-')
                     ->sortable()
-                    ->color('gray'),
+                    ->color('gray')
+                    ->toggleable(),
+                Tables\Columns\IconColumn::make('is_hit')
+                    ->label('Популярний')
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                Tables\Columns\IconColumn::make('is_new')
+                    ->label('Новинка')
+                    ->boolean()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
                 Tables\Columns\TextColumn::make('created_at')
                     ->label('Дата створення')
                     ->dateTime()
