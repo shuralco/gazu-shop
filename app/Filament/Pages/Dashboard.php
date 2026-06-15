@@ -22,9 +22,10 @@ class Dashboard extends BaseDashboard
             // StatsOverview прибрано — його 12 карток замінила багатша
             // перетягувана сітка показників у верхній частині view.
             //
-            // Row 1 — географія доставок (full-width) + останні замовлення
+            // LatestOrders рендериться інлайн під групою «Продажі» (див.
+            // gazu-dashboard.blade), тож тут його немає.
+            // Row 1 — географія доставок (full-width)
             \App\Filament\Widgets\DeliveryMapWidget::class,
-            \App\Filament\Widgets\LatestOrders::class,
             // Row 2 — графіки
             \App\Filament\Widgets\OrdersChart::class,
             \App\Filament\Widgets\CatalogDistributionChart::class,

@@ -96,6 +96,13 @@
                 </div>
             @endforeach
         </div>
+
+        {{-- «Останні замовлення» — одразу під групою «Продажі» --}}
+        @if($group['key'] === 'sales')
+            <div style="margin-top:1rem">
+                @livewire(\App\Filament\Widgets\LatestOrders::class)
+            </div>
+        @endif
     @empty
         <div class="gz-bar-hint" style="margin-top:1rem">Усі картки сховані — увімкніть у «Налаштувати дашборд».</div>
     @endforelse
