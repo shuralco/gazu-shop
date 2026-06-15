@@ -16,6 +16,49 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
+// ТИМЧАСОВО: профілювання списку товарів адмінки. Видалити після діагностики.
+Route::get('/__perf-products', function () {
+    abort_unless(optional(auth()->user())->is_admin, 403);
+
+    \DB::flushQueryLog();
+    \DB::enableQueryLog();
+
+    $t0 = microtime(true);
+    $rows = \App\Models\Product::query()
+        ->with(['category:id,title', 'brandModel:id,name'])
+        ->select(['id', 'title', 'slug', 'sku', 'category_id', 'brand_id', 'price', 'old_price', 'is_hit', 'is_new', 'image', 'created_at'])
+        ->orderBy('created_at', 'desc')
+        ->limit(10)
+        ->get();
+    $tQuery = round((microtime(true) - $t0) * 1000, 1);
+    $qAfterFetch = count(\DB::getQueryLog());
+
+    // Симулюємо closure фото-колонки на кожен рядок.
+    $t1 = microtime(true);
+    foreach ($rows as $r) {
+        $ct = $r->category
+            ? (is_array($r->category->title) ? ($r->category->title['uk'] ?? '') : (string) $r->category->title)
+            : null;
+        $kind = \App\Support\PartImage::kindFromCategory($ct);
+        $title = is_array($r->title) ? ($r->title['uk'] ?? '') : (string) $r->title;
+        \App\Support\PartImage::resolve($r->image, $kind, $r->id, $title);
+        $bn = $r->brandModel?->name; // перевірка eager-load бренду
+    }
+    $tImage = round((microtime(true) - $t1) * 1000, 1);
+    $qTotal = count(\DB::getQueryLog());
+
+    return response()->json([
+        'rows' => $rows->count(),
+        'query_ms' => $tQuery,
+        'image_closure_ms' => $tImage,
+        'queries_after_fetch' => $qAfterFetch,
+        'queries_total' => $qTotal,
+        'n_plus_1' => $qTotal - $qAfterFetch, // >0 → closures тягнуть зв'язки
+        'slowest_queries' => collect(\DB::getQueryLog())->sortByDesc('time')->take(5)
+            ->map(fn ($q) => round($q['time'], 1).'ms | '.substr($q['query'], 0, 70))->values(),
+    ]);
+})->middleware(['web', 'auth']);
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
