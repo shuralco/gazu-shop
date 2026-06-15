@@ -16,6 +16,81 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
+// ТИМЧАСОВО: інструмент чистки демо-каталогу (бекап + dry-run + видалення).
+// Admin-only. Видалити після операції.
+Route::get('/admin/__catalog-tool', function (\Illuminate\Http\Request $request) {
+    abort_unless(optional(auth()->user())->is_admin, 403);
+    $action = $request->query('action', 'plan');
+
+    // Скоринг «заповненості» товару.
+    $score = function (\App\Models\Product $p): int {
+        $s = 0;
+        foreach (['image', 'excerpt', 'content', 'description'] as $f) {
+            $v = $p->getRawOriginal($f) ?? $p->$f;
+            if (! empty($v)) $s++;
+        }
+        foreach (['gallery', 'specifications', 'compatibility', 'analogs'] as $f) {
+            $v = $p->$f;
+            if (is_array($v) && count($v) > 0) $s += 2;
+        }
+        if ((float) $p->old_price > 0) $s++;
+        if (! empty($p->sku)) $s++;
+        $s += min(5, (int) $p->compatibleEngines()->count());
+        return $s;
+    };
+
+    // Топ-2 найзаповненіші.
+    $ranked = \App\Models\Product::query()->with('compatibleEngines')->get()
+        ->map(fn ($p) => ['id' => $p->id, 'sku' => $p->sku, 'title' => is_array($p->title) ? ($p->title['uk'] ?? reset($p->title)) : $p->title, 'cat' => $p->category_id, 'score' => $score($p)])
+        ->sortByDesc('score')->values();
+    $keepProducts = $ranked->take(2);
+    $keepIds = $keepProducts->pluck('id')->all();
+
+    // Категорії для збереження: категорії лишених товарів + усі їхні предки.
+    $keepCats = [];
+    foreach ($keepProducts as $kp) {
+        $cid = $kp['cat'];
+        $depth = 0;
+        while ($cid && $depth++ < 8) {
+            $keepCats[$cid] = true;
+            $cid = \App\Models\Category::where('id', $cid)->value('parent_id');
+        }
+    }
+    $keepCatIds = array_keys($keepCats);
+
+    $stats = [
+        'products_total' => \App\Models\Product::count(),
+        'products_keep' => $keepProducts->all(),
+        'products_to_delete' => \App\Models\Product::count() - count($keepIds),
+        'categories_total' => \App\Models\Category::count(),
+        'categories_keep_ids' => $keepCatIds,
+        'categories_to_delete' => \App\Models\Category::whereNotIn('id', $keepCatIds ?: [0])->count(),
+    ];
+
+    if ($action === 'backup') {
+        $ts = now()->format('Ymd-His');
+        $dir = storage_path('app/backups');
+        if (! is_dir($dir)) mkdir($dir, 0775, true);
+        $dump = [
+            'created_at' => now()->toIso8601String(),
+            'products' => \DB::table('products')->get(),
+            'categories' => \DB::table('categories')->get(),
+            'product_compatibility' => \DB::table('product_compatibility')->get(),
+            'filter_products' => \DB::table('filter_products')->get(),
+            'category_filters' => \DB::table('category_filters')->get(),
+        ];
+        $path = $dir.'/catalog-'.$ts.'.json';
+        file_put_contents($path, json_encode($dump, JSON_UNESCAPED_UNICODE));
+        return response()->json([
+            'ok' => true, 'backup_path' => $path, 'size_kb' => round(filesize($path) / 1024),
+            'counts' => array_map(fn ($v) => is_countable($v) ? count($v) : null, $dump),
+        ]);
+    }
+
+    // dry-run plan (default)
+    return response()->json(['action' => 'plan (dry-run, нічого не видалено)', 'stats' => $stats]);
+})->middleware(['web', 'auth']);
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
