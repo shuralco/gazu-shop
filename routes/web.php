@@ -72,7 +72,24 @@ Route::get('/__fix-products', function (\Illuminate\Http\Request $request) {
         return response()->json($report);
     }
 
-    return response()->json(['hint' => 'use ?action=stats або ?action=restore']);
+    if ($request->query('action') === 'wipe') {
+        // ЗНОС У 0: м'яке видалення ВСІХ товарів (0 видимих; рядки лишаються
+        // → FK замовлень цілі; зворотно через withTrashed()->restore()).
+        $before = \App\Models\Product::count();
+        $wiped = \App\Models\Product::query()->delete();
+        foreach (['gazu-menu', 'storefront'] as $tag) {
+            try { \Illuminate\Support\Facades\Cache::tags([$tag])->flush(); } catch (\Throwable) {}
+        }
+        try { app(\Spatie\ResponseCache\ResponseCache::class)->clear(); } catch (\Throwable) {}
+        try { \Illuminate\Support\Facades\Artisan::call('scout:flush', ['model' => \App\Models\Product::class]); } catch (\Throwable) {}
+        return response()->json([
+            'ok' => true, 'before' => $before, 'soft_deleted' => $wiped,
+            'visible_after' => \App\Models\Product::count(),
+            'note' => 'Усі товари знесено в 0. Авто-сидер вимкнено (MODULE_AUTO_PARTS_SEED=false). Зворотно: Product::withTrashed()->restore()',
+        ]);
+    }
+
+    return response()->json(['hint' => 'use ?action=stats | restore | wipe']);
 })->middleware(['web', 'auth']);
 
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
