@@ -31,6 +31,65 @@ class DashboardMetrics
         return Cache::remember('gazu:dashboard:metrics', 60, fn () => self::compute());
     }
 
+    /** Групи карток: ключ → [назва, [id карток у дефолтному порядку]]. */
+    public const GROUPS = [
+        'sales' => ['Продажі', ['orders_total', 'orders_pending', 'orders_done', 'orders_7d', 'orders_payments', 'revenue_today', 'revenue_7d', 'revenue_30d', 'revenue_all', 'avg_order']],
+        'catalog' => ['Каталог і склад', ['products_total', 'in_stock', 'out_of_stock', 'low_stock', 'stock_value', 'categories', 'brands']],
+        'service' => ['Клієнти та сервіс', ['users', 'callbacks', 'coupons', 'reviews', 'config_status', 'shipments']],
+        'search' => ['Пошук', ['search_total', 'search_zero']],
+    ];
+
+    /** Група для конкретного id картки. */
+    public static function groupFor(string $id): string
+    {
+        foreach (self::GROUPS as $key => [$label, $ids]) {
+            if (in_array($id, $ids, true)) {
+                return $key;
+            }
+        }
+
+        return 'other';
+    }
+
+    /**
+     * Картки, впорядковані/відфільтровані за конфігом адміна (DisplaySetting
+     * dashboard_cards = [id => ['visible'=>bool,'order'=>int]]), згруповані.
+     * Якщо конфіг порожній → дефолтні групи/порядок (дашборд не ламається).
+     *
+     * @return array<int, array{key:string,label:string,cards:array}>
+     */
+    public static function arrangedGroups(): array
+    {
+        $metrics = collect(self::all())->keyBy('id');
+        $cfg = \App\Models\DisplaySetting::get('dashboard_cards');
+        $cfg = is_array($cfg) ? $cfg : [];
+
+        $out = [];
+        foreach (self::GROUPS as $key => [$label, $ids]) {
+            $cards = collect($ids)
+                ->filter(fn ($id) => $metrics->has($id))
+                ->filter(fn ($id) => ! isset($cfg[$id]['visible']) || $cfg[$id]['visible'])
+                ->sortBy(fn ($id) => $cfg[$id]['order'] ?? array_search($id, $ids, true))
+                ->map(fn ($id) => $metrics->get($id))
+                ->values()
+                ->all();
+            if (! empty($cards)) {
+                $out[] = ['key' => $key, 'label' => $label, 'cards' => $cards];
+            }
+        }
+
+        // Картки, що не потрапили в жодну групу (нові id) — в кінець.
+        $known = collect(self::GROUPS)->flatMap(fn ($g) => $g[1])->all();
+        $rest = $metrics->keys()->reject(fn ($id) => in_array($id, $known, true))
+            ->filter(fn ($id) => ! isset($cfg[$id]['visible']) || $cfg[$id]['visible'])
+            ->map(fn ($id) => $metrics->get($id))->values()->all();
+        if (! empty($rest)) {
+            $out[] = ['key' => 'other', 'label' => 'Інше', 'cards' => $rest];
+        }
+
+        return $out;
+    }
+
     public static function flush(): void
     {
         Cache::forget('gazu:dashboard:metrics');
