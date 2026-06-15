@@ -988,14 +988,37 @@ class ProductResource extends Resource
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('category')
+                // Раніше: relationship('category','title')->preload() — preload
+                // вантажив УСІ 165 категорій і викликав full_path на кожній, а той
+                // піднімається по ->parent до 6 рівнів (N+1) → сотні запитів на
+                // КОЖЕН рендер таблиці (~2s). Тепер: один запит усіх категорій +
+                // побудова breadcrumb-шляхів у пам'яті, кеш 10 хв.
+                Tables\Filters\SelectFilter::make('category_id')
                     ->label('Категорія')
-                    ->relationship('category', 'title')
-                    // title — translatable JSON; без цього у фільтрі рендерився JSON.
-                    // Аксесор full_path дає читабельний breadcrumb («Двигун → Фільтри»).
-                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->full_path)
-                    ->searchable()
-                    ->preload(),
+                    ->options(fn () => \Illuminate\Support\Facades\Cache::remember(
+                        'admin:products:category_filter_paths',
+                        600,
+                        function () {
+                            $cats = \App\Models\Category::query()->get(['id', 'parent_id', 'title']);
+                            $byId = $cats->keyBy('id');
+
+                            return $cats->mapWithKeys(function ($c) use ($byId) {
+                                $titles = [];
+                                $node = $c;
+                                $depth = 6;
+                                while ($node && $depth-- > 0) {
+                                    $t = is_array($node->title)
+                                        ? ($node->title['uk'] ?? reset($node->title))
+                                        : (string) $node->title;
+                                    $titles[] = $t;
+                                    $node = $node->parent_id ? ($byId[$node->parent_id] ?? null) : null;
+                                }
+
+                                return [$c->id => implode(' → ', array_reverse(array_filter($titles)))];
+                            })->sort()->all();
+                        },
+                    ))
+                    ->searchable(),
                 Tables\Filters\SelectFilter::make('brand')
                     ->label('Бренд')
                     ->relationship('brandModel', 'name')
