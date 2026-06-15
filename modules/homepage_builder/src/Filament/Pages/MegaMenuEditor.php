@@ -530,6 +530,20 @@ class MegaMenuEditor extends Page
         cache()->forget('header_main_config');
         DisplaySetting::flushHeaderCache();
 
+        // КРИТИЧНО: фрагмент-кеш меню (тег gazu-menu/storefront) + повносторінковий
+        // ResponseCache — без цього зміни горизонтального меню/промо/футера НЕ
+        // зʼявлялись на сайті до закінчення TTL («не бачу змін»).
+        foreach (['gazu-menu', 'storefront'] as $tag) {
+            try {
+                \Illuminate\Support\Facades\Cache::tags([$tag])->flush();
+            } catch (\Throwable) {
+            }
+        }
+        try {
+            app(\Spatie\ResponseCache\ResponseCache::class)->clear();
+        } catch (\Throwable) {
+        }
+
         // Footer
         DisplaySetting::set('gazu_footer_about', $this->footerAbout);
         DisplaySetting::set('gazu_footer_columns', $this->footerColumns);
