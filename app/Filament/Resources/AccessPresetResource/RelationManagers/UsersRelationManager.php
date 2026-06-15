@@ -55,6 +55,9 @@ class UsersRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('name')
+            ->emptyStateHeading('Персоналу ще немає')
+            ->emptyStateDescription('Привʼяжіть наявного користувача або створіть нового співробітника для цього пресета.')
+            ->emptyStateIcon('heroicon-o-users')
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Імʼя')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('email')->label('Email')->searchable()->copyable(),
