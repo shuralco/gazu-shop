@@ -44,7 +44,8 @@ class FilterResource extends Resource
                             ->searchable()
                             ->preload(),
                     ])
-                    ->columns(2),
+                    ->columns(2)
+                    ->columnSpanFull(),
             ]);
     }
 

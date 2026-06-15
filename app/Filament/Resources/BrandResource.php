@@ -70,7 +70,8 @@ class BrandResource extends Resource
                             ->label('Порядок сортування')
                             ->numeric()
                             ->default(0),
-                    ]),
+                    ])
+                    ->columnSpanFull(),
 
                 Forms\Components\Section::make('SEO налаштування')
                     ->schema([
@@ -87,7 +88,8 @@ class BrandResource extends Resource
                             ->label('SEO ключові слова')
                             ->maxLength(255),
                     ])
-                    ->collapsible(),
+                    ->collapsible()
+                    ->columnSpanFull(),
             ]);
     }
 
