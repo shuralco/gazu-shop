@@ -38,7 +38,8 @@ class AdminPanelProvider extends PanelProvider
                 'primary' => Color::hex('#2453A6'),
                 'gray' => Color::Slate,
             ])
-            ->maxContentWidth(\Filament\Support\Enums\MaxWidth::Full)
+            // Дефолтна ширина (7xl) — Full розтягував edit-форми на весь екран
+            // (поля задовгі). Таблиці й так комфортні на дефолті.
             ->darkMode()
             ->sidebarCollapsibleOnDesktop()
             // Контекстна кнопка «Довідка» у топбарі → /admin/help (тема за поточним розділом).
