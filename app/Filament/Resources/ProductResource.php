@@ -899,8 +899,7 @@ class ProductResource extends Resource
                     ->label('Код товару')
                     ->searchable()
                     ->sortable()
-                    ->copyable()
-                    ->copyMessage('Код скопійовано!')
+                    // copyable прибрано — додавав Alpine-обгортку в кожну комірку.
                     ->badge()
                     ->color('primary')
                     ->formatStateUsing(function ($state) {
@@ -1099,22 +1098,14 @@ class ProductResource extends Resource
             ])
             ->filtersFormColumns(['sm' => 1, 'lg' => 2, 'xl' => 3])
             ->filtersFormWidth(\Filament\Support\Enums\MaxWidth::FourExtraLarge)
+            // Дії в одному kebab-меню (ActionGroup): рендериться один тригер на
+            // рядок замість трьох окремих кнопок → менше per-row рендера Filament.
             ->actions([
-                Tables\Actions\ViewAction::make()
-                    ->label('')
-                    ->icon('heroicon-o-eye')
-                    ->size('lg')
-                    ->tooltip('Перегляд'),
-                Tables\Actions\EditAction::make()
-                    ->label('')
-                    ->icon('heroicon-o-pencil')
-                    ->size('lg')
-                    ->tooltip('Змінити'),
-                Tables\Actions\DeleteAction::make()
-                    ->label('')
-                    ->icon('heroicon-o-trash')
-                    ->size('lg')
-                    ->tooltip('Видалити'),
+                Tables\Actions\ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
