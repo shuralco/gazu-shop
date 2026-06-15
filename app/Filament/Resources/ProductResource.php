@@ -936,15 +936,17 @@ class ProductResource extends Resource
                     })
                     ->checkFileExistence(false)
                     ->toggleable(),
-                Tables\Columns\TextInputColumn::make('title')
+                // Раніше TextInputColumn (інлайн-редагування) — editable-колонки
+                // Filament інстансують повноцінний form-компонент на КОЖЕН рядок
+                // (~100мс/рядок → ~2с на 25 рядків). Звичайна TextColumn рендериться
+                // у рази дешевше; назву редагуємо через дію-олівець.
+                Tables\Columns\TextColumn::make('title')
                     ->label('Назва')
                     ->searchable()
                     ->sortable()
-                    ->rules(['required', 'string', 'max:255'])
-                    ->updateStateUsing(function ($record, $state) {
-                        $record->update(['title' => $state]);
-                        // Slug auto-generation is handled by the model's boot() saving event
-                    }),
+                    ->limit(60)
+                    ->tooltip(fn ($state) => is_array($state) ? ($state['uk'] ?? reset($state)) : $state)
+                    ->wrap(),
                 Tables\Columns\TextColumn::make('category.title')
                     ->label('Категорія')
                     ->badge()
