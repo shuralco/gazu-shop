@@ -399,7 +399,20 @@ class CategoryResource extends Resource
                     ->placeholder('Усі')
                     ->trueLabel('Лише активні')
                     ->falseLabel('Лише вимкнені'),
+
+                Tables\Filters\TernaryFilter::make('has_products')
+                    ->label('Товари')
+                    ->placeholder('Усі')
+                    ->trueLabel('З товарами')
+                    ->falseLabel('Порожні')
+                    ->queries(
+                        true: fn ($query) => $query->whereHas('products'),
+                        false: fn ($query) => $query->whereDoesntHave('products'),
+                        blank: fn ($query) => $query,
+                    ),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2, 'xl' => 3])
+            ->filtersFormWidth(\Filament\Support\Enums\MaxWidth::FourExtraLarge)
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->label('')

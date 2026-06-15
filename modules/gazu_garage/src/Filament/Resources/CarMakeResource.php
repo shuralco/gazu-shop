@@ -98,7 +98,18 @@ class CarMakeResource extends Resource
             ->reorderable('sort_order')
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')->label('Активна'),
+                Tables\Filters\TernaryFilter::make('has_models')
+                    ->label('Моделі')
+                    ->placeholder('Усі')
+                    ->trueLabel('З моделями')
+                    ->falseLabel('Без моделей')
+                    ->queries(
+                        true: fn ($query) => $query->whereHas('models'),
+                        false: fn ($query) => $query->whereDoesntHave('models'),
+                        blank: fn ($query) => $query,
+                    ),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

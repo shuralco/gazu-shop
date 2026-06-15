@@ -139,7 +139,18 @@ class BrandResource extends Resource
                     ->trueLabel('Тільки активні')
                     ->falseLabel('Тільки неактивні')
                     ->native(false),
+                Tables\Filters\TernaryFilter::make('has_products')
+                    ->label('Товари')
+                    ->placeholder('Усі')
+                    ->trueLabel('З товарами')
+                    ->falseLabel('Без товарів')
+                    ->queries(
+                        true: fn ($query) => $query->whereHas('products'),
+                        false: fn ($query) => $query->whereDoesntHave('products'),
+                        blank: fn ($query) => $query,
+                    ),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),

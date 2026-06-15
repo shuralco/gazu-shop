@@ -80,9 +80,15 @@ class CarModelResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('make_id')
                     ->label('Марка')
-                    ->options(CarMake::query()->orderBy('sort_order')->pluck('name', 'id')),
-                Tables\Filters\TernaryFilter::make('is_active'),
+                    ->options(CarMake::query()->orderBy('sort_order')->pluck('name', 'id'))
+                    ->searchable(),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Активність')
+                    ->placeholder('Усі')
+                    ->trueLabel('Лише активні')
+                    ->falseLabel('Лише вимкнені'),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2])
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

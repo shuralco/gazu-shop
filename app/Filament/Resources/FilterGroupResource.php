@@ -47,8 +47,23 @@ class FilterGroupResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                //
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Активність')
+                    ->placeholder('Усі')
+                    ->trueLabel('Лише активні')
+                    ->falseLabel('Лише вимкнені'),
+                Tables\Filters\TernaryFilter::make('has_filters')
+                    ->label('Фільтри')
+                    ->placeholder('Усі')
+                    ->trueLabel('З фільтрами')
+                    ->falseLabel('Порожні')
+                    ->queries(
+                        true: fn ($query) => $query->whereHas('filters'),
+                        false: fn ($query) => $query->whereDoesntHave('filters'),
+                        blank: fn ($query) => $query,
+                    ),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2])
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->label('')

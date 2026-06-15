@@ -61,8 +61,22 @@ class FilterResource extends Resource
                     ->searchable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('filter_group_id')
+                    ->label('Група фільтрів')
+                    ->relationship('filterGroup', 'title')
+                    // title — translatable JSON; інакше у фільтрі рендериться сирий JSON.
+                    ->getOptionLabelFromRecordUsing(fn ($record) => is_array($record->title)
+                        ? ($record->title['uk'] ?? reset($record->title))
+                        : (json_decode($record->title, true)['uk'] ?? $record->title))
+                    ->searchable()
+                    ->preload(),
+                Tables\Filters\TernaryFilter::make('is_active')
+                    ->label('Активність')
+                    ->placeholder('Усі')
+                    ->trueLabel('Лише активні')
+                    ->falseLabel('Лише вимкнені'),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2])
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->label('')
