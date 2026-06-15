@@ -16,6 +16,141 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
+// ТИМЧАСОВО: повний reset каталогу до пари демо-штук. Видалити після.
+Route::get('/__reset-demo', function (\Illuminate\Http\Request $request) {
+    $u = auth()->user();
+    abort_unless($u && ($u->is_admin === true || $u->access_preset_id !== null), 403);
+
+    $DB = \Illuminate\Support\Facades\DB::connection();
+
+    // --- Обчислення «що лишаємо» ---
+    // Товари: топ-3 найзаповненіші (серед усіх, incl. trashed).
+    $score = function ($p): int {
+        $s = 0;
+        foreach (['image', 'excerpt', 'content', 'description'] as $f) {
+            if (! empty($p->$f)) $s++;
+        }
+        foreach (['specifications', 'compatibility', 'analogs', 'gallery'] as $f) {
+            $v = json_decode((string) ($p->$f ?? ''), true);
+            if (is_array($v) && $v) $s += 2;
+        }
+        if ((float) ($p->old_price ?? 0) > 0) $s++;
+        if (! empty($p->sku)) $s++;
+        return $s;
+    };
+    $keepProducts = collect($DB->table('products')->get())
+        ->sortByDesc($score)->take(3)->pluck('id')->all();
+
+    // Категорії: гілки лишених товарів (предки) — валідне міні-дерево.
+    $parents = $DB->table('categories')->pluck('parent_id', 'id')->all();
+    $keepCats = [];
+    foreach ($DB->table('products')->whereIn('id', $keepProducts)->pluck('category_id') as $cid) {
+        $d = 0;
+        while ($cid && $d++ < 8) { $keepCats[$cid] = true; $cid = $parents[$cid] ?? null; }
+    }
+    // добити до 3 категорій кореневими, якщо мало
+    if (count($keepCats) < 3) {
+        foreach ($DB->table('categories')->whereNull('parent_id')->limit(3)->pluck('id') as $rid) {
+            $keepCats[$rid] = true;
+            if (count($keepCats) >= 3) break;
+        }
+    }
+    $keepCats = array_map('intval', array_keys($keepCats));
+
+    // Бренди: бренди лишених товарів + добити до 3.
+    $keepBrands = $DB->table('products')->whereIn('id', $keepProducts)->whereNotNull('brand_id')->pluck('brand_id')->unique()->values()->all();
+    if (count($keepBrands) < 3) {
+        foreach ($DB->table('brands')->limit(3)->pluck('id') as $bid) {
+            if (! in_array($bid, $keepBrands)) $keepBrands[] = $bid;
+            if (count($keepBrands) >= 3) break;
+        }
+    }
+    $keepBrands = array_map('intval', $keepBrands);
+
+    // Характеристики: 3 (прив'язані до лишених товарів, інакше перші) + їх групи.
+    $linkedFilters = $DB->table('filter_products')->whereIn('product_id', $keepProducts)->pluck('filter_id')->unique()->take(3)->values()->all();
+    if (count($linkedFilters) < 3) {
+        foreach ($DB->table('filters')->limit(3)->pluck('id') as $fid) {
+            if (! in_array($fid, $linkedFilters)) $linkedFilters[] = $fid;
+            if (count($linkedFilters) >= 3) break;
+        }
+    }
+    $keepFilters = array_map('intval', array_slice($linkedFilters, 0, 3));
+    $keepGroups = $DB->table('filters')->whereIn('id', $keepFilters)->whereNotNull('filter_group_id')->pluck('filter_group_id')->unique()->map(fn ($v) => (int) $v)->all();
+
+    $plan = [
+        'keep_products' => $keepProducts,
+        'keep_categories' => $keepCats,
+        'keep_brands' => $keepBrands,
+        'keep_filters' => $keepFilters,
+        'keep_filter_groups' => $keepGroups,
+        'counts_before' => [
+            'products' => $DB->table('products')->count(),
+            'categories' => $DB->table('categories')->count(),
+            'brands' => $DB->table('brands')->count(),
+            'filters' => $DB->table('filters')->count(),
+            'filter_groups' => $DB->table('filter_groups')->count(),
+            'orders' => $DB->table('orders')->count(),
+            'filter_products' => $DB->table('filter_products')->count(),
+        ],
+    ];
+
+    if ($request->query('action') !== 'exec') {
+        return response()->json(['mode' => 'plan (dry-run)', 'plan' => $plan]);
+    }
+
+    // --- Виконання (hard-delete, FK off) ---
+    $DB->statement('SET FOREIGN_KEY_CHECKS=0');
+    try {
+        // Демо-замовлення — повністю.
+        $DB->table('order_products')->delete();
+        $DB->table('orders')->delete();
+
+        $DB->table('products')->whereNotIn('id', $keepProducts ?: [0])->delete();
+        $DB->table('categories')->whereNotIn('id', $keepCats ?: [0])->delete();
+        $DB->table('brands')->whereNotIn('id', $keepBrands ?: [0])->delete();
+        $DB->table('filters')->whereNotIn('id', $keepFilters ?: [0])->delete();
+        $DB->table('filter_groups')->whereNotIn('id', $keepGroups ?: [0])->delete();
+
+        // Пивоти — лишити тільки звʼязки збережених сутностей.
+        $DB->table('filter_products')->where(function ($q) use ($keepProducts, $keepFilters) {
+            $q->whereNotIn('product_id', $keepProducts ?: [0])->orWhereNotIn('filter_id', $keepFilters ?: [0]);
+        })->delete();
+        if (\Schema::hasTable('product_compatibility')) {
+            $DB->table('product_compatibility')->whereNotIn('product_id', $keepProducts ?: [0])->delete();
+        }
+        if (\Schema::hasTable('category_filters')) {
+            $DB->table('category_filters')->where(function ($q) use ($keepCats, $keepFilters) {
+                $q->whereNotIn('category_id', $keepCats ?: [0])->orWhereNotIn('filter_id', $keepFilters ?: [0]);
+            })->delete();
+        }
+    } finally {
+        $DB->statement('SET FOREIGN_KEY_CHECKS=1');
+    }
+
+    foreach (['gazu-menu', 'storefront'] as $tag) {
+        try { \Illuminate\Support\Facades\Cache::tags([$tag])->flush(); } catch (\Throwable) {}
+    }
+    try { app(\Spatie\ResponseCache\ResponseCache::class)->clear(); } catch (\Throwable) {}
+    try { \Illuminate\Support\Facades\Artisan::call('scout:flush', ['model' => \App\Models\Product::class]); } catch (\Throwable) {}
+    try { \Illuminate\Support\Facades\Artisan::call('scout:import', ['model' => \App\Models\Product::class]); } catch (\Throwable) {}
+
+    return response()->json([
+        'ok' => true,
+        'plan' => $plan,
+        'counts_after' => [
+            'products' => $DB->table('products')->count(),
+            'categories' => $DB->table('categories')->count(),
+            'brands' => $DB->table('brands')->count(),
+            'filters' => $DB->table('filters')->count(),
+            'filter_groups' => $DB->table('filter_groups')->count(),
+            'orders' => $DB->table('orders')->count(),
+            'filter_products' => $DB->table('filter_products')->count(),
+        ],
+        'note' => 'Hard-delete виконано. Авто-сидер off. Бекап: storage/app/backups/db-*.sql.gz + catalog-*.json',
+    ]);
+})->middleware(['web', 'auth']);
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
