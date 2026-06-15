@@ -3,6 +3,7 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\AccessPresetResource\Pages;
+use App\Filament\Resources\AccessPresetResource\RelationManagers;
 use App\Models\AccessPreset;
 use App\Support\Access\AccessControl;
 use Filament\Forms;
@@ -123,6 +124,14 @@ class AccessPresetResource extends Resource
                     // користувачі лишаться без preset → втратять доступ до панелі.
                     ->hidden(fn (AccessPreset $r) => $r->is_system || $r->users()->exists()),
             ]);
+    }
+
+    public static function getRelations(): array
+    {
+        return [
+            // Привʼязка/створення персоналу для цього пресета прямо зі сторінки.
+            RelationManagers\UsersRelationManager::class,
+        ];
     }
 
     public static function getPages(): array
