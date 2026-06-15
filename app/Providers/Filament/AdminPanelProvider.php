@@ -28,7 +28,9 @@ class AdminPanelProvider extends PanelProvider
             ->path('admin')
             ->login(\App\Filament\Pages\Auth\Login::class)
             ->brandName('GAZU · Адміністрування')
-            ->brandLogo(fn (): string => view('filament.partials.brand-logo')->render())
+            // Повертаємо Htmlable (View), а не рядок — інакше Filament трактує
+            // його як URL картинки (<img src>) і лого ламається.
+            ->brandLogo(fn (): \Illuminate\Contracts\Support\Htmlable => view('filament.partials.brand-logo'))
             ->brandLogoHeight('2rem')
             ->favicon(asset('admin-favicon.svg'))
             ->colors([
