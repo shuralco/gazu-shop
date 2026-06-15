@@ -290,21 +290,15 @@ class EditOrder extends EditRecord
                         // Отримати назву міста ТІЛЬКИ через API
                         if (! empty($data['np_city'])) {
                             try {
-                                $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-
-                                // Try to get city by ref directly
-                                $city = $provider->getCityByRef($data['np_city']);
-
-                                if ($city) {
-                                    $shippingData['city'] = $city['name'];
-                                    \Log::info('Found city name via API: '.$city['name'].' for ref: '.$data['np_city']);
+                                $cityName = collect(app(\App\Services\NovaPoshtaApiService::class)->getCities($data['np_city'])['data'] ?? [])
+                                    ->firstWhere('Ref', $data['np_city'])['Description'] ?? null;
+                                if ($cityName) {
+                                    $shippingData['city'] = $cityName;
                                 } else {
                                     \Log::warning('City not found via API, ref: '.$data['np_city'].' - saving ref only');
                                 }
-
-                            } catch (\Exception $e) {
+                            } catch (\Throwable $e) {
                                 \Log::error('Nova Poshta API error: '.$e->getMessage());
-                                // При помилці API зберігаємо тільки ref
                             }
                         }
                     }
@@ -316,14 +310,12 @@ class EditOrder extends EditRecord
                         // Спробувати отримати назву відділення
                         if (! empty($data['np_city'])) {
                             try {
-                                $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                                $warehouses = $provider->getWarehouses($data['np_city']);
-                                $warehouse = $warehouses->firstWhere('ref', $data['np_warehouse']);
+                                $warehouse = collect(app(\App\Services\NovaPoshtaApiService::class)->getWarehouses($data['np_city'], '', 500)['data'] ?? [])
+                                    ->firstWhere('Ref', $data['np_warehouse']);
                                 if ($warehouse) {
-                                    $shippingData['warehouse'] = "№{$warehouse['number']} - {$warehouse['description']}";
+                                    $shippingData['warehouse'] = '№'.($warehouse['Number'] ?? '').' - '.($warehouse['Description'] ?? '');
                                 }
-                            } catch (\Exception $e) {
-                                // Якщо API недоступний, ref зберігається без назви
+                            } catch (\Throwable $e) {
                                 \Log::warning('Nova Poshta API error, saving warehouse ref without name: '.$data['np_warehouse']);
                             }
                         }
@@ -334,24 +326,25 @@ class EditOrder extends EditRecord
                     if (! empty($data['np_postomat_city'])) {
                         $shippingData['postomat_city_ref'] = $data['np_postomat_city'];
 
-                        // Отримати назви міста та поштомату
+                        // Отримати назви міста та поштомату (робочий сервіс)
                         try {
-                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                            $city = $provider->getCityByRef($data['np_postomat_city']);
-                            if ($city) {
-                                $shippingData['city'] = $city['name'];
-                                $data['shipping_city'] = $city['name'];
+                            $np = app(\App\Services\NovaPoshtaApiService::class);
+                            $cityName = collect($np->getCities($data['np_postomat_city'])['data'] ?? [])
+                                ->firstWhere('Ref', $data['np_postomat_city'])['Description'] ?? null;
+                            if ($cityName) {
+                                $shippingData['city'] = $cityName;
+                                $data['shipping_city'] = $cityName;
                             }
 
                             // Отримати назву поштомату
                             if (! empty($data['np_postomat'])) {
-                                $warehouses = $provider->getWarehouses($data['np_postomat_city']);
-                                $postomat = $warehouses->firstWhere('ref', $data['np_postomat']);
+                                $postomat = collect($np->getWarehouses($data['np_postomat_city'], '', 500)['data'] ?? [])
+                                    ->firstWhere('Ref', $data['np_postomat']);
                                 if ($postomat) {
-                                    $shippingData['postomat'] = $postomat['description'];
+                                    $shippingData['postomat'] = $postomat['Description'] ?? '';
                                 }
                             }
-                        } catch (\Exception $e) {
+                        } catch (\Throwable $e) {
 
                         }
                     }
@@ -364,15 +357,15 @@ class EditOrder extends EditRecord
                     if (! empty($data['np_courier_city'])) {
                         $shippingData['courier_city_ref'] = $data['np_courier_city'];
 
-                        // Отримати назву міста для кур'єра
+                        // Отримати назву міста для кур'єра (робочий сервіс)
                         try {
-                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                            $city = $provider->getCityByRef($data['np_courier_city']);
-                            if ($city) {
-                                $shippingData['city'] = $city['name'];
-                                $data['shipping_city'] = $city['name'];
+                            $cityName = collect(app(\App\Services\NovaPoshtaApiService::class)->getCities($data['np_courier_city'])['data'] ?? [])
+                                ->firstWhere('Ref', $data['np_courier_city'])['Description'] ?? null;
+                            if ($cityName) {
+                                $shippingData['city'] = $cityName;
+                                $data['shipping_city'] = $cityName;
                             }
-                        } catch (\Exception $e) {
+                        } catch (\Throwable $e) {
                             // Ignore API errors
                         }
                     }

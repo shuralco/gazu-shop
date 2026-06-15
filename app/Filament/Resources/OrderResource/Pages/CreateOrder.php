@@ -80,24 +80,24 @@ class CreateOrder extends CreateRecord
                     if (! empty($data['np_city'])) {
                         $shippingData['city_ref'] = $data['np_city'];
 
-                        // Отримати назву міста та відділення
+                        // Отримати назву міста та відділення (робочий сервіс)
                         try {
-                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                            $cities = $provider->getCities('');
-                            $city = $cities->firstWhere('ref', $data['np_city']);
-                            if ($city) {
-                                $shippingData['city'] = $city['name'];
+                            $np = app(\App\Services\NovaPoshtaApiService::class);
+                            $cityName = collect($np->getCities($data['np_city'])['data'] ?? [])
+                                ->firstWhere('Ref', $data['np_city'])['Description'] ?? null;
+                            if ($cityName) {
+                                $shippingData['city'] = $cityName;
                             }
 
                             // Отримати назву відділення
                             if (! empty($data['np_warehouse'])) {
-                                $warehouses = $provider->getWarehouses($data['np_city']);
-                                $warehouse = $warehouses->firstWhere('ref', $data['np_warehouse']);
+                                $warehouse = collect($np->getWarehouses($data['np_city'], '', 500)['data'] ?? [])
+                                    ->firstWhere('Ref', $data['np_warehouse']);
                                 if ($warehouse) {
-                                    $shippingData['warehouse'] = "№{$warehouse['number']} - {$warehouse['description']}";
+                                    $shippingData['warehouse'] = '№'.($warehouse['Number'] ?? '').' - '.($warehouse['Description'] ?? '');
                                 }
                             }
-                        } catch (\Exception $e) {
+                        } catch (\Throwable $e) {
 
                         }
                     }
@@ -110,24 +110,24 @@ class CreateOrder extends CreateRecord
                     if (! empty($data['np_postomat_city'])) {
                         $shippingData['postomat_city_ref'] = $data['np_postomat_city'];
 
-                        // Отримати назви міста та поштомату
+                        // Отримати назви міста та поштомату (робочий сервіс)
                         try {
-                            $provider = new \App\Services\Shipping\NovaPoshtaProvider;
-                            $cities = $provider->getCities('');
-                            $city = $cities->firstWhere('ref', $data['np_postomat_city']);
-                            if ($city) {
-                                $shippingData['city'] = $city['name'];
+                            $np = app(\App\Services\NovaPoshtaApiService::class);
+                            $cityName = collect($np->getCities($data['np_postomat_city'])['data'] ?? [])
+                                ->firstWhere('Ref', $data['np_postomat_city'])['Description'] ?? null;
+                            if ($cityName) {
+                                $shippingData['city'] = $cityName;
                             }
 
                             // Отримати назву поштомату
                             if (! empty($data['np_postomat'])) {
-                                $warehouses = $provider->getWarehouses($data['np_postomat_city']);
-                                $postomat = $warehouses->firstWhere('ref', $data['np_postomat']);
+                                $postomat = collect($np->getWarehouses($data['np_postomat_city'], '', 500)['data'] ?? [])
+                                    ->firstWhere('Ref', $data['np_postomat']);
                                 if ($postomat) {
-                                    $shippingData['postomat'] = $postomat['description'];
+                                    $shippingData['postomat'] = $postomat['Description'] ?? '';
                                 }
                             }
-                        } catch (\Exception $e) {
+                        } catch (\Throwable $e) {
 
                         }
                     }
