@@ -5,7 +5,6 @@ namespace App\Filament\Pages;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
-use Symfony\Component\Process\Process;
 
 /**
  * Резервні копії БД — для технічного адміна. Повний дамп через mysqldump
@@ -93,32 +92,13 @@ class BackupManager extends Page
 
     public function createBackup(): void
     {
-        $cfg = config('database.connections.'.config('database.default'));
-        $host = $cfg['host'] ?? '127.0.0.1';
-        $port = (string) ($cfg['port'] ?? '3306');
-        $user = $cfg['username'] ?? 'root';
-        $pass = (string) ($cfg['password'] ?? '');
-        $db = $cfg['database'] ?? '';
-
         $file = static::dir().'/db-'.date('Ymd-His').'.sql.gz';
 
-        // MYSQL_PWD у env — щоб пароль не світився у списку процесів.
-        $cmd = sprintf(
-            'mysqldump --host=%s --port=%s --user=%s --single-transaction --quick --no-tablespaces --default-character-set=utf8mb4 %s | gzip > %s',
-            escapeshellarg($host),
-            escapeshellarg($port),
-            escapeshellarg($user),
-            escapeshellarg($db),
-            escapeshellarg($file),
-        );
-
-        $process = Process::fromShellCommandline($cmd, null, ['MYSQL_PWD' => $pass], null, 600);
-
         try {
-            $process->run();
-            if (! $process->isSuccessful() || ! is_file($file) || filesize($file) < 100) {
+            $this->dumpDatabase($file);
+            if (! is_file($file) || filesize($file) < 100) {
                 @unlink($file);
-                throw new \RuntimeException($process->getErrorOutput() ?: 'mysqldump не створив файл');
+                throw new \RuntimeException('Дамп порожній');
             }
             Notification::make()
                 ->title('Бекап створено')
@@ -126,6 +106,7 @@ class BackupManager extends Page
                 ->success()
                 ->send();
         } catch (\Throwable $e) {
+            @unlink($file);
             report($e);
             Notification::make()
                 ->title('Помилка бекапу')
@@ -133,6 +114,60 @@ class BackupManager extends Page
                 ->danger()
                 ->send();
         }
+    }
+
+    /**
+     * Потоковий дамп БД через PDO застосунку (mysqldump-бінарник на Alpine =
+     * MariaDB-клієнт, який не авторизується до MySQL 8 з caching_sha2_password).
+     * Пише структуру + дані всіх таблиць у gzip, рядок за рядком (без OOM).
+     */
+    protected function dumpDatabase(string $file): void
+    {
+        $conn = \Illuminate\Support\Facades\DB::connection();
+        $pdo = $conn->getPdo();
+        $dbName = $conn->getDatabaseName();
+
+        $gz = gzopen($file, 'w6');
+        if (! $gz) {
+            throw new \RuntimeException('Не вдалось відкрити файл для запису');
+        }
+
+        gzwrite($gz, "-- GAZU DB dump {$dbName} ".date('Y-m-d H:i:s')."\n");
+        gzwrite($gz, "SET NAMES utf8mb4;\nSET FOREIGN_KEY_CHECKS=0;\n\n");
+
+        $tables = array_map(
+            fn ($r) => array_values((array) $r)[0],
+            $conn->select('SHOW TABLES')
+        );
+
+        foreach ($tables as $table) {
+            $createRow = (array) $conn->select('SHOW CREATE TABLE `'.$table.'`')[0];
+            $create = $createRow['Create Table'] ?? $createRow['Create View'] ?? null;
+            if (! $create) {
+                continue;
+            }
+            gzwrite($gz, "\n-- Table: {$table}\nDROP TABLE IF EXISTS `{$table}`;\n{$create};\n\n");
+
+            // Дані — курсором, рядок за рядком.
+            foreach ($conn->cursor('SELECT * FROM `'.$table.'`') as $row) {
+                $row = (array) $row;
+                $cols = '`'.implode('`,`', array_keys($row)).'`';
+                $vals = implode(',', array_map(function ($v) use ($pdo) {
+                    if ($v === null) {
+                        return 'NULL';
+                    }
+                    if (is_int($v) || is_float($v)) {
+                        return (string) $v;
+                    }
+
+                    return $pdo->quote((string) $v);
+                }, array_values($row)));
+                gzwrite($gz, "INSERT INTO `{$table}` ({$cols}) VALUES ({$vals});\n");
+            }
+        }
+
+        gzwrite($gz, "\nSET FOREIGN_KEY_CHECKS=1;\n");
+        gzclose($gz);
     }
 
     public function download(string $name)
