@@ -16,6 +16,65 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
+// ТИМЧАСОВО: аварійне відновлення 2 товарів. Видалити після.
+Route::get('/__fix-products', function (\Illuminate\Http\Request $request) {
+    $u = auth()->user();
+    abort_unless($u && ($u->is_admin === true || $u->access_preset_id !== null), 403);
+    $keep = [12829, 12831];
+
+    if ($request->query('action') === 'stats') {
+        return response()->json([
+            'visible' => \App\Models\Product::count(),
+            'with_trashed' => \App\Models\Product::withTrashed()->count(),
+            'only_trashed' => \App\Models\Product::onlyTrashed()->count(),
+            'keep_exist_withtrashed' => \App\Models\Product::withTrashed()->whereIn('id', $keep)->pluck('id'),
+        ]);
+    }
+
+    if ($request->query('action') === 'restore') {
+        $report = ['restored_trashed' => 0, 'reinserted' => [], 'activated' => 0];
+        $report['restored_trashed'] = \App\Models\Product::withTrashed()->whereIn('id', $keep)->restore();
+
+        $existing = \App\Models\Product::withTrashed()->whereIn('id', $keep)->pluck('id')->all();
+        $missing = array_diff($keep, $existing);
+        if ($missing) {
+            $bk = glob(storage_path('app/backups/catalog-*.json'));
+            rsort($bk);
+            if ($bk) {
+                $data = json_decode(file_get_contents($bk[0]), true);
+                $rows = collect($data['products'] ?? [])->keyBy('id');
+                foreach ($missing as $mid) {
+                    if (isset($rows[$mid])) {
+                        $row = (array) $rows[$mid];
+                        unset($row['deleted_at']);
+                        $row['is_active'] = 1;
+                        try {
+                            \DB::table('products')->insert($row);
+                            $report['reinserted'][] = $mid;
+                        } catch (\Throwable $e) {
+                            $report['reinserted_error'][$mid] = $e->getMessage();
+                        }
+                    }
+                }
+            }
+        }
+
+        $report['activated'] = \App\Models\Product::withTrashed()->whereIn('id', $keep)
+            ->update(['is_active' => true, 'deleted_at' => null]);
+
+        foreach (['gazu-menu', 'storefront'] as $tag) {
+            try { \Illuminate\Support\Facades\Cache::tags([$tag])->flush(); } catch (\Throwable) {}
+        }
+        try { app(\Spatie\ResponseCache\ResponseCache::class)->clear(); } catch (\Throwable) {}
+        try { \Illuminate\Support\Facades\Artisan::call('scout:import', ['model' => \App\Models\Product::class]); } catch (\Throwable) {}
+
+        $report['visible_after'] = \App\Models\Product::count();
+        return response()->json($report);
+    }
+
+    return response()->json(['hint' => 'use ?action=stats або ?action=restore']);
+})->middleware(['web', 'auth']);
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
