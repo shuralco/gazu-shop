@@ -951,7 +951,9 @@ class ProductResource extends Resource
                     ->color('primary')
                     ->sortable()
                     ->toggleable(),
-                Tables\Columns\TextColumn::make('brand.name')
+                // brandModel (а не brand) — саме цей зв'язок eager-load'иться у
+                // ->query(); інакше Filament довантажував brand окремо щорядка (N+1).
+                Tables\Columns\TextColumn::make('brandModel.name')
                     ->label('Бренд')
                     ->badge()
                     ->color('warning')
