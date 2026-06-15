@@ -999,6 +999,23 @@ class ProductResource extends Resource
                     ->relationship('brandModel', 'name')
                     ->searchable()
                     ->preload(),
+                // Марка авто — для деталей фільтруємо за сумісністю (JSON compatibility[].make).
+                Tables\Filters\SelectFilter::make('car_make')
+                    ->label('Марка авто')
+                    ->options(fn () => \Illuminate\Support\Facades\Cache::remember(
+                        'admin:car_makes:filter_options',
+                        3600,
+                        fn () => \App\Models\CarMake::query()->where('is_active', true)
+                            ->orderBy('sort_order')->orderBy('name')->pluck('name', 'name')->all(),
+                    ))
+                    ->searchable()
+                    ->query(fn (Builder $query, array $data): Builder => $query->when(
+                        $data['value'] ?? null,
+                        fn (Builder $q, $make): Builder => $q->where('compatibility', 'like', '%"make":"'.$make.'"%'),
+                    )),
+                Tables\Filters\SelectFilter::make('stock_status')
+                    ->label('Наявність')
+                    ->options(fn () => \App\Models\StockStatus::options()),
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Активність')
                     ->trueLabel('Активні')
@@ -1007,15 +1024,28 @@ class ProductResource extends Resource
                     ->label('Популярні товари'),
                 Tables\Filters\TernaryFilter::make('is_new')
                     ->label('Нові товари'),
+                // Зі знижкою — стара ціна більша за поточну.
+                Tables\Filters\TernaryFilter::make('has_discount')
+                    ->label('Зі знижкою')
+                    ->placeholder('Усі')
+                    ->trueLabel('Лише зі знижкою')
+                    ->falseLabel('Без знижки')
+                    ->queries(
+                        true: fn (Builder $q): Builder => $q->whereNotNull('old_price')->whereColumn('old_price', '>', 'price'),
+                        false: fn (Builder $q): Builder => $q->where(fn (Builder $q) => $q->whereNull('old_price')->orWhereColumn('old_price', '<=', 'price')),
+                        blank: fn (Builder $q): Builder => $q,
+                    ),
                 Tables\Filters\Filter::make('price_range')
                     ->label('Діапазон цін')
                     ->form([
                         Forms\Components\TextInput::make('price_from')
+                            ->label('Ціна від')
                             ->numeric()
-                            ->prefix('$'),
+                            ->suffix('грн'),
                         Forms\Components\TextInput::make('price_to')
+                            ->label('Ціна до')
                             ->numeric()
-                            ->prefix('$'),
+                            ->suffix('грн'),
                     ])
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
@@ -1027,8 +1057,21 @@ class ProductResource extends Resource
                                 $data['price_to'],
                                 fn (Builder $query, $price): Builder => $query->where('price', '<=', $price),
                             );
+                    })
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['price_from'] ?? null) {
+                            $indicators[] = 'Ціна від '.$data['price_from'].' грн';
+                        }
+                        if ($data['price_to'] ?? null) {
+                            $indicators[] = 'Ціна до '.$data['price_to'].' грн';
+                        }
+
+                        return $indicators;
                     }),
             ])
+            ->filtersFormColumns(['sm' => 1, 'lg' => 2, 'xl' => 3])
+            ->filtersFormWidth(\Filament\Support\Enums\MaxWidth::FourExtraLarge)
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->label('')
