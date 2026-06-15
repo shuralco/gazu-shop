@@ -82,6 +82,9 @@ php artisan route:clear || true
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+# Кеш Filament-компонентів — з ~40 модулями уникає дискавері ресурсів/сторінок/
+# віджетів на кожен boot панелі (зменшує фіксовану вартість admin-запиту).
+php artisan filament:optimize 2>&1 || echo "[entrypoint] WARNING: filament:optimize failed, continuing..."
 
 # CRITICAL: clear ResponseCache so cached HTML doesn't reference stale Vite
 # asset hashes from the previous deploy (HTML refs gazu-ABC.css but new
