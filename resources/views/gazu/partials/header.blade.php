@@ -181,9 +181,26 @@
          the ☰ button). Shows from lg up. --}}
     <div class="hidden lg:block border-t border-[var(--gazu-line)] bg-[var(--gazu-paper)]">
         @php
-            // Sub-nav: admin-editable (gazu_subnav) із fallback на дефолтні маршрути.
+            // Джерела горизонтального меню за пріоритетом:
+            //   1) Редактор «Мега-меню» → «Горизонтальне меню» (horizontal_menu_items: [{text,url}])
+            //   2) gazu_subnav (стара адмін-настройка)
+            //   3) хардкод-дефолт.
+            $hItems = \App\Models\DisplaySetting::get('horizontal_menu_items', null);
+            if (is_string($hItems)) {
+                $hItems = json_decode($hItems, true);
+            }
             $subnavSetting = $gazuSettings['gazu_subnav'] ?? null;
-            if (is_array($subnavSetting) && ! empty($subnavSetting)) {
+
+            if (is_array($hItems) && ! empty($hItems)) {
+                $subnav = collect($hItems)
+                    ->map(fn ($i) => [
+                        'k'     => \Illuminate\Support\Str::slug($i['text'] ?? $i['label'] ?? ''),
+                        'label' => $i['text'] ?? $i['label'] ?? '',
+                        'url'   => $i['url'] ?? '#',
+                    ])
+                    ->filter(fn ($i) => $i['label'] !== '')
+                    ->all();
+            } elseif (is_array($subnavSetting) && ! empty($subnavSetting)) {
                 $subnav = collect($subnavSetting)
                     ->map(fn ($i) => [
                         'k'     => $i['key'] ?? \Illuminate\Support\Str::slug($i['label'] ?? ''),
