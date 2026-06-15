@@ -156,6 +156,19 @@ class AdminPanelProvider extends PanelProvider
                             });
                         });
                     });
+
+                    // Скрол наверх при пагінації таблиць (Filament сам не завжди це
+                    // робить → на стор. 4 лишаєшся внизу). Делегований клік по
+                    // контролах пагінації → після morph скролимо до верху таблиці.
+                    document.addEventListener('click', function (e) {
+                        var ctrl = e.target.closest('.fi-pagination a, .fi-pagination button, .fi-ta-pagination a, .fi-ta-pagination button, nav[role="navigation"][aria-label*="agina"] a, nav[role="navigation"][aria-label*="agina"] button');
+                        if (! ctrl) return;
+                        setTimeout(function () {
+                            var anchor = document.querySelector('.fi-ta, .fi-resource-table, main') || document.body;
+                            try { anchor.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (err) {}
+                            window.scrollTo({ top: 0, behavior: 'smooth' });
+                        }, 250);
+                    }, true);
                     </script>
                 HTML
             )

@@ -376,10 +376,23 @@ class CategoryResource extends Resource
                     ->toggle(),
 
                 Tables\Filters\SelectFilter::make('parent_id')
-                    ->label('Належить до батька')
-                    ->relationship('parent', 'title')
-                    ->searchable()
-                    ->preload(),
+                    ->label('Батьківська категорія')
+                    // relationship('parent','title') рендерив JSON (title — translatable).
+                    // Опції — лише категорії, що МАЮТЬ дітей (реальні батьки), з
+                    // читабельним full_path. Фільтрує WHERE parent_id = обраний →
+                    // показує підкатегорії цього батька.
+                    ->options(function () {
+                        return \Illuminate\Support\Facades\Cache::remember('admin:category_parents:options', 600, function () {
+                            return Category::query()
+                                ->whereHas('children')
+                                ->with('parent.parent')
+                                ->get()
+                                ->sortBy('full_path')
+                                ->mapWithKeys(fn ($c) => [$c->id => $c->full_path])
+                                ->all();
+                        });
+                    })
+                    ->searchable(),
 
                 Tables\Filters\TernaryFilter::make('is_active')
                     ->label('Статус')
@@ -409,14 +422,36 @@ class CategoryResource extends Resource
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ])
-            // Sort: roots first → then children grouped under parent → then by sort_order
-            ->defaultSort('parent_id', 'asc')
-            ->modifyQueryUsing(fn ($query) => $query
-                ->with('parent.parent.parent')
-                ->orderByRaw('COALESCE(parent_id, 0)')
-                ->orderBy('sort_order')
-                ->orderBy('id')
-            )
+            // Деревний порядок: кожна підкатегорія йде ОДРАЗУ під своїм батьком
+            // (depth-first), з урахуванням sort_order на кожному рівні. Будуємо
+            // послідовність id у PHP і нав'язуємо через FIELD() — працює з
+            // пагінацією. Кеш авто-оновлюється за max(updated_at).
+            ->modifyQueryUsing(function ($query) {
+                $ver = (string) (Category::max('updated_at') ?? '0');
+                $ordered = \Illuminate\Support\Facades\Cache::remember("admin:category_tree_order:{$ver}", 600, function () {
+                    $byParent = Category::query()
+                        ->orderBy('sort_order')->orderBy('id')
+                        ->get(['id', 'parent_id'])
+                        ->groupBy(fn ($c) => (int) ($c->parent_id ?? 0));
+                    $seq = [];
+                    $walk = function ($parentId) use (&$walk, &$seq, $byParent) {
+                        foreach (($byParent[$parentId] ?? []) as $c) {
+                            $seq[] = (int) $c->id;
+                            $walk((int) $c->id);
+                        }
+                    };
+                    $walk(0);
+
+                    return $seq;
+                });
+
+                $query->with('parent.parent.parent');
+                if (! empty($ordered)) {
+                    $query->reorder()->orderByRaw('FIELD(id, '.implode(',', $ordered).')');
+                }
+
+                return $query;
+            })
             ->striped()
             ->paginated([25, 50, 100, 'all']);
     }
