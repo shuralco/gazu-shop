@@ -19,11 +19,11 @@ class FilterGroupResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-squares-2x2';
 
     protected static ?string $navigationGroup = 'Каталог';
-    protected static ?string $navigationLabel = 'Групи фільтрів';
+    protected static ?string $navigationLabel = 'Групи характеристик';
 
-    protected static ?string $modelLabel = 'Група фільтрів';
+    protected static ?string $modelLabel = 'Група характеристик';
 
-    protected static ?string $pluralModelLabel = 'Групи фільтрів';
+    protected static ?string $pluralModelLabel = 'Групи характеристик';
 
     protected static ?int $navigationSort = 50;
 
@@ -53,9 +53,9 @@ class FilterGroupResource extends Resource
                     ->trueLabel('Лише активні')
                     ->falseLabel('Лише вимкнені'),
                 Tables\Filters\TernaryFilter::make('has_filters')
-                    ->label('Фільтри')
+                    ->label('Характеристики')
                     ->placeholder('Усі')
-                    ->trueLabel('З фільтрами')
+                    ->trueLabel('З характеристиками')
                     ->falseLabel('Порожні')
                     ->queries(
                         true: fn ($query) => $query->whereHas('filters'),

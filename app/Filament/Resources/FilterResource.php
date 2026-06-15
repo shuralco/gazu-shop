@@ -19,11 +19,11 @@ class FilterResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-funnel';
 
     protected static ?string $navigationGroup = 'Каталог';
-    protected static ?string $navigationLabel = 'Фільтри';
+    protected static ?string $navigationLabel = 'Характеристики';
 
-    protected static ?string $modelLabel = 'Фільтр';
+    protected static ?string $modelLabel = 'Характеристика';
 
-    protected static ?string $pluralModelLabel = 'Фільтри';
+    protected static ?string $pluralModelLabel = 'Характеристики';
 
     protected static ?int $navigationSort = 40;
 
@@ -31,14 +31,14 @@ class FilterResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Інформація про фільтр')
+                Forms\Components\Section::make('Інформація про характеристику')
                     ->schema([
                         Forms\Components\TextInput::make('title')
                             ->label('Назва')
                             ->required()
                             ->maxLength(255),
                         Forms\Components\Select::make('filter_group_id')
-                            ->label('Група фільтрів')
+                            ->label('Група характеристик')
                             ->relationship('filterGroup', 'title')
                             ->required()
                             ->searchable()
@@ -57,13 +57,13 @@ class FilterResource extends Resource
                     ->label('Назва')
                     ->searchable(),
                 Tables\Columns\TextColumn::make('filterGroup.title')
-                    ->label('Група фільтрів')
+                    ->label('Група характеристик')
                     ->sortable()
                     ->searchable(),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('filter_group_id')
-                    ->label('Група фільтрів')
+                    ->label('Група характеристик')
                     ->relationship('filterGroup', 'title')
                     // title — translatable JSON; інакше у фільтрі рендериться сирий JSON.
                     ->getOptionLabelFromRecordUsing(fn ($record) => is_array($record->title)
