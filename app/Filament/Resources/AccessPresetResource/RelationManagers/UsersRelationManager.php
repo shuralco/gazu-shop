@@ -20,6 +20,10 @@ class UsersRelationManager extends RelationManager
 
     protected static ?string $title = 'Користувачі (персонал)';
 
+    // Рендеримо одразу (не lazy) — користувачів на пресет небагато, зате блок
+    // видно без прокрутки/очікування підвантаження.
+    protected static bool $isLazy = false;
+
     protected static ?string $recordTitleAttribute = 'name';
 
     public function form(Form $form): Form
