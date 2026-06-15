@@ -1177,9 +1177,13 @@ class ProductResource extends Resource
                 ]),
             ])
             ->defaultSort('created_at', 'desc')
-            ->defaultPaginationPageOption(25)
+            // 10 замість 25: рендер таблиці на цьому сервері коштує ~60-80мс/рядок
+            // (гідрація моделей + накладна Filament), тож менша сторінка =
+            // помітно швидше відкриття. Користувач може підняти до 25/50/всі.
+            ->defaultPaginationPageOption(10)
             ->striped()
-            ->poll('60s')
+            // poll('60s') прибрано — кожні 60с спричиняв повний 2-3с ре-рендер
+            // таблиці (підвисання). Дані оновлюються при діях/перезавантаженні.
             ->persistFiltersInSession()
             ->persistSortInSession()
             ->deferLoading();
