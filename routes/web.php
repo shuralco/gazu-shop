@@ -19,8 +19,16 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
 // ТИМЧАСОВО: інструмент чистки демо-каталогу (бекап + dry-run + видалення).
 // Admin-only. Видалити після операції.
 Route::get('/__catalog-tool', function (\Illuminate\Http\Request $request) {
-    abort_unless(optional(auth()->user())->is_admin, 403);
     $action = $request->query('action', 'plan');
+    if ($action === 'whoami') {
+        return response()->json([
+            'web_uid' => auth()->id(),
+            'web_is_admin' => optional(auth()->user())->is_admin,
+            'default_guard' => config('auth.defaults.guard'),
+            'session_has_user' => session()->has('login_web_'.sha1(\Illuminate\Auth\SessionGuard::class)),
+        ]);
+    }
+    abort_unless(optional(auth()->user())->is_admin, 403);
 
     // Скоринг «заповненості» товару.
     $score = function (\App\Models\Product $p): int {
