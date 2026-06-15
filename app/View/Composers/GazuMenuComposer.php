@@ -17,28 +17,25 @@ use Illuminate\View\View;
  */
 class GazuMenuComposer
 {
-    private static ?array $cachedTree = null;
-    private static ?array $cachedBrands = null;
-
     public function __construct(private MegaMenuBuilder $builder) {}
 
     public function compose(View $view): void
     {
-        if (self::$cachedTree === null) {
-            self::$cachedTree = $this->builder->build();
-        }
-        if (self::$cachedBrands === null) {
-            self::$cachedBrands = $this->builder->brands();
-        }
+        // Кеш у тегованому сторі (gazu-menu), НЕ у статиці процесу: під Octane
+        // статика переживає запити → флеш кешу не діяв і меню не оновлювалось.
+        // Тег gazu-menu флашиться при зміні категорій (CategoryObserver) та у
+        // save() редактора меню.
+        $tree = $this->remembered('gazu:megatree:'.app()->getLocale(), fn () => $this->builder->build());
+        $brands = $this->remembered('gazu:megabrands', fn () => $this->builder->brands());
 
-        $view->with('megaTree', self::$cachedTree);
+        $view->with('megaTree', $tree);
 
         // Composer's `$brands` is for header/mega-menu/brand-strip — do NOT
         // clobber a `$brands` already passed by a controller (e.g. brand-list
         // page passes a Brand-Collection with products_count). Set only when
         // missing.
         if (! array_key_exists('brands', $view->getData())) {
-            $view->with('brands', self::$cachedBrands);
+            $view->with('brands', $brands);
         }
 
         // Live cart count — не кешуємо, має оновлюватись на кожен запит.
@@ -55,6 +52,19 @@ class GazuMenuComposer
         // Список марок авто з DB → лінкуються на /zapchastyny/{make-slug}.
         if (! array_key_exists('cars', $view->getData())) {
             $view->with('cars', $this->carMakes());
+        }
+    }
+
+    /**
+     * Кеш у тегованому сторі (тег gazu-menu) на 1 годину. Якщо стор не
+     * підтримує теги (file/database) — звичайний remember без тегу.
+     */
+    private function remembered(string $key, \Closure $cb): array
+    {
+        try {
+            return Cache::tags(['gazu-menu'])->remember($key, 3600, $cb);
+        } catch (\Throwable) {
+            return Cache::remember($key, 3600, $cb);
         }
     }
 

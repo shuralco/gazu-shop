@@ -30,11 +30,105 @@ class MegaMenuBuilder
 
     public function build(): array
     {
+        // 1) Якщо адмін задав ручну структуру в редакторі «Мега-меню» — вона
+        //    авторитетна (опційно). 2) Інакше — авто з дерева категорій.
+        //    3) Інакше — статичний фолбек.
+        $manual = $this->fromEditorStructure();
+        if (! empty($manual)) {
+            return $manual;
+        }
+
         $tree = $this->fromDatabase();
         if (empty($tree)) {
             $tree = $this->fallback();
         }
         return $tree;
+    }
+
+    /**
+     * Будує megaTree з ручної структури редактора (main_mega_menu_structure),
+     * якщо вона задана. Формат редактора (columns → items) мапиться у формат
+     * фронту (root-таби з групами). Порожньо → [] (фолбек на категорії).
+     */
+    private function fromEditorStructure(): array
+    {
+        try {
+            $structure = \App\Models\DisplaySetting::get('main_mega_menu_structure');
+            if (is_string($structure)) {
+                $structure = json_decode($structure, true);
+            }
+            $columns = is_array($structure) ? ($structure['columns'] ?? null) : null;
+            if (! is_array($columns) || empty($columns)) {
+                return [];
+            }
+
+            $this->loadCounts();
+            $roots = [];
+            foreach ($columns as $col) {
+                foreach ((array) $col as $item) {
+                    if (! is_array($item)) {
+                        continue;
+                    }
+                    $type = $item['type'] ?? 'category';
+                    $title = $this->resolveTitle($item['title'] ?? '');
+                    $slug = (string) ($item['slug'] ?? '');
+
+                    if ($type === 'custom_link') {
+                        $roots[] = [
+                            'id' => $slug ?: \Illuminate\Support\Str::slug($title) ?: 'link-'.count($roots),
+                            'icon' => $this->iconKey($slug, $title),
+                            'slug' => $slug,
+                            'label' => $title,
+                            'count' => 0,
+                            'image' => null,
+                            'url' => $item['url'] ?? ('/'.ltrim($slug, '/')),
+                            'groups' => [],
+                        ];
+                        continue;
+                    }
+
+                    $children = is_array($item['children'] ?? null) ? $item['children'] : [];
+                    $items = [];
+                    foreach ($children as $c) {
+                        $cSlug = (string) ($c['slug'] ?? '');
+                        $cid = $c['category_id'] ?? null;
+                        $items[] = [
+                            $this->resolveTitle($c['title'] ?? ''),
+                            $cid ? (int) ($this->treeCounts[$cid] ?? 0) : 0,
+                            $cSlug,
+                        ];
+                    }
+                    $catId = $item['category_id'] ?? null;
+                    $roots[] = [
+                        'id' => $slug ?: ('cat-'.($catId ?? count($roots))),
+                        'icon' => $this->iconKey($slug, $title),
+                        'slug' => $slug,
+                        'label' => $title,
+                        'count' => $catId ? (int) ($this->treeCounts[$catId] ?? 0) : 0,
+                        'image' => null,
+                        'groups' => $items ? [['title' => $title, 'items' => $items]] : [],
+                    ];
+                }
+            }
+
+            return array_slice($roots, 0, 12);
+        } catch (\Throwable $e) {
+            report($e);
+            return [];
+        }
+    }
+
+    /** Translatable title → рядок поточної локалі. */
+    private function resolveTitle(mixed $t): string
+    {
+        if (is_array($t)) {
+            return (string) ($t['uk'] ?? reset($t) ?: '');
+        }
+        $decoded = json_decode((string) $t, true);
+        if (is_array($decoded)) {
+            return (string) ($decoded['uk'] ?? reset($decoded) ?: '');
+        }
+        return (string) $t;
     }
 
     /**
