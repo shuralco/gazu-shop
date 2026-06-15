@@ -973,6 +973,9 @@ class ProductResource extends Resource
                 Tables\Filters\SelectFilter::make('category')
                     ->label('Категорія')
                     ->relationship('category', 'title')
+                    // title — translatable JSON; без цього у фільтрі рендерився JSON.
+                    // Аксесор full_path дає читабельний breadcrumb («Двигун → Фільтри»).
+                    ->getOptionLabelFromRecordUsing(fn ($record) => $record->full_path)
                     ->searchable()
                     ->preload(),
                 Tables\Filters\SelectFilter::make('brand')
