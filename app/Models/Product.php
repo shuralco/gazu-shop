@@ -15,11 +15,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Laravel\Scout\Searchable;
 
 class Product extends Model
 {
-    use HasFactory, HasSeoMeta, HasTranslations, TranslatableToArray, Searchable;
+    use HasFactory, HasSeoMeta, HasTranslations, SoftDeletes, TranslatableToArray, Searchable;
 
     public array $translatable = ['title', 'excerpt', 'content', 'meta_title', 'meta_description', 'slug'];
 

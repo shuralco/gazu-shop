@@ -98,6 +98,50 @@ Route::get('/__catalog-tool', function (\Illuminate\Http\Request $request) {
         ]);
     }
 
+    if ($action === 'delete') {
+        // Підтверджено: лишаємо саме ці 2 товари, категорії НЕ чіпаємо.
+        $keep = [12829, 12831];
+
+        // Свіжий бекап у тому ж запиті (storage міг стертись між деплоями).
+        $ts = now()->format('Ymd-His');
+        $dir = storage_path('app/backups');
+        if (! is_dir($dir)) {
+            mkdir($dir, 0775, true);
+        }
+        $path = $dir.'/pre-delete-'.$ts.'.json';
+        file_put_contents($path, json_encode([
+            'created_at' => now()->toIso8601String(),
+            'products' => \DB::table('products')->get(),
+        ], JSON_UNESCAPED_UNICODE));
+
+        // М'яке видалення (SoftDeletes) — товари зникають із вітрини й адмінки,
+        // замовлення/FK цілі, зворотно. Категорії не чіпаємо.
+        $before = \App\Models\Product::count();
+        $deleted = \App\Models\Product::whereNotIn('id', $keep)->delete();
+        $after = \App\Models\Product::count();
+
+        foreach (['gazu-menu', 'storefront'] as $tag) {
+            try {
+                \Illuminate\Support\Facades\Cache::tags([$tag])->flush();
+            } catch (\Throwable) {
+            }
+        }
+        try {
+            app(\Spatie\ResponseCache\ResponseCache::class)->clear();
+        } catch (\Throwable) {
+        }
+
+        return response()->json([
+            'ok' => true,
+            'soft_deleted' => $deleted,
+            'kept_ids' => $keep,
+            'products_before' => $before,
+            'products_after_visible' => $after,
+            'backup_path' => $path,
+            'note' => 'Категорії не чіпались. Відновлення: Product::withTrashed()->whereNotIn(id,keep)->restore()',
+        ]);
+    }
+
     // dry-run plan (default)
     return response()->json(['action' => 'plan (dry-run, нічого не видалено)', 'stats' => $stats]);
 })->middleware(['web', 'auth']);
