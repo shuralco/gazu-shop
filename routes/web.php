@@ -18,7 +18,7 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
 
 // ТИМЧАСОВО: інструмент чистки демо-каталогу (бекап + dry-run + видалення).
 // Admin-only. Видалити після операції.
-Route::get('/admin/__catalog-tool', function (\Illuminate\Http\Request $request) {
+Route::get('/__catalog-tool', function (\Illuminate\Http\Request $request) {
     abort_unless(optional(auth()->user())->is_admin, 403);
     $action = $request->query('action', 'plan');
 
