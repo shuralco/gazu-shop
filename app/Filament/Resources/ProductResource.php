@@ -695,7 +695,11 @@ class ProductResource extends Resource
                                             ->relationship(
                                                 name: 'filters',
                                                 titleAttribute: 'title',
+                                                // with('filterGroup') усуває N+1: лейбл кожного
+                                                // фільтра бере group->title; без eager-load preload
+                                                // 84 фільтрів = ~85 запитів. Тепер 1.
                                                 modifyQueryUsing: fn ($query) => $query
+                                                    ->with('filterGroup')
                                                     ->where('is_active', true)
                                                     ->orderBy('filter_group_id')
                                                     ->orderBy('sort_order'),
@@ -749,8 +753,9 @@ class ProductResource extends Resource
                                                     Forms\Components\Select::make('make')
                                                         ->label('Марка')
                                                         ->options(function (Forms\Get $get) {
-                                                            $opts = \App\Models\CarMake::query()->where('is_active', true)
-                                                                ->orderBy('sort_order')->orderBy('name')->pluck('name', 'name')->all();
+                                                            // Кеш списку марок (статичний) — repeater запитує на КОЖЕН рядок.
+                                                            $opts = \Illuminate\Support\Facades\Cache::remember('admin:car_makes:options', 3600, fn () => \App\Models\CarMake::query()->where('is_active', true)
+                                                                ->orderBy('sort_order')->orderBy('name')->pluck('name', 'name')->all());
                                                             $cur = $get('make'); // зберегти наявне значення (навіть поза каталогом)
                                                             if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
                                                             return $opts;
