@@ -28,7 +28,10 @@ Route::get('/__catalog-tool', function (\Illuminate\Http\Request $request) {
             'session_has_user' => session()->has('login_web_'.sha1(\Illuminate\Auth\SessionGuard::class)),
         ]);
     }
-    abort_unless(optional(auth()->user())->is_admin, 403);
+    // Доступ: будь-який користувач панелі (супер-адмін АБО з пресетом доступу) —
+    // бо власник заходить як staff (is_admin=false), а не супер-адмін.
+    $u = auth()->user();
+    abort_unless($u && ($u->is_admin === true || $u->access_preset_id !== null), 403);
 
     // Скоринг «заповненості» товару.
     $score = function (\App\Models\Product $p): int {
