@@ -291,6 +291,7 @@ class MegaMenuEditor extends Page
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->pluck('title', 'id')
+            ->map(fn ($t) => is_array($t) ? ($t['uk'] ?? reset($t)) : (json_decode((string) $t, true)['uk'] ?? $t))
             ->toArray();
     }
 
@@ -359,6 +360,7 @@ class MegaMenuEditor extends Page
             ->where('is_active', true)
             ->orderBy('sort_order')
             ->pluck('title', 'id')
+            ->map(fn ($t) => is_array($t) ? ($t['uk'] ?? reset($t)) : (json_decode((string) $t, true)['uk'] ?? $t))
             ->toArray();
     }
 

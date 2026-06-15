@@ -78,9 +78,13 @@ class SeoMetaResource extends Resource
                             ->options(function (Forms\Get $get) {
                                 $type = $get('seoable_type');
 
+                                // title — translatable JSON; декодуємо в plucked-значенні
+                                // (без гідрації моделей), інакше у селекті — сирий JSON.
+                                $decode = fn ($t) => is_array($t) ? ($t['uk'] ?? reset($t)) : (json_decode((string) $t, true)['uk'] ?? $t);
+
                                 return match ($type) {
-                                    Category::class => Category::pluck('title', 'id'),
-                                    Product::class => Product::pluck('title', 'id'),
+                                    Category::class => Category::pluck('title', 'id')->map($decode)->toArray(),
+                                    Product::class => Product::pluck('title', 'id')->map($decode)->toArray(),
                                     default => [],
                                 };
                             })

@@ -229,9 +229,10 @@ class OrderProductsRelationManager extends RelationManager
                         Forms\Components\Select::make('products')
                             ->label('Виберіть товари для додавання')
                             ->multiple()
-                            ->options(Product::where('is_active', true)->pluck('title', 'id'))
+                            // Без options(pluck) + preload: вантажило ВСІ 1277 товарів
+                            // + сирий JSON title. Пошук нижче (getSearchResultsUsing)
+                            // читабельний через аксесор — лишаємо лише його.
                             ->searchable()
-                            ->preload()
                             ->getSearchResultsUsing(fn (string $search): array => Product::where('is_active', true)
                                 ->where('title', 'like', "%{$search}%")
                                 ->limit(20)

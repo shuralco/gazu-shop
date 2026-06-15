@@ -254,7 +254,10 @@ class BatchEditor extends Page
 
     public function getCategories()
     {
-        return Category::orderBy('title')->pluck('title', 'id')->toArray();
+        // title — translatable JSON; декодуємо, інакше у селекті сирий JSON.
+        return Category::orderBy('title')->pluck('title', 'id')
+            ->map(fn ($t) => is_array($t) ? ($t['uk'] ?? reset($t)) : (json_decode((string) $t, true)['uk'] ?? $t))
+            ->toArray();
     }
 
     public function getBrands()
