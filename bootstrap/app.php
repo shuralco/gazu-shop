@@ -11,6 +11,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Фікс root URL під Octane (інакше підписані Livewire-upload URL = 401).
+        // Prepend — має бути найпершим, до генерації/валідації будь-яких URL.
+        $middleware->prepend(\App\Http\Middleware\ForceProxyUrl::class);
+
         $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
         $middleware->append(\App\Http\Middleware\CacheHeaders::class);
 
