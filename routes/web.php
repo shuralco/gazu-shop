@@ -95,6 +95,29 @@ Route::get('/__reset-demo', function (\Illuminate\Http\Request $request) {
         ],
     ];
 
+    if ($request->query('action') === 'clean-orphans') {
+        // Сміття від видалених товарів + логи/кеш. НП/Укрпошта-довідники НЕ чіпаємо.
+        $out = [];
+        $DB->statement('SET FOREIGN_KEY_CHECKS=0');
+        try {
+            $out['seo_meta'] = $DB->table('seo_meta')
+                ->where('seoable_type', 'like', '%Product%')
+                ->whereNotIn('seoable_id', $keepProducts ?: [0])->delete();
+            if (\Schema::hasTable('inventory')) {
+                $out['inventory'] = $DB->table('inventory')->whereNotIn('product_id', $keepProducts ?: [0])->delete();
+            }
+            foreach (['shipping_api_logs', 'cache', 'cache_locks', 'sessions', 'telescope_entries', 'failed_jobs', 'jobs'] as $tbl) {
+                if (\Schema::hasTable($tbl)) {
+                    try { $out[$tbl] = $DB->table($tbl)->delete(); } catch (\Throwable $e) { $out[$tbl] = 'ERR '.mb_substr($e->getMessage(), 0, 80); }
+                }
+            }
+        } finally {
+            $DB->statement('SET FOREIGN_KEY_CHECKS=1');
+        }
+        try { app(\Spatie\ResponseCache\ResponseCache::class)->clear(); } catch (\Throwable) {}
+        return response()->json(['cleaned' => $out, 'kept_products' => $keepProducts]);
+    }
+
     if ($request->query('action') === 'sizes') {
         $db = $DB->getDatabaseName();
         $rows = $DB->select(
