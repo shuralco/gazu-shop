@@ -32,6 +32,11 @@ return Application::configure(basePath: dirname(__DIR__))
         // спрацював ПІСЛЯ StartSession + VerifyCsrfToken. Інакше:
         //   - $request->user() = null (session не стартувала) → кешує auth users
         //   - CsrfTokenReplacer не знає поточного csrf_token() → 419 для всіх POST
+        // Режим тех-обслуговування — ПЕРЕД ResponseCache (інакше гостю
+        // віддасться кешована сторінка замість заглушки). Після StartSession,
+        // тож бачить залогіненого адміна.
+        $middleware->appendToGroup('web', \App\Http\Middleware\StorefrontMaintenance::class);
+
         $middleware->appendToGroup('web', \Spatie\ResponseCache\Middlewares\CacheResponse::class);
 
         // Trust upstream proxies (Coolify, Traefik, Caddy, nginx) so
