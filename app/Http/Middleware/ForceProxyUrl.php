@@ -22,8 +22,17 @@ class ForceProxyUrl
         $appUrl = (string) config('app.url');
         if ($appUrl !== '') {
             URL::forceRootUrl($appUrl);
+
             if (str_starts_with($appUrl, 'https://')) {
                 URL::forceScheme('https');
+
+                // Проксі віддає застосунку X-Forwarded-Proto: http (TLS на краю),
+                // тож $request сприймається як http → валідація підписаних URL
+                // (Livewire upload) рахує підпис по http ≠ https генерації → 401.
+                // Форсуємо https на самому запиті (prepend — до TrustProxies).
+                $request->headers->set('X-Forwarded-Proto', 'https');
+                $request->server->set('HTTPS', 'on');
+                $request->server->set('SERVER_PORT', 443);
             }
         }
 
