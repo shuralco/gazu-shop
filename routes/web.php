@@ -16,34 +16,6 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
-// ТИМЧАСОВО: OPTIMIZE TABLE для звільнення диска на почищених таблицях. Видалити після.
-Route::get('/__optimize', function (\Illuminate\Http\Request $request) {
-    $u = auth()->user();
-    abort_unless($u && ($u->is_admin === true || $u->access_preset_id !== null), 403);
-    $DB = \Illuminate\Support\Facades\DB::connection();
-    $db = $DB->getDatabaseName();
-
-    // Тільки почищені таблиці (NP/UP/реальні довідники НЕ чіпаємо — там дані).
-    $tables = [
-        'products', 'categories', 'filters', 'filter_groups', 'filter_products',
-        'product_compatibility', 'category_filters', 'inventory', 'seo_meta',
-        'shipping_api_logs', 'cache', 'cache_locks', 'orders', 'order_products',
-        'sessions', 'jobs', 'failed_jobs', 'job_batches',
-    ];
-    $done = [];
-    foreach ($tables as $t) {
-        if (\Schema::hasTable($t)) {
-            try { $DB->statement('OPTIMIZE TABLE `'.$t.'`'); $done[] = $t; }
-            catch (\Throwable $e) { $done[] = $t.':ERR'; }
-        }
-    }
-    $rows = $DB->select(
-        'SELECT table_name AS t, ROUND((data_length+index_length)/1024) AS kb '
-        .'FROM information_schema.tables WHERE table_schema = ? ORDER BY (data_length+index_length) DESC LIMIT 15', [$db]
-    );
-    return response()->json(['optimized' => $done, 'top_after' => $rows]);
-})->middleware(['web', 'auth']);
-
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
