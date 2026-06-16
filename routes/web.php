@@ -95,6 +95,23 @@ Route::get('/__reset-demo', function (\Illuminate\Http\Request $request) {
         ],
     ];
 
+    if ($request->query('action') === 'urlcheck') {
+        $gen = \Illuminate\Support\Facades\URL::temporarySignedRoute('livewire.upload-file', now()->addMinutes(5));
+        return response()->json([
+            'app_url' => config('app.url'),
+            'request_scheme_host' => $request->getSchemeAndHttpHost(),
+            'request_url' => $request->url(),
+            'is_secure' => $request->isSecure(),
+            'host' => $request->getHost(),
+            'port' => $request->getPort(),
+            'x_forwarded_proto' => $request->headers->get('x-forwarded-proto'),
+            'x_forwarded_port' => $request->headers->get('x-forwarded-port'),
+            'x_forwarded_host' => $request->headers->get('x-forwarded-host'),
+            'generated_signed_upload_url' => $gen,
+            'self_validates' => \Illuminate\Support\Facades\Request::create($gen)->hasValidSignature(),
+        ]);
+    }
+
     if ($request->query('action') === 'clean-orphans') {
         // Сміття від видалених товарів + логи/кеш. НП/Укрпошта-довідники НЕ чіпаємо.
         $out = [];
