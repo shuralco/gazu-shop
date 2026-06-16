@@ -99,31 +99,36 @@ Route::get('/__reset-demo', function (\Illuminate\Http\Request $request) {
         return response()->json(['mode' => 'plan (dry-run)', 'plan' => $plan]);
     }
 
-    // --- Виконання (hard-delete, FK off) ---
+    // --- Виконання (hard-delete, FK off). Покроково з логом — щоб бачити, де падає.
+    $steps = [];
+    $del = function (string $label, \Closure $fn) use (&$steps) {
+        try {
+            $steps[$label] = $fn();
+        } catch (\Throwable $e) {
+            $steps[$label] = 'ERROR: '.mb_substr($e->getMessage(), 0, 200);
+        }
+    };
+
     $DB->statement('SET FOREIGN_KEY_CHECKS=0');
     try {
-        // Демо-замовлення — повністю.
-        $DB->table('order_products')->delete();
-        $DB->table('orders')->delete();
-
-        $DB->table('products')->whereNotIn('id', $keepProducts ?: [0])->delete();
-        $DB->table('categories')->whereNotIn('id', $keepCats ?: [0])->delete();
-        $DB->table('brands')->whereNotIn('id', $keepBrands ?: [0])->delete();
-        $DB->table('filters')->whereNotIn('id', $keepFilters ?: [0])->delete();
-        $DB->table('filter_groups')->whereNotIn('id', $keepGroups ?: [0])->delete();
-
-        // Пивоти — лишити тільки звʼязки збережених сутностей.
-        $DB->table('filter_products')->where(function ($q) use ($keepProducts, $keepFilters) {
+        $del('order_products', fn () => $DB->table('order_products')->delete());
+        $del('orders', fn () => $DB->table('orders')->delete());
+        $del('filter_products', fn () => $DB->table('filter_products')->where(function ($q) use ($keepProducts, $keepFilters) {
             $q->whereNotIn('product_id', $keepProducts ?: [0])->orWhereNotIn('filter_id', $keepFilters ?: [0]);
-        })->delete();
+        })->delete());
         if (\Schema::hasTable('product_compatibility')) {
-            $DB->table('product_compatibility')->whereNotIn('product_id', $keepProducts ?: [0])->delete();
+            $del('product_compatibility', fn () => $DB->table('product_compatibility')->whereNotIn('product_id', $keepProducts ?: [0])->delete());
         }
         if (\Schema::hasTable('category_filters')) {
-            $DB->table('category_filters')->where(function ($q) use ($keepCats, $keepFilters) {
+            $del('category_filters', fn () => $DB->table('category_filters')->where(function ($q) use ($keepCats, $keepFilters) {
                 $q->whereNotIn('category_id', $keepCats ?: [0])->orWhereNotIn('filter_id', $keepFilters ?: [0]);
-            })->delete();
+            })->delete());
         }
+        $del('products', fn () => $DB->table('products')->whereNotIn('id', $keepProducts ?: [0])->delete());
+        $del('categories', fn () => $DB->table('categories')->whereNotIn('id', $keepCats ?: [0])->delete());
+        $del('brands', fn () => $DB->table('brands')->whereNotIn('id', $keepBrands ?: [0])->delete());
+        $del('filters', fn () => $DB->table('filters')->whereNotIn('id', $keepFilters ?: [0])->delete());
+        $del('filter_groups', fn () => $DB->table('filter_groups')->whereNotIn('id', $keepGroups ?: [0])->delete());
     } finally {
         $DB->statement('SET FOREIGN_KEY_CHECKS=1');
     }
@@ -137,6 +142,7 @@ Route::get('/__reset-demo', function (\Illuminate\Http\Request $request) {
 
     return response()->json([
         'ok' => true,
+        'steps' => $steps,
         'plan' => $plan,
         'counts_after' => [
             'products' => $DB->table('products')->count(),
