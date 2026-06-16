@@ -31,6 +31,7 @@ class ForceProxyUrl
                 // (Livewire upload) рахує підпис по http ≠ https генерації → 401.
                 // Форсуємо https на самому запиті (prepend — до TrustProxies).
                 $request->headers->set('X-Forwarded-Proto', 'https');
+                $request->headers->set('X-Forwarded-Port', '443');
                 $request->server->set('HTTPS', 'on');
                 $request->server->set('SERVER_PORT', 443);
             }
