@@ -98,7 +98,7 @@ Route::get('/__reset-demo', function (\Illuminate\Http\Request $request) {
     if ($request->query('action') === 'sizes') {
         $db = $DB->getDatabaseName();
         $rows = $DB->select(
-            'SELECT table_name AS t, table_rows AS rows, ROUND((data_length+index_length)/1024) AS kb '
+            'SELECT table_name AS t, table_rows AS nrows, ROUND((data_length+index_length)/1024) AS kb '
             .'FROM information_schema.tables WHERE table_schema = ? ORDER BY (data_length+index_length) DESC LIMIT 25',
             [$db]
         );
