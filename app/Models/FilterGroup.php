@@ -19,6 +19,20 @@ class FilterGroup extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Каскад: filters.filter_group_id / filter_products / category_filters —
+     * FK RESTRICT → видалення групи з характеристиками падало (500). Чистимо
+     * звʼязки й самі характеристики групи.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $g) {
+            \Illuminate\Support\Facades\DB::table('filter_products')->where('filter_group_id', $g->id)->delete();
+            \Illuminate\Support\Facades\DB::table('category_filters')->where('filter_group_id', $g->id)->delete();
+            \Illuminate\Support\Facades\DB::table('filters')->where('filter_group_id', $g->id)->delete();
+        });
+    }
+
     public function filters(): HasMany
     {
         return $this->hasMany(Filter::class);

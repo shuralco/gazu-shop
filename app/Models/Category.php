@@ -113,6 +113,24 @@ class Category extends Model
         return static::where('slug', $slug)->first();
     }
 
+    /**
+     * Каскад при видаленні: parent_id/products.category_id/category_filters —
+     * FK RESTRICT → пряме видалення категорії з дітьми/товарами падало (500).
+     * Підкатегорії піднімаємо до батька, товари переносимо до батька, звʼязки
+     * category_filters чистимо.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $c) {
+            static::where('parent_id', $c->id)->update(['parent_id' => $c->parent_id]);
+            if ($c->parent_id) {
+                \Illuminate\Support\Facades\DB::table('products')
+                    ->where('category_id', $c->id)->update(['category_id' => $c->parent_id]);
+            }
+            \Illuminate\Support\Facades\DB::table('category_filters')->where('category_id', $c->id)->delete();
+        });
+    }
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

@@ -19,6 +19,18 @@ class Filter extends Model
         'is_active' => 'boolean',
     ];
 
+    /**
+     * Каскад: filter_products.filter_id = FK RESTRICT → видалення характеристики,
+     * привʼязаної до товарів, падало (500). Чистимо звʼязки (brand_filters
+     * каскадить на рівні БД).
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (self $f) {
+            \Illuminate\Support\Facades\DB::table('filter_products')->where('filter_id', $f->id)->delete();
+        });
+    }
+
     public function filterGroup(): BelongsTo
     {
         return $this->belongsTo(FilterGroup::class);
