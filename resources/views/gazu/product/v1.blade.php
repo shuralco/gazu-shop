@@ -216,7 +216,7 @@
             // Brand link + article are passed down to the central column's
             // <x-gazu.warehouse-selector> — no longer rendered in this header.
             $brandHeaderSlug = null;
-            if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
+            if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
                 $brandHeaderSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
             }
             if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
@@ -608,14 +608,14 @@
                                 //   "Виробник" → brand slug (lower-cased name with hyphens)
                                 //   "Категорія" → cat slug (if Product has a category relation)
                                 $brandSlug = null;
-                                if (is_object($p) && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
+                                if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
                                     $brandSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
                                 }
                                 if (! $brandSlug && is_object($p) && $p->manufacturer) {
                                     $brandSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
                                 }
                                 $catSlug = null;
-                                if (is_object($p) && $p->relationLoaded('category') && ($cat = $p->getRelation('category'))) {
+                                if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('category') && ($cat = $p->getRelation('category'))) {
                                     $raw = $cat->getRawOriginal('slug');
                                     if (is_string($raw) && str_starts_with($raw, '{')) {
                                         $decoded = json_decode($raw, true);
