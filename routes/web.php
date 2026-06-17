@@ -16,6 +16,26 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
+// ТИМЧАСОВО: tail laravel.log для діагностики 500. Видалити після.
+Route::get('/__tail', function (\Illuminate\Http\Request $request) {
+    $u = auth()->user();
+    abort_unless($u && ($u->is_admin === true || $u->access_preset_id !== null), 403);
+    $path = storage_path('logs/laravel.log');
+    if (! is_file($path)) {
+        return response()->json(['error' => 'no log', 'path' => $path]);
+    }
+    $lines = (int) ($request->query('n', 120));
+    $size = filesize($path);
+    $read = min($size, 60000);
+    $fh = fopen($path, 'r');
+    fseek($fh, -$read, SEEK_END);
+    $data = fread($fh, $read);
+    fclose($fh);
+    $arr = preg_split('/\n/', $data);
+    $arr = array_slice($arr, -$lines);
+    return response('<pre>'.htmlspecialchars(implode("\n", $arr)).'</pre>');
+})->middleware(['web', 'auth']);
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;
