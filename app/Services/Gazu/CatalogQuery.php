@@ -320,6 +320,8 @@ class CatalogQuery
                 $like = '%'.$v.'%';
                 $w->orWhere('sku', 'like', $like)
                   ->orWhere('barcode', 'like', $like)
+                  ->orWhere('cross_code', 'like', $like)
+                  ->orWhere('extra_codes', 'like', $like)
                   ->orWhere('manufacturer', 'like', $like)
                   ->orWhere('title', 'like', $like)
                   ->orWhere('search_tags', 'like', $like);

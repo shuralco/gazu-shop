@@ -67,7 +67,8 @@ class SearchManagement extends Page implements HasForms, HasTable
     public array $searchableAttrs = [];
     public array $filterableAttrs = [];
     public array $allAvailableAttrs = [
-        'title', 'title_en', 'sku', 'brand', 'manufacturer',
+        'title', 'title_en', 'sku', 'barcode', 'cross_code', 'extra_codes',
+        'brand', 'manufacturer',
         'excerpt', 'excerpt_en', 'category_title', 'category_title_en',
         'options_text', 'search_tags', 'title_lemmas', 'content',
     ];

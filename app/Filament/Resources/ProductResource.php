@@ -315,10 +315,11 @@ class ProductResource extends Resource
                                             ),
 
                                         Forms\Components\TextInput::make('quantity')
-                                            ->label('Кількість на складі')
+                                            ->label('Загальна кількість')
                                             ->numeric()
                                             ->minValue(0)
-                                            ->default(0),
+                                            ->default(0)
+                                            ->helperText('Загальний залишок. Розподіл по конкретних складах — у вкладці «Інвентар по складах» (після збереження товару).'),
                                     ]),
 
                                 Forms\Components\TextInput::make('wholesale_min_quantity')
@@ -917,7 +918,16 @@ class ProductResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('sku')
                     ->label('Код товару')
-                    ->searchable()
+                    // Пошук у списку — по коду товару + крос-кодах (cross_code/barcode/extra_codes).
+                    ->searchable(query: function (\Illuminate\Database\Eloquent\Builder $query, string $search): \Illuminate\Database\Eloquent\Builder {
+                        $like = '%'.$search.'%';
+
+                        return $query->where(fn ($q) => $q
+                            ->where('sku', 'like', $like)
+                            ->orWhere('cross_code', 'like', $like)
+                            ->orWhere('barcode', 'like', $like)
+                            ->orWhere('extra_codes', 'like', $like));
+                    })
                     ->sortable()
                     // copyable прибрано — додавав Alpine-обгортку в кожну комірку.
                     ->badge()
