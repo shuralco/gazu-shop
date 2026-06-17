@@ -36,6 +36,21 @@ Route::get('/__tail', function (\Illuminate\Http\Request $request) {
     return response('<pre>'.htmlspecialchars(implode("\n", $arr)).'</pre>');
 })->middleware(['web', 'auth']);
 
+// ТИМЧАСОВО: перевірка ON DELETE правил FK після міграції. Видалити після.
+Route::get('/__fkcheck', function (\Illuminate\Http\Request $request) {
+    $u = auth()->user();
+    abort_unless($u && ($u->is_admin === true || $u->access_preset_id !== null), 403);
+    $db = \Illuminate\Support\Facades\DB::getDatabaseName();
+    $rows = \Illuminate\Support\Facades\DB::select(
+        'SELECT rc.TABLE_NAME AS t, rc.CONSTRAINT_NAME AS c, rc.DELETE_RULE AS d, k.COLUMN_NAME AS col '
+        .'FROM information_schema.REFERENTIAL_CONSTRAINTS rc '
+        .'JOIN information_schema.KEY_COLUMN_USAGE k ON k.CONSTRAINT_NAME = rc.CONSTRAINT_NAME AND k.CONSTRAINT_SCHEMA = rc.CONSTRAINT_SCHEMA '
+        .'WHERE rc.CONSTRAINT_SCHEMA = ? AND rc.TABLE_NAME IN ("products","categories","category_filters") '
+        .'ORDER BY rc.TABLE_NAME', [$db]
+    );
+    return response()->json($rows);
+})->middleware(['web', 'auth']);
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;

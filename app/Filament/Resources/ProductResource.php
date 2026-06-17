@@ -181,6 +181,18 @@ class ProductResource extends Resource
                                             ->helperText('Унікальний код товару (без префікса SKU-)'),
                                     ]),
 
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\TextInput::make('cross_code')
+                                            ->label('Крос-код / OEM')
+                                            ->maxLength(120)
+                                            ->helperText('Необовʼязково. Основний крос-номер (OEM).'),
+                                        Forms\Components\TagsInput::make('extra_codes')
+                                            ->label('Додаткові коди')
+                                            ->placeholder('Введіть код і натисніть Enter')
+                                            ->helperText('Необовʼязково. Коди аналогів/замінників — кілька через Enter.'),
+                                    ]),
+
                                 Forms\Components\TextInput::make('excerpt')
                                     ->label('Короткий опис')
                                     ->maxLength(255)
@@ -220,7 +232,7 @@ class ProductResource extends Resource
                         Forms\Components\Tabs\Tab::make('Ціноутворення')
                             ->icon('heroicon-o-currency-dollar')
                             ->schema([
-                                Forms\Components\Grid::make(3)
+                                Forms\Components\Grid::make(4)
                                     ->schema([
                                         Forms\Components\TextInput::make('price')
                                             ->label('Ціна')
@@ -258,6 +270,14 @@ class ProductResource extends Resource
                                                         }
                                                     }),
                                             ]),
+
+                                        Forms\Components\Select::make('price_currency')
+                                            ->label('Валюта ціни')
+                                            ->options(['UAH' => '₴ Гривня', 'USD' => '$ Долар', 'EUR' => '€ Євро', 'CNY' => '¥ Юань'])
+                                            ->default('UAH')
+                                            ->selectablePlaceholder(false)
+                                            ->native(false)
+                                            ->helperText('На сайті ціна показується в грн за курсом (курси: Розширення → налаштування або DisplaySetting fx_*).'),
 
                                         Forms\Components\TextInput::make('old_price')
                                             ->label('Стара ціна')

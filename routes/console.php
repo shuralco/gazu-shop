@@ -31,6 +31,8 @@ if ($enabled('feed_export')) {
 
 // Core-команди (у app/Console/Commands, зареєстровані завжди).
 Schedule::command('currency:update-rates')->twiceDaily(9, 15);
+// Курси fx_*_uah (DisplaySetting) для перерахунку цін товарів у грн — НБУ, двічі на день.
+Schedule::command('gazu:fx-update')->twiceDaily(9, 15);
 Schedule::command('stock:check')->daily()->at('09:00');
 
 if ($enabled('novaposhta')) {

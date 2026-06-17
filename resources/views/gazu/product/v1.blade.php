@@ -68,6 +68,15 @@
             $specs[] = [(string) $k, (string) $v, (bool) preg_match($monoRe, (string) $v)];
         }
     }
+    // Крос-коди (OEM + додаткові коди аналогів).
+    $crossCode = is_object($p) ? ($p->cross_code ?? null) : ($p['cross_code'] ?? null);
+    if ($crossCode) {
+        $specs[] = ['Крос-код (OEM)', (string) $crossCode, true];
+    }
+    $extraCodes = is_object($p) ? ($p->extra_codes ?? null) : ($p['extra_codes'] ?? null);
+    if (is_array($extraCodes) && ! empty($extraCodes)) {
+        $specs[] = ['Інші коди', implode(', ', array_map('strval', $extraCodes)), true];
+    }
     if (empty($specs)) {
         $specs = [
             ['Виробник', $brand ?: '—', false],

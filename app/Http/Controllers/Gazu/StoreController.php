@@ -73,7 +73,7 @@ class StoreController extends Controller
     private function decorate(Product $p): Product
     {
         // Накладаємо UI-поля поверх живої моделі, не торкаючись БД.
-        $p->oem = $p->sku ?: ($p->barcode ?: '');
+        $p->oem = $p->cross_code ?: ($p->sku ?: ($p->barcode ?: ''));
         // name: пріоритет translatable title, потім name-колонка
         $rawTitle = $p->getRawOriginal('title');
         $localizedTitle = is_string($rawTitle) && str_starts_with($rawTitle, '{')
@@ -127,6 +127,11 @@ class StoreController extends Controller
         $p->discount = ($p->old_price && $p->price && $p->old_price > $p->price)
             ? (int) round((($p->old_price - $p->price) / $p->old_price) * 100)
             : null;
+        // Мультивалюта: ціну вводять у price_currency (UAH/USD/EUR/CNY), на сайті
+        // ЗАВЖДИ показуємо в грн за курсом. Конвертуємо в самому кінці — discount
+        // вище рахується від оригіналів (співвідношення курсу не змінює %).
+        $p->price = $p->display_price;
+        $p->old_price = $p->display_old_price;
         $p->url = route('gazu.product.show', ['slug' => $p->slug ?? $p->id]);
 
         return $p;

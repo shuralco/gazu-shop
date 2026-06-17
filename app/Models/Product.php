@@ -132,8 +132,9 @@ class Product extends Model
 
     protected $fillable = [
         'name', 'title', 'slug', 'sku', 'barcode',
+        'cross_code', 'extra_codes',
         'category_id', 'brand_id', 'manufacturer',
-        'price', 'old_price', 'weight', 'dimensions',
+        'price', 'price_currency', 'old_price', 'weight', 'dimensions',
         'length', 'width', 'height',
         'excerpt', 'content', 'description',
         'meta_title', 'meta_description', 'meta_keywords', 'search_tags',
@@ -169,7 +170,35 @@ class Product extends Model
         'specifications' => 'array',
         'compatibility' => 'array',
         'analogs' => 'array',
+        'extra_codes' => 'array',
     ];
+
+    /**
+     * Ціна у гривні для вітрини. Якщо товар заведено в іншій валюті
+     * (price_currency != UAH) — конвертуємо за курсом (ручний/НБУ override
+     * у DisplaySetting через ChinesePriceCalculator::fxRate). Усі ціни на
+     * сайті відображаються в грн.
+     */
+    public function getDisplayPriceAttribute(): float
+    {
+        return $this->toUah($this->price);
+    }
+
+    public function getDisplayOldPriceAttribute(): ?float
+    {
+        return $this->old_price ? $this->toUah($this->old_price) : null;
+    }
+
+    private function toUah($amount): float
+    {
+        $amount = (float) $amount;
+        $cur = strtoupper((string) ($this->price_currency ?: 'UAH'));
+        if ($cur === 'UAH' || $amount <= 0) {
+            return round($amount, 2);
+        }
+
+        return round($amount * app(\App\Services\Pricing\ChinesePriceCalculator::class)->fxRate($cur), 2);
+    }
 
     /**
      * Get the locale-aware slug for the current or given locale.
