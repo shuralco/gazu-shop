@@ -228,7 +228,7 @@
             if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
                 $brandHeaderSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
             }
-            if (! $brandHeaderSlug && is_object($p) && $p->manufacturer) {
+            if (! $brandHeaderSlug && is_object($p) && ($p->manufacturer ?? null)) {
                 $brandHeaderSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
             }
             // SEO-friendly: /brand/{slug} (brand profile) замість /catalog filter.
@@ -620,7 +620,7 @@
                                 if (is_object($p) && method_exists($p, 'relationLoaded') && $p->relationLoaded('brand') && ($b = $p->getRelation('brand'))) {
                                     $brandSlug = $b->slug ?: \Illuminate\Support\Str::slug((string) $b->getRawOriginal('name'));
                                 }
-                                if (! $brandSlug && is_object($p) && $p->manufacturer) {
+                                if (! $brandSlug && is_object($p) && ($p->manufacturer ?? null)) {
                                     $brandSlug = \Illuminate\Support\Str::slug((string) $p->manufacturer);
                                 }
                                 $catSlug = null;
