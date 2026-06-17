@@ -768,6 +768,9 @@ class ProductResource extends Resource
                                     ->schema([
                                         Forms\Components\Repeater::make('compatibility')
                                             ->label('Авто')
+                                            // Стартує порожнім — інакше 1 порожній рядок із required Марка/Модель
+                                            // блокував збереження товару («Поле марка обовʼязкове»).
+                                            ->defaultItems(0)
                                             ->schema([
                                                 Forms\Components\Grid::make(4)->schema([
                                                     // Марка — з car_makes (пошук). live → каскадить модель.
