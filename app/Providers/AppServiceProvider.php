@@ -152,6 +152,12 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\CarMake::class,
             \App\Models\CarModel::class,
             \App\Models\CarEngine::class,
+            // Таксономії, видимі на фронті (фільтр-сайдбар, спеки товару,
+            // бейджі наявності, відгуки) — без них admin-зміни не оновлювали фронт.
+            \App\Models\Filter::class,
+            \App\Models\FilterGroup::class,
+            \App\Models\StockStatus::class,
+            \App\Models\Review::class,
         ];
         foreach ($responseCacheModels as $model) {
             if (class_exists($model)) {

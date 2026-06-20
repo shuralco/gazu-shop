@@ -118,6 +118,11 @@ class ResponseCacheObserver
                 $urls[] = route('gazu.product.show', ['slug' => $product->id]);
             }
 
+            // Головна + загальний каталог — товар з'являється у featured-рядках
+            // та лістингу, тож їх теж форгетимо (без повного storefront-flush).
+            $urls[] = url('/');
+            $urls[] = url('/catalog');
+
             // Категорія товару + предки (де він у лістингу зі stock-бейджем).
             $cat = $product->category;
             $guard = 0;
@@ -207,6 +212,9 @@ class ResponseCacheObserver
         $tags = array_filter([
             config('storefront.derived_cache_tag', 'storefront'),
             config('storefront.menu_cache_tag', 'gazu-menu'),
+            // Каталог-кеш (home-featured + агрегати CatalogQuery) тегується 'catalog'
+            // окремо — без нього він лишався stale (напр. «0 товарів») до TTL.
+            config('storefront.catalog_cache_tag', 'catalog'),
         ]);
         foreach (array_unique($tags) as $tag) {
             try {

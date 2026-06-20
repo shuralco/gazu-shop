@@ -63,4 +63,10 @@ return [
     | Тег fragment-кешу навігації/меню (відрендерений HTML нав-дерева).
     */
     'menu_cache_tag' => env('STOREFRONT_MENU_TAG', 'gazu-menu'),
+
+    /*
+    | Тег кешу каталогу (home-featured рядки + агрегати CatalogQuery). Флашиться
+    | observer'ом разом із derived/menu — інакше лістинг лишався stale до TTL.
+    */
+    'catalog_cache_tag' => env('STOREFRONT_CATALOG_TAG', 'catalog'),
 ];
