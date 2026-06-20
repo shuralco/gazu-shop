@@ -22,6 +22,21 @@ class InventoryRelationManager extends RelationManager
 
     protected static ?string $pluralModelLabel = 'Запаси';
 
+    /** Ціна + валюта рядка + (≈ грн за курсом /admin/currencies). */
+    public static function fmtPrice($state, $record): ?string
+    {
+        if ($state === null || $state === '') {
+            return null;
+        }
+        $cur = $record->price_currency ?: 'UAH';
+        $out = number_format((float) $state, 2, '.', ' ').' '.$cur;
+        if ($cur !== 'UAH') {
+            $out .= ' (≈ '.number_format(\App\Models\Currency::toBase($state, $cur), 0, '.', ' ').' ₴)';
+        }
+
+        return $out;
+    }
+
     public function form(Form $form): Form
     {
         return $form->schema([
@@ -93,13 +108,13 @@ class InventoryRelationManager extends RelationManager
                     ->color(fn ($state) => $state > 0 ? 'success' : 'danger')
                     ->weight('bold'),
                 Tables\Columns\TextColumn::make('price')
-                    ->label('Ціна (₴)')
-                    ->money('UAH', divideBy: 1)
+                    ->label('Ціна')
+                    ->formatStateUsing(fn ($state, $record) => self::fmtPrice($state, $record))
                     ->placeholder('базова')
                     ->sortable(),
                 Tables\Columns\TextColumn::make('compare_at_price')
-                    ->label('Стара ціна (₴)')
-                    ->money('UAH', divideBy: 1)
+                    ->label('Стара ціна')
+                    ->formatStateUsing(fn ($state, $record) => self::fmtPrice($state, $record))
                     ->placeholder('—')
                     ->toggleable(),
                 Tables\Columns\TextColumn::make('reorder_point')

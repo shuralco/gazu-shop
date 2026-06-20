@@ -57,7 +57,15 @@ class GroupPricesRelationManager extends RelationManager
                     ->badge(),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Ціна')
-                    ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ' ').' грн'),
+                    ->formatStateUsing(function ($state, $record) {
+                        $cur = $record->price_currency ?: 'UAH';
+                        $out = number_format((float) $state, 2, '.', ' ').' '.$cur;
+                        if ($cur !== 'UAH') {
+                            $out .= ' (≈ '.number_format(\App\Models\Currency::toBase($state, $cur), 0, '.', ' ').' ₴)';
+                        }
+
+                        return $out;
+                    }),
                 Tables\Columns\TextColumn::make('min_quantity')
                     ->label('Мін. кількість'),
             ])
