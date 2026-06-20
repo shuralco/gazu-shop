@@ -17,12 +17,14 @@
         : null;
     $defaultStock ??= $stocks->firstWhere(fn ($s) => $s->quantity > 0);
     $defaultWh = $defaultStock?->warehouse_id;
-    $defaultPrice = $defaultStock && $defaultStock->price !== null ? (float) $defaultStock->price : (float) $price;
+    // Ціни складів — у грн (display_price конвертує за валютою рядка), як у
+    // warehouse-selector. Без цього при виборі USD-складу ціна падала на сире число.
+    $defaultPrice = $defaultStock && $defaultStock->price !== null ? (float) ($defaultStock->display_price ?? $defaultStock->price) : (float) $price;
     // Build JS lookup: { warehouseId: { price, compare, qty, city, eta } }
     $stocksJs = $stocks->mapWithKeys(fn ($s) => [
         $s->warehouse_id => [
-            'price'   => $s->price !== null ? (float) $s->price : (float) $price,
-            'compare' => $s->compare_at_price !== null ? (float) $s->compare_at_price : null,
+            'price'   => $s->price !== null ? (float) ($s->display_price ?? $s->price) : (float) $price,
+            'compare' => $s->compare_at_price !== null ? (float) ($s->display_compare_at_price ?? $s->compare_at_price) : null,
             'qty'     => max(0, $s->quantity - $s->reserved_quantity),
             'city'    => $s->warehouse->city ?: $s->warehouse->name,
             'eta'     => $s->warehouse->delivery_eta ?: '1-3 дні',

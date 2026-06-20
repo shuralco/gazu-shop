@@ -158,6 +158,11 @@ class AppServiceProvider extends ServiceProvider
             \App\Models\FilterGroup::class,
             \App\Models\StockStatus::class,
             \App\Models\Review::class,
+            // Курс валют впливає на КОЖНУ ціну на сайті (display_price конвертує
+            // за Currency::toBase). Зміна курсу в /admin/currencies → повний flush
+            // HTML+catalog-кешу, інакше старі грн-ціни висять до TTL. Currency не
+            // Product/Inventory → у спостерігача падає на повний flush().
+            \App\Models\Currency::class,
         ];
         foreach ($responseCacheModels as $model) {
             if (class_exists($model)) {

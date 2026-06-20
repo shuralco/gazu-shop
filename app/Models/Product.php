@@ -396,8 +396,11 @@ class Product extends Model
 
     public function getPriceForUser(?User $user = null): float
     {
+        // Усі гілки повертають ГРН: базова ціна може бути у USD/EUR, тож
+        // конвертуємо через display_price (Currency::toBase). groupPrice теж
+        // має свій display_price (зі своєю валютою рядка).
         if (!$user || !$user->customer_group_id) {
-            return (float) $this->price;
+            return (float) $this->display_price;
         }
 
         $groupPrice = $this->groupPrices()
@@ -411,10 +414,10 @@ class Product extends Model
         $group = $user->customerGroup;
 
         if ($group && $group->discount_percentage > 0) {
-            return round($this->price * (1 - $group->discount_percentage / 100), 2);
+            return round($this->display_price * (1 - $group->discount_percentage / 100), 2);
         }
 
-        return (float) $this->price;
+        return (float) $this->display_price;
     }
 
     public function relatedProducts(): BelongsToMany

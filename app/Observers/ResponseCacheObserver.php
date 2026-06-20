@@ -152,6 +152,15 @@ class ResponseCacheObserver
             }
         }
 
+        // Cart::add2Cart кешує товар (id/title/price/price_currency) на 1 год.
+        // Без forget редагування ціни/валюти товару не відображалось би у
+        // кошику до кінця TTL (нова ціна на сторінці, стара — при додаванні).
+        try {
+            Cache::forget("cart_product_{$product->id}");
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         $this->forgetDerived();
     }
 

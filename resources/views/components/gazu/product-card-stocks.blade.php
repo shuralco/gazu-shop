@@ -41,7 +41,8 @@
                     @foreach($stocks as $s)
                         @php
                             $available = max(0, $s->quantity - $s->reserved_quantity);
-                            $sPrice    = $s->price !== null ? (float) $s->price : (float) $basePrice;
+                            // Ціна складу в грн (display_price конвертує за валютою рядка).
+                            $sPrice    = $s->price !== null ? (float) ($s->display_price ?? $s->price) : (float) $basePrice;
                             $whCity    = $s->warehouse->city ?: $s->warehouse->name;
                             $whEta     = $s->warehouse->delivery_eta ?: '1-3 дні';
                             $disabled  = $available <= 0;

@@ -27,8 +27,9 @@ class Cart
 
         $cacheKey = "cart_product_{$productId}";
         $product = cache()->remember($cacheKey, 3600, function () use ($productId) {
+            // price_currency потрібен, щоб display_price конвертував у грн.
             return Product::query()
-                ->select('id', 'title', 'slug', 'image', 'price')
+                ->select('id', 'title', 'slug', 'image', 'price', 'price_currency')
                 ->find($productId);
         });
 
@@ -37,7 +38,11 @@ class Cart
         }
 
         $title = $product->title;
-        $price = $product->price;
+        // У кошику ЗАВЖДИ грн: товар може бути заведений у USD/EUR — display_price
+        // конвертує за курсом /admin/currencies (accessor рахується «на льоту»,
+        // тож навіть закешований об'єкт бере свіжий курс). Без цього USD-товар
+        // продавався б за числом 200 «грн» замість 8 333.
+        $price = (float) $product->display_price;
         $image = $product->getImage();
 
         if ($variantId) {
@@ -57,7 +62,8 @@ class Cart
                 ->where('warehouse_id', $warehouseId)
                 ->first();
             if ($inv && $inv->price !== null) {
-                $price = $inv->price;
+                // display_price конвертує ціну складу у грн за валютою рядка.
+                $price = (float) $inv->display_price;
             }
         }
 

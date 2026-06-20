@@ -428,7 +428,8 @@ class CheckoutController extends Controller
 
         $product = \App\Models\Product::findOrFail($data['product_id']);
         $qty = (int) ($data['quantity'] ?? 1);
-        $price = (float) $product->price;
+        // Ціна в грн (товар може бути у USD/EUR → конвертація за курсом).
+        $price = (float) $product->display_price;
         $total = $price * $qty;
 
         // Build a synthetic guest email when the user is not logged in.
