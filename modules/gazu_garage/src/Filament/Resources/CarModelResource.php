@@ -39,8 +39,23 @@ class CarModelResource extends Resource
                 ->options(CarMake::query()->orderBy('sort_order')->pluck('name', 'id'))
                 ->required()
                 ->searchable(),
-            Forms\Components\TextInput::make('name')->label('Назва')->required(),
-            Forms\Components\TextInput::make('slug')->label('Slug')->required()->maxLength(80),
+            Forms\Components\TextInput::make('name')->label('Назва')->required()
+                ->live(onBlur: true)
+                ->afterStateUpdated(function (Forms\Set $set, Forms\Get $get, ?string $state) {
+                    if (blank($get('slug')) && filled($state)) {
+                        $set('slug', \Illuminate\Support\Str::slug($state));
+                    }
+                }),
+            Forms\Components\TextInput::make('slug')->label('Slug')->required()->maxLength(80)
+                // Унікальність у межах марки (make_id+slug) — інакше дубль слага
+                // летів у DB-констрейнт car_models_make_id_slug_unique → 500.
+                ->unique(
+                    table: CarModel::class,
+                    column: 'slug',
+                    ignoreRecord: true,
+                    modifyRuleUsing: fn (\Illuminate\Validation\Rules\Unique $rule, Forms\Get $get) => $rule->where('make_id', $get('make_id')),
+                )
+                ->validationMessages(['unique' => 'Модель із таким slug уже є для цієї марки.']),
             Forms\Components\Select::make('body_type')->label('Тип кузова')
                 ->options([
                     'sedan' => 'Sedan',
