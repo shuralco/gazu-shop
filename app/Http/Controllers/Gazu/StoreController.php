@@ -1199,7 +1199,7 @@ class StoreController extends Controller
             ])
             ->orderByDesc('rating')
             ->limit(8)
-            ->get(['id', 'title', 'slug', 'sku', 'manufacturer', 'price', 'image']);
+            ->get(['id', 'title', 'slug', 'sku', 'manufacturer', 'price', 'price_currency', 'image']);
 
         $imgKinds = $this->imageKinds;
         $payload = $items->map(function ($p) use ($imgKinds) {
@@ -1210,8 +1210,8 @@ class StoreController extends Controller
                 'title' => $title,
                 'sku' => $p->sku,
                 'manufacturer' => $p->manufacturer ?: '',
-                'price' => (float) $p->price,
-                'price_formatted' => number_format((float) $p->price, 0, '.', ' '),
+                'price' => (float) $p->display_price,
+                'price_formatted' => number_format((float) $p->display_price, 0, '.', ' '),
                 'image_kind' => $imgKinds[$p->id % count($imgKinds)],
                 'url' => route('gazu.product.show', ['slug' => $slug ?: $p->id]),
             ];
@@ -1384,7 +1384,7 @@ class StoreController extends Controller
                 'id'    => $p->id,
                 'name'  => is_string($name) ? $name : '',
                 'brand' => is_string($brand) ? $brand : '',
-                'price' => number_format((float) $p->price, 0, '.', ' '),
+                'price' => number_format((float) $p->display_price, 0, '.', ' '),
                 'url'   => route('gazu.product.show', ['slug' => $p->slug ?? $p->id]),
                 'image' => $image,
             ];
