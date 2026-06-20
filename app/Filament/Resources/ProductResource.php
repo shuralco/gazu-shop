@@ -108,7 +108,8 @@ class ProductResource extends Resource
                                             ->label('Категорія')
                                             ->relationship('category', 'title')
                                             ->searchable()
-                                            ->preload()
+                                            // без preload: не вантажимо всі категорії на mount
+                                            // (менше mount-запитів і морфу, що перебивав набір)
                                             ->required()
                                             ->live(onBlur: true)
                                             ->afterStateUpdated(fn (Forms\Set $set) => $set('filters', [])),
@@ -117,7 +118,6 @@ class ProductResource extends Resource
                                             ->label('Бренд')
                                             ->relationship('brandModel', 'name')
                                             ->searchable()
-                                            ->preload()
                                             ->createOptionForm([
                                                 Forms\Components\TextInput::make('name')
                                                     ->label('Назва бренду')
