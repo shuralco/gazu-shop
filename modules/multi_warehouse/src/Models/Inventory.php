@@ -26,6 +26,7 @@ class Inventory extends Model
         'quantity',
         'reserved_quantity',
         'price',
+        'price_currency',
         'compare_at_price',
         'reorder_point',
         'reorder_quantity',
@@ -41,6 +42,18 @@ class Inventory extends Model
         'reorder_quantity' => 'integer',
         'last_counted_at' => 'datetime',
     ];
+
+    /** Ціна складу у грн (конверсія за курсом /admin/currencies). */
+    public function getDisplayPriceAttribute(): ?float
+    {
+        return $this->price === null ? null : \App\Models\Currency::toBase($this->price, $this->price_currency);
+    }
+
+    /** Стара/порівняльна ціна складу у грн. */
+    public function getDisplayCompareAtPriceAttribute(): ?float
+    {
+        return $this->compare_at_price === null ? null : \App\Models\Currency::toBase($this->compare_at_price, $this->price_currency);
+    }
 
     public function product(): BelongsTo
     {

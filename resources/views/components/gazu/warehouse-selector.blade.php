@@ -91,8 +91,9 @@
             @foreach($stocks as $idx => $s)
                 @php
                     $available = max(0, $s->quantity - $s->reserved_quantity);
-                    $sPrice = $s->price !== null ? (float) $s->price : (float) $price;
-                    $sCompare = $s->compare_at_price !== null ? (float) $s->compare_at_price : null;
+                    {{-- Ціна складу в грн (конверсія за валютою рядка через Currency::toBase). --}}
+                    $sPrice = $s->price !== null ? (float) ($s->display_price ?? $s->price) : (float) $price;
+                    $sCompare = $s->compare_at_price !== null ? (float) ($s->display_compare_at_price ?? $s->compare_at_price) : null;
                     $whCity = $s->warehouse->city ?: $s->warehouse->name;
                     $whEta = $s->warehouse->delivery_eta ?: '1-3 дні';
                     $ariaLabel = sprintf(

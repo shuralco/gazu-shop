@@ -11,6 +11,7 @@ class ProductGroupPrice extends Model
         'product_id',
         'customer_group_id',
         'price',
+        'price_currency',
         'min_quantity',
     ];
 
@@ -18,6 +19,12 @@ class ProductGroupPrice extends Model
         'price' => 'decimal:2',
         'min_quantity' => 'integer',
     ];
+
+    /** Гуртова ціна у грн (конверсія за курсом /admin/currencies). */
+    public function getDisplayPriceAttribute(): float
+    {
+        return \App\Models\Currency::toBase($this->price, $this->price_currency);
+    }
 
     public function product(): BelongsTo
     {

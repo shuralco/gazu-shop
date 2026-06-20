@@ -174,10 +174,9 @@ class Product extends Model
     ];
 
     /**
-     * Ціна у гривні для вітрини. Якщо товар заведено в іншій валюті
-     * (price_currency != UAH) — конвертуємо за курсом (ручний/НБУ override
-     * у DisplaySetting через ChinesePriceCalculator::fxRate). Усі ціни на
-     * сайті відображаються в грн.
+     * Ціна у гривні (базовій) для вітрини. Якщо товар заведено в іншій валюті
+     * (price_currency != базова) — конвертуємо за курсом довідника
+     * /admin/currencies (Currency::toBase). Усі ціни на сайті — у грн.
      */
     public function getDisplayPriceAttribute(): float
     {
@@ -191,13 +190,7 @@ class Product extends Model
 
     private function toUah($amount): float
     {
-        $amount = (float) $amount;
-        $cur = strtoupper((string) ($this->price_currency ?: 'UAH'));
-        if ($cur === 'UAH' || $amount <= 0) {
-            return round($amount, 2);
-        }
-
-        return round($amount * app(\App\Services\Pricing\ChinesePriceCalculator::class)->fxRate($cur), 2);
+        return \App\Models\Currency::toBase($amount, $this->price_currency);
     }
 
     /**
@@ -412,7 +405,7 @@ class Product extends Model
             ->first();
 
         if ($groupPrice) {
-            return (float) $groupPrice->price;
+            return (float) $groupPrice->display_price;
         }
 
         $group = $user->customerGroup;

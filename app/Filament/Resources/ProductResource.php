@@ -273,11 +273,11 @@ class ProductResource extends Resource
 
                                         Forms\Components\Select::make('price_currency')
                                             ->label('Валюта ціни')
-                                            ->options(['UAH' => '₴ Гривня', 'USD' => '$ Долар', 'EUR' => '€ Євро', 'CNY' => '¥ Юань'])
-                                            ->default('UAH')
+                                            ->options(fn () => \App\Models\Currency::selectOptions())
+                                            ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
                                             ->selectablePlaceholder(false)
                                             ->native(false)
-                                            ->helperText('На сайті ціна показується в грн за курсом (курси: Розширення → налаштування або DisplaySetting fx_*).'),
+                                            ->helperText('Довідник валют — Каталог → Валюти (/admin/currencies). На сайті ціна показується в грн за курсом.'),
 
                                         Forms\Components\TextInput::make('old_price')
                                             ->label('Стара ціна')

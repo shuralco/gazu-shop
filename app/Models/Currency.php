@@ -69,4 +69,42 @@ class Currency extends Model
 
         return $base ?: array_key_first($map);
     }
+
+    /**
+     * Опції для Filament-селектів валюти ціни: [code => "СИМВОЛ CODE — Назва"].
+     * Джерело — довідник /admin/currencies (активні валюти). Fallback — UAH.
+     */
+    public static function selectOptions(): array
+    {
+        $map = self::availableMap();
+        if (! $map) {
+            return ['UAH' => '₴ UAH'];
+        }
+        $out = [];
+        foreach ($map as $code => $c) {
+            $out[$code] = trim(($c['symbol'] ?? '').' '.$code.' — '.($c['name'] ?? $code));
+        }
+
+        return $out;
+    }
+
+    /**
+     * Конвертує суму з валюти $code у базову (грн) за курсами /admin/currencies.
+     * Делегує CurrencyService (та сама семантика, що й перемикач валют на сайті).
+     * $code порожній/базовий/невідомий → повертає суму без змін.
+     */
+    public static function toBase($amount, ?string $code): float
+    {
+        $amount = (float) $amount;
+        $base = self::baseCode();
+        $code = $code ? strtoupper($code) : null;
+        if ($amount == 0.0 || ! $code || ! $base || $code === $base) {
+            return round($amount, 2);
+        }
+        try {
+            return app(\App\Services\Currency\CurrencyService::class)->convert($amount, $code, $base);
+        } catch (\Throwable) {
+            return round($amount, 2);
+        }
+    }
 }
