@@ -110,7 +110,7 @@ class ProductResource extends Resource
                                             ->searchable()
                                             ->preload()
                                             ->required()
-                                            ->live()
+                                            ->live(onBlur: true)
                                             ->afterStateUpdated(fn (Forms\Set $set) => $set('filters', [])),
 
                                         Forms\Components\Select::make('brand_id')
@@ -249,7 +249,9 @@ class ProductResource extends Resource
                                             ->prefix('₴')
                                             ->minValue(0)
                                             ->rules(['regex:/^\d+(\.\d{1,2})?$/'])
-                                            ->live()
+                                            // onBlur, не на кожну клавішу — інакше per-keystroke
+                                            // Livewire-морф перебивав набір у полях форми.
+                                            ->live(onBlur: true)
                                             ->suffixActions([
                                                 Forms\Components\Actions\Action::make('copyPrice')
                                                     ->icon('heroicon-o-clipboard')
@@ -298,7 +300,7 @@ class ProductResource extends Resource
                                                 },
                                             ])
                                             ->helperText('0 = без старої ціни, або більша за поточну ціну')
-                                            ->live()
+                                            ->live(onBlur: true)
                                             ->suffixAction(
                                                 Forms\Components\Actions\Action::make('copyOldPrice')
                                                     ->icon('heroicon-o-clipboard')
