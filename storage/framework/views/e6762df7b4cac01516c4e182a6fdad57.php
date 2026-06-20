@@ -47,7 +47,7 @@ unset($__defined_vars, $__key, $__value); ?>
 ?>
 <div class="flex items-center justify-center gap-1 py-8 font-text">
     <?php if($current > 1): ?>
-        <a wire:navigate href="<?php echo e($url($current - 1)); ?>" class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
+        <a wire:navigate href="<?php echo e($url($current - 1)); ?>" class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
             <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'arrow-l','size' => '14']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -70,7 +70,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php endif; ?>
         </a>
     <?php else: ?>
-        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
+        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
             <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'arrow-l','size' => '14']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -100,7 +100,7 @@ unset($__defined_vars, $__key, $__value); ?>
         <?php else: ?>
             <?php $active = $p == $current; ?>
             <a wire:navigate href="<?php echo e($url($p)); ?>"
-               class="w-9 h-9 rounded-md text-[13px] inline-flex items-center justify-center no-underline <?php echo e($active ? 'bg-[var(--gazu-ink)] text-white border border-[var(--gazu-ink)] font-semibold' : 'bg-white text-[var(--gazu-ink)] border border-[var(--gazu-line)]'); ?>">
+               class="w-9 h-9 rounded-md text-[13px] inline-flex items-center justify-center no-underline <?php echo e($active ? 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border border-[var(--gazu-ink)] font-semibold' : 'bg-[var(--gazu-surface)] text-[var(--gazu-ink)] border border-[var(--gazu-line)]'); ?>">
                 <?php echo e($p); ?>
 
             </a>
@@ -108,7 +108,7 @@ unset($__defined_vars, $__key, $__value); ?>
     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
     <?php if($current < $total): ?>
-        <a wire:navigate href="<?php echo e($url($current + 1)); ?>" class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
+        <a wire:navigate href="<?php echo e($url($current + 1)); ?>" class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
             <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'arrow-r','size' => '14']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -131,7 +131,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php endif; ?>
         </a>
     <?php else: ?>
-        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-white text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
+        <span class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-line-2)] rounded-md text-[13px] inline-flex items-center justify-center cursor-not-allowed">
             <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'arrow-r','size' => '14']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>

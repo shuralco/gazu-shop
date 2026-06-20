@@ -1,5 +1,5 @@
-<?php $__env->startSection('title', $title . ' — GAZU'); ?>
-<?php $__env->startSection('description', $intro ?? $title); ?>
+<?php $__env->startSection('title', \App\Support\SeoTemplates::title('page', ['name' => $title])); ?>
+<?php $__env->startSection('description', ($intro ?? null) ?: \App\Support\SeoTemplates::description('page', ['name' => $title])); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="gazu-container py-8 max-w-3xl">
@@ -28,7 +28,7 @@
         <p class="text-base text-[var(--gazu-graphite)] leading-relaxed mb-7 max-w-2xl"><?php echo e($intro); ?></p>
     <?php endif; ?>
 
-    <article class="bg-white border border-[var(--gazu-line)] rounded-xl p-8 space-y-5 text-[15px] leading-relaxed text-[var(--gazu-ink)]">
+    <article class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl p-8 space-y-5 text-[15px] leading-relaxed text-[var(--gazu-ink)]">
         <?php if(! empty($content_html ?? null)): ?>
             <div class="gazu-prose"><?php echo $content_html; ?></div>
         <?php endif; ?>

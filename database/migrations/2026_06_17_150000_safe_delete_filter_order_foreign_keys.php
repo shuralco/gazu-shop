@@ -16,6 +16,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // MySQL-специфічно (information_schema, ADD/DROP CONSTRAINT). sqlite → no-op.
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         $map = [
             'filter_products' => [
                 'filter_id' => ['filters', 'CASCADE'],

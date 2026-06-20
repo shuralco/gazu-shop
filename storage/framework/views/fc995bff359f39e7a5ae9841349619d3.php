@@ -1,6 +1,8 @@
-<?php $__env->startSection('title', 'GAZU — пошук автозапчастин за артикулом'); ?>
+<?php $__env->startSection('title', \App\Support\SeoTemplates::title('home')); ?>
+<?php $__env->startSection('description', \App\Support\SeoTemplates::description('home')); ?>
 
 <?php $__env->startSection('content'); ?>
+    <?php echo \App\Support\Hooks::render('layout.home.top'); ?>
     
     <section class="py-10 sm:py-14" style="background: linear-gradient(180deg, var(--gazu-mist) 0%, var(--gazu-paper) 100%);">
         <div class="gazu-container gazu-grid-hero-vin">
@@ -9,7 +11,9 @@
                     $s = $gazuSettings ?? [];
                     $heroSubtitle = $s['gazu_hero_subtitle'] ?? 'Запчастини для китайських авто';
                     $heroTitle1 = $s['gazu_hero_title_1'] ?? 'Підбір по авто';
-                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">марку</span> і двигун.';
+                    $heroTitle2Html = $s['gazu_hero_title_2_html'] ?? 'за <span style="color:var(--gazu-blue)">маркою</span> і двигуном.';
+                    $heroPhone = $s['gazu_phone'] ?? '0 800 750 010';
+                    $heroPhoneTel = preg_replace('/\D+/', '', $heroPhone);
                 ?>
                 <div class="gazu-mono text-[11px] text-[var(--gazu-blue)] tracking-widest uppercase mb-3.5"><?php echo e($heroSubtitle); ?></div>
                 <h1 class="gazu-display font-semibold text-[var(--gazu-ink)] m-0" style="font-size: clamp(28px, 5.2vw, 52px); line-height: 1.05; letter-spacing: -0.03em; overflow-wrap: anywhere; max-width: 100%;">
@@ -23,13 +27,14 @@
 
                 
                 <div class="flex flex-wrap gap-3 mt-6">
-                    <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-ink)] text-white rounded-md text-[14px] font-semibold no-underline hover:bg-[var(--gazu-ink-2)] transition-colors">
+                    <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-md text-[14px] font-semibold no-underline hover:bg-[var(--gazu-ink-2)] transition-colors">
                         Дивитись каталог
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </a>
-                    <a href="tel:0800751024" class="inline-flex items-center gap-2 px-5 py-3 bg-white text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline shadow-[inset_0_0_0_1px_var(--gazu-line)] hover:shadow-[inset_0_0_0_1px_var(--gazu-ink)] transition-shadow">
+                    <a href="tel:<?php echo e($heroPhoneTel); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline shadow-[inset_0_0_0_1px_var(--gazu-line)] hover:shadow-[inset_0_0_0_1px_var(--gazu-ink)] transition-shadow">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        0 800 75 10 24
+                        <?php echo e($heroPhone); ?>
+
                     </a>
                 </div>
 
@@ -294,6 +299,8 @@
 <?php $component = $__componentOriginal20825542a659f4430050c1f420391d16; ?>
 <?php unset($__componentOriginal20825542a659f4430050c1f420391d16); ?>
 <?php endif; ?>
+
+    <?php echo \App\Support\Hooks::render('layout.home.bottom'); ?>
 <?php $__env->stopSection(); ?>
 
 <?php echo $__env->make('gazu.layout', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH /home/lionex/projects/gazu-shop/resources/views/gazu/home/v1.blade.php ENDPATH**/ ?>

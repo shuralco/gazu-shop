@@ -390,6 +390,24 @@
 
                     {{-- buy-panel --}}
                     <div class="lg:sticky lg:top-4 lg:self-start" id="buy-panel-anchor">
+                        @php
+                            $isGroupPrice = is_object($p) ? (bool) ($p->is_group_price ?? false) : false;
+                            $groupLabel = is_object($p) ? ($p->group_label ?? null) : null;
+                            $groupFromQty = is_object($p) ? ($p->group_from_qty ?? null) : null;
+                            $groupFromPrice = is_object($p) ? ($p->group_from_price ?? null) : null;
+                        @endphp
+                        @if($isGroupPrice || ($groupFromQty && $groupFromPrice))
+                            <div class="mb-2 flex items-center gap-2 text-[13px]">
+                                @if($isGroupPrice)
+                                    <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--gazu-blue-bg,#E0EBFF)] text-[var(--gazu-blue)]">
+                                        {{ $groupLabel ?: 'Гуртова ціна' }}
+                                    </span>
+                                    <span class="text-[var(--gazu-graphite)]">ваша персональна ціна</span>
+                                @else
+                                    <span class="text-[var(--gazu-blue)]">Гуртова {{ number_format((float) $groupFromPrice, 0, '.', ' ') }} ₴ від {{ $groupFromQty }} шт</span>
+                                @endif
+                            </div>
+                        @endif
                         <x-gazu.buy-panel
                             :price="$price"
                             :oldPrice="$oldPrice"
@@ -398,7 +416,8 @@
                             :productId="is_object($p) ? ($p->id ?? null) : null"
                             :name="$name"
                             :warehouseStocks="$warehouseStocks ?? collect()"
-                            :closestWarehouseId="$closestWarehouseId ?? null"/>
+                            :closestWarehouseId="$closestWarehouseId ?? null"
+                            :groupActive="$isGroupPrice"/>
                     </div>
                 </div>
             </div>

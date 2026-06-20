@@ -396,28 +396,84 @@ class Product extends Model
 
     public function getPriceForUser(?User $user = null): float
     {
-        // Усі гілки повертають ГРН: базова ціна може бути у USD/EUR, тож
-        // конвертуємо через display_price (Currency::toBase). groupPrice теж
-        // має свій display_price (зі своєю валютою рядка).
-        if (!$user || !$user->customer_group_id) {
-            return (float) $this->display_price;
+        // Делегує єдиній логіці ціноутворення (qty=1, базова ціна товару).
+        return $this->effectivePriceForUser($user, 1);
+    }
+
+    /**
+     * Рядок гуртової ціни для групи. Бере із завантаженого relation
+     * (eager-load у CatalogQuery), якщо є — інакше точковий запит. Уникає N+1.
+     */
+    private function groupPriceRowFor(int $groupId): ?ProductGroupPrice
+    {
+        if ($this->relationLoaded('groupPrices')) {
+            return $this->groupPrices->firstWhere('customer_group_id', $groupId);
         }
 
-        $groupPrice = $this->groupPrices()
-            ->where('customer_group_id', $user->customer_group_id)
-            ->first();
+        return $this->groupPrices()->where('customer_group_id', $groupId)->first();
+    }
 
-        if ($groupPrice) {
-            return (float) $groupPrice->display_price;
+    /**
+     * Ефективна ціна за одиницю В ГРН для користувача. Тонка обгортка над
+     * priceViewForUser (єдине джерело логіки гуртового ціноутворення).
+     *
+     * @param  float|null  $baseUah  базова ціна в грн (напр. ціна складу); null → display_price товару
+     */
+    public function effectivePriceForUser(?User $user, int $qty = 1, ?float $baseUah = null): float
+    {
+        return $this->priceViewForUser($user, $qty, $baseUah)['price'];
+    }
+
+    /**
+     * Дані про ціну для відображення/нарахування (усе в ГРН).
+     * Пріоритет за рішенням бізнесу:
+     *   1) explicit гуртова ціна групи (фіксована) — діє ВІД min_quantity і
+     *      ГОЛОВНІША за ціну складу ($baseUah);
+     *   2) %-знижка групи — поверх $baseUah (ціни складу або базової);
+     *   3) інакше — $baseUah.
+     * group_from_* — підказка «гуртова X грн від N шт», коли поріг ще не досягнуто.
+     *
+     * @param  float|null  $baseUah  база в грн (ціна складу); null → display_price товару
+     * @return array{price:float,regular:float,is_group:bool,group_from_qty:?int,group_from_price:?float}
+     */
+    public function priceViewForUser(?User $user, int $qty = 1, ?float $baseUah = null): array
+    {
+        $base = $baseUah ?? (float) $this->display_price;
+        $regular = round($base, 2);
+        $price = $regular;
+        $fromQty = null;
+        $fromPrice = null;
+
+        if ($user && $user->customer_group_id) {
+            $row = $this->groupPriceRowFor((int) $user->customer_group_id);
+            if ($row) {
+                $min = max(1, (int) $row->min_quantity);
+                if ($qty >= $min) {
+                    // explicit гуртова ціна — головніша за склад.
+                    $price = round((float) $row->display_price, 2);
+                } else {
+                    // поріг ще не досягнуто → підказка, ціна поки звичайна.
+                    $fromQty = $min;
+                    $fromPrice = round((float) $row->display_price, 2);
+                }
+            }
+
+            // %-знижка групи — лише якщо explicit ціна не застосувалась.
+            if ($price >= $regular - 0.01) {
+                $group = $user->customerGroup;
+                if ($group && $group->is_active && (float) $group->discount_percentage > 0) {
+                    $price = round($base * (1 - (float) $group->discount_percentage / 100), 2);
+                }
+            }
         }
 
-        $group = $user->customerGroup;
-
-        if ($group && $group->discount_percentage > 0) {
-            return round($this->display_price * (1 - $group->discount_percentage / 100), 2);
-        }
-
-        return (float) $this->display_price;
+        return [
+            'price' => $price,
+            'regular' => $regular,
+            'is_group' => $price < $regular - 0.01,
+            'group_from_qty' => $fromQty,
+            'group_from_price' => $fromPrice,
+        ];
     }
 
     public function relatedProducts(): BelongsToMany

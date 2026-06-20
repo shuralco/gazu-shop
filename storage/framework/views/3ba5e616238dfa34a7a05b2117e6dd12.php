@@ -71,9 +71,10 @@
         <?php endif; ?>
         <span class="flex-1"></span>
         <?php $__currentLoopData = $links; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $link): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-            <a wire:navigate href="<?php echo e($link['url']); ?>" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-white"><?php echo e($link['label']); ?></a>
+            <a wire:navigate href="<?php echo e($link['url']); ?>" class="hidden md:inline text-[#CDD3DC] no-underline hover:text-[var(--gazu-on-brand)]"><?php echo e($link['label']); ?></a>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         
+        <?php if ($__env->exists('multilang::switcher')) echo $__env->make('multilang::switcher', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
     </div>
 </div>
 <?php /**PATH /home/lionex/projects/gazu-shop/resources/views/gazu/partials/topbar.blade.php ENDPATH**/ ?>

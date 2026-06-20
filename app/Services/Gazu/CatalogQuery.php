@@ -230,6 +230,12 @@ class CatalogQuery
             $q->with('brand');
         }
 
+        // Гуртові ціни — лише для залогінених клієнтів з групою (уникаємо N+1
+        // при персональному ціноутворенні; гості йдуть із ResponseCache).
+        if ($gid = auth()->user()?->customer_group_id) {
+            $q->with(['groupPrices' => fn ($r) => $r->where('customer_group_id', $gid)]);
+        }
+
         $q = $this->applyCategory($q, $cat);
         $q = $this->applySearch($q);
         $q = $this->applyBrands($q);

@@ -17,6 +17,11 @@
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
+    // Персональна (гуртова) ціна — для залогінених клієнтів з групою.
+    $isGroupPrice = is_object($p) ? (bool) ($p->is_group_price ?? false) : false;
+    $groupLabel = is_object($p) ? ($p->group_label ?? null) : null;
+    $groupFromQty = is_object($p) ? ($p->group_from_qty ?? null) : null;
+    $groupFromPrice = is_object($p) ? ($p->group_from_price ?? null) : null;
     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
     // $p->reviews може бути HasMany Collection (Eloquent) — захищаємось.
     $rawQty = is_object($p) ? ($p->qty ?? $p->quantity ?? 0) : ($p['qty'] ?? 0);
@@ -126,7 +131,18 @@
                 <span x-text="Math.round(cardPrice).toLocaleString('uk-UA').replace(/,/g,' ')">{{ number_format($price, 0, '.', ' ') }}</span>
                 <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span>
             </span>
+            @if($isGroupPrice)
+                <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--gazu-blue-bg,#E0EBFF)] text-[var(--gazu-blue)]"
+                      title="{{ $groupLabel ? 'Ціна для групи: '.$groupLabel : 'Ваша гуртова ціна' }}">
+                    {{ $groupLabel ?: 'Гуртова' }}
+                </span>
+            @endif
         </div>
+        @if($groupFromQty && $groupFromPrice)
+            <div class="text-[11px] text-[var(--gazu-blue)] mt-0.5">
+                Гуртова {{ number_format((float) $groupFromPrice, 0, '.', ' ') }} ₴ від {{ $groupFromQty }} шт
+            </div>
+        @endif
 
         <div class="flex gap-1.5 mt-1">
             @if($productId && $qty > 0)

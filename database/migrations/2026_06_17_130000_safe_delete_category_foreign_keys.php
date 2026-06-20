@@ -19,6 +19,12 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // MySQL-специфічно (information_schema, MODIFY, ADD/DROP CONSTRAINT).
+        // На sqlite (тести) FK задаються у схемних міграціях — тут no-op.
+        if (DB::connection()->getDriverName() !== 'mysql') {
+            return;
+        }
+
         // products.category_id → nullable + SET NULL
         if (Schema::hasTable('products') && Schema::hasColumn('products', 'category_id')) {
             $this->dropForeignByColumn('products', 'category_id');

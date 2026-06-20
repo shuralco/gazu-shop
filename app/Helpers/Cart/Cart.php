@@ -18,12 +18,10 @@ class Cart
             $cartKey .= "_w{$warehouseId}";
         }
 
-        // Fast path: if same (product, variant, warehouse) already in cart, bump quantity.
-        if (session()->has("cart.{$cartKey}")) {
-            session(["cart.{$cartKey}.quantity" => session("cart.{$cartKey}.quantity") + $quantity]);
-
-            return true;
-        }
+        // Підсумкова кількість цієї лінії — потрібна для порогу гуртової ціни
+        // (min_quantity): ціна за одиницю залежить від загальної к-сті в лінії.
+        $existing = session("cart.{$cartKey}");
+        $newQty = (int) ($existing['quantity'] ?? 0) + $quantity;
 
         $cacheKey = "cart_product_{$productId}";
         $product = cache()->remember($cacheKey, 3600, function () use ($productId) {
@@ -38,46 +36,94 @@ class Cart
         }
 
         $title = $product->title;
-        // У кошику ЗАВЖДИ грн: товар може бути заведений у USD/EUR — display_price
-        // конвертує за курсом /admin/currencies (accessor рахується «на льоту»,
-        // тож навіть закешований об'єкт бере свіжий курс). Без цього USD-товар
-        // продавався б за числом 200 «грн» замість 8 333.
-        $price = (float) $product->display_price;
         $image = $product->getImage();
 
+        // База в грн: варіант має власну ціну, інакше — базова ціна товару.
+        $variantBase = null;
         if ($variantId) {
             $variant = \App\Models\ProductVariant::with('optionValues')->find($variantId);
             if ($variant) {
                 $title .= ' (' . $variant->getDisplayName() . ')';
-                $price = $variant->getEffectivePrice();
+                $variantBase = (float) $variant->getEffectivePrice();
                 if ($variant->image) {
                     $image = $variant->image;
                 }
             }
         }
 
-        // Per-warehouse price override.
-        if ($warehouseId) {
-            $inv = \App\Models\Inventory::where('product_id', $productId)
-                ->where('warehouse_id', $warehouseId)
-                ->first();
-            if ($inv && $inv->price !== null) {
-                // display_price конвертує ціну складу у грн за валютою рядка.
-                $price = (float) $inv->display_price;
-            }
+        // Ефективна ціна за одиницю в грн: мультивалюта + ціна складу + персональна
+        // гуртова ціна групи (з урахуванням newQty для порогу min_quantity).
+        $price = self::unitPriceUah($product, $newQty, $warehouseId, $variantBase);
+
+        // Існуюча лінія — оновлюємо кількість І перераховуємо ціну (поріг гурту
+        // міг бути щойно досягнутий → ціна за одиницю змінюється).
+        if ($existing) {
+            session([
+                "cart.{$cartKey}.quantity" => $newQty,
+                "cart.{$cartKey}.price" => $price,
+            ]);
+
+            return true;
         }
 
         session(["cart.{$cartKey}" => [
+            'product_id' => $productId,
             'title' => $title,
             'slug' => $product->getLocalizedSlug(),
             'image' => $image,
             'price' => $price,
             'quantity' => $quantity,
             'variant_id' => $variantId,
+            'variant_base' => $variantBase,
             'warehouse_id' => $warehouseId,
         ]]);
 
         return true;
+    }
+
+    /**
+     * Ефективна ціна за одиницю В ГРН: база (варіант/товар) → ціна складу
+     * (display_price конвертує валюту) → персональна гуртова ціна групи
+     * (effectivePriceForUser). Гуртова ціна групи головніша за ціну складу;
+     * %-знижка групи застосовується поверх. qty потрібен для порогу min_quantity.
+     */
+    private static function unitPriceUah(Product $product, int $qty, ?int $warehouseId, ?float $variantBaseUah): float
+    {
+        $baseUah = $variantBaseUah ?? (float) $product->display_price;
+
+        if ($warehouseId) {
+            $inv = \App\Models\Inventory::where('product_id', $product->id)
+                ->where('warehouse_id', $warehouseId)
+                ->first();
+            if ($inv && $inv->price !== null) {
+                $baseUah = (float) $inv->display_price;
+            }
+        }
+
+        return $product->effectivePriceForUser(auth()->user(), max(1, $qty), $baseUah);
+    }
+
+    /**
+     * Перерахунок ціни лінії за збереженими даними (товар/склад/варіант) під
+     * нову кількість — поріг гуртової ціни (min_quantity) залежить від qty.
+     */
+    private static function recomputeLinePrice(string $cartKey, int $quantity): void
+    {
+        $line = session("cart.{$cartKey}");
+        if (! $line) {
+            return;
+        }
+        $productId = (int) ($line['product_id'] ?? explode('_', $cartKey)[0]);
+        $product = Product::query()->select('id', 'price', 'price_currency')->find($productId);
+        if (! $product) {
+            return;
+        }
+        session(["cart.{$cartKey}.price" => self::unitPriceUah(
+            $product,
+            $quantity,
+            $line['warehouse_id'] ?? null,
+            isset($line['variant_base']) ? (float) $line['variant_base'] : null,
+        )]);
     }
 
     /**
@@ -164,6 +210,7 @@ class Cart
 
         if (session()->has("cart.{$key}")) {
             session(["cart.{$key}.quantity" => $quantity]);
+            self::recomputeLinePrice($key, $quantity);
             return true;
         }
 
@@ -173,6 +220,7 @@ class Cart
             $cartKey = (string) $cartKey;
             if ($cartKey === $key || str_starts_with($cartKey, $key.'_')) {
                 session(["cart.{$cartKey}.quantity" => $quantity]);
+                self::recomputeLinePrice($cartKey, $quantity);
                 $updated = true;
             }
         }

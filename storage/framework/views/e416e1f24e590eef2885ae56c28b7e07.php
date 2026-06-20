@@ -33,7 +33,7 @@ unset($__defined_vars, $__key, $__value); ?>
     <div class="flex items-baseline gap-3.5 mb-4">
         <h2 class="gazu-display text-[28px] font-semibold text-[var(--gazu-ink)] m-0"><?php echo e($title); ?></h2>
         <?php if($badge): ?>
-            <span class="text-[11px] px-2 py-0.5 bg-[var(--gazu-danger)] text-white rounded gazu-mono tracking-wider"><?php echo e($badge); ?></span>
+            <span class="text-[11px] px-2 py-0.5 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] rounded gazu-mono tracking-wider"><?php echo e($badge); ?></span>
         <?php endif; ?>
         <span class="flex-1"></span>
         <?php if($viewAll): ?>
@@ -44,14 +44,14 @@ unset($__defined_vars, $__key, $__value); ?>
         <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <?php if (isset($component)) { $__componentOriginalb3aad9b8a2236f9a320278758e8a5f6c = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3aad9b8a2236f9a320278758e8a5f6c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-card','data' => ['p' => $p]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-card','data' => ['p' => $p,'eager' => $loop->index < 2]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-card'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['p' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($p)]); ?>
+<?php $component->withAttributes(['p' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($p),'eager' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($loop->index < 2)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3aad9b8a2236f9a320278758e8a5f6c)): ?>

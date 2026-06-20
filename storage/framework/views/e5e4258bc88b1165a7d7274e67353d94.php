@@ -45,10 +45,10 @@ unset($__defined_vars, $__key, $__value); ?>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
         <template x-for="p in products" :key="p.id">
-            <a :href="p.url" wire:navigate class="bg-white border border-[var(--gazu-line)] rounded-lg p-3 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.18)] transition-all flex flex-col gap-2">
+            <a :href="p.url" wire:navigate class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-3 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.18)] transition-all flex flex-col gap-2">
                 <div class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden flex items-center justify-center">
                     <template x-if="p.image">
-                        <img :src="p.image" :alt="p.name" class="w-full h-full object-cover">
+                        <img :src="p.image" :alt="p.name" loading="lazy" decoding="async" class="w-full h-full object-cover">
                     </template>
                     <template x-if="!p.image">
                         <div class="text-[var(--gazu-line-2)] text-xs">GAZU</div>
@@ -62,7 +62,7 @@ unset($__defined_vars, $__key, $__value); ?>
     </div>
 </section>
 
-<?php if (! $__env->hasRenderedOnce('43cb9740-0411-4627-9c08-14769de5b7c8')): $__env->markAsRenderedOnce('43cb9740-0411-4627-9c08-14769de5b7c8'); ?>
+<?php if (! $__env->hasRenderedOnce('80187fd7-a554-470c-b5d4-61e84d99547c')): $__env->markAsRenderedOnce('80187fd7-a554-470c-b5d4-61e84d99547c'); ?>
 <script>
     (function () {
         if (typeof window.__gazuRecentRegistered !== 'undefined') return;

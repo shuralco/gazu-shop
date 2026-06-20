@@ -13,7 +13,11 @@
     $views = $page->views ?? 0;
 ?>
 
-<?php $__env->startSection('title', ($page->meta_title ? (is_array($page->meta_title) ? ($page->meta_title['uk'] ?? $title) : $page->meta_title) : $title).' — GAZU блог'); ?>
+<?php
+    $postMetaTitle = $page->meta_title ? (is_array($page->meta_title) ? ($page->meta_title['uk'] ?? '') : $page->meta_title) : '';
+?>
+<?php $__env->startSection('title', $postMetaTitle !== '' ? $postMetaTitle : \App\Support\SeoTemplates::title('blog_post', ['name' => $title])); ?>
+<?php $__env->startSection('description', ($excerpt !== '' ? $excerpt : \App\Support\SeoTemplates::description('blog_post', ['name' => $title]))); ?>
 
 <?php $__env->startSection('content'); ?>
 <div class="gazu-container py-6 sm:py-10">
@@ -105,7 +109,7 @@
                                 : null;
                         ?>
                         <a wire:navigate href="<?php echo e(route('gazu.blog.show', ['slug' => $rSlug])); ?>"
-                           class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden no-underline text-[var(--gazu-ink)] flex flex-col hover:border-[var(--gazu-line-2)]">
+                           class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden no-underline text-[var(--gazu-ink)] flex flex-col hover:border-[var(--gazu-line-2)]">
                             <div class="aspect-video bg-[var(--gazu-paper)] flex items-center justify-center">
                                 <?php if($rImgSrc): ?><img src="<?php echo e($rImgSrc); ?>" alt="" class="w-full h-full object-cover"><?php else: ?><?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>

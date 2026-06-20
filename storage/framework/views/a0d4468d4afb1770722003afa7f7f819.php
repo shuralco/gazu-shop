@@ -83,14 +83,14 @@ unset($__defined_vars, $__key, $__value); ?>
         </button>
     <?php elseif($variant === 'button'): ?>
         <button type="button" @click="toggle()"
-                class="w-full py-3 bg-[var(--gazu-blue)] text-white rounded-lg text-sm font-medium cursor-pointer hover:bg-[var(--gazu-blue-600)] transition-colors border-0 inline-flex items-center justify-center gap-2">
+                class="w-full py-3 bg-[var(--gazu-blue)] text-[var(--gazu-on-brand)] rounded-lg text-sm font-medium cursor-pointer hover:bg-[var(--gazu-blue-600)] transition-colors border-0 inline-flex items-center justify-center gap-2">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             <?php echo e($label); ?>
 
         </button>
     <?php else: ?>
         <button type="button" @click="toggle()" :aria-expanded="open" aria-label="<?php echo e($label); ?>"
-                class="w-9 h-9 inline-flex items-center justify-center rounded-md text-[var(--gazu-ink)] bg-white border border-[var(--gazu-line)] hover:border-[var(--gazu-ink)] cursor-pointer transition-colors">
+                class="w-9 h-9 inline-flex items-center justify-center rounded-md text-[var(--gazu-ink)] bg-[var(--gazu-surface)] border border-[var(--gazu-line)] hover:border-[var(--gazu-ink)] cursor-pointer transition-colors">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
         </button>
     <?php endif; ?>
@@ -103,7 +103,7 @@ unset($__defined_vars, $__key, $__value); ?>
          x-transition:leave="transition ease-in duration-100"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="absolute z-50 top-full mt-2 <?php echo e($alignClass); ?> w-[290px] bg-white border border-[var(--gazu-line)] rounded-xl shadow-[0_12px_32px_-8px_rgba(14,27,44,0.20)] overflow-hidden">
+         class="absolute z-50 top-full mt-2 <?php echo e($alignClass); ?> w-[290px] bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl shadow-[0_12px_32px_-8px_rgba(14,27,44,0.20)] overflow-hidden">
 
         
         <div class="px-4 pt-3 pb-1 flex items-start justify-between gap-2">
@@ -133,7 +133,7 @@ unset($__defined_vars, $__key, $__value); ?>
 
             <button type="submit" :disabled="busy"
                     :class="busy ? 'opacity-70 cursor-wait' : 'cursor-pointer hover:bg-[var(--gazu-blue-600)]'"
-                    class="w-full py-2 bg-[var(--gazu-blue)] text-white border-0 rounded text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
+                    class="w-full py-2 bg-[var(--gazu-blue)] text-[var(--gazu-on-brand)] border-0 rounded text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-1.5">
                 <svg x-show="busy" x-cloak class="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
                     <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>

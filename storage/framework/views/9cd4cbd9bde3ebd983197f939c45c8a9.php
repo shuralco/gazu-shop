@@ -1,7 +1,7 @@
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['p', 'compact' => false]));
+$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['p', 'compact' => false, 'eager' => false]));
 
 foreach ($attributes->all() as $__key => $__value) {
     if (in_array($__key, $__propNames)) {
@@ -16,7 +16,7 @@ $attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
 unset($__propNames);
 unset($__newAttributes);
 
-foreach (array_filter((['p', 'compact' => false]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
+foreach (array_filter((['p', 'compact' => false, 'eager' => false]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
 
@@ -45,10 +45,20 @@ unset($__defined_vars, $__key, $__value); ?>
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
+    // Персональна (гуртова) ціна — для залогінених клієнтів з групою.
+    $isGroupPrice = is_object($p) ? (bool) ($p->is_group_price ?? false) : false;
+    $groupLabel = is_object($p) ? ($p->group_label ?? null) : null;
+    $groupFromQty = is_object($p) ? ($p->group_from_qty ?? null) : null;
+    $groupFromPrice = is_object($p) ? ($p->group_from_price ?? null) : null;
     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
-    $qty = is_object($p) ? (int) ($p->qty ?? $p->quantity ?? 0) : (int) ($p['qty'] ?? 0);
-    $rating = is_object($p) ? (float) ($p->rating ?? 0) : (float) ($p['rating'] ?? 0);
-    $reviews = is_object($p) ? (int) ($p->reviews ?? $p->reviews_count ?? 0) : (int) ($p['reviews'] ?? 0);
+    // $p->reviews може бути HasMany Collection (Eloquent) — захищаємось.
+    $rawQty = is_object($p) ? ($p->qty ?? $p->quantity ?? 0) : ($p['qty'] ?? 0);
+    $qty = is_numeric($rawQty) ? (int) $rawQty : 0;
+    $stockStatus = is_object($p) ? ($p->stock_status ?? null) : ($p['stock_status'] ?? null);
+    $rawRating = is_object($p) ? ($p->rating ?? 0) : ($p['rating'] ?? 0);
+    $rating = is_numeric($rawRating) ? (float) $rawRating : 0.0;
+    $rawReviews = is_object($p) ? ($p->reviews_count ?? $p->reviews ?? 0) : ($p['reviews'] ?? 0);
+    $reviews = is_numeric($rawReviews) ? (int) $rawReviews : 0;
     $fits = is_object($p) ? ($p->fits ?? null) : ($p['fits'] ?? null);
     $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
     $productId = is_object($p) ? ($p->id ?? null) : ($p['id'] ?? null);
@@ -65,9 +75,9 @@ unset($__defined_vars, $__key, $__value); ?>
             cardQty   = parseInt($event.detail.qty);
         }
      "
-     class="group gazu-card-anim bg-white border border-[var(--gazu-line)] rounded-lg flex flex-col font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5 hover:z-40">
+     class="group gazu-card-anim bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg flex flex-col font-text relative transition-all duration-200 hover:border-[var(--gazu-ink)] hover:shadow-[0_8px_24px_-12px_rgba(14,27,44,0.25)] hover:-translate-y-0.5 hover:z-40">
     <?php if($discount): ?>
-        <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-white text-[11px] font-semibold rounded gazu-mono z-10">−<?php echo e($discount); ?>%</div>
+        <div class="absolute top-2 left-2 px-2 py-0.5 bg-[var(--gazu-danger)] text-[var(--gazu-on-brand)] text-[11px] font-semibold rounded gazu-mono z-10">−<?php echo e($discount); ?>%</div>
     <?php endif; ?>
     <?php if($productId): ?>
         
@@ -85,7 +95,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 "
                 :title="active ? 'Прибрати з обраного' : 'Додати в обране'"
                 :class="active ? 'text-[var(--gazu-danger)]' : 'text-[var(--gazu-graphite)] hover:text-[var(--gazu-danger)]'"
-                class="absolute top-2 right-2 w-8 h-8 rounded-md border-0 bg-white/85 cursor-pointer flex items-center justify-center z-10 transition-colors">
+                class="absolute top-2 right-2 w-8 h-8 rounded-md border-0 bg-[var(--gazu-surface)]/85 cursor-pointer flex items-center justify-center z-10 transition-colors">
             <svg :class="burst ? 'gazu-heart-burst' : ''" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" :fill="active ? 'currentColor' : 'none'">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78Z"/>
             </svg>
@@ -94,17 +104,17 @@ unset($__defined_vars, $__key, $__value); ?>
 
     
     <a wire:navigate href="<?php echo e($url); ?>" class="aspect-square block no-underline relative overflow-hidden rounded-t-lg group/img">
-        <div class="absolute inset-0 flex items-center justify-center bg-white transition-opacity duration-300 group-hover/img:opacity-0">
+        <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-surface)] transition-opacity duration-300 group-hover/img:opacity-0">
             <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($image).'','seed' => $productId,'fit' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($image).'','seed' => $productId,'eager' => $eager,'fit' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.part-image'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($image).'','seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'fit' => true]); ?>
+<?php $component->withAttributes(['kind' => ''.e($image).'','seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'eager' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($eager),'fit' => true]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
@@ -139,7 +149,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php endif; ?>
         </div>
         <?php if($oem): ?>
-            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-white/90 border border-[var(--gazu-line)] rounded z-[1]"><?php echo e($oem); ?></span>
+            <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-[var(--gazu-surface)]/90 border border-[var(--gazu-line)] rounded z-[1]"><?php echo e($oem); ?></span>
         <?php endif; ?>
     </a>
 
@@ -235,14 +245,14 @@ unset($__defined_vars, $__key, $__value); ?>
 
         <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalad88f7cb9026c66df0388f34b883b8a5 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.stock','data' => ['qty' => ''.e($qty).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.stock','data' => ['qty' => ''.e($qty).'','status' => $stockStatus]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.stock'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['qty' => ''.e($qty).'']); ?>
+<?php $component->withAttributes(['qty' => ''.e($qty).'','status' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stockStatus)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalad88f7cb9026c66df0388f34b883b8a5)): ?>
@@ -262,7 +272,19 @@ unset($__defined_vars, $__key, $__value); ?>
                 <span x-text="Math.round(cardPrice).toLocaleString('uk-UA').replace(/,/g,' ')"><?php echo e(number_format($price, 0, '.', ' ')); ?></span>
                 <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span>
             </span>
+            <?php if($isGroupPrice): ?>
+                <span class="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-[var(--gazu-blue-bg,#E0EBFF)] text-[var(--gazu-blue)]"
+                      title="<?php echo e($groupLabel ? 'Ціна для групи: '.$groupLabel : 'Ваша гуртова ціна'); ?>">
+                    <?php echo e($groupLabel ?: 'Гуртова'); ?>
+
+                </span>
+            <?php endif; ?>
         </div>
+        <?php if($groupFromQty && $groupFromPrice): ?>
+            <div class="text-[11px] text-[var(--gazu-blue)] mt-0.5">
+                Гуртова <?php echo e(number_format((float) $groupFromPrice, 0, '.', ' ')); ?> ₴ від <?php echo e($groupFromQty); ?> шт
+            </div>
+        <?php endif; ?>
 
         <div class="flex gap-1.5 mt-1">
             <?php if($productId && $qty > 0): ?>
@@ -289,7 +311,7 @@ unset($__defined_vars, $__key, $__value); ?>
                         "
                         :class="added ? 'bg-[var(--gazu-success)] scale-[0.97]' : (busy ? 'bg-[var(--gazu-ink)] opacity-80' : 'bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] active:scale-[0.97]')"
                         :disabled="busy"
-                        class="flex-1 min-w-0 py-2.5 text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200">
+                        class="flex-1 min-w-0 py-2.5 text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200">
                     <span x-show="!busy && !added" class="inline-flex items-center gap-1.5">
                         <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
@@ -349,7 +371,7 @@ unset($__defined_vars, $__key, $__value); ?>
                     </button>
                 <?php endif; ?>
             <?php else: ?>
-                <a wire:navigate href="<?php echo e($url); ?>" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-white border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
+                <a wire:navigate href="<?php echo e($url); ?>" class="flex-1 min-w-0 py-2.5 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap hover:bg-[var(--gazu-ink-2)] no-underline">
                     <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'cart','size' => '14']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -377,7 +399,7 @@ unset($__defined_vars, $__key, $__value); ?>
                         title="Купити в 1 клік"
                         x-data
                         @click.prevent="$dispatch('gazu:one-click', { productId: '<?php echo e($productId); ?>', productName: <?php echo \Illuminate\Support\Js::from($name)->toHtml() ?>, productPrice: <?php echo e((float) $price); ?> })"
-                        class="w-8 sm:w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-white text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
+                        class="w-8 sm:w-9 shrink-0 border border-[var(--gazu-line)] rounded-md bg-[var(--gazu-surface)] text-[var(--gazu-ink)] hover:border-[var(--gazu-ink)] cursor-pointer inline-flex items-center justify-center transition-colors">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                 </button>
             <?php endif; ?>

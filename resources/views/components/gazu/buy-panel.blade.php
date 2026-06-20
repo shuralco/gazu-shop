@@ -7,6 +7,7 @@
     'name' => '', // product name — for the 1-click modal summary
     'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
     'closestWarehouseId' => null, // geo-detected warehouse ID (Phase 6)
+    'groupActive' => false, // персональна гуртова ціна групи активна → склад не перебиває ціну
 ])
 @php
     $priceFmt = number_format((float) $price, 0, '.', ' ');
@@ -40,8 +41,11 @@
         currentProductId: {{ (int) $productId }},
         overridePrice: null,
         overrideQty: null,
+        groupActive: {{ $groupActive ? 'true' : 'false' }},
         get price() {
             if (this.overridePrice !== null) return this.overridePrice;
+            // Гуртова ціна групи головніша за ціну складу — вибір складу не змінює ціну.
+            if (this.groupActive) return {{ (float) $price }};
             return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].price : {{ (float) $defaultPrice }};
         },
         get compareAt() { return this.warehouseId && this.stocks[this.warehouseId] ? this.stocks[this.warehouseId].compare : null; },

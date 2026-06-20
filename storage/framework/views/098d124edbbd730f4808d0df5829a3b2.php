@@ -36,7 +36,7 @@
         
         <div x-data="{ count: 0 }"
              x-init="$nextTick(() => { try { count = (JSON.parse(localStorage.getItem('gazu_wishlist')||'[]')||[]).length; } catch(e){} })">
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center">
                 <div class="inline-flex w-16 h-16 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-4 text-[var(--gazu-blue)]">
                     <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
@@ -81,7 +81,7 @@
 
     <?php if(auth()->guard()->check()): ?>
     <?php if($items->isEmpty()): ?>
-        <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center">
+        <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center">
             <div class="inline-flex w-16 h-16 bg-[var(--gazu-mist)] rounded-full items-center justify-center mb-4 text-[var(--gazu-blue)]">
                 <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>

@@ -24,7 +24,27 @@
     }
 ?>
 
-<?php $__env->startSection('title', ($carSeo && ! empty($carSeo['metaTitle']) ? $carSeo['metaTitle'] : $title . ' — GAZU')); ?>
+<?php
+    // SEO-шаблони таксономій: пер-категорійний meta_title має пріоритет,
+    // далі carSeo (підбір по авто), далі базові шаблони (category/search/car).
+    $catalogCount = plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів');
+    $catalogSeoTitle = null;
+    if ($carSeo && ! empty($carSeo['metaTitle'])) {
+        $catalogSeoTitle = $carSeo['metaTitle'];
+    } elseif ($carSeo && ! empty($carSeo['contextTitle'])) {
+        $catalogSeoTitle = \App\Support\SeoTemplates::title('car', ['car' => $carSeo['contextTitle'], 'count' => $catalogCount]);
+    } elseif (! empty($searchQuery)) {
+        $catalogSeoTitle = \App\Support\SeoTemplates::title('search', ['query' => $searchQuery, 'count' => $catalogCount]);
+    } elseif ($category) {
+        $catalogSeoTitle = ! empty($category->meta_title)
+            ? (is_array($category->meta_title) ? ($category->meta_title['uk'] ?? '') : (string) $category->meta_title)
+            : '';
+        if ($catalogSeoTitle === '') {
+            $catalogSeoTitle = \App\Support\SeoTemplates::title('category', ['name' => $title, 'count' => $catalogCount]);
+        }
+    }
+?>
+<?php $__env->startSection('title', $catalogSeoTitle ?: $title . ' — GAZU'); ?>
 
 
 <?php
@@ -75,15 +95,24 @@
     ?>
     <script type="application/ld+json"><?php echo json_encode($breadcrumbLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); ?></script>
 <?php $__env->stopSection(); ?>
-<?php $__env->startSection('description', $carSeo && ! empty($carSeo['metaDescription'])
-    ? $carSeo['metaDescription']
-    : ($carSeo && ! empty($carSeo['contextTitle'])
-        ? $carSeo['contextTitle'].' — оригінали та аналоги. У наявності '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').'. Доставка по Україні, гарантія.'
-        : ($category && $category->meta_description
-            ? $category->meta_description
-            : ($category
-                ? 'Купити '.$category->title.' для китайських авто (BYD, Chery, Geely, Haval). У наявності '.\plural_uk_count($totalCount, 'товар', 'товари', 'товарів').'. Доставка Новою Поштою, гарантія.'
-                : 'Каталог автозапчастин · '.\plural_uk_count($totalCount ?? 0, 'товар', 'товари', 'товарів').' · доставка по Україні')))); ?>
+<?php
+    $catalogSeoDescription = null;
+    if ($carSeo && ! empty($carSeo['metaDescription'])) {
+        $catalogSeoDescription = $carSeo['metaDescription'];
+    } elseif ($carSeo && ! empty($carSeo['contextTitle'])) {
+        $catalogSeoDescription = \App\Support\SeoTemplates::description('car', ['car' => $carSeo['contextTitle'], 'count' => $catalogCount]);
+    } elseif (! empty($searchQuery)) {
+        $catalogSeoDescription = \App\Support\SeoTemplates::description('search', ['query' => $searchQuery, 'count' => $catalogCount]);
+    } elseif ($category) {
+        $catalogSeoDescription = $category->meta_description
+            ? (is_array($category->meta_description) ? ($category->meta_description['uk'] ?? '') : (string) $category->meta_description)
+            : '';
+        if ($catalogSeoDescription === '') {
+            $catalogSeoDescription = \App\Support\SeoTemplates::description('category', ['name' => $title, 'count' => $catalogCount]);
+        }
+    }
+?>
+<?php $__env->startSection('description', $catalogSeoDescription ?: 'Каталог автозапчастин · '.$catalogCount.' · доставка по Україні'); ?>
 
 <?php $__env->startSection('content'); ?>
     <div class="gazu-container">
@@ -126,14 +155,14 @@
             <div class="mb-4">
                 <?php if (isset($component)) { $__componentOriginal1668e41bec6d77c0bd5b5183a6d5c5d0 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal1668e41bec6d77c0bd5b5183a6d5c5d0 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.car-selector','data' => ['variant' => 'catalog','selectedMake' => $selectedMake ?? '','selectedModel' => $selectedModel ?? '','selectedEngine' => $selectedEngine ?? '']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.car-selector','data' => ['variant' => 'catalog','selectedMake' => $selectedMake ?? '','selectedModel' => $selectedModel ?? '','selectedEngine' => $selectedEngine ?? '','categoryUrl' => $category ? request()->url() : null]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.car-selector'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['variant' => 'catalog','selected-make' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedMake ?? ''),'selected-model' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedModel ?? ''),'selected-engine' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedEngine ?? '')]); ?>
+<?php $component->withAttributes(['variant' => 'catalog','selected-make' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedMake ?? ''),'selected-model' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedModel ?? ''),'selected-engine' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedEngine ?? ''),'category-url' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($category ? request()->url() : null)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal1668e41bec6d77c0bd5b5183a6d5c5d0)): ?>
@@ -149,7 +178,7 @@
 
         
         <?php if(! empty($subcategories) && $subcategories->isNotEmpty()): ?>
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-4 mb-5">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 mb-5">
                 <div class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-widest uppercase mb-3">Підкатегорії</div>
                 <div class="grid gap-2" style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));">
                     <?php $__currentLoopData = $subcategories; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $sub): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
@@ -213,17 +242,17 @@
                 ?>
                 
                 <button type="button" @click="filtersOpen = true"
-                        class="lg:hidden w-full mb-3 px-4 py-2.5 bg-white border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gap-2 text-[13px] font-medium text-[var(--gazu-ink)] cursor-pointer">
+                        class="lg:hidden w-full mb-3 px-4 py-2.5 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gap-2 text-[13px] font-medium text-[var(--gazu-ink)] cursor-pointer">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
                     Фільтри
                     <?php if($activeFilterCount > 0): ?>
-                        <span class="ml-1 px-1.5 py-0.5 bg-[var(--gazu-ink)] text-white text-[11px] rounded-full gazu-mono leading-none"><?php echo e($activeFilterCount); ?></span>
+                        <span class="ml-1 px-1.5 py-0.5 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] text-[11px] rounded-full gazu-mono leading-none"><?php echo e($activeFilterCount); ?></span>
                     <?php endif; ?>
                 </button>
                 <?php echo $__env->make('gazu.partials.sort-bar', ['count' => $totalCount, 'view' => $currentView, 'currentSort' => $currentSort], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
                 <?php if($products->isEmpty()): ?>
-                    <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-10 text-center mt-4">
+                    <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-10 text-center mt-4">
                         <div class="gazu-display text-2xl font-semibold mb-2">Нічого не знайдено</div>
                         <p class="text-sm text-[var(--gazu-graphite)] mb-4">Спробуйте змінити фільтри або скинути всі.</p>
                         <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="gazu-btn-outline no-underline">Скинути фільтри</a>
@@ -278,14 +307,14 @@
                         <?php $__currentLoopData = $products; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $p): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <?php if (isset($component)) { $__componentOriginalb3aad9b8a2236f9a320278758e8a5f6c = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3aad9b8a2236f9a320278758e8a5f6c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-card','data' => ['p' => $p,'compact' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-card','data' => ['p' => $p,'compact' => true,'eager' => $loop->index < 4]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-card'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['p' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($p),'compact' => true]); ?>
+<?php $component->withAttributes(['p' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($p),'compact' => true,'eager' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($loop->index < 4)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3aad9b8a2236f9a320278758e8a5f6c)): ?>

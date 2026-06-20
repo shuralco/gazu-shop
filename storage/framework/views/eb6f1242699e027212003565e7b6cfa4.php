@@ -85,7 +85,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <?php if($primaryCar): ?>
                 <div class="flex flex-col gap-2">
                     <?php $__currentLoopData = $rows; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$k, $v, $filled]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <div class="flex items-center gap-2.5 px-2.5 py-2 bg-white rounded <?php echo e($filled ? 'border border-[var(--gazu-line)]' : 'border border-[var(--gazu-line-2)] opacity-60'); ?>">
+                        <div class="flex items-center gap-2.5 px-2.5 py-2 bg-[var(--gazu-surface)] rounded <?php echo e($filled ? 'border border-[var(--gazu-line)]' : 'border border-[var(--gazu-line-2)] opacity-60'); ?>">
                             <span class="text-[11px] text-[var(--gazu-graphite)] w-14"><?php echo e($k); ?></span>
                             <span class="flex-1 text-[13px] <?php echo e($filled ? 'text-[var(--gazu-ink)] font-medium' : 'text-[var(--gazu-muted)]'); ?>"><?php echo e($v); ?></span>
                             <?php if($filled): ?><?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
@@ -115,7 +115,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <?php else: ?>
                 <p class="text-xs text-[var(--gazu-graphite)] mb-2"><?php if(auth()->guard()->check()): ?> Додайте авто у Гараж — фільтр буде підставляти його автоматично <?php else: ?> Увійдіть, щоб зберегти своє авто <?php endif; ?></p>
                 <a wire:navigate href="<?php echo e(auth()->check() ? route('gazu.garage') : route('gazu.auth')); ?>"
-                   class="block w-full py-2 bg-[var(--gazu-ink)] text-white rounded text-xs text-center no-underline hover:bg-[var(--gazu-ink-2)]">
+                   class="block w-full py-2 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded text-xs text-center no-underline hover:bg-[var(--gazu-ink-2)]">
                     <?php if(auth()->guard()->check()): ?> + Додати авто <?php else: ?> Увійти <?php endif; ?>
                 </a>
             <?php endif; ?>
@@ -152,11 +152,11 @@ unset($__defined_vars, $__key, $__value); ?>
                 <input type="number" name="min" x-model="priceMin"
                        min="<?php echo e($priceRange['min']); ?>" max="<?php echo e($priceRange['max']); ?>"
                        placeholder="від <?php echo e((int) $priceRange['min']); ?>"
-                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none placeholder:text-[var(--gazu-muted)]">
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-[var(--gazu-surface)] outline-none placeholder:text-[var(--gazu-muted)]">
                 <input type="number" name="max" x-model="priceMax"
                        min="<?php echo e($priceRange['min']); ?>" max="<?php echo e($priceRange['max']); ?>"
                        placeholder="до <?php echo e((int) $priceRange['max']); ?>"
-                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-white outline-none placeholder:text-[var(--gazu-muted)]">
+                       class="flex-1 py-2 px-2.5 text-[13px] gazu-mono border border-[var(--gazu-line)] rounded bg-[var(--gazu-surface)] outline-none placeholder:text-[var(--gazu-muted)]">
             </div>
             <div class="text-[11px] text-[var(--gazu-muted)] mt-2">
                 Від <span class="gazu-mono"><?php echo e(number_format($priceRange['min'], 0, '.', ' ')); ?> ₴</span>
@@ -323,7 +323,7 @@ unset($__defined_vars, $__key, $__value); ?>
                                class="sr-only" <?php echo e($checked ? 'checked' : ''); ?>
 
                                onchange="this.form.submit()">
-                        <span class="w-4 h-4 border-[1.5px] <?php echo e($checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white'); ?> rounded inline-flex items-center justify-center shrink-0">
+                        <span class="w-4 h-4 border-[1.5px] <?php echo e($checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]'); ?> rounded inline-flex items-center justify-center shrink-0">
                             <?php if($checked): ?><?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'check','size' => '11','stroke' => '#fff','strokeWidth' => '2.5']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -345,6 +345,10 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
 <?php endif; ?><?php endif; ?>
                         </span>
+                        
+                        <img src="<?php echo e(\App\Support\PartImage::monogram((string) $label, $value)); ?>"
+                             alt="" width="20" height="20" loading="lazy"
+                             class="w-5 h-5 rounded shrink-0 ring-1 ring-[var(--gazu-line-2)]"/>
                         <span class="flex-1"><?php echo e($label); ?></span>
                         <span class="text-xs text-[var(--gazu-muted)] gazu-mono"><?php echo e($count); ?></span>
                     </label>
@@ -406,7 +410,7 @@ unset($__defined_vars, $__key, $__value); ?>
                                class="sr-only" <?php echo e($checked ? 'checked' : ''); ?>
 
                                onchange="this.form.submit()">
-                        <span class="w-4 h-4 border-[1.5px] <?php echo e($checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white'); ?> rounded inline-flex items-center justify-center shrink-0">
+                        <span class="w-4 h-4 border-[1.5px] <?php echo e($checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]'); ?> rounded inline-flex items-center justify-center shrink-0">
                             <?php if($checked): ?><?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'check','size' => '11','stroke' => '#fff','strokeWidth' => '2.5']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -465,7 +469,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)]">
                 <input type="checkbox" name="stock" value="in" class="sr-only"
                        <?php echo e($inStockOnly ? 'checked' : ''); ?> onchange="this.form.submit()">
-                <span class="w-4 h-4 border-[1.5px] <?php echo e($inStockOnly ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-white'); ?> rounded inline-flex items-center justify-center">
+                <span class="w-4 h-4 border-[1.5px] <?php echo e($inStockOnly ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]'); ?> rounded inline-flex items-center justify-center">
                     <?php if($inStockOnly): ?><?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'check','size' => '11','stroke' => '#fff','strokeWidth' => '2.5']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -492,7 +496,7 @@ unset($__defined_vars, $__key, $__value); ?>
         </div>
     </details>
 
-    <button type="submit" class="w-full mt-4 py-3 bg-[var(--gazu-ink)] text-white border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
+    <button type="submit" class="w-full mt-4 py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
         Застосувати фільтри
     </button>
     <?php if($hasFilters || request()->filled('q')): ?>

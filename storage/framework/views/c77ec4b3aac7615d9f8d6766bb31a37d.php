@@ -1,7 +1,7 @@
 <?php $attributes ??= new \Illuminate\View\ComponentAttributeBag;
 
 $__newAttributes = [];
-$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null]));
+$__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames((['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null, 'title' => null, 'eager' => false]));
 
 foreach ($attributes->all() as $__key => $__value) {
     if (in_array($__key, $__propNames)) {
@@ -16,7 +16,7 @@ $attributes = new \Illuminate\View\ComponentAttributeBag($__newAttributes);
 unset($__propNames);
 unset($__newAttributes);
 
-foreach (array_filter((['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
+foreach (array_filter((['kind' => 'filter', 'size' => 160, 'fit' => false, 'seed' => null, 'title' => null, 'eager' => false]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
 
@@ -28,11 +28,17 @@ foreach ($attributes->all() as $__key => $__value) {
 
 unset($__defined_vars, $__key, $__value); ?>
 <?php
+    // eager=true для above-the-fold карток (перший ряд каталогу/головної):
+    // native loading="lazy" відкладав навіть видимі картинки → на першому екрані
+    // вони були порожні до скролу («картинок у фільтрації немає»). Перший ряд
+    // вантажимо одразу + fetchpriority=high.
+    $imgLoading = $eager ? 'eager' : 'lazy';
+    $imgPriority = $eager ? 'high' : 'auto';
+?>
+<?php
     // Real demo photos (Pexels) take priority over the vector illustration.
     // Priority: per-kind pool (public/img/parts/<kind>/NN.webp) → single file
-    // (public/img/parts/<kind>.webp) → SVG. The pool entry is picked by `seed`
-    // (the product id) so adjacent products of the same kind show DIFFERENT
-    // photos. The pool listing is cached per request (one glob per kind).
+    // (public/img/parts/<kind>.webp) → monogram (if title given) → SVG.
     static $partPoolCache = [];
     if (! array_key_exists($kind, $partPoolCache)) {
         $dir = public_path("img/parts/{$kind}");
@@ -51,10 +57,23 @@ unset($__defined_vars, $__key, $__value); ?>
 ?>
 <?php if($partPhoto): ?>
     <?php if($fit): ?>
-        <img src="<?php echo e($partPhoto); ?>" alt="<?php echo e($kind); ?>" loading="lazy" decoding="async"
+        <img src="<?php echo e($partPhoto); ?>" alt="<?php echo e($kind); ?>" loading="<?php echo e($imgLoading); ?>" fetchpriority="<?php echo e($imgPriority); ?>" decoding="async"
              <?php echo e($attributes->merge(['class' => 'block w-full h-full object-cover'])); ?>>
     <?php else: ?>
-        <img src="<?php echo e($partPhoto); ?>" alt="<?php echo e($kind); ?>" loading="lazy" decoding="async"
+        <img src="<?php echo e($partPhoto); ?>" alt="<?php echo e($kind); ?>" loading="<?php echo e($imgLoading); ?>" fetchpriority="<?php echo e($imgPriority); ?>" decoding="async"
+             width="<?php echo e($size); ?>" height="<?php echo e($size); ?>"
+             <?php echo e($attributes->merge(['class' => 'block object-cover'])); ?>>
+    <?php endif; ?>
+<?php elseif($title): ?>
+    
+    <?php
+        $monogramUrl = \App\Support\PartImage::monogram((string) $title, $seed);
+    ?>
+    <?php if($fit): ?>
+        <img src="<?php echo e($monogramUrl); ?>" alt="<?php echo e($title); ?>" loading="<?php echo e($imgLoading); ?>" fetchpriority="<?php echo e($imgPriority); ?>" decoding="async"
+             <?php echo e($attributes->merge(['class' => 'block w-full h-full object-cover'])); ?>>
+    <?php else: ?>
+        <img src="<?php echo e($monogramUrl); ?>" alt="<?php echo e($title); ?>" loading="<?php echo e($imgLoading); ?>" fetchpriority="<?php echo e($imgPriority); ?>" decoding="async"
              width="<?php echo e($size); ?>" height="<?php echo e($size); ?>"
              <?php echo e($attributes->merge(['class' => 'block object-cover'])); ?>>
     <?php endif; ?>

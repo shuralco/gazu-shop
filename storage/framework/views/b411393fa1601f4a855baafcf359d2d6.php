@@ -35,8 +35,8 @@
         'Сертифікати'           => route('gazu.certificates'),
         'Публічна оферта'       => route('gazu.offer'),
     ];
-    $payments = $s['gazu_footer_payments'] ?? 'Visa, Mastercard, Apple Pay, Google Pay, Нова Пошта';
-    $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
+    $payments = $s['gazu_footer_payments'] ?? 'Накладений платіж, Нова Пошта, УкрПошта';
+    $phone = $s['gazu_phone'] ?? '0 800 750 010';
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
     $social = [
         'FB' => $s['gazu_social_facebook'] ?? null,
@@ -81,20 +81,20 @@
 
         <?php $__currentLoopData = (array) $columns; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $col): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <div>
-                <div class="gazu-display text-sm font-semibold text-white mb-3.5"><?php echo e($col['title'] ?? ''); ?></div>
+                <div class="gazu-display text-sm font-semibold text-[var(--gazu-on-brand)] mb-3.5"><?php echo e($col['title'] ?? ''); ?></div>
                 <ul class="list-none p-0 m-0 flex flex-col gap-2.5">
                     <?php $__currentLoopData = (array) ($col['items'] ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <?php $href = $linkMap[$i] ?? route('gazu.catalog'); ?>
-                        <li><a wire:navigate href="<?php echo e($href); ?>" class="text-[13px] text-[#9DA5B2] no-underline hover:text-white"><?php echo e($i); ?></a></li>
+                        <li><a wire:navigate href="<?php echo e($href); ?>" class="text-[13px] text-[#9DA5B2] no-underline hover:text-[var(--gazu-on-brand)]"><?php echo e($i); ?></a></li>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </ul>
             </div>
         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
         <div>
-            <div class="gazu-display text-sm font-semibold text-white mb-3.5">Зворотний звʼязок</div>
+            <div class="gazu-display text-sm font-semibold text-[var(--gazu-on-brand)] mb-3.5">Зворотний звʼязок</div>
             <?php if($phone): ?>
-                <div class="gazu-display text-[22px] text-white mb-1"><?php echo e($phone); ?></div>
+                <div class="gazu-display text-[22px] text-[var(--gazu-on-brand)] mb-1"><?php echo e($phone); ?></div>
             <?php endif; ?>
             <?php if($hours): ?>
                 <div class="text-xs text-[#9DA5B2] mb-4"><?php echo e($hours); ?>, безкоштовно</div>
@@ -123,6 +123,11 @@
     </div>
     <div class="border-t border-[#1A2740] gazu-container py-5 flex items-center gap-6 text-xs text-[#5A6573] flex-wrap">
         <span>© <?php echo e(date('Y')); ?> <?php echo e($s['gazu_brand_name'] ?? 'GAZU'); ?>. Всі права захищені.</span>
+        <a href="https://lionex.com.ua" target="_blank" rel="nofollow noopener"
+           class="inline-flex items-center gap-1.5 text-[#5A6573] no-underline hover:text-[var(--gazu-on-brand)] transition-colors">
+            Розроблено
+            <img src="<?php echo e(asset('lionex-logo.svg')); ?>" alt="LIONEX" style="height:16px;width:auto;display:inline-block;opacity:.85">
+        </a>
         <span class="flex-1"></span>
         <?php $__currentLoopData = array_filter(array_map('trim', explode(',', $payments))); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $pay): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <span><?php echo e($pay); ?></span>

@@ -3,11 +3,11 @@
 <?php $__env->startSection('content'); ?>
 <?php
     $s = $gazuSettings ?? [];
-    $phone = $s['gazu_phone'] ?? '0 800 75 10 24';
+    $phone = $s['gazu_phone'] ?? '0 800 750 010';
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
-    $tg = $s['gazu_contacts_telegram'] ?? '@gazu_support';
-    $viber = $s['gazu_contacts_viber'] ?? '+380 67 123 45 67';
-    $email = $s['gazu_contacts_email'] ?? 'support@gazu.ua';
+    $tg = $s['gazu_contacts_telegram'] ?? null;
+    $viber = $s['gazu_contacts_viber'] ?? null;
+    $email = $s['gazu_contacts_email'] ?? 'info@gazu.uno';
     $offices = $s['gazu_contacts_offices'] ?? [];
 ?>
 <div class="gazu-container">
@@ -35,13 +35,13 @@
 
     <div class="gazu-grid-contacts">
         <div>
-            <div class="bg-[var(--gazu-ink)] text-white rounded-lg p-6 mb-4">
+            <div class="bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] rounded-lg p-6 mb-4">
                 <div class="gazu-mono text-[11px] text-[var(--gazu-azure)] tracking-widest uppercase mb-2">Гаряча лінія</div>
                 <div class="gazu-display text-3xl font-bold mb-1"><?php echo e($phone); ?></div>
                 <div class="text-sm text-[#9DA5B2]">Безкоштовно по Україні · <?php echo e($hours); ?></div>
             </div>
 
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5 mb-4">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 mb-4">
                 <h3 class="gazu-display text-base font-semibold m-0 mb-3">Месенджери</h3>
                 <?php $__currentLoopData = [
                     ['phone', 'Telegram', $tg],
@@ -80,7 +80,7 @@
             </div>
 
             <?php if(! empty($offices)): ?>
-                <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-5">
+                <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5">
                     <h3 class="gazu-display text-base font-semibold m-0 mb-3"><?php echo e(count($offices)); ?> відділень в Україні</h3>
                     <?php $__currentLoopData = $offices; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $off): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="flex items-start gap-3 py-2 border-b border-[var(--gazu-line)] last:border-b-0">
@@ -122,7 +122,7 @@
                 $mapIsIframe = \Illuminate\Support\Str::contains($mapRaw, '<iframe');
                 $mapIsUrl = $mapRaw !== '' && \Illuminate\Support\Str::startsWith($mapRaw, 'http');
             ?>
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-5" style="height: 420px;">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden mb-5" style="height: 420px;">
                 <?php if($mapIsIframe): ?>
                     <div class="w-full h-full gazu-map-embed"><?php echo $mapRaw; ?></div>
                 <?php elseif($mapIsUrl): ?>
@@ -156,7 +156,7 @@
                 <?php endif; ?>
             </div>
 
-            <div class="bg-white border border-[var(--gazu-line)] rounded-lg p-6">
+            <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-6">
                 <h3 class="gazu-display text-xl font-semibold m-0 mb-4">Напишіть нам</h3>
                 <form class="grid grid-cols-2 gap-3">
                     <label class="block">

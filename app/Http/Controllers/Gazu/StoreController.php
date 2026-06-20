@@ -124,14 +124,23 @@ class StoreController extends Controller
         $isBoilerplate = is_string($excerpt) && str_contains($excerpt, 'Якісна автозапчастина від офіційного дилера');
         $p->fits = $isBoilerplate ? null : $excerpt;
         $p->condition = $p->is_new ? 'Новий' : 'Новий';
+        // Мультивалюта + персональні (гуртові) ціни. На сайті ЗАВЖДИ грн за курсом
+        // (display_price). Для залогінених клієнтів з групою — їхня гуртова/знижена
+        // ціна (priceViewForUser). GazuCacheProfile НЕ кешує авторизованих → персональні
+        // ціни не потрапляють у кеш гостя. qty=1 для лістингу/первинного рендеру.
+        $pv = $p->priceViewForUser(auth()->user(), 1);
+        $p->price = $pv['price'];
+        // При гуртовій ціні показуємо роздрібну закресленою (економію клієнта);
+        // інакше — звичайну акційну стару ціну.
+        $p->old_price = $pv['is_group'] ? ($p->display_old_price ?: $pv['regular']) : $p->display_old_price;
+        $p->is_group_price = $pv['is_group'];
+        $p->group_from_qty = $pv['group_from_qty'];
+        $p->group_from_price = $pv['group_from_price'];
+        $p->group_label = $pv['is_group'] ? (auth()->user()?->customerGroup?->display_name) : null;
+        // discount % від показаних грн-значень (курс/група скорочуються у співвідношенні).
         $p->discount = ($p->old_price && $p->price && $p->old_price > $p->price)
             ? (int) round((($p->old_price - $p->price) / $p->old_price) * 100)
             : null;
-        // Мультивалюта: ціну вводять у price_currency (UAH/USD/EUR/CNY), на сайті
-        // ЗАВЖДИ показуємо в грн за курсом. Конвертуємо в самому кінці — discount
-        // вище рахується від оригіналів (співвідношення курсу не змінює %).
-        $p->price = $p->display_price;
-        $p->old_price = $p->display_old_price;
         $p->url = route('gazu.product.show', ['slug' => $p->slug ?? $p->id]);
 
         return $p;
@@ -461,13 +470,13 @@ class StoreController extends Controller
         // 1) Спробуємо чисельний id (якщо переданий sample-1 → 1)
         $product = null;
         if (is_numeric($slug)) {
-            $product = Product::query()->with(['brand', 'category', 'inventory', 'filters.filterGroup'])->find((int) $slug);
+            $product = Product::query()->with(['brand', 'category', 'inventory', 'filters.filterGroup', 'groupPrices'])->find((int) $slug);
         }
 
         // 2) JSON-slug — Spatie translatable зберігає як {"uk": "...", "en": "..."}
         if (! $product) {
             $product = Product::query()
-                ->with(['brand', 'category', 'inventory', 'filters.filterGroup'])
+                ->with(['brand', 'category', 'inventory', 'filters.filterGroup', 'groupPrices'])
                 ->where('slug->uk', $slug)
                 ->orWhere('slug->en', $slug)
                 ->first();
@@ -475,13 +484,13 @@ class StoreController extends Controller
 
         // 3) Якщо slug закінчується на "-{id}" (наша конвенція з seed) — витягнемо id
         if (! $product && preg_match('/-(\d+)$/', $slug, $m)) {
-            $product = Product::query()->with(['brand', 'category', 'inventory', 'filters.filterGroup'])->find((int) $m[1]);
+            $product = Product::query()->with(['brand', 'category', 'inventory', 'filters.filterGroup', 'groupPrices'])->find((int) $m[1]);
         }
 
         // 4) Plain-string slug (для legacy)
         if (! $product) {
             $product = Product::query()
-                ->with(['brand', 'category', 'inventory', 'filters.filterGroup'])
+                ->with(['brand', 'category', 'inventory', 'filters.filterGroup', 'groupPrices'])
                 ->where('slug', $slug)
                 ->first();
         }

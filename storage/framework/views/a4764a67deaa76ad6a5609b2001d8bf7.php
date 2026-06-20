@@ -7,6 +7,7 @@ $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'selectedModel' => null,
     'selectedEngine' => null,
     'initialMakes' => [],  // SSR-prefetched brand list — уникає pop-in після Alpine fetch
+    'categoryUrl' => null, // якщо задано — фільтр марки лишається в межах цієї категорії
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -28,6 +29,7 @@ foreach (array_filter(([
     'selectedModel' => null,
     'selectedEngine' => null,
     'initialMakes' => [],  // SSR-prefetched brand list — уникає pop-in після Alpine fetch
+    'categoryUrl' => null, // якщо задано — фільтр марки лишається в межах цієї категорії
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -53,6 +55,7 @@ unset($__defined_vars, $__key, $__value); ?>
         initialEngine: <?php echo \Illuminate\Support\Js::from((string) $selectedEngine)->toHtml() ?>,
         initialMakes: <?php echo \Illuminate\Support\Js::from($initialMakes)->toHtml() ?>,
         catalogUrl: <?php echo \Illuminate\Support\Js::from($catalogUrl)->toHtml() ?>,
+        categoryUrl: <?php echo \Illuminate\Support\Js::from($categoryUrl)->toHtml() ?>,
         autoSubmit: true,
         api: { makes: <?php echo \Illuminate\Support\Js::from($apiMakes)->toHtml() ?>, models: <?php echo \Illuminate\Support\Js::from($apiModels)->toHtml() ?>, engines: <?php echo \Illuminate\Support\Js::from($apiEngines)->toHtml() ?> },
      })"
@@ -60,8 +63,8 @@ unset($__defined_vars, $__key, $__value); ?>
      :class="!activeLevel() && !_redirecting && !<?php echo e($isHero ? 'true' : 'false'); ?> ? 'gazu-done-bar' : ''"
      class="gazu-car-selector relative w-full font-text
             <?php echo e($isHero
-                ? 'p-5 sm:p-6 bg-white rounded-2xl shadow-[0_20px_50px_-30px_rgba(14,27,44,0.22)]'
-                : 'px-3 py-2.5 bg-white rounded-xl shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]'); ?>">
+                ? 'p-5 sm:p-6 bg-[var(--gazu-surface)] rounded-2xl shadow-[0_20px_50px_-30px_rgba(14,27,44,0.22)]'
+                : 'px-3 py-2.5 bg-[var(--gazu-surface)] rounded-xl shadow-[0_2px_10px_-4px_rgba(14,27,44,0.08)]'); ?>">
 
     
     <?php if(! $isHero): ?>
@@ -74,7 +77,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <template x-for="chip in pickedChips()" :key="chip.level">
                 <button type="button" @click="changeLevel(chip.level)"
                         class="inline-flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full bg-[var(--gazu-mist)] text-[12px] text-[var(--gazu-ink)] hover:bg-[var(--gazu-line)] cursor-pointer border-0 transition-colors">
-                    <span class="w-5 h-5 rounded-full bg-white inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></span>
+                    <span class="w-5 h-5 rounded-full bg-[var(--gazu-surface)] inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></span>
                     <span class="font-medium truncate" x-text="chip.label"></span>
                 </button>
             </template>
@@ -109,7 +112,7 @@ unset($__defined_vars, $__key, $__value); ?>
         <template x-for="chip in pickedChips()" :key="chip.level">
             <button type="button" @click="changeLevel(chip.level)"
                     class="inline-flex items-center gap-1 pl-1 pr-2 py-0.5 rounded-full bg-[var(--gazu-mist)] text-[11px] text-[var(--gazu-ink)] hover:bg-[var(--gazu-line)] cursor-pointer border-0 transition-colors">
-                <span class="w-4 h-4 rounded-full bg-white inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></span>
+                <span class="w-4 h-4 rounded-full bg-[var(--gazu-surface)] inline-flex items-center justify-center text-[8px] gazu-mono font-bold text-[var(--gazu-blue)] uppercase shrink-0" x-text="chip.badge"></span>
                 <span class="font-medium truncate" x-text="chip.label"></span>
             </button>
         </template>
@@ -133,7 +136,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 <button type="button"
                         @click="pick(item)"
                         :style="'--gazu-tile-delay: ' + (idx * 18) + 'ms'"
-                        :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-white shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]'"
+                        :class="isItemSelected(item) ? 'bg-[var(--gazu-mist)] shadow-[inset_0_0_0_2px_var(--gazu-blue,#2563eb)]' : 'bg-[var(--gazu-surface)] shadow-[0_1px_0_0_var(--gazu-line)] hover:bg-[var(--gazu-paper)] hover:shadow-[0_2px_8px_-3px_rgba(14,27,44,0.18)]'"
                         class="gazu-tile-in flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left cursor-pointer transition-all text-[13px] text-[var(--gazu-ink)] min-h-[56px]">
                     <div class="w-9 h-9 rounded-md inline-flex items-center justify-center shrink-0 overflow-hidden"
                          :class="(item.logo && activeLevel() === 'make') ? '' : 'bg-[var(--gazu-mist)]'">
@@ -173,7 +176,7 @@ unset($__defined_vars, $__key, $__value); ?>
     </div>
 </div>
 
-<?php if (! $__env->hasRenderedOnce('76a8fb9e-040c-41ea-9c89-69aafb92eb7d')): $__env->markAsRenderedOnce('76a8fb9e-040c-41ea-9c89-69aafb92eb7d'); ?>
+<?php if (! $__env->hasRenderedOnce('4ada28a9-10de-4049-8fd5-eb1370ca7525')): $__env->markAsRenderedOnce('4ada28a9-10de-4049-8fd5-eb1370ca7525'); ?>
 <script>
     (function() {
         if (typeof window.__gazuCarSelectorRegistered !== 'undefined') return;
@@ -258,6 +261,13 @@ unset($__defined_vars, $__key, $__value); ?>
                     const l = this.activeLevel();
                     if (l === 'make') {
                         this.make = item.slug; this.model = ''; this.engine = ''; this.models = []; this.engines = [];
+                        // У межах категорії фільтруємо одразу по марці (лишаючись на сторінці
+                        // категорії). У глобальному каталозі — продовжуємо каскад до двигуна.
+                        if (opts.categoryUrl) {
+                            this._redirecting = true;
+                            setTimeout(() => this.submit(), 250);
+                            return;
+                        }
                         this.fetchModels();
                     } else if (l === 'model') {
                         this.model = item.slug; this.engine = ''; this.engines = [];
@@ -291,11 +301,23 @@ unset($__defined_vars, $__key, $__value); ?>
                 reset() {
                     this.make = ''; this.model = ''; this.engine = '';
                     this.models = []; this.engines = []; this.search = ''; this.expanded = false;
-                    if (window.location.search) window.location.assign(opts.catalogUrl);
+                    // У категорії reset веде назад на чисту категорію, не на /catalog.
+                    if (window.location.search) window.location.assign(opts.categoryUrl || opts.catalogUrl);
                 },
                 submit() {
+                    // У МЕЖАХ КАТЕГОРІЇ: лишаємось на її URL, марку/модель/двигун
+                    // додаємо як query-параметри (контролер фільтрує cat+make+...).
+                    if (opts.categoryUrl) {
+                        if (!this.make) return;
+                        const qs = new URLSearchParams();
+                        qs.set('make', this.make);
+                        if (this.model)  qs.set('model', this.model);
+                        if (this.engine) qs.set('engine', this.engine);
+                        window.location.assign(opts.categoryUrl + '?' + qs.toString());
+                        return;
+                    }
+                    // ГЛОБАЛЬНИЙ каталог: pretty URL /zapchastyny/{make}/{model}/{engine}
                     if (!(this.make && this.model && this.engine)) return;
-                    // Pretty URL: /zapchastyny/{make}/{model}/{engine}
                     const segs = ['zapchastyny', this.make, this.model, this.engine].map(encodeURIComponent);
                     window.location.assign(window.location.origin + '/' + segs.join('/'));
                 },

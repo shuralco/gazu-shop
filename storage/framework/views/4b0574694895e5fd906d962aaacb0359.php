@@ -34,7 +34,7 @@
                 unset($params['page']);
             ?>
             <a wire:navigate href="<?php echo e(url()->current() . (count($params) ? '?' . http_build_query($params) : '')); ?>"
-               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-[var(--gazu-line)] rounded-2xl text-xs text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]">
+               class="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-2xl text-xs text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]">
                 <?php echo e($chip['label']); ?> <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'close','size' => '12','stroke' => 'var(--gazu-graphite)']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>

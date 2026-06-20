@@ -42,13 +42,15 @@
                     Спеціалізуємось на запчастинах для китайських автомобілів. Працюємо тільки з перевіреними постачальниками, кожна позиція проходить контроль якості перед відправкою.
                 </p>
                 <div class="flex flex-wrap gap-3">
-                    <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white rounded-md text-[14px] font-semibold no-underline transition-colors">
+                    <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-[var(--gazu-on-brand)] rounded-md text-[14px] font-semibold no-underline transition-colors">
                         Дивитись каталог
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
                     </a>
-                    <a href="tel:0800751024" class="inline-flex items-center gap-2 px-5 py-3 bg-white text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline border border-[var(--gazu-line)] hover:border-[var(--gazu-ink)] transition-colors">
+                    <?php $gazuPhone = ($gazuSettings ?? [])['gazu_phone'] ?? '0 800 750 010'; $gazuPhoneTel = preg_replace('/\D+/', '', $gazuPhone); ?>
+                    <a href="tel:<?php echo e($gazuPhoneTel); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline border border-[var(--gazu-line)] hover:border-[var(--gazu-ink)] transition-colors">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                    0 800 75 10 24
+                    <?php echo e($gazuPhone); ?>
+
                     </a>
                 </div>
             </div>
@@ -61,7 +63,7 @@
 
                 <div class="relative grid grid-cols-2 gap-3 sm:gap-4">
                     <?php $__currentLoopData = $collageKinds; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                        <div class="aspect-square rounded-2xl overflow-hidden shadow-[0_8px_24px_-12px_rgba(14,27,44,0.15)] <?php echo e($i === 0 ? 'translate-y-4' : ($i === 1 ? '' : ($i === 2 ? '' : 'translate-y-4'))); ?> bg-white">
+                        <div class="aspect-square rounded-2xl overflow-hidden shadow-[0_8px_24px_-12px_rgba(14,27,44,0.15)] <?php echo e($i === 0 ? 'translate-y-4' : ($i === 1 ? '' : ($i === 2 ? '' : 'translate-y-4'))); ?> bg-[var(--gazu-surface)]">
                             <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($c['kind']).'','seed' => $c['seed'],'fit' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
@@ -91,10 +93,10 @@
         
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-14 lg:mb-16">
             <?php $__currentLoopData = $usps; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $usp): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
-                <div class="relative bg-white border border-[var(--gazu-line)] rounded-xl p-5 sm:p-6 hover:border-[var(--gazu-ink)] transition-colors group">
+                <div class="relative bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-xl p-5 sm:p-6 hover:border-[var(--gazu-ink)] transition-colors group">
                     <div class="gazu-display text-[28px] sm:text-[36px] font-bold text-[var(--gazu-ink)] leading-none mb-1.5 tracking-tight"><?php echo e($usp['num']); ?></div>
                     <div class="text-[12px] sm:text-[13px] text-[var(--gazu-graphite)] leading-snug"><?php echo e($usp['label']); ?></div>
-                    <div class="absolute top-5 right-5 w-7 h-7 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] group-hover:bg-[var(--gazu-ink)] group-hover:text-white transition-colors">
+                    <div class="absolute top-5 right-5 w-7 h-7 rounded-md bg-[var(--gazu-mist)] inline-flex items-center justify-center text-[var(--gazu-blue)] group-hover:bg-[var(--gazu-ink)] group-hover:text-[var(--gazu-on-brand)] transition-colors">
                         <?php if($usp['icon'] === 'parts'): ?>
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
                         <?php elseif($usp['icon'] === 'shield'): ?>
@@ -118,22 +120,24 @@
         <?php endif; ?>
 
         
-        <div class="mt-14 lg:mt-20 relative overflow-hidden rounded-2xl bg-[var(--gazu-ink)] text-white p-8 sm:p-10 lg:p-14">
+        <div class="mt-14 lg:mt-20 relative overflow-hidden rounded-2xl bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] p-8 sm:p-10 lg:p-14">
             <div class="absolute inset-0 opacity-[0.06]" style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 14px 14px;"></div>
             <div class="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-[var(--gazu-blue)] opacity-20 blur-3xl"></div>
             <div class="relative grid lg:grid-cols-2 gap-6 items-center">
                 <div>
                     <h3 class="gazu-display text-[22px] sm:text-[28px] font-semibold leading-tight m-0 mb-2">Не знайшли потрібну деталь?</h3>
-                    <p class="text-[14px] sm:text-[15px] text-white/75 leading-relaxed m-0 max-w-md">
+                    <p class="text-[14px] sm:text-[15px] text-[var(--gazu-on-brand)]/75 leading-relaxed m-0 max-w-md">
                         Зателефонуйте — підберемо за артикулом OEM або за маркою/моделлю/двигуном. Безкоштовна консультація.
                     </p>
                 </div>
                 <div class="flex flex-wrap gap-3 lg:justify-end">
-                    <a href="tel:0800751024" class="inline-flex items-center gap-2 px-5 py-3 bg-white text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline hover:bg-[var(--gazu-paper)] transition-colors">
+                    <?php $gazuPhone2 = ($gazuSettings ?? [])['gazu_phone'] ?? '0 800 750 010'; ?>
+                    <a href="tel:<?php echo e(preg_replace('/\D+/', '', $gazuPhone2)); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[14px] font-semibold no-underline hover:bg-[var(--gazu-paper)] transition-colors">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-                        0 800 75 10 24
+                        <?php echo e($gazuPhone2); ?>
+
                     </a>
-                    <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-transparent text-white rounded-md text-[14px] font-semibold no-underline border border-white/40 hover:bg-white/10 transition-colors">
+                    <a wire:navigate href="<?php echo e(route('gazu.catalog')); ?>" class="inline-flex items-center gap-2 px-5 py-3 bg-transparent text-[var(--gazu-on-brand)] rounded-md text-[14px] font-semibold no-underline border border-[var(--gazu-on-brand)]/40 hover:bg-[var(--gazu-on-brand)]/10 transition-colors">
                         Дивитись каталог
                     </a>
                 </div>

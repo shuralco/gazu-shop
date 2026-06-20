@@ -67,7 +67,7 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0"
-         class="relative bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-[var(--gazu-line)]">
+         class="relative bg-[var(--gazu-surface)] w-full max-w-md rounded-xl shadow-2xl overflow-hidden border border-[var(--gazu-line)]">
         
         <div class="flex items-center justify-between px-5 py-4 border-b border-[var(--gazu-line)]">
             <div class="flex items-center gap-2.5 min-w-0">
@@ -103,19 +103,19 @@
                     <label class="block text-[12px] font-medium text-[var(--gazu-ink)] mb-1.5">Телефон <span class="text-[var(--gazu-danger)]">*</span></label>
                     <input x-ref="phone" x-model="phone" type="tel" required
                            placeholder="+380 67 123 45 67" autocomplete="tel"
-                           class="w-full px-3.5 py-2.5 text-sm gazu-mono border border-[var(--gazu-line)] rounded-md bg-white outline-none focus:border-[var(--gazu-ink)] transition-colors">
+                           class="w-full px-3.5 py-2.5 text-sm gazu-mono border border-[var(--gazu-line)] rounded-md bg-[var(--gazu-surface)] outline-none focus:border-[var(--gazu-ink)] transition-colors">
                 </div>
                 <div>
                     <label class="block text-[12px] font-medium text-[var(--gazu-ink)] mb-1.5">Ім'я <span class="text-[var(--gazu-muted)] font-normal">(необов'язково)</span></label>
                     <input x-model="name" type="text" placeholder="Як до вас звертатись"
-                           class="w-full px-3.5 py-2.5 text-sm border border-[var(--gazu-line)] rounded-md bg-white outline-none focus:border-[var(--gazu-ink)] transition-colors">
+                           class="w-full px-3.5 py-2.5 text-sm border border-[var(--gazu-line)] rounded-md bg-[var(--gazu-surface)] outline-none focus:border-[var(--gazu-ink)] transition-colors">
                 </div>
 
                 <div x-show="err" x-cloak class="px-3 py-2 text-[13px] font-medium rounded-md"
                      style="background: var(--gazu-danger-bg); color: var(--gazu-danger);" x-text="err"></div>
 
                 <button type="submit" :disabled="busy"
-                        class="w-full py-3 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white border-0 rounded-md text-sm font-semibold cursor-pointer inline-flex items-center justify-center gap-2 transition-colors"
+                        class="w-full py-3 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-[var(--gazu-on-brand)] border-0 rounded-md text-sm font-semibold cursor-pointer inline-flex items-center justify-center gap-2 transition-colors"
                         :class="busy ? 'opacity-70 cursor-not-allowed' : ''">
                     <svg x-show="!busy" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
                     <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>

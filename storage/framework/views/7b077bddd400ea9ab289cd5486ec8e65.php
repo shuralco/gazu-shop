@@ -28,6 +28,27 @@
             if (tokenInput) tokenInput.value = window.GAZU_CSRF;
         }, true);
 
+        // CSRF keep-alive: токен у сторінці «замерзає» при завантаженні. Якщо
+        // серверна сесія протермінується (TTL 120хв) або ротується (логін
+        // викликає session()->regenerate() → новий токен), будь-який POST
+        // («У кошик», checkout, 1-click) падає 419 «Сесія застаріла». Періодично
+        // + при поверненні на вкладку / bfcache-відновленні підтягуємо свіжий
+        // токен (запит до /csrf-token також оновлює TTL сесії).
+        window.gazuRefreshCsrf = function () {
+            return fetch('<?php echo e(route('gazu.csrf-token')); ?>', { headers: { 'Accept': 'application/json' }, credentials: 'same-origin' })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (d) {
+                    if (!d || !d.token) return;
+                    window.GAZU_CSRF = d.token;
+                    var m = document.querySelector('meta[name=csrf-token]');
+                    if (m) m.setAttribute('content', d.token);
+                })
+                .catch(function () {});
+        };
+        setInterval(window.gazuRefreshCsrf, 10 * 60 * 1000); // кожні 10хв (< 120хв TTL)
+        document.addEventListener('visibilitychange', function () { if (!document.hidden) window.gazuRefreshCsrf(); });
+        window.addEventListener('pageshow', function (e) { if (e.persisted) window.gazuRefreshCsrf(); });
+
         // Wishlist: гість зберігає в localStorage (без авторизації), залогінений —
         // на сервері. Перегляд /wishlist потребує логіну. window.gazuWishlistToggle()
         // — єдина точка для всіх сердечок.
@@ -137,6 +158,10 @@
         
         <meta name="robots" content="noindex,nofollow">
     <?php else: ?>
+        <?php if (! empty(trim($__env->yieldContent('robots')))): ?>
+            
+            <meta name="robots" content="<?php echo $__env->yieldContent('robots'); ?>">
+        <?php endif; ?>
         <link rel="canonical" href="<?php echo e($canonical); ?>">
     <?php endif; ?>
 
@@ -151,8 +176,8 @@
         <meta property="og:image" content="<?php echo $__env->yieldContent('og_image'); ?>">
         <meta name="twitter:image" content="<?php echo $__env->yieldContent('og_image'); ?>">
     <?php else: ?>
-        <meta property="og:image" content="<?php echo e(url('/og-default.svg')); ?>">
-        <meta name="twitter:image" content="<?php echo e(url('/og-default.svg')); ?>">
+        <meta property="og:image" content="<?php echo e(url('/og-default.png')); ?>">
+        <meta name="twitter:image" content="<?php echo e(url('/og-default.png')); ?>">
     <?php endif; ?>
 
     <style>
@@ -182,7 +207,7 @@
                     '@id' => url('/').'#organization',
                     'name' => 'GAZU',
                     'url' => url('/'),
-                    'logo' => url('/og-default.svg'),
+                    'logo' => url('/og-default.png'),
                     'sameAs' => array_values(array_filter([
                         $gazuSettings['gazu_social_facebook'] ?? null,
                         $gazuSettings['gazu_social_instagram'] ?? null,
@@ -212,19 +237,28 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Space+Grotesk:wght@400;500;600;700&family=Inter+Tight:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <?php $__currentLoopData = \App\Support\ThemeManager::fontLinks(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $fontHref): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <link href="<?php echo e($fontHref); ?>" rel="stylesheet">
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
     <?php echo app('Illuminate\Foundation\Vite')([\App\Support\ThemeManager::cssEntry() ?: 'themes/gazu/resources/css/gazu.css']); ?>
+    
+    <?php $gazuThemeVars = \App\Support\ThemeManager::cssVarOverrides(); ?>
+    <?php if($gazuThemeVars): ?><style id="gazu-theme-vars"><?php echo $gazuThemeVars; ?></style><?php endif; ?>
     <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::styles(); ?>
 
     
-    <script defer src="<?php echo e(asset('assets/js/gazu-np-map.js')); ?>"></script>
+    
+    <?php if(request()->routeIs('gazu.checkout')): ?>
+        <script defer src="<?php echo e(asset('assets/js/gazu-np-map.js')); ?>"></script>
+    <?php endif; ?>
     <script defer src="<?php echo e(asset('assets/js/gazu-fx.js')); ?>"></script>
 </head>
 <body class="gazu gazu-theme min-h-screen flex flex-col">
 
 <a href="#main-content"
-   class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--gazu-ink)] focus:text-white focus:rounded focus:no-underline focus:outline-2 focus:outline-[var(--gazu-blue)]">
+   class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[100] focus:px-4 focus:py-2 focus:bg-[var(--gazu-ink)] focus:text-[var(--gazu-on-brand)] focus:rounded focus:no-underline focus:outline-2 focus:outline-[var(--gazu-blue)]">
     Перейти до основного контенту
 </a>
 
@@ -485,7 +519,7 @@
      @mousemove="cancelIdle()"
      @scroll.passive="cancelIdle(); armIdle()"
      @touchstart.passive="cancelIdle()"
-     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[400px] bg-white border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
+     class="fixed inset-y-0 right-0 z-[65] w-full sm:w-[400px] bg-[var(--gazu-surface)] border-l border-[var(--gazu-line)] shadow-2xl flex flex-col gazu-drawer"
      :data-open="open ? '1' : '0'"
      role="dialog" aria-label="Кошик">
 
@@ -611,7 +645,7 @@
         </div>
         <div class="flex gap-2">
             <button type="button" @click="open = false" class="flex-1 py-2.5 border border-[var(--gazu-line-2)] rounded-md text-sm font-medium hover:bg-[var(--gazu-mist)]">Продовжити</button>
-            <a wire:navigate href="<?php echo e(route('gazu.cart')); ?>" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-white rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
+            <a wire:navigate href="<?php echo e(route('gazu.cart')); ?>" class="flex-1 py-2.5 bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)] text-[var(--gazu-on-brand)] rounded-md text-sm font-medium no-underline inline-flex items-center justify-center">Оформити</a>
         </div>
     </div>
 </div>
@@ -623,6 +657,9 @@
 <?php endif; ?>
 <?php if($errors->any()): ?>
     <script>setTimeout(() => window.gazuToast && window.gazuToast(<?php echo json_encode($errors->first(), 15, 512) ?>, 'error'), 100);</script>
+<?php endif; ?>
+<?php if(session('error')): ?>
+    <script>setTimeout(() => window.gazuToast && window.gazuToast(<?php echo json_encode(session('error'), 15, 512) ?>, 'error'), 100);</script>
 <?php endif; ?>
 
 <?php echo \Livewire\Mechanisms\FrontendAssets\FrontendAssets::scripts(); ?>
