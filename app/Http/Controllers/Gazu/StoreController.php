@@ -1198,9 +1198,14 @@ class StoreController extends Controller
             }
         };
 
+        // Гуртові ціни — eager-load лише для залогінених клієнтів з групою.
+        $user = auth()->user();
+        $gid = $user?->customer_group_id;
+
         $items = Product::query()
             ->where('is_active', true)
             ->where($searchClosure)
+            ->when($gid, fn ($qq) => $qq->with(['groupPrices' => fn ($r) => $r->where('customer_group_id', $gid)]))
             // Smart ordering: exact SKU match → SKU starts-with → rating
             ->orderByRaw('CASE WHEN LOWER(sku) = ? THEN 0 WHEN LOWER(sku) LIKE ? THEN 1 ELSE 2 END', [
                 mb_strtolower($q),
@@ -1211,16 +1216,18 @@ class StoreController extends Controller
             ->get(['id', 'title', 'slug', 'sku', 'manufacturer', 'price', 'price_currency', 'image']);
 
         $imgKinds = $this->imageKinds;
-        $payload = $items->map(function ($p) use ($imgKinds) {
+        $payload = $items->map(function ($p) use ($imgKinds, $user) {
             $title = is_array($p->title) ? ($p->title['uk'] ?? '') : ($p->title ?? '');
             $slug = is_array($p->slug) ? ($p->slug['uk'] ?? '') : ($p->slug ?? '');
+            // Персональна (гуртова) ціна для залогінених клієнтів з групою.
+            $unit = (float) $p->effectivePriceForUser($user, 1);
             return [
                 'id' => $p->id,
                 'title' => $title,
                 'sku' => $p->sku,
                 'manufacturer' => $p->manufacturer ?: '',
-                'price' => (float) $p->display_price,
-                'price_formatted' => number_format((float) $p->display_price, 0, '.', ' '),
+                'price' => $unit,
+                'price_formatted' => number_format($unit, 0, '.', ' '),
                 'image_kind' => $imgKinds[$p->id % count($imgKinds)],
                 'url' => route('gazu.product.show', ['slug' => $slug ?: $p->id]),
             ];
@@ -1346,9 +1353,12 @@ class StoreController extends Controller
         $ids = array_values(array_filter(array_map('intval', explode(',', $raw)), fn ($x) => $x > 0));
         if (empty($ids)) return response()->json(['items' => []]);
         $ids = array_slice($ids, 0, 12);
+        $user = auth()->user();
+        $gid = $user?->customer_group_id;
         $products = \App\Models\Product::query()
             ->whereIn('id', $ids)
             ->where('is_active', true)
+            ->when($gid, fn ($qq) => $qq->with(['groupPrices' => fn ($r) => $r->where('customer_group_id', $gid)]))
             ->limit(12)
             ->get();
         $orderMap = array_flip($ids);
@@ -1374,7 +1384,7 @@ class StoreController extends Controller
             return null;
         };
 
-        $items = $products->map(function ($p) use ($resolvePartImage) {
+        $items = $products->map(function ($p) use ($resolvePartImage, $user) {
             $title = is_array($p->title) ? ($p->title['uk'] ?? '') : ($p->title ?? '');
             $name = $title ?: ($p->name ?? '');
             $brand = is_object($p->brand ?? null) ? ($p->brand->name ?? '') : (is_string($p->brand ?? null) ? $p->brand : '');
@@ -1393,7 +1403,7 @@ class StoreController extends Controller
                 'id'    => $p->id,
                 'name'  => is_string($name) ? $name : '',
                 'brand' => is_string($brand) ? $brand : '',
-                'price' => number_format((float) $p->display_price, 0, '.', ' '),
+                'price' => number_format((float) $p->effectivePriceForUser($user, 1), 0, '.', ' '),
                 'url'   => route('gazu.product.show', ['slug' => $p->slug ?? $p->id]),
                 'image' => $image,
             ];

@@ -210,6 +210,6 @@
     {{-- Warehouse prices popover — sits BELOW the card, appears on hover (desktop)
          or tap (mobile, via Склади button rendered inside). --}}
     @if(is_object($p) && $p instanceof \App\Models\Product)
-        <x-gazu.product-card-stocks :p="$p" :base-price="(float) $price"/>
+        <x-gazu.product-card-stocks :p="$p" :base-price="(float) $price" :group-active="$isGroupPrice"/>
     @endif
 </div>
