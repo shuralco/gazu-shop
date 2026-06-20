@@ -42,18 +42,18 @@ class InventoryRelationManager extends RelationManager
                 ->minValue(0)
                 ->required()
                 ->default(0),
-            Forms\Components\TextInput::make('price')
-                ->label('Ціна на цьому складі')
-                ->helperText('Якщо порожньо — використовується базова ціна товару. На сайті показується в грн за курсом.')
-                ->numeric()
-                ->minValue(0)
-                ->step(0.01),
             Forms\Components\Select::make('price_currency')
                 ->label('Валюта ціни складу')
                 ->options(fn () => \App\Models\Currency::selectOptions())
                 ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
                 ->selectablePlaceholder(false)
                 ->native(false),
+            Forms\Components\TextInput::make('price')
+                ->label('Ціна на цьому складі')
+                ->helperText('Якщо порожньо — використовується базова ціна товару. На сайті показується в грн за курсом.')
+                ->numeric()
+                ->minValue(0)
+                ->step(0.01),
             Forms\Components\TextInput::make('compare_at_price')
                 ->label('Стара ціна / акційне порівняння')
                 ->helperText('Показується закресленою біля поточної (у валюті ціни складу)')

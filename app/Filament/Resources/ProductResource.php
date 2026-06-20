@@ -234,6 +234,14 @@ class ProductResource extends Resource
                             ->schema([
                                 Forms\Components\Grid::make(4)
                                     ->schema([
+                                        Forms\Components\Select::make('price_currency')
+                                            ->label('Валюта ціни')
+                                            ->options(fn () => \App\Models\Currency::selectOptions())
+                                            ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
+                                            ->selectablePlaceholder(false)
+                                            ->native(false)
+                                            ->helperText('Довідник — Каталог → Валюти. На сайті ціна в грн за курсом.'),
+
                                         Forms\Components\TextInput::make('price')
                                             ->label('Ціна')
                                             ->required()
@@ -270,14 +278,6 @@ class ProductResource extends Resource
                                                         }
                                                     }),
                                             ]),
-
-                                        Forms\Components\Select::make('price_currency')
-                                            ->label('Валюта ціни')
-                                            ->options(fn () => \App\Models\Currency::selectOptions())
-                                            ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
-                                            ->selectablePlaceholder(false)
-                                            ->native(false)
-                                            ->helperText('Довідник валют — Каталог → Валюти (/admin/currencies). На сайті ціна показується в грн за курсом.'),
 
                                         Forms\Components\TextInput::make('old_price')
                                             ->label('Стара ціна')

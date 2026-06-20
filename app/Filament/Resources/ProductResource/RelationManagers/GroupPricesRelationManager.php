@@ -29,17 +29,17 @@ class GroupPricesRelationManager extends RelationManager
                     ->searchable()
                     ->preload()
                     ->required(),
-                Forms\Components\TextInput::make('price')
-                    ->label('Ціна')
-                    ->helperText('На сайті показується в грн за курсом /admin/currencies')
-                    ->numeric()
-                    ->required(),
                 Forms\Components\Select::make('price_currency')
                     ->label('Валюта')
                     ->options(fn () => \App\Models\Currency::selectOptions())
                     ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
                     ->selectablePlaceholder(false)
                     ->native(false),
+                Forms\Components\TextInput::make('price')
+                    ->label('Ціна')
+                    ->helperText('На сайті показується в грн за курсом /admin/currencies')
+                    ->numeric()
+                    ->required(),
                 Forms\Components\TextInput::make('min_quantity')
                     ->label('Мінімальна кількість')
                     ->numeric()
