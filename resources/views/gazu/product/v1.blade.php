@@ -136,21 +136,14 @@
         'refurbished' => 'https://schema.org/RefurbishedCondition',
         'Відновлений' => 'https://schema.org/RefurbishedCondition',
     ];
-    $productImageUrl = is_object($p) ? ($p->image ?? null) : null;
-    if ($productImageUrl && ! \Illuminate\Support\Str::startsWith($productImageUrl, ['http://','https://'])) {
-        $productImageUrl = url('/storage/'.$productImageUrl);
+    // Реальне завантажене фото товару (тільки воно — без демо-заглушок по типу).
+    $realImg = is_object($p) ? ($p->image ?? null) : null;
+    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://','https://'])) {
+        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
     }
-    // Fallback на part-image webp pool (same algorithm як у product card).
-    if (! $productImageUrl) {
-        $kindForJsonLd = is_object($p) ? ($p->image_kind ?? 'filter') : 'filter';
-        $poolDir = public_path("img/parts/{$kindForJsonLd}");
-        $poolFiles = is_dir($poolDir) ? glob($poolDir.'/*.webp') : [];
-        sort($poolFiles);
-        if (! empty($poolFiles)) {
-            $seedForLd = is_object($p) ? (int) ($p->id ?? 0) : 0;
-            $productImageUrl = url("/img/parts/{$kindForJsonLd}/".basename($poolFiles[abs($seedForLd) % count($poolFiles)]));
-        }
-    }
+    // Для og/JSON-LD: реальне фото → інакше нейтральний og-default (НЕ демо-пул,
+    // щоб у соцмережах/пошуку не світились випадкові «фото запчастин»).
+    $productImageUrl = $realImg ?: url('/og-default.png');
 
     $jsonldProduct = [
         '@context' => 'https://schema.org',
@@ -259,7 +252,7 @@
                     @foreach($variants as $i => $seed)
                         <div class="absolute inset-0 transition-opacity duration-200"
                              :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                            <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
+                            @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder/>@endif
                         </div>
                     @endforeach
                     {{-- AJAX variant-switch overlay. Default opacity-0 + display:none.
@@ -323,7 +316,7 @@
                         @foreach($variants as $i => $seed)
                             <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
                                  :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                                <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit/>
+                                @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder/>@endif
                             </div>
                         @endforeach
                         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/70 text-white gazu-mono text-[12px] rounded">
@@ -338,7 +331,7 @@
                                 @click="idx = {{ $i }}" @mouseover="idx = {{ $i }}"
                                 :class="idx === {{ $i }} ? 'ring-2 ring-[var(--gazu-blue)] ring-offset-1' : 'opacity-80 hover:opacity-100'"
                                 class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden cursor-pointer transition-all">
-                            <x-gazu.part-image kind="{{ $kind }}" :seed="$seed" fit class="w-full h-full object-cover"/>
+                            @if($realImg)<img src="{{ $realImg }}" alt="" class="w-full h-full object-cover"/>@else<x-gazu.product-placeholder/>@endif
                         </button>
                     @endforeach
                 </div>
