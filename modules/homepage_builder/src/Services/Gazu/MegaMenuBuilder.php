@@ -94,7 +94,7 @@ class MegaMenuBuilder
                         $cid = $c['category_id'] ?? null;
                         $items[] = [
                             $this->resolveTitle($c['title'] ?? ''),
-                            $cid ? (int) ($this->treeCounts[$cid] ?? 0) : 0,
+                            $this->childCount($cid, $cSlug),
                             $cSlug,
                         ];
                     }
@@ -104,7 +104,7 @@ class MegaMenuBuilder
                         'icon' => $this->iconKey($slug, $title),
                         'slug' => $slug,
                         'label' => $title,
-                        'count' => $catId ? (int) ($this->treeCounts[$catId] ?? 0) : 0,
+                        'count' => $this->childCount($catId, $slug),
                         'image' => null,
                         'groups' => $items ? [['title' => $title, 'items' => $items]] : [],
                     ];
@@ -203,6 +203,8 @@ class MegaMenuBuilder
     private ?array $directCounts = null;
     /** Cached counts including descendants: category_id => total product count. */
     private ?array $treeCounts = null;
+    /** Cached counts keyed by normalized slug => total (descendant) product count. */
+    private ?array $slugCounts = null;
 
     private function loadCounts(): void
     {
@@ -227,10 +229,48 @@ class MegaMenuBuilder
                     $parent = $parents[$parent] ?? null;
                 }
             }
+
+            // slug => total count: дозволяє резолвити лічильник у ручній
+            // editor-структурі, де у дитини може не бути category_id (тільки slug).
+            $this->slugCounts = [];
+            foreach (Category::query()->get(['id', 'slug']) as $cat) {
+                $slug = $this->normalizeSlug($cat->slug);
+                if ($slug !== '') {
+                    $this->slugCounts[$slug] = (int) ($this->treeCounts[$cat->id] ?? 0);
+                }
+            }
         } catch (\Throwable) {
             $this->directCounts = [];
             $this->treeCounts = [];
+            $this->slugCounts = [];
         }
+    }
+
+    /** Translatable/JSON-wrapped slug → плоский рядок для пошуку в slugCounts. */
+    private function normalizeSlug(mixed $slug): string
+    {
+        if (is_array($slug)) {
+            $slug = $slug['uk'] ?? reset($slug) ?: '';
+        } elseif (is_string($slug)) {
+            $decoded = json_decode($slug, true);
+            if (is_array($decoded)) {
+                $slug = $decoded['uk'] ?? reset($decoded) ?: '';
+            }
+        }
+        return trim((string) $slug);
+    }
+
+    /** Лічильник дитини editor-структури: спершу за category_id, інакше за slug. */
+    private function childCount(mixed $categoryId, string $slug): int
+    {
+        if ($categoryId && isset($this->treeCounts[$categoryId])) {
+            return (int) $this->treeCounts[$categoryId];
+        }
+        $norm = $this->normalizeSlug($slug);
+        if ($norm !== '' && isset($this->slugCounts[$norm])) {
+            return (int) $this->slugCounts[$norm];
+        }
+        return 0;
     }
 
     private function totalCount(Category $c): int
