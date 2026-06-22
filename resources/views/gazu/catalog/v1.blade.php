@@ -48,25 +48,8 @@
 @endphp
 @section('title', $catalogSeoTitle ?: $title . ' — GAZU')
 
-{{-- OG image: перший товар з listing або category fallback --}}
-@php
-    $catalogOgImage = null;
-    if (isset($products) && $products->isNotEmpty()) {
-        $firstP = $products->first();
-        if (is_object($firstP)) {
-            $kindOg = $firstP->image_kind ?? 'filter';
-            $poolDirOg = public_path("img/parts/{$kindOg}");
-            $filesOg = is_dir($poolDirOg) ? glob($poolDirOg.'/*.webp') : [];
-            sort($filesOg);
-            if (! empty($filesOg)) {
-                $catalogOgImage = url("/img/parts/{$kindOg}/".basename($filesOg[abs((int) ($firstP->id ?? 0)) % count($filesOg)]));
-            }
-        }
-    }
-@endphp
-@if($catalogOgImage)
-    @section('og_image', $catalogOgImage)
-@endif
+{{-- OG image: брендований банер GAZU (og-default.png) із layout-fallback.
+     НЕ ставимо демо-фото товару (img/parts/*) — це оманливе прев'ю в соцмережах. --}}
 
 @section('jsonld')
     @php
