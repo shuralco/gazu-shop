@@ -1373,28 +1373,8 @@ class StoreController extends Controller
             ->get();
         $orderMap = array_flip($ids);
         $products = $products->sortBy(fn ($p) => $orderMap[$p->id] ?? 999)->values();
-        // Repeat the part-image.blade.php logic so recently-viewed gets the SAME
-        // photo as catalog cards (resolves from public/img/parts/{kind}/*.webp pool).
-        static $partPoolCache = [];
-        $resolvePartImage = function (string $kind, ?int $seed) use (&$partPoolCache) {
-            if (! array_key_exists($kind, $partPoolCache)) {
-                $dir = public_path("img/parts/{$kind}");
-                $files = is_dir($dir) ? glob($dir.'/*.webp') : [];
-                sort($files);
-                $partPoolCache[$kind] = array_map('basename', $files);
-            }
-            $pool = $partPoolCache[$kind];
-            if (! empty($pool)) {
-                $idx = $seed !== null ? abs($seed) % count($pool) : 0;
-                return asset("img/parts/{$kind}/".$pool[$idx]);
-            }
-            if (is_file(public_path("img/parts/{$kind}.webp"))) {
-                return asset("img/parts/{$kind}.webp");
-            }
-            return null;
-        };
 
-        $items = $products->map(function ($p) use ($resolvePartImage, $user) {
+        $items = $products->map(function ($p) use ($user) {
             $title = is_array($p->title) ? ($p->title['uk'] ?? '') : ($p->title ?? '');
             $name = $title ?: ($p->name ?? '');
             $brand = is_object($p->brand ?? null) ? ($p->brand->name ?? '') : (is_string($p->brand ?? null) ? $p->brand : '');
@@ -1403,12 +1383,8 @@ class StoreController extends Controller
             if (! empty($p->image)) {
                 $image = \Str::startsWith($p->image, ['http://','https://','/']) ? $p->image : asset('storage/'.$p->image);
             }
-            // Fallback на part-image pool (same algorithm as <x-gazu.part-image>).
-            // image_kind НЕ в DB — controller hot-injects через ID hash. Repeat те саме.
-            if (! $image) {
-                $kind = $p->image_kind ?? $this->imageKindFor($p);
-                $image = $resolvePartImage((string) $kind, (int) $p->id);
-            }
+            // Без оманливих демо-фото: якщо реального зображення немає — лишаємо
+            // image=null, фронт покаже нейтральну заглушку (узгоджено з картками).
             return [
                 'id'    => $p->id,
                 'name'  => is_string($name) ? $name : '',
