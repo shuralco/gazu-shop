@@ -348,7 +348,9 @@ class StoreController extends Controller
             // може містити пробіл / «.» / «/» (напр. «1.6 TDI», «2.0/CRVA») —
             // тоді /zapchastyny/{make}/{model}/{engine} не матчиться → 404.
             // У такому разі лишаємо ?make=&model=&engine= (query тримає будь-що).
-            $pathSafe = collect($segments)->skip(1)->every(fn ($s) => (bool) preg_match('/^[\p{L}\p{N}_-]+$/u', (string) $s));
+            // Відповідає route-констрейнтам нижче (ASCII alnum + - . ); інакше
+            // (пробіл/кирилиця/слеш у коді двигуна) лишаємо ?engine= замість 404.
+            $pathSafe = collect($segments)->skip(1)->every(fn ($s) => (bool) preg_match('/^[A-Za-z0-9.\-]+$/', (string) $s));
             if ($pathSafe) {
                 return redirect('/'.implode('/', array_map('rawurlencode', $segments)), 301);
             }

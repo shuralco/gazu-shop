@@ -44,12 +44,14 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
 
     // Pretty URLs for car-selector filter: /zapchastyny/{make}/{model?}/{engine?}
     // Controller still consumes ?make/&model/&engine — route binding maps params into the query.
+    // Констрейнти case-insensitive: код двигуна/слаг моделі бувають ВЕЛИКИМИ
+    // (ID4EU, AWD, GW4G15B) — раніше [a-z0-9] відхиляв їх → 404.
     Route::get('/zapchastyny/{make}', [$c, 'catalogByCar'])->name('catalog.by-make')
-        ->where('make', '[a-z0-9][a-z0-9-]*');
+        ->where('make', '[A-Za-z0-9][A-Za-z0-9-]*');
     Route::get('/zapchastyny/{make}/{model}', [$c, 'catalogByCar'])->name('catalog.by-model')
-        ->where(['make' => '[a-z0-9][a-z0-9-]*', 'model' => '[a-z0-9][a-z0-9-]*']);
+        ->where(['make' => '[A-Za-z0-9][A-Za-z0-9-]*', 'model' => '[A-Za-z0-9][A-Za-z0-9-]*']);
     Route::get('/zapchastyny/{make}/{model}/{engine}', [$c, 'catalogByCar'])->name('catalog.by-engine')
-        ->where(['make' => '[a-z0-9][a-z0-9-]*', 'model' => '[a-z0-9][a-z0-9-]*', 'engine' => '[a-z0-9][a-z0-9-\.]*']);
+        ->where(['make' => '[A-Za-z0-9][A-Za-z0-9-]*', 'model' => '[A-Za-z0-9][A-Za-z0-9-]*', 'engine' => '[A-Za-z0-9][A-Za-z0-9\-\.]*']);
 
     // Pretty URLs для меню: «Новинки» / «Хіти» / «Акції» (раніше ?new=1 etc).
     Route::get('/novynky', fn () => app(\App\Http\Controllers\Gazu\StoreController::class)->catalog(request()->merge(['new' => 1])))->name('catalog.new');

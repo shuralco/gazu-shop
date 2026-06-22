@@ -13,6 +13,11 @@
     // Controller робить fallback на name search якщо slug не matches → працює для legacy.
     $brandUrl = $brandSlug ? route('gazu.brand', ['slug' => $brandSlug]) : null;
     $image = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');
+    // Реальне завантажене фото товару (пріоритет над заглушкою).
+    $realImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://', 'https://'])) {
+        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
+    }
     $price = is_object($p) ? (float) ($p->price ?? 0) : (float) ($p['price'] ?? 0);
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
@@ -78,12 +83,15 @@
     {{-- Картинка без ободка/паддінгів/маржинів — повна ширина card-а, скруглені верхні кути.
          На hover показуємо альтернативний variant SVG part-image (другий "ракурс"). --}}
     <a wire:navigate href="{{ $url }}" class="aspect-square block no-underline relative overflow-hidden rounded-t-lg group/img">
-        <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-surface)] transition-opacity duration-300 group-hover/img:opacity-0">
-            <x-gazu.part-image kind="{{ $image }}" :seed="$productId" :eager="$eager" fit/>
-        </div>
-        <div class="absolute inset-0 flex items-center justify-center bg-[var(--gazu-paper)] opacity-0 transition-opacity duration-300 group-hover/img:opacity-100">
-            <x-gazu.part-image kind="{{ $image }}" :seed="($productId ?? 0) + 7777" fit/>
-        </div>
+        @if($realImg)
+            {{-- Реальне фото товару --}}
+            <img src="{{ $realImg }}" alt="{{ $name }}" loading="{{ $eager ? 'eager' : 'lazy' }}"
+                 fetchpriority="{{ $eager ? 'high' : 'auto' }}"
+                 class="absolute inset-0 w-full h-full object-contain bg-[var(--gazu-surface)]">
+        @else
+            {{-- Нейтральна заглушка (без оманливих демо-фото по типу) --}}
+            <x-gazu.product-placeholder class="absolute inset-0"/>
+        @endif
         @if($oem)
             <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-[var(--gazu-surface)]/90 border border-[var(--gazu-line)] rounded z-[1]">{{ $oem }}</span>
         @endif
