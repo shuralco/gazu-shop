@@ -33,6 +33,9 @@ class MegaMenuEditor extends Page
 
     public bool $megaMenuEnabled = true;
 
+    /** Показувати лічильники товарів біля категорій/підкатегорій у мега-меню. */
+    public bool $megaMenuShowCounts = false;
+
     public array $megaMenuColumns = [];
 
     // Promo settings
@@ -78,6 +81,7 @@ class MegaMenuEditor extends Page
         // Load mega menu structure
         $this->catalogTrigger = (string) DisplaySetting::get('catalog_trigger', 'click');
         $this->megaMenuEnabled = (bool) DisplaySetting::get('mega_menu_enabled', true);
+        $this->megaMenuShowCounts = (bool) DisplaySetting::get('mega_menu_show_counts', false);
         $structure = DisplaySetting::get('main_mega_menu_structure', null);
 
         if ($structure) {
@@ -461,6 +465,16 @@ class MegaMenuEditor extends Page
             'value' => $this->megaMenuEnabled ? 'true' : 'false',
             'type' => 'boolean',
             'title' => 'Мега-меню',
+            'group' => 'mega_menu',
+            'is_active' => true,
+            'sort_order' => 0,
+        ]);
+
+        // Save mega menu counts toggle
+        DisplaySetting::updateOrCreate(['key' => 'mega_menu_show_counts'], [
+            'value' => $this->megaMenuShowCounts ? 'true' : 'false',
+            'type' => 'boolean',
+            'title' => 'Лічильники товарів у мега-меню',
             'group' => 'mega_menu',
             'is_active' => true,
             'sort_order' => 0,

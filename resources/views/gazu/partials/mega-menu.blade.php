@@ -8,6 +8,9 @@
     $active = $activeMega ?? null;
     $cat = collect($megaTree)->firstWhere('id', $active) ?? collect($megaTree)->first();
     $totalCount = collect($megaTree)->sum('count');
+    // Перемикач в адмінці (Мега-меню → «Показувати кількість товарів»).
+    // За замовчуванням приховано, щоб не показувати «0» поки товари не розкладені.
+    $showCounts = (bool) \App\Models\DisplaySetting::get('mega_menu_show_counts', false);
 @endphp
 
 @if(empty($megaTree))
@@ -27,7 +30,7 @@
     {{-- Top strip --}}
     <div class="flex items-center gap-3 px-4 sm:px-5 py-2.5 border-b border-[var(--gazu-line)] bg-[var(--gazu-paper)] shrink-0">
         <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">Каталог</span>
-        <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] hidden sm:inline">· {{ number_format($totalCount, 0, '.', ' ') }} товарів у {{ count($megaTree) }} категоріях</span>
+        @if($showCounts)<span class="gazu-mono text-[11px] text-[var(--gazu-muted)] hidden sm:inline">· {{ number_format($totalCount, 0, '.', ' ') }} товарів у {{ count($megaTree) }} категоріях</span>@endif
         <span class="flex-1"></span>
         <button type="button" @click="megaOpen = false"
                 class="w-7 h-7 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] rounded inline-flex items-center justify-center cursor-pointer text-[var(--gazu-graphite)]">
@@ -46,7 +49,7 @@
                         class="w-full flex items-center gap-3 px-4 py-3.5 border-0 cursor-pointer text-left">
                     <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="22"/>
                     <span class="flex-1 text-[15px] font-semibold text-[var(--gazu-ink)]">{{ $c['label'] }}</span>
-                    <span class="gazu-mono text-[11px] text-[var(--gazu-muted)]">{{ number_format($c['count'], 0, '.', ' ') }}</span>
+                    @if($showCounts)<span class="gazu-mono text-[11px] text-[var(--gazu-muted)]">{{ number_format($c['count'], 0, '.', ' ') }}</span>@endif
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                          class="text-[var(--gazu-graphite)] transition-transform duration-200"
                          :class="mobileOpen === '{{ $c['id'] }}' ? 'rotate-180' : ''"><path d="m6 9 6 6 6-6"/></svg>
@@ -73,7 +76,7 @@
                                     <a wire:navigate href="{{ $itmHref }}"
                                        class="flex items-baseline gap-2 py-1.5 text-[13px] text-[var(--gazu-graphite)] no-underline">
                                         <span class="flex-1">{{ $itmName }}</span>
-                                        <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $itmCount }}</span>
+                                        @if($showCounts)<span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $itmCount }}</span>@endif
                                     </a>
                                 @endforeach
                             </div>
@@ -164,7 +167,7 @@
                    class="flex items-center gap-3 py-2.5 pr-3.5 pl-5 text-sm no-underline cursor-pointer relative">
                     <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="20"/>
                     <span class="flex-1 leading-tight">{{ $c['label'] }}</span>
-                    <span class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-wider">{{ number_format($c['count'], 0, '.', ' ') }}</span>
+                    @if($showCounts)<span class="gazu-mono text-[10px] text-[var(--gazu-muted)] tracking-wider">{{ number_format($c['count'], 0, '.', ' ') }}</span>@endif
                     <x-gazu.icon name="chevron" size="12" class="-rotate-90"/>
                 </a>
             @endforeach
@@ -177,7 +180,7 @@
                     <div class="flex items-center gap-3 mb-4 pb-3.5 border-b border-[var(--gazu-line)]">
                         <x-gazu.cat-icon kind="{{ $c['icon'] ?? $c['id'] }}" size="28"/>
                         <h3 class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] m-0">{{ $c['label'] }}</h3>
-                        <span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format($c['count'], 0, '.', ' ') }} товарів</span>
+                        @if($showCounts)<span class="gazu-mono text-[11px] text-[var(--gazu-muted)] tracking-widest uppercase">{{ number_format($c['count'], 0, '.', ' ') }} товарів</span>@endif
                         <a wire:navigate href="{{ ! empty($c['slug']) ? url('/'.$c['slug']) : route('gazu.catalog') }}" class="ml-auto text-[13px] text-[var(--gazu-blue)] no-underline inline-flex items-center gap-1">Усі →</a>
                     </div>
                     <div class="grid gap-x-6 gap-y-5" style="grid-template-columns: repeat({{ min(max(count($c['groups']), 1), 5) }}, 1fr);">
@@ -199,7 +202,7 @@
                                         @endphp
                                         <a wire:navigate href="{{ $itmHref }}" class="flex items-baseline gap-2 text-[13px] text-[var(--gazu-graphite)] no-underline hover:text-[var(--gazu-ink)]">
                                             <span class="flex-1">{{ $itmName }}</span>
-                                            <span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $itmCount }}</span>
+                                            @if($showCounts)<span class="gazu-mono text-[10px] text-[var(--gazu-muted)]">{{ $itmCount }}</span>@endif
                                         </a>
                                     @endforeach
                                 </div>

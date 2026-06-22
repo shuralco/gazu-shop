@@ -85,6 +85,13 @@
             </x-slot>
 
             <div class="space-y-4">
+                {{-- Show product counts toggle --}}
+                <label class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg cursor-pointer">
+                    <x-filament::input.checkbox wire:model.live="megaMenuShowCounts" />
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Показувати кількість товарів біля категорій</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">(вимкніть, якщо товари ще не розкладені по підкатегоріях — щоб не показувати «0»)</span>
+                </label>
+
                 {{-- Catalog trigger mode --}}
                 <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Відкриття каталогу:</span>
