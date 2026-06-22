@@ -321,7 +321,13 @@ class CatalogQuery
         // інакше LIKE '%масло%' = 0, бо каталог зве товар «оливний».
         $synonyms = \App\Support\SearchSynonyms::expand($term);
 
-        return $q->where(function ($w) use ($variants, $synonyms) {
+        // Пошук по КОДУ має ігнорувати пробіли/дефіси: "1ED 819 644",
+        // "1ED819644" і "1ED-819-644" повинні знаходити один і той самий
+        // товар. Нормалізуємо і колонку (REPLACE у SQL), і сам запит.
+        $codeTerm = preg_replace('/[\s\-]+/u', '', $term);
+        $codeColumns = ['sku', 'barcode', 'cross_code', 'extra_codes'];
+
+        return $q->where(function ($w) use ($variants, $synonyms, $codeTerm, $codeColumns) {
             foreach ($variants as $v) {
                 $like = '%'.$v.'%';
                 $w->orWhere('sku', 'like', $like)
@@ -336,6 +342,16 @@ class CatalogQuery
                 $like = '%'.$s.'%';
                 $w->orWhere('title', 'like', $like)
                   ->orWhere('search_tags', 'like', $like);
+            }
+            // Space/dash-insensitive code match.
+            if ($codeTerm !== '') {
+                $codeLike = '%'.mb_strtoupper($codeTerm).'%';
+                foreach ($codeColumns as $col) {
+                    $w->orWhereRaw(
+                        "UPPER(REPLACE(REPLACE(COALESCE($col,''),' ',''),'-','')) LIKE ?",
+                        [$codeLike]
+                    );
+                }
             }
         });
     }
@@ -473,7 +489,25 @@ class CatalogQuery
 
     private function applySort(Builder $q): Builder
     {
-        return match ($this->request->query('sort')) {
+        $sort = $this->request->query('sort');
+
+        // При пошуку (q) і дефолтному сортуванні — спершу збіги по КОДУ,
+        // потім решта (артикул важливіший за назву). Простий CASE-boost.
+        $term = trim((string) $this->request->query('q', ''));
+        if ($term !== '' && in_array($sort, [null, '', 'relevance'], true)) {
+            $codeTerm = preg_replace('/[\s\-]+/u', '', $term);
+            if ($codeTerm !== '') {
+                $codeLike = '%'.mb_strtoupper($codeTerm).'%';
+                $cols = ['sku', 'barcode', 'cross_code', 'extra_codes'];
+                $cases = implode(' OR ', array_map(
+                    fn ($c) => "UPPER(REPLACE(REPLACE(COALESCE($c,''),' ',''),'-','')) LIKE ?",
+                    $cols
+                ));
+                $q->orderByRaw("CASE WHEN $cases THEN 0 ELSE 1 END", array_fill(0, count($cols), $codeLike));
+            }
+        }
+
+        return match ($sort) {
             'price-asc'  => $q->orderBy('price'),
             'price-desc' => $q->orderByDesc('price'),
             'new'        => $q->orderByDesc('id'),
