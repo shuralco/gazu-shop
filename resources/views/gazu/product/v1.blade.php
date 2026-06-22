@@ -238,12 +238,12 @@
             {{-- Gallery: big main image + active-thumb grid (4 ракурси, hover/click swap) --}}
             @php
                 $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0;
-                $variants = [
-                    $gallerySeed,
-                    $gallerySeed + 1001,
-                    $gallerySeed + 2002,
-                    $gallerySeed + 3003,
-                ];
+                $galleryCode = $oem ?: (is_object($p) ? ($p->sku ?? null) : null);
+                // Без реального фото — ОДНЕ генеративне демо-фото (не 4 «ракурси»,
+                // щоб не плодити дублі). З реальним фото лишаємо 4 слоти (legacy).
+                $variants = $realImg
+                    ? [$gallerySeed, $gallerySeed + 1001, $gallerySeed + 2002, $gallerySeed + 3003]
+                    : [$gallerySeed];
             @endphp
             <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
                 <div class="aspect-square bg-[var(--gazu-surface)] rounded-lg relative overflow-hidden cursor-zoom-in group/main"
@@ -252,7 +252,7 @@
                     @foreach($variants as $i => $seed)
                         <div class="absolute inset-0 transition-opacity duration-200"
                              :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                            @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder/>@endif
+                            @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$gallerySeed"/>@endif
                         </div>
                     @endforeach
                     {{-- AJAX variant-switch overlay. Default opacity-0 + display:none.
@@ -316,7 +316,7 @@
                         @foreach($variants as $i => $seed)
                             <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
                                  :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                                @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder/>@endif
+                                @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$gallerySeed"/>@endif
                             </div>
                         @endforeach
                         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/70 text-white gazu-mono text-[12px] rounded">
@@ -331,7 +331,7 @@
                                 @click="idx = {{ $i }}" @mouseover="idx = {{ $i }}"
                                 :class="idx === {{ $i }} ? 'ring-2 ring-[var(--gazu-blue)] ring-offset-1' : 'opacity-80 hover:opacity-100'"
                                 class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden cursor-pointer transition-all">
-                            @if($realImg)<img src="{{ $realImg }}" alt="" class="w-full h-full object-cover"/>@else<x-gazu.product-placeholder/>@endif
+                            @if($realImg)<img src="{{ $realImg }}" alt="" class="w-full h-full object-cover"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$gallerySeed"/>@endif
                         </button>
                     @endforeach
                 </div>

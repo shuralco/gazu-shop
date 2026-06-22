@@ -52,27 +52,72 @@ class PartImage
     }
 
     /**
-     * Deterministic monogram placeholder. Always lookups the SAME color
-     * for the same seed, so a re-rendered product keeps its visual identity.
+     * Генеративне демо-фото товару. Детерміноване за seed (id/код/назва) —
+     * один товар = завжди ОДНА й та сама картинка, різні товари = різні
+     * (колір + візерунок + код/ініціали виводяться з хешу). Без зовнішніх
+     * файлів і без «купи однакових дублів».
+     *
+     * @param  string            $title Назва товару (для ініціалів / 2-го рядка)
+     * @param  int|string|null   $seed  Стабільний ключ (зазвичай product_id)
+     * @param  string|null       $code  Артикул/OEM — якщо є, стає головним написом
      */
-    public static function monogram(string $title, int|string|null $seed = null): string
+    public static function monogram(string $title, int|string|null $seed = null, ?string $code = null): string
     {
-        $seed ??= $title;
-        $words = preg_split('/\s+/u', trim($title)) ?: ['?'];
-        $initials = mb_strtoupper(
-            mb_substr($words[0] ?? '?', 0, 1).
-            mb_substr($words[1] ?? '', 0, 1),
-            'UTF-8'
-        ) ?: '·';
+        $seed ??= ($code ?: $title);
+        $hash = md5((string) $seed);
 
-        $hue = hexdec(substr(md5((string) $seed), 0, 6)) % 360;
+        // Палітра з хешу (детермінована), приглушена й «на-бренд».
+        $hue = hexdec(substr($hash, 0, 6)) % 360;
+        $hue2 = ($hue + 28) % 360;
+
+        // Головний напис: артикул (скорочений) або ініціали назви.
+        $codeStr = trim((string) $code);
+        $words = preg_split('/\s+/u', trim($title)) ?: [];
+        $initials = mb_strtoupper(
+            mb_substr($words[0] ?? '', 0, 1).mb_substr($words[1] ?? '', 0, 1),
+            'UTF-8'
+        );
+        $focus = $codeStr !== '' ? mb_strtoupper($codeStr) : ($initials ?: 'GAZU');
+        if (mb_strlen($focus) > 14) {
+            $focus = mb_substr($focus, 0, 14);
+        }
+        $len = mb_strlen($focus);
+        $focusSize = $len <= 3 ? 116 : ($len <= 6 ? 64 : ($len <= 10 ? 42 : 30));
+
+        // 2-й рядок — короткий шматок назви (необов'язково).
+        $sub = trim(preg_replace('/\s+/u', ' ', $title));
+        if (mb_strlen($sub) > 26) {
+            $sub = mb_substr($sub, 0, 25).'…';
+        }
+
+        // Генеративний візерунок: позиції/поворот із хешу → унікальний кадр.
+        $cx = 60 + (hexdec(substr($hash, 6, 2)) % 200);
+        $cy = 60 + (hexdec(substr($hash, 8, 2)) % 200);
+        $rot = hexdec(substr($hash, 10, 2)) % 360;
+        $r = 70 + (hexdec(substr($hash, 12, 2)) % 60);
 
         $svg = sprintf(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">'
-            .'<rect width="100" height="100" fill="hsl(%d,42%%,93%%)"/>'
-            .'<text x="50%%" y="50%%" font-family="Inter,system-ui,sans-serif" font-size="36" font-weight="600" text-anchor="middle" dominant-baseline="central" fill="hsl(%d,38%%,36%%)">%s</text>'
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320">'
+            .'<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'
+            .'<stop offset="0" stop-color="hsl(%1$d,40%%,93%%)"/>'
+            .'<stop offset="1" stop-color="hsl(%2$d,34%%,82%%)"/>'
+            .'</linearGradient></defs>'
+            .'<rect width="320" height="320" fill="url(#g)"/>'
+            .'<g fill="none" stroke="hsl(%1$d,60%%,99%%)" stroke-opacity="0.55">'
+            .'<circle cx="%3$d" cy="%4$d" r="%5$d" stroke-width="14"/>'
+            .'<circle cx="%3$d" cy="%4$d" r="%6$d" stroke-width="6"/>'
+            .'<rect x="%7$d" y="%8$d" width="120" height="120" rx="14" transform="rotate(%9$d %3$d %4$d)" stroke-width="5"/>'
+            .'</g>'
+            .'<text x="160" y="156" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="%10$d" font-weight="700" letter-spacing="1" text-anchor="middle" dominant-baseline="central" fill="hsl(%1$d,48%%,26%%)">%11$s</text>'
+            .'<text x="160" y="206" font-family="Inter,system-ui,sans-serif" font-size="17" font-weight="500" text-anchor="middle" fill="hsl(%1$d,30%%,38%%)" fill-opacity="0.85">%12$s</text>'
+            .'<text x="160" y="298" font-family="Inter,system-ui,sans-serif" font-size="13" font-weight="700" letter-spacing="3" text-anchor="middle" fill="hsl(%1$d,35%%,42%%)" fill-opacity="0.6">GAZU</text>'
             .'</svg>',
-            $hue, $hue, htmlspecialchars($initials, ENT_QUOTES | ENT_XML1)
+            $hue, $hue2,
+            $cx, $cy, $r, max(28, $r - 42),
+            $cx - 60, $cy - 60, $rot,
+            $focusSize,
+            htmlspecialchars($focus, ENT_QUOTES | ENT_XML1),
+            htmlspecialchars($sub, ENT_QUOTES | ENT_XML1)
         );
 
         return 'data:image/svg+xml;base64,'.base64_encode($svg);

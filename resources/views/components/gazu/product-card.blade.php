@@ -89,8 +89,8 @@
                  fetchpriority="{{ $eager ? 'high' : 'auto' }}"
                  class="absolute inset-0 w-full h-full object-contain bg-[var(--gazu-surface)]">
         @else
-            {{-- Нейтральна заглушка (без оманливих демо-фото по типу) --}}
-            <x-gazu.product-placeholder class="absolute inset-0"/>
+            {{-- Генеративне демо-фото (унікальне на товар за кодом/назвою) --}}
+            <x-gazu.product-placeholder :name="$name" :code="$oem" :seed="$productId ?? $name" :kind="$image" class="absolute inset-0"/>
         @endif
         @if($oem)
             <span class="absolute bottom-1.5 left-1.5 px-1.5 py-0.5 gazu-mono text-[10px] text-[var(--gazu-graphite)] bg-[var(--gazu-surface)]/90 border border-[var(--gazu-line)] rounded z-[1]">{{ $oem }}</span>

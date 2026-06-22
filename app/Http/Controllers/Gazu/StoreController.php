@@ -1383,8 +1383,12 @@ class StoreController extends Controller
             if (! empty($p->image)) {
                 $image = \Str::startsWith($p->image, ['http://','https://','/']) ? $p->image : asset('storage/'.$p->image);
             }
-            // Без оманливих демо-фото: якщо реального зображення немає — лишаємо
-            // image=null, фронт покаже нейтральну заглушку (узгоджено з картками).
+            // Без реального фото — генеративне демо-фото (детерміноване за id/кодом),
+            // унікальне на товар, узгоджене з картками каталогу. Не стокові дублі.
+            if (! $image) {
+                $code = $p->oem ?? $p->sku ?? null;
+                $image = \App\Support\PartImage::monogram((string) $name, $p->id, $code ? (string) $code : null);
+            }
             return [
                 'id'    => $p->id,
                 'name'  => is_string($name) ? $name : '',
