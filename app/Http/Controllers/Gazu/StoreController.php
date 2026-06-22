@@ -344,7 +344,15 @@ class StoreController extends Controller
             $segments = ['zapchastyny', $request->query('make')];
             if ($request->filled('model'))  { $segments[] = $request->query('model'); }
             if ($request->filled('engine')) { $segments[] = $request->query('engine'); }
-            return redirect('/'.implode('/', $segments), 301);
+            // Pretty-URL лише якщо ВСІ сегменти безпечні для шляху. Код двигуна
+            // може містити пробіл / «.» / «/» (напр. «1.6 TDI», «2.0/CRVA») —
+            // тоді /zapchastyny/{make}/{model}/{engine} не матчиться → 404.
+            // У такому разі лишаємо ?make=&model=&engine= (query тримає будь-що).
+            $pathSafe = collect($segments)->skip(1)->every(fn ($s) => (bool) preg_match('/^[\p{L}\p{N}_-]+$/u', (string) $s));
+            if ($pathSafe) {
+                return redirect('/'.implode('/', array_map('rawurlencode', $segments)), 301);
+            }
+            // інакше — не редіректимо, рендеримо каталог із query нижче.
         }
 
         // SEO redirect: `/catalog?cat=foo` → `/foo` (no other filters).

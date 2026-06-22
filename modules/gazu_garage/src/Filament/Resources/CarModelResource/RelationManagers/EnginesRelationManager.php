@@ -18,7 +18,16 @@ class EnginesRelationManager extends RelationManager
     {
         return $form->schema([
             Forms\Components\TextInput::make('code')->label('Код')->required()->maxLength(40)
-                ->helperText('Напр. "1.5T", "2.0 TDI", "GW4G15B"'),
+                ->helperText('Напр. "1.5T", "2.0 TDI", "GW4G15B"')
+                // Унікальність коду в межах моделі (model_id+code) — інакше дубль
+                // летів у DB-констрейнт car_engines_model_id_code_unique → 500.
+                ->unique(
+                    table: \App\Models\CarEngine::class,
+                    column: 'code',
+                    ignoreRecord: true,
+                    modifyRuleUsing: fn (\Illuminate\Validation\Rules\Unique $rule) => $rule->where('model_id', $this->getOwnerRecord()->getKey()),
+                )
+                ->validationMessages(['unique' => 'Двигун із таким кодом уже є для цієї моделі.']),
             Forms\Components\TextInput::make('label')->label('Назва (для випадайки)')->maxLength(60),
             Forms\Components\Select::make('fuel_type')->label('Тип палива')
                 ->options([
