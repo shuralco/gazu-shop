@@ -72,10 +72,18 @@ class EnsureWarm extends Command
             Log::warning('[ensure-warm] COLD storefront '.json_encode($samples).' → cache:warm');
             if (app()->bound('sentry')) {
                 try {
-                    \Sentry\captureMessage(
-                        '[ensure-warm] cold storefront detected: '.json_encode($samples),
-                        \Sentry\Severity::warning()
-                    );
+                    // Стабільний fingerprint → усі cold-події групуються в ОДИН issue
+                    // (раніше числа TTFB були в тексті → кожна подія = новий issue → флуд).
+                    // Конкретні заміри — в extra/tags, видно в деталях події.
+                    \Sentry\withScope(function (\Sentry\State\Scope $scope) use ($samples) {
+                        $scope->setFingerprint(['ensure-warm', 'cold-storefront']);
+                        $scope->setExtra('ttfb_ms', $samples);
+                        $scope->setTag('storefront', 'cold');
+                        \Sentry\captureMessage(
+                            '[ensure-warm] cold storefront detected',
+                            \Sentry\Severity::warning()
+                        );
+                    });
                 } catch (\Throwable $e) {
                     // sentry не критичний
                 }
