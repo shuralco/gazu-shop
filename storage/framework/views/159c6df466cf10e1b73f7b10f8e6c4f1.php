@@ -31,6 +31,14 @@ unset($__defined_vars, $__key, $__value); ?>
     // Явний статус наявності з довідника StockStatus (key). Якщо заданий —
     // він перекриває стару логіку від кількості. Інакше — fallback на qty.
     $st = $status ? \App\Models\StockStatus::byKey($status) : null;
+    // НАЯВНІСТЬ ЗІ СКЛАДУ: якщо залишку немає (qty<=0), але статус каже «в
+    // наявності» (InStock / без availability) — це суперечність (склад порожній,
+    // кнопка все одно «Під замовлення»). Ігноруємо такий статус → впаде у
+    // qty-логіку нижче і покаже «Під замовлення». Адмін не мусить вручну
+    // синхронити stock_status зі складськими залишками.
+    if ($qty <= 0 && $st && in_array($st->availability, ['InStock', null], true)) {
+        $st = null;
+    }
     $colorVar = [
         'success' => '--gazu-success',
         'warning' => '--gazu-warn',
