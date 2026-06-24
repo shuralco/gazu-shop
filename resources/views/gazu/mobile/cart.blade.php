@@ -15,6 +15,7 @@
             <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-primary text-xs no-underline">До каталогу</a>
         </div>
     @else
+        @php $cartCodes = \App\Helpers\Cart\Cart::productCodes(); @endphp
         <div class="flex flex-col gap-2">
             @foreach($cart as $key => $item)
                 @php
@@ -31,7 +32,7 @@
                         @if($imgUrl)
                             <img src="{{ $imgUrl }}" alt="" class="w-16 h-16 object-contain">
                         @else
-                            <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-16 h-16"/>
+                            <x-gazu.product-placeholder :name="$title" :code="$cartCodes[$productId] ?? null" :seed="$productId" class="w-16 h-16"/>
                         @endif
                     </div>
                     <div class="flex-1 min-w-0">

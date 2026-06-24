@@ -102,6 +102,8 @@
             $cartWarehouses = $cartWarehouseIds
                 ? \App\Models\MerchantWarehouse::query()->whereIn('id', $cartWarehouseIds)->get()->keyBy('id')
                 : collect();
+            // Коди товарів (один запит) — щоб генеративне фото збігалося з каталогом.
+            $cartCodes = \App\Helpers\Cart\Cart::productCodes();
         ?>
         <div>
             <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
@@ -179,14 +181,14 @@
                                      onerror="this.style.display='none'; this.nextElementSibling?.style.removeProperty('display');">
                                 <?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'seed' => $productId,'class' => 'w-20 h-20','style' => 'display:none']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'code' => $cartCodes[$productId] ?? null,'seed' => $productId,'class' => 'w-20 h-20','style' => 'display:none']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'class' => 'w-20 h-20','style' => 'display:none']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($cartCodes[$productId] ?? null),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'class' => 'w-20 h-20','style' => 'display:none']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
@@ -200,14 +202,14 @@
                             <?php else: ?>
                                 <?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'seed' => $productId,'class' => 'w-20 h-20']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'code' => $cartCodes[$productId] ?? null,'seed' => $productId,'class' => 'w-20 h-20']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'class' => 'w-20 h-20']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($cartCodes[$productId] ?? null),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'class' => 'w-20 h-20']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>

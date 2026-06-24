@@ -63,6 +63,8 @@
             $cartWarehouses = $cartWarehouseIds
                 ? \App\Models\MerchantWarehouse::query()->whereIn('id', $cartWarehouseIds)->get()->keyBy('id')
                 : collect();
+            // Коди товарів (один запит) — щоб генеративне фото збігалося з каталогом.
+            $cartCodes = \App\Helpers\Cart\Cart::productCodes();
         @endphp
         <div>
             <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg overflow-hidden">
@@ -138,9 +140,9 @@
                             @if($imgUrl)
                                 <img src="{{ $imgUrl }}" alt="" class="w-20 h-20 object-contain"
                                      onerror="this.style.display='none'; this.nextElementSibling?.style.removeProperty('display');">
-                                <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-20 h-20" style="display:none"/>
+                                <x-gazu.product-placeholder :name="$title" :code="$cartCodes[$productId] ?? null" :seed="$productId" class="w-20 h-20" style="display:none"/>
                             @else
-                                <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-20 h-20"/>
+                                <x-gazu.product-placeholder :name="$title" :code="$cartCodes[$productId] ?? null" :seed="$productId" class="w-20 h-20"/>
                             @endif
                         </div>
                         <div class="min-w-0">

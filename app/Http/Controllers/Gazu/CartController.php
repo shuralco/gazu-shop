@@ -63,6 +63,7 @@ class CartController extends Controller
     public function contents(Request $request)
     {
         $cart = Cart::getCart();
+        $codes = Cart::productCodes();
 
         $items = [];
         foreach ($cart as $key => $item) {
@@ -82,8 +83,9 @@ class CartController extends Controller
                 $image = \Illuminate\Support\Str::startsWith($stored, 'http') ? $stored : url('/'.ltrim((string) $stored, '/'));
             } else {
                 // Без реального фото — генеративна заглушка (як у каталозі/картці),
-                // а не spark-демо з img/parts.
-                $image = \App\Support\PartImage::monogram((string) $title, $productId);
+                // а не spark-демо з img/parts. Код → той самий кадр, що в каталозі.
+                $code = $codes[$productId] ?? null;
+                $image = \App\Support\PartImage::monogram((string) $title, $productId, $code ?: null);
             }
 
             $items[] = [

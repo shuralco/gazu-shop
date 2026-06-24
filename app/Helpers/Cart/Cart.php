@@ -161,6 +161,33 @@ class Cart
         return session('cart') ?: [];
     }
 
+    /**
+     * Мапа productId => код товару (cross_code ?: sku ?: barcode) для рядків
+     * кошика. Той самий код, що показує decorate() у каталозі — щоб генеративне
+     * демо-фото в кошику/checkout збігалося з каталогом. Один запит на весь кошик.
+     *
+     * @return array<int,string>
+     */
+    public static function productCodes(): array
+    {
+        $ids = [];
+        foreach (array_keys(self::getCart()) as $key) {
+            $ids[] = (int) (is_numeric($key) ? $key : explode('_', (string) $key)[0]);
+        }
+        $ids = array_values(array_unique(array_filter($ids)));
+        if (empty($ids)) {
+            return [];
+        }
+
+        return \App\Models\Product::query()
+            ->whereIn('id', $ids)
+            ->get(['id', 'cross_code', 'sku', 'barcode'])
+            ->mapWithKeys(fn ($p) => [
+                (int) $p->id => (string) ($p->cross_code ?: ($p->sku ?: ($p->barcode ?: ''))),
+            ])
+            ->all();
+    }
+
     // clear cart
     public static function clearCart()
     {

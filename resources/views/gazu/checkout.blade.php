@@ -633,6 +633,7 @@
         {{-- Order summary — sticky on desktop scroll, item removal --}}
         <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 lg:sticky lg:top-4 self-start">
             <h3 class="gazu-display text-lg font-semibold m-0 mb-4">Ваше замовлення</h3>
+            @php $cartCodes = \App\Helpers\Cart\Cart::productCodes(); @endphp
             <div class="flex flex-col gap-3 mb-4 max-h-[400px] overflow-y-auto">
                 @foreach($cart as $key => $item)
                     @php
@@ -649,7 +650,7 @@
                             @if($imgUrl)
                                 <img src="{{ $imgUrl }}" alt="" class="w-12 h-12 object-contain">
                             @else
-                                <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-12 h-12"/>
+                                <x-gazu.product-placeholder :name="$title" :code="$cartCodes[$productId] ?? null" :seed="$productId" class="w-12 h-12"/>
                             @endif
                         </div>
                         <div class="flex-1 min-w-0">

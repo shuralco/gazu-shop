@@ -809,6 +809,7 @@ unset($__errorArgs, $__bag); ?>
         
         <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 lg:sticky lg:top-4 self-start">
             <h3 class="gazu-display text-lg font-semibold m-0 mb-4">Ваше замовлення</h3>
+            <?php $cartCodes = \App\Helpers\Cart\Cart::productCodes(); ?>
             <div class="flex flex-col gap-3 mb-4 max-h-[400px] overflow-y-auto">
                 <?php $__currentLoopData = $cart; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $key => $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <?php
@@ -827,14 +828,14 @@ unset($__errorArgs, $__bag); ?>
                             <?php else: ?>
                                 <?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'seed' => $productId,'class' => 'w-12 h-12']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'code' => $cartCodes[$productId] ?? null,'seed' => $productId,'class' => 'w-12 h-12']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'class' => 'w-12 h-12']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($cartCodes[$productId] ?? null),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'class' => 'w-12 h-12']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
