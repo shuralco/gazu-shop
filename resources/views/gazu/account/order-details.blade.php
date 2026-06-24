@@ -110,13 +110,19 @@
                     @foreach($items as $i => $op)
                         @php
                             $title = is_array($op->title) ? ($op->title['uk'] ?? '—') : ($op->title ?? '—');
-                            $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
-                            $kind = $kinds[($op->product_id ?? 0) % count($kinds)];
                             $line = (float) $op->price * (int) $op->quantity;
+                            // Реальне фото → генеративна заглушка (як скрізь), не kind-SVG.
+                            $opImg = $op->image ?? null;
+                            $opImgUrl = $opImg ? (\Illuminate\Support\Str::startsWith($opImg, ['http://','https://']) ? $opImg : url('/storage/'.ltrim((string) $opImg, '/'))) : null;
+                            $opCode = $op->sku ?? $op->cross_code ?? null;
                         @endphp
                         <div class="flex items-center gap-3 p-4 {{ ($i || ! $loop->parent->first) ? 'border-t border-[var(--gazu-line)]' : '' }}">
-                            <div class="w-14 h-14 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
-                                <x-gazu.part-image kind="{{ $kind }}" size="48"/>
+                            <div class="w-14 h-14 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0 overflow-hidden">
+                                @if($opImgUrl)
+                                    <img src="{{ $opImgUrl }}" alt="{{ $title }}" class="w-14 h-14 object-contain"/>
+                                @else
+                                    <x-gazu.product-placeholder :name="$title" :code="$opCode" :seed="$op->product_id ?? 0" class="w-14 h-14"/>
+                                @endif
                             </div>
                             <div class="flex-1 min-w-0">
                                 @if($op->slug)

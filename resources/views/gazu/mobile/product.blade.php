@@ -7,11 +7,22 @@
     $name = is_object($p) ? ($p->name ?? '') : ($p['name'] ?? 'Фільтр масляний');
     $description = is_object($p) ? (is_array($p->excerpt ?? null) ? ($p->excerpt['uk'] ?? '') : ($p->excerpt ?? '')) : '';
     $primaryCar = auth()->check() ? auth()->user()->primaryCar : null;
+    // Реальне фото → генеративна заглушка (як на десктоп-сторінці товару).
+    $mRealImg = is_object($p) ? ($p->image ?? null) : null;
+    if ($mRealImg && ! \Illuminate\Support\Str::startsWith($mRealImg, ['http://', 'https://'])) {
+        $mRealImg = url('/storage/'.ltrim((string) $mRealImg, '/'));
+    }
+    $mCode = is_object($p) ? ($p->oem ?? $p->cross_code ?? $p->sku ?? null) : null;
+    $mId = is_object($p) ? ($p->id ?? null) : null;
 @endphp
 <div class="max-w-[420px] mx-auto pb-32">
     <div class="aspect-square bg-[var(--gazu-surface)] relative">
-        <div class="absolute inset-0 flex items-center justify-center">
-            <x-gazu.part-image kind="{{ $p->image_kind ?? 'filter' }}" size="280"/>
+        <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+            @if($mRealImg)
+                <img src="{{ $mRealImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>
+            @else
+                <x-gazu.product-placeholder :name="$name" :code="$mCode" :seed="$mId" class="w-full h-full"/>
+            @endif
         </div>
         <div class="absolute top-3 left-3 px-2 py-1 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] gazu-mono text-[10px] tracking-wider rounded">1 / 8</div>
         <button class="absolute top-3 right-3 w-9 h-9 bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-md flex items-center justify-center"><x-gazu.icon name="heart" size="16"/></button>

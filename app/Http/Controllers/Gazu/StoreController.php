@@ -1237,6 +1237,10 @@ class StoreController extends Controller
             $slug = is_array($p->slug) ? ($p->slug['uk'] ?? '') : ($p->slug ?? '');
             // Персональна (гуртова) ціна для залогінених клієнтів з групою.
             $unit = (float) $p->effectivePriceForUser($user, 1);
+            // Реальне фото → генеративна заглушка (як скрізь), не kind-текст у боксі.
+            $realImg = ! empty($p->image)
+                ? (\Illuminate\Support\Str::startsWith($p->image, ['http://', 'https://', '/']) ? $p->image : asset('storage/'.ltrim((string) $p->image, '/')))
+                : null;
             return [
                 'id' => $p->id,
                 'title' => $title,
@@ -1244,6 +1248,7 @@ class StoreController extends Controller
                 'manufacturer' => $p->manufacturer ?: '',
                 'price' => $unit,
                 'price_formatted' => number_format($unit, 0, '.', ' '),
+                'image' => $realImg ?: \App\Support\PartImage::monogram($title, $p->id, $p->sku ?: null),
                 'image_kind' => $imgKinds[$p->id % count($imgKinds)],
                 'url' => route('gazu.product.show', ['slug' => $slug ?: $p->id]),
             ];

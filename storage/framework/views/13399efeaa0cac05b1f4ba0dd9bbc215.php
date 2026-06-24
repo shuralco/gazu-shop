@@ -153,32 +153,38 @@
                     <?php $__currentLoopData = $items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $op): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <?php
                             $title = is_array($op->title) ? ($op->title['uk'] ?? '—') : ($op->title ?? '—');
-                            $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
-                            $kind = $kinds[($op->product_id ?? 0) % count($kinds)];
                             $line = (float) $op->price * (int) $op->quantity;
+                            // Реальне фото → генеративна заглушка (як скрізь), не kind-SVG.
+                            $opImg = $op->image ?? null;
+                            $opImgUrl = $opImg ? (\Illuminate\Support\Str::startsWith($opImg, ['http://','https://']) ? $opImg : url('/storage/'.ltrim((string) $opImg, '/'))) : null;
+                            $opCode = $op->sku ?? $op->cross_code ?? null;
                         ?>
                         <div class="flex items-center gap-3 p-4 <?php echo e(($i || ! $loop->parent->first) ? 'border-t border-[var(--gazu-line)]' : ''); ?>">
-                            <div class="w-14 h-14 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
-                                <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','size' => '48']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                            <div class="w-14 h-14 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0 overflow-hidden">
+                                <?php if($opImgUrl): ?>
+                                    <img src="<?php echo e($opImgUrl); ?>" alt="<?php echo e($title); ?>" class="w-14 h-14 object-contain"/>
+                                <?php else: ?>
+                                    <?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $title,'code' => $opCode,'seed' => $op->product_id ?? 0,'class' => 'w-14 h-14']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','size' => '48']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($title),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($opCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($op->product_id ?? 0),'class' => 'w-14 h-14']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
+                                <?php endif; ?>
                             </div>
                             <div class="flex-1 min-w-0">
                                 <?php if($op->slug): ?>

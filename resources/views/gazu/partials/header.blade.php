@@ -108,7 +108,9 @@
                 </template>
                 <template x-for="item in items" :key="item.id">
                     <a wire:navigate :href="item.url" class="flex items-center gap-3 px-3 py-2.5 hover:bg-[var(--gazu-paper)] no-underline border-b border-[var(--gazu-line)] last:border-b-0">
-                        <div class="w-10 h-10 bg-[var(--gazu-paper)] rounded shrink-0 flex items-center justify-center text-[10px] gazu-mono text-[var(--gazu-muted)]" x-text="item.image_kind"></div>
+                        <div class="w-10 h-10 bg-[var(--gazu-paper)] rounded shrink-0 overflow-hidden flex items-center justify-center">
+                            <img :src="item.image" :alt="item.title" loading="lazy" class="w-full h-full object-contain">
+                        </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-sm font-medium text-[var(--gazu-ink)] truncate" x-text="item.title"></div>
                             <div class="text-[11px] text-[var(--gazu-graphite)] gazu-mono truncate">
