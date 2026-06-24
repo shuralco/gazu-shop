@@ -180,7 +180,7 @@ class GazuVisualSettings extends Page implements HasForms
 
         // Backorder — дозволити додавати в кошик товари без складського залишку
         'gazu_allow_backorder' => true,
-        'gazu_backorder_button_label' => 'Замовити під замовлення',
+        'gazu_backorder_button_label' => 'Замовити',
 
         // Product page — tab "Доставка та оплата"
         'gazu_product_delivery_text' => 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.',

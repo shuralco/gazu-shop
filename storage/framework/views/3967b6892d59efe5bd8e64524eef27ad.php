@@ -73,7 +73,7 @@ unset($__defined_vars, $__key, $__value); ?>
     ])->all();
     // Backorder: дозвіл із адмінки (gazu_allow_backorder) + текст кнопки.
     $allowBackorder = (bool) ($gazuSettings['gazu_allow_backorder'] ?? true);
-    $backorderLabel = $gazuSettings['gazu_backorder_button_label'] ?? 'Замовити під замовлення';
+    $backorderLabel = $gazuSettings['gazu_backorder_button_label'] ?? 'Замовити';
 ?>
 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
      x-data="{
@@ -267,26 +267,6 @@ unset($__defined_vars, $__key, $__value); ?>
                     
                     <template x-if="available <= 0 && isBackorder && allowBackorder">
                         <span class="inline-flex items-center gap-2.5">
-                            <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'cart','size' => '20']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.icon'); ?>
-<?php if ($component->shouldRender()): ?>
-<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
-<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
-<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
-<?php endif; ?>
-<?php $component->withAttributes(['name' => 'cart','size' => '20']); ?>
-<?php echo $__env->renderComponent(); ?>
-<?php endif; ?>
-<?php if (isset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
-<?php $attributes = $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
-<?php unset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
-<?php endif; ?>
-<?php if (isset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
-<?php $component = $__componentOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
-<?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
-<?php endif; ?>
                             <span><?php echo e($backorderLabel); ?></span>
                             <span class="opacity-70">·</span>
                             <span class="gazu-mono"><span x-text="fmt(price * q)"><?php echo e($priceFmt); ?></span> ₴</span>

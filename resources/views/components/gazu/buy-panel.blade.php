@@ -34,7 +34,7 @@
     ])->all();
     // Backorder: дозвіл із адмінки (gazu_allow_backorder) + текст кнопки.
     $allowBackorder = (bool) ($gazuSettings['gazu_allow_backorder'] ?? true);
-    $backorderLabel = $gazuSettings['gazu_backorder_button_label'] ?? 'Замовити під замовлення';
+    $backorderLabel = $gazuSettings['gazu_backorder_button_label'] ?? 'Замовити';
 @endphp
 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
      x-data="{
@@ -171,10 +171,10 @@
                             <span class="gazu-mono"><span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴</span>
                         </span>
                     </template>
-                    {{-- Backorder, але замовлення дозволено в адмінці → активна кнопка --}}
+                    {{-- Backorder, але замовлення дозволено в адмінці → активна кнопка
+                         (без іконки та слова «під замовлення» — лише мітка + ціна) --}}
                     <template x-if="available <= 0 && isBackorder && allowBackorder">
                         <span class="inline-flex items-center gap-2.5">
-                            <x-gazu.icon name="cart" size="20"/>
                             <span>{{ $backorderLabel }}</span>
                             <span class="opacity-70">·</span>
                             <span class="gazu-mono"><span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴</span>
