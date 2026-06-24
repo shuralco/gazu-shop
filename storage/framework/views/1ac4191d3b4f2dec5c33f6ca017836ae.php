@@ -448,15 +448,8 @@
                 <div class="gazu-grid-product-rhs mt-4">
                     
                     <div>
-                        <?php if($isBackorder): ?>
-                            
-                            <div class="mb-2.5">
-                                <span class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--gazu-blue)]">
-                                    <span class="w-2 h-2 rounded-full bg-[var(--gazu-blue)]"></span>
-                                    Під замовлення
-                                </span>
-                            </div>
-                        <?php elseif($stockStatusModel): ?>
+                        
+                        <?php if(! $isBackorder && $stockStatusModel): ?>
                             <div class="mb-2.5">
                                 <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalad88f7cb9026c66df0388f34b883b8a5 = $attributes; } ?>

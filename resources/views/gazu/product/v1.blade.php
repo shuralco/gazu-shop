@@ -376,16 +376,9 @@
                     {{-- Central column — condition · brand · article · availability
                          + warehouse picker. Syncs the buy-panel via `warehouse-selected`. --}}
                     <div>
-                        @if($isBackorder)
-                            {{-- Без складу → «Під замовлення» (не показуємо зелене
-                                 «В наявності», щоб не суперечити кнопці й доставці). --}}
-                            <div class="mb-2.5">
-                                <span class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--gazu-blue)]">
-                                    <span class="w-2 h-2 rounded-full bg-[var(--gazu-blue)]"></span>
-                                    Під замовлення
-                                </span>
-                            </div>
-                        @elseif($stockStatusModel)
+                        {{-- Backorder: верхній бейдж прибрано (наявність видно в картці
+                             й на кнопці). Зелений статус — лише для товарів у наявності. --}}
+                        @if(! $isBackorder && $stockStatusModel)
                             <div class="mb-2.5">
                                 <x-gazu.stock :status="$stockStatus"/>
                             </div>
