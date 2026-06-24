@@ -5,7 +5,7 @@
 <?php if($this->hasUnsavedDataChangesAlert()): ?>
     <?php if(FilamentView::hasSpaMode()): ?>
             <?php
-        $__scriptKey = '1583320601-8';
+        $__scriptKey = '1583320601-0';
         ob_start();
     ?>
             <script>
@@ -55,7 +55,7 @@
     ?>
     <?php else: ?>
             <?php
-        $__scriptKey = '1583320601-9';
+        $__scriptKey = '1583320601-1';
         ob_start();
     ?>
             <script>

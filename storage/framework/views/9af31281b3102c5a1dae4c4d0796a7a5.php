@@ -4,6 +4,7 @@ $__newAttributes = [];
 $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'p',               // Product model (with inventory.warehouse eager-loaded)
     'basePrice' => 0,  // fallback price when an inventory row has no own price
+    'groupActive' => false, // персональна гуртова ціна → склад не перебиває ціну
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -22,6 +23,7 @@ unset($__newAttributes);
 foreach (array_filter(([
     'p',               // Product model (with inventory.warehouse eager-loaded)
     'basePrice' => 0,  // fallback price when an inventory row has no own price
+    'groupActive' => false, // персональна гуртова ціна → склад не перебиває ціну
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -71,7 +73,10 @@ unset($__defined_vars, $__key, $__value); ?>
                         <?php
                             $available = max(0, $s->quantity - $s->reserved_quantity);
                             // Ціна складу в грн (display_price конвертує за валютою рядка).
-                            $sPrice    = $s->price !== null ? (float) ($s->display_price ?? $s->price) : (float) $basePrice;
+                            // Для гурт-клієнта гуртова ціна головніша за склад → basePrice.
+                            $sPrice    = $groupActive
+                                ? (float) $basePrice
+                                : ($s->price !== null ? (float) ($s->display_price ?? $s->price) : (float) $basePrice);
                             $whCity    = $s->warehouse->city ?: $s->warehouse->name;
                             $whEta     = $s->warehouse->delivery_eta ?: '1-3 дні';
                             $disabled  = $available <= 0;

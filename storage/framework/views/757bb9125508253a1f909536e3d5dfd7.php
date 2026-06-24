@@ -19,7 +19,10 @@
         $navItems = [
             ['orders', 'Мої замовлення', 'box', route('gazu.account')],
         ];
-        if (module('gazu_garage')->enabled()) {
+        // Route::has guard: модуль може бути enabled у БД, але роут не
+        // зареєстрований (route:cache зібрано при вимкненому модулі) → route()
+        // кидав 500 на /kabinet. Перевіряємо наявність роуту перед посиланням.
+        if (module('gazu_garage')->enabled() && \Illuminate\Support\Facades\Route::has('gazu.garage')) {
             $navItems[] = ['garage', 'Гараж · мої авто', 'car', route('gazu.garage')];
         }
         $navItems = array_merge($navItems, [

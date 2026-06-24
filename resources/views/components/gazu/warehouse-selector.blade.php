@@ -6,6 +6,7 @@
     'brandUrl' => null,           // optional catalog-filter link for the brand
     'article' => null,            // SKU / OEM article number
     'condition' => 'Новий',       // condition badge — shown at the top of this column
+    'availabilityLabel' => null,  // статус наявності (напр. «Під замовлення») — для no-stock картки
 ])
 @php
     $stocks = $warehouseStocks instanceof \Illuminate\Support\Collection ? $warehouseStocks : collect();
@@ -160,5 +161,79 @@
                 </span>
             </button>
         @endif
+    </div>
+@else
+    {{-- Немає складських залишків (товар «під замовлення»): замість порожньої
+         колонки показуємо метадані + блок постачання. Не дублюємо праву панель
+         (доставка/гарантія) — фокус на самому товарі та процесі замовлення. --}}
+    @php
+        $availLabel = $availabilityLabel ?: 'Під замовлення';
+    @endphp
+    <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-5 font-text">
+        <div class="pb-4 mb-4 border-b border-[var(--gazu-line)]">
+            @if($condition)
+                <div class="mb-3"><x-gazu.condition-badge value="{{ $condition }}"/></div>
+            @endif
+            <dl class="flex flex-col gap-2 m-0">
+                @if($brand)
+                    <div class="flex items-baseline gap-3">
+                        <dt class="w-20 shrink-0 text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)]">Бренд</dt>
+                        <dd class="m-0 text-[13px] font-medium text-[var(--gazu-ink)]">
+                            @if($brandUrl)
+                                <a wire:navigate href="{{ $brandUrl }}" class="text-[var(--gazu-ink)] no-underline hover:text-[var(--gazu-blue)] transition-colors">{{ $brand }}</a>
+                            @else
+                                {{ $brand }}
+                            @endif
+                        </dd>
+                    </div>
+                @endif
+                @if($article)
+                    <div class="flex items-baseline gap-3">
+                        <dt class="w-20 shrink-0 text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)]">Артикул</dt>
+                        <dd class="m-0">
+                            <button type="button"
+                                    x-data="{ copied: false }"
+                                    @click="navigator.clipboard.writeText(@js($article)).then(() => {
+                                        copied = true;
+                                        window.gazuToast && window.gazuToast('Артикул скопійовано', 'success');
+                                        setTimeout(() => copied = false, 1500);
+                                    }).catch(() => window.gazuToast && window.gazuToast('Не вдалося скопіювати', 'error'))"
+                                    title="Скопіювати артикул"
+                                    class="text-[13px] font-medium gazu-mono text-[var(--gazu-ink)] inline-flex items-center gap-1.5 cursor-pointer bg-transparent border-0 p-0 hover:text-[var(--gazu-blue)] transition-colors">
+                                <span>{{ $article }}</span>
+                                <svg x-show="!copied" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="opacity-55 shrink-0"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <svg x-show="copied" x-cloak width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gazu-success)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="shrink-0"><path d="M20 6 9 17l-5-5"/></svg>
+                            </button>
+                        </dd>
+                    </div>
+                @endif
+                <div class="flex items-baseline gap-3">
+                    <dt class="w-20 shrink-0 text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)]">Наявність</dt>
+                    <dd class="m-0 text-[13px] font-medium text-[var(--gazu-blue)]">{{ $availLabel }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        <div class="text-[11px] uppercase tracking-wide font-semibold text-[var(--gazu-graphite)] mb-3">Постачання під замовлення</div>
+        <ul class="flex flex-col gap-3 m-0 p-0 list-none">
+            <li class="flex items-start gap-2.5">
+                <span class="w-6 h-6 rounded-md bg-[var(--gazu-mist)] text-[var(--gazu-blue)] flex items-center justify-center flex-shrink-0 mt-px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+                </span>
+                <span class="text-[13px] text-[var(--gazu-ink)] leading-snug">Привеземо <b>під замовлення</b> — додамо позицію до найближчого постачання</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+                <span class="w-6 h-6 rounded-md bg-[var(--gazu-mist)] text-[var(--gazu-blue)] flex items-center justify-center flex-shrink-0 mt-px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </span>
+                <span class="text-[13px] text-[var(--gazu-ink)] leading-snug">Менеджер <b>зателефонує</b> й підтвердить наявність і точний термін</span>
+            </li>
+            <li class="flex items-start gap-2.5">
+                <span class="w-6 h-6 rounded-md bg-[var(--gazu-mist)] text-[var(--gazu-blue)] flex items-center justify-center flex-shrink-0 mt-px">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                </span>
+                <span class="text-[13px] text-[var(--gazu-ink)] leading-snug">Без передоплати — натисніть «Під замовлення» або «Купити в один клік»</span>
+            </li>
+        </ul>
     </div>
 @endif

@@ -134,21 +134,14 @@
         'refurbished' => 'https://schema.org/RefurbishedCondition',
         'Відновлений' => 'https://schema.org/RefurbishedCondition',
     ];
-    $productImageUrl = is_object($p) ? ($p->image ?? null) : null;
-    if ($productImageUrl && ! \Illuminate\Support\Str::startsWith($productImageUrl, ['http://','https://'])) {
-        $productImageUrl = url('/storage/'.$productImageUrl);
+    // Реальне завантажене фото товару (тільки воно — без демо-заглушок по типу).
+    $realImg = is_object($p) ? ($p->image ?? null) : null;
+    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://','https://'])) {
+        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
     }
-    // Fallback на part-image webp pool (same algorithm як у product card).
-    if (! $productImageUrl) {
-        $kindForJsonLd = is_object($p) ? ($p->image_kind ?? 'filter') : 'filter';
-        $poolDir = public_path("img/parts/{$kindForJsonLd}");
-        $poolFiles = is_dir($poolDir) ? glob($poolDir.'/*.webp') : [];
-        sort($poolFiles);
-        if (! empty($poolFiles)) {
-            $seedForLd = is_object($p) ? (int) ($p->id ?? 0) : 0;
-            $productImageUrl = url("/img/parts/{$kindForJsonLd}/".basename($poolFiles[abs($seedForLd) % count($poolFiles)]));
-        }
-    }
+    // Для og/JSON-LD: реальне фото → інакше нейтральний og-default (НЕ демо-пул,
+    // щоб у соцмережах/пошуку не світились випадкові «фото запчастин»).
+    $productImageUrl = $realImg ?: url('/og-default.png');
 
     $jsonldProduct = [
         '@context' => 'https://schema.org',
@@ -242,12 +235,12 @@
             
             <?php
                 $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0;
-                $variants = [
-                    $gallerySeed,
-                    $gallerySeed + 1001,
-                    $gallerySeed + 2002,
-                    $gallerySeed + 3003,
-                ];
+                $galleryCode = $oem ?: (is_object($p) ? ($p->sku ?? null) : null);
+                // Без реального фото — ОДНЕ генеративне демо-фото (не 4 «ракурси»,
+                // щоб не плодити дублі). З реальним фото лишаємо 4 слоти (legacy).
+                $variants = $realImg
+                    ? [$gallerySeed, $gallerySeed + 1001, $gallerySeed + 2002, $gallerySeed + 3003]
+                    : [$gallerySeed];
             ?>
             <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
                 <div class="aspect-square bg-[var(--gazu-surface)] rounded-lg relative overflow-hidden cursor-zoom-in group/main"
@@ -256,26 +249,26 @@
                     <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $seed): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="absolute inset-0 transition-opacity duration-200"
                              :class="idx === <?php echo e($i); ?> ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                            <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','seed' => $seed,'fit' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                            <?php if($realImg): ?><img src="<?php echo e($realImg); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $gallerySeed]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($seed),'fit' => true]); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($gallerySeed)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                         </div>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                     
@@ -338,26 +331,26 @@
                         <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $seed): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
                                  :class="idx === <?php echo e($i); ?> ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                                <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','seed' => $seed,'fit' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                                <?php if($realImg): ?><img src="<?php echo e($realImg); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $gallerySeed]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($seed),'fit' => true]); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($gallerySeed)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                             </div>
                         <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/70 text-white gazu-mono text-[12px] rounded">
@@ -373,26 +366,26 @@
                                 @click="idx = <?php echo e($i); ?>" @mouseover="idx = <?php echo e($i); ?>"
                                 :class="idx === <?php echo e($i); ?> ? 'ring-2 ring-[var(--gazu-blue)] ring-offset-1' : 'opacity-80 hover:opacity-100'"
                                 class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden cursor-pointer transition-all">
-                            <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','seed' => $seed,'fit' => true,'class' => 'w-full h-full object-cover']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                            <?php if($realImg): ?><img src="<?php echo e($realImg); ?>" alt="" class="w-full h-full object-cover"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $gallerySeed]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($seed),'fit' => true,'class' => 'w-full h-full object-cover']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($gallerySeed)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                         </button>
                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                 </div>
@@ -472,14 +465,14 @@
                         <?php endif; ?>
                         <?php if (isset($component)) { $__componentOriginale6917196fe944ed89b394fcef90e97f3 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginale6917196fe944ed89b394fcef90e97f3 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.warehouse-selector','data' => ['warehouseStocks' => $warehouseStocks ?? collect(),'closestWarehouseId' => $closestWarehouseId ?? null,'price' => $price,'brand' => $brand,'brandUrl' => $brandUrl,'article' => $oemReal]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.warehouse-selector','data' => ['warehouseStocks' => $warehouseStocks ?? collect(),'closestWarehouseId' => $closestWarehouseId ?? null,'price' => $price,'brand' => $brand,'brandUrl' => $brandUrl,'article' => $oemReal,'availabilityLabel' => $stockStatusModel?->label]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.warehouse-selector'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['warehouseStocks' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($warehouseStocks ?? collect()),'closestWarehouseId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($closestWarehouseId ?? null),'price' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($price),'brand' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brand),'brandUrl' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brandUrl),'article' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oemReal)]); ?>
+<?php $component->withAttributes(['warehouseStocks' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($warehouseStocks ?? collect()),'closestWarehouseId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($closestWarehouseId ?? null),'price' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($price),'brand' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brand),'brandUrl' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brandUrl),'article' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oemReal),'availabilityLabel' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stockStatusModel?->label)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginale6917196fe944ed89b394fcef90e97f3)): ?>

@@ -378,7 +378,8 @@
                             :price="$price"
                             :brand="$brand"
                             :brandUrl="$brandUrl"
-                            :article="$oemReal"/>
+                            :article="$oemReal"
+                            :availabilityLabel="$stockStatusModel?->label"/>
                     </div>
 
                     {{-- buy-panel --}}

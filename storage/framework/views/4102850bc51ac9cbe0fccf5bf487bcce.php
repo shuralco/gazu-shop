@@ -364,6 +364,32 @@
 
             <div class="space-y-4">
                 
+                <label class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-white/5 rounded-lg cursor-pointer">
+                    <?php if (isset($component)) { $__componentOriginal087b30d649cc1cfb7e9ea8930c92d47d = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal087b30d649cc1cfb7e9ea8930c92d47d = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'filament::components.input.checkbox','data' => ['wire:model.live' => 'megaMenuShowCounts']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('filament::input.checkbox'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['wire:model.live' => 'megaMenuShowCounts']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal087b30d649cc1cfb7e9ea8930c92d47d)): ?>
+<?php $attributes = $__attributesOriginal087b30d649cc1cfb7e9ea8930c92d47d; ?>
+<?php unset($__attributesOriginal087b30d649cc1cfb7e9ea8930c92d47d); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal087b30d649cc1cfb7e9ea8930c92d47d)): ?>
+<?php $component = $__componentOriginal087b30d649cc1cfb7e9ea8930c92d47d; ?>
+<?php unset($__componentOriginal087b30d649cc1cfb7e9ea8930c92d47d); ?>
+<?php endif; ?>
+                    <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Показувати кількість товарів біля категорій</span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">(вимкніть, якщо товари ще не розкладені по підкатегоріях — щоб не показувати «0»)</span>
+                </label>
+
+                
                 <div class="flex items-center gap-4 p-3 bg-gray-50 dark:bg-white/5 rounded-lg">
                     <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Відкриття каталогу:</span>
                     <select wire:model.live="catalogTrigger" class="fi-input block w-full rounded-lg border-none bg-white px-3 py-1.5 text-sm text-gray-950 shadow-sm ring-1 ring-inset ring-gray-950/10 transition focus:ring-2 focus:ring-inset focus:ring-primary-500 dark:bg-white/5 dark:text-white dark:ring-white/10">

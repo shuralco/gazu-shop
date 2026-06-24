@@ -47,24 +47,6 @@
 <?php $__env->startSection('title', $catalogSeoTitle ?: $title . ' — GAZU'); ?>
 
 
-<?php
-    $catalogOgImage = null;
-    if (isset($products) && $products->isNotEmpty()) {
-        $firstP = $products->first();
-        if (is_object($firstP)) {
-            $kindOg = $firstP->image_kind ?? 'filter';
-            $poolDirOg = public_path("img/parts/{$kindOg}");
-            $filesOg = is_dir($poolDirOg) ? glob($poolDirOg.'/*.webp') : [];
-            sort($filesOg);
-            if (! empty($filesOg)) {
-                $catalogOgImage = url("/img/parts/{$kindOg}/".basename($filesOg[abs((int) ($firstP->id ?? 0)) % count($filesOg)]));
-            }
-        }
-    }
-?>
-<?php if($catalogOgImage): ?>
-    <?php $__env->startSection('og_image', $catalogOgImage); ?>
-<?php endif; ?>
 
 <?php $__env->startSection('jsonld'); ?>
     <?php
