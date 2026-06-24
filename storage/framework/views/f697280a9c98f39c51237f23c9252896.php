@@ -7,6 +7,10 @@
     $kind = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');
     $price = is_object($p) ? (float)($p->price ?? 0) : (float)($p['price'] ?? 0);
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
+    $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
+    $pId = is_object($p) ? ($p->id ?? 0) : ($p['id'] ?? 0);
+    $pRealImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+    if ($pRealImg && ! \Illuminate\Support\Str::startsWith($pRealImg, ['http://','https://'])) { $pRealImg = url('/storage/'.ltrim((string)$pRealImg,'/')); }
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
 
@@ -61,52 +65,52 @@
         <div class="gazu-grid-buy-left">
             <div>
                 <div class="aspect-[4/3] bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
-                    <div class="absolute inset-0 flex items-center justify-center">
-                        <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','size' => '320']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                    <div class="absolute inset-0 flex items-center justify-center overflow-hidden">
+                        <?php if($pRealImg): ?><img src="<?php echo e($pRealImg); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $oem,'seed' => $pId,'class' => 'w-full h-full']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','size' => '320']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oem),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($pId),'class' => 'w-full h-full']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                     </div>
                 </div>
                 <div class="grid grid-cols-5 gap-2 mt-2">
                     <?php for($i = 1; $i <= 5; $i++): ?>
-                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer" style="border: 1.5px solid <?php echo e($i === 1 ? 'var(--gazu-ink)' : 'var(--gazu-line)'); ?>;">
-                            <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','size' => '50']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid <?php echo e($i === 1 ? 'var(--gazu-ink)' : 'var(--gazu-line)'); ?>;">
+                            <?php if($pRealImg): ?><img src="<?php echo e($pRealImg); ?>" alt="" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $oem,'seed' => $pId,'class' => 'w-full h-full']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','size' => '50']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oem),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($pId),'class' => 'w-full h-full']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                         </div>
                     <?php endfor; ?>
                 </div>

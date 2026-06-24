@@ -10,6 +10,9 @@
     $price = is_object($p) ? (float)($p->price ?? 0) : (float)($p['price'] ?? 0);
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
+    $pId = is_object($p) ? ($p->id ?? 0) : ($p['id'] ?? 0);
+    $pRealImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+    if ($pRealImg && ! \Illuminate\Support\Str::startsWith($pRealImg, ['http://','https://'])) { $pRealImg = url('/storage/'.ltrim((string)$pRealImg,'/')); }
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
 
@@ -63,14 +66,14 @@
             <div class="grid grid-cols-[60px_1fr] gap-3">
                 <div class="flex flex-col gap-2">
                     @for($i = 0; $i < 4; $i++)
-                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
-                            <x-gazu.part-image kind="{{ $kind }}" size="42"/>
+                        <div class="aspect-square bg-[var(--gazu-paper)] rounded-md flex items-center justify-center cursor-pointer overflow-hidden" style="border: 1.5px solid {{ $i === 0 ? 'var(--gazu-ink)' : 'var(--gazu-line)' }};">
+                            @if($pRealImg)<img src="{{ $pRealImg }}" alt="" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$oem" :seed="$pId" class="w-full h-full"/>@endif
                         </div>
                     @endfor
                 </div>
                 <div class="aspect-square bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] relative overflow-hidden">
                     <div class="absolute inset-0 flex items-center justify-center">
-                        <x-gazu.part-image kind="{{ $kind }}" size="400"/>
+                        @if($pRealImg)<img src="{{ $pRealImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$oem" :seed="$pId" class="w-full h-full"/>@endif
                     </div>
                 </div>
             </div>
@@ -153,8 +156,8 @@
 
     {{-- Sticky buy bar --}}
     <div class="fixed bottom-0 left-0 right-0 bg-[var(--gazu-surface)] border-t border-[var(--gazu-line)] px-6 py-3.5 flex items-center gap-4 z-10" style="box-shadow: 0 -4px 16px rgba(14,27,44,0.06);">
-        <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center shrink-0">
-            <x-gazu.part-image kind="{{ $kind }}" size="36"/>
+        <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center shrink-0 overflow-hidden">
+            @if($pRealImg)<img src="{{ $pRealImg }}" alt="" class="w-11 h-11 object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$oem" :seed="$pId" class="w-11 h-11"/>@endif
         </div>
         <div class="min-w-0 flex-1 hidden md:block">
             <div class="text-[13px] font-medium text-[var(--gazu-ink)] truncate">{{ $name }}</div>

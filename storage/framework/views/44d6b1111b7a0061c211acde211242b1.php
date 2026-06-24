@@ -81,29 +81,34 @@
                             $warranty = $gazuSettings['gazu_default_warranty'] ?? '12 місяців';
                             $analogsArr = is_object($p) ? ($p->analogs ?? null) : ($p['analogs'] ?? null);
                             $analogsCount = is_array($analogsArr) ? count($analogsArr) : 0;
+                            $cName = is_object($p) ? ($p->name ?? '') : ($p['name'] ?? '');
+                            $cOem = is_object($p) ? ($p->oem ?? $p->sku ?? '') : ($p['oem'] ?? '');
+                            $cId = is_object($p) ? ($p->id ?? 0) : ($p['id'] ?? 0);
+                            $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+                            if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
                         ?>
                         <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
-                            <a wire:navigate href="<?php echo e($url); ?>" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center" style="aspect-ratio:1;">
-                                <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','size' => '140']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                            <a wire:navigate href="<?php echo e($url); ?>" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center overflow-hidden" style="aspect-ratio:1;">
+                                <?php if($rImg): ?><img src="<?php echo e($rImg); ?>" alt="<?php echo e($cName); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $cName,'code' => $cOem,'seed' => $cId,'class' => 'w-full h-full']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','size' => '140']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($cName),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($cOem),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($cId),'class' => 'w-full h-full']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                             </a>
                             <div class="flex flex-col gap-2 min-w-0">
                                 <div class="flex items-center gap-2 flex-wrap">

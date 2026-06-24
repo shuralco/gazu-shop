@@ -89,30 +89,32 @@
                                     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
                                     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
                                     $fits = is_object($p) ? ($p->fits ?? '') : ($p['fits'] ?? '');
+                                    $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+                                    if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
                                 ?>
                                 <tr class="border-b border-[var(--gazu-line)]">
                                     <td class="py-2.5 px-2" style="width: 56px;">
-                                        <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded flex items-center justify-center">
-                                            <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($kind).'','size' => '38']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+                                        <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded flex items-center justify-center overflow-hidden">
+                                            <?php if($rImg): ?><img src="<?php echo e($rImg); ?>" alt="<?php echo e($name); ?>" class="w-11 h-11 object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $oem,'seed' => is_object($p)?($p->id??0):0,'class' => 'w-11 h-11']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($kind).'','size' => '38']); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oem),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(is_object($p)?($p->id??0):0),'class' => 'w-11 h-11']); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
-<?php endif; ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
+<?php endif; ?><?php endif; ?>
                                         </div>
                                     </td>
                                     <td class="py-2.5 px-2">

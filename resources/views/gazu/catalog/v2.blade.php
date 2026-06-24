@@ -55,11 +55,13 @@
                                     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
                                     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
                                     $fits = is_object($p) ? ($p->fits ?? '') : ($p['fits'] ?? '');
+                                    $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+                                    if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
                                 @endphp
                                 <tr class="border-b border-[var(--gazu-line)]">
                                     <td class="py-2.5 px-2" style="width: 56px;">
-                                        <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded flex items-center justify-center">
-                                            <x-gazu.part-image kind="{{ $kind }}" size="38"/>
+                                        <div class="w-11 h-11 bg-[var(--gazu-paper)] rounded flex items-center justify-center overflow-hidden">
+                                            @if($rImg)<img src="{{ $rImg }}" alt="{{ $name }}" class="w-11 h-11 object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$oem" :seed="is_object($p)?($p->id??0):0" class="w-11 h-11"/>@endif
                                         </div>
                                     </td>
                                     <td class="py-2.5 px-2">
