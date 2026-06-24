@@ -63,7 +63,6 @@ class CartController extends Controller
     public function contents(Request $request)
     {
         $cart = Cart::getCart();
-        $kinds = ['filter', 'pad', 'shock', 'bulb', 'oil', 'spark', 'bearing', 'wiper'];
 
         $items = [];
         foreach ($cart as $key => $item) {
@@ -82,15 +81,9 @@ class CartController extends Controller
             if (! $isDefault) {
                 $image = \Illuminate\Support\Str::startsWith($stored, 'http') ? $stored : url('/'.ltrim((string) $stored, '/'));
             } else {
-                $kind = $kinds[$productId % count($kinds)];
-                $dir = public_path("img/parts/{$kind}");
-                $files = is_dir($dir) ? glob($dir.'/*.webp') : [];
-                sort($files);
-                if (! empty($files)) {
-                    $image = asset("img/parts/{$kind}/".basename($files[$productId % count($files)]));
-                } elseif (is_file(public_path("img/parts/{$kind}.webp"))) {
-                    $image = asset("img/parts/{$kind}.webp");
-                }
+                // Без реального фото — генеративна заглушка (як у каталозі/картці),
+                // а не spark-демо з img/parts.
+                $image = \App\Support\PartImage::monogram((string) $title, $productId);
             }
 
             $items[] = [

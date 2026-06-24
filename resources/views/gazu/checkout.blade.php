@@ -640,12 +640,17 @@
                         $price = (float) ($item['price'] ?? 0);
                         $qty = (int) ($item['quantity'] ?? 1);
                         $productId = is_numeric($key) ? (int) $key : (int) explode('_', (string) $key)[0];
-                        $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
-                        $kind = $kinds[$productId % count($kinds)];
+                        $img = $item['image'] ?? null;
+                        $hasReal = $img && ! \Illuminate\Support\Str::contains((string) $img, 'default-product');
+                        $imgUrl = $hasReal ? (\Illuminate\Support\Str::startsWith($img, 'http') ? $img : asset('storage/'.ltrim((string) $img, '/storage/'))) : null;
                     @endphp
                     <div class="flex gap-3 items-center group" x-data="{ removing: false }">
-                        <div class="w-12 h-12 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
-                            <x-gazu.part-image kind="{{ $kind }}" size="42"/>
+                        <div class="w-12 h-12 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0 overflow-hidden">
+                            @if($imgUrl)
+                                <img src="{{ $imgUrl }}" alt="" class="w-12 h-12 object-contain">
+                            @else
+                                <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-12 h-12"/>
+                            @endif
                         </div>
                         <div class="flex-1 min-w-0">
                             <div class="text-[13px] text-[var(--gazu-ink)] truncate">{{ $title }}</div>

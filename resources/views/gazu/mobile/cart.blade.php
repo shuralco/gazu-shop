@@ -22,12 +22,17 @@
                     $title = is_array($item['title'] ?? null) ? ($item['title']['uk'] ?? '—') : ($item['title'] ?? '—');
                     $price = (float) ($item['price'] ?? 0);
                     $qty = (int) ($item['quantity'] ?? 1);
-                    $kinds = ['filter','pad','shock','bulb','oil','spark','bearing','wiper'];
-                    $kind = $kinds[$productId % count($kinds)];
+                    $img = $item['image'] ?? null;
+                    $hasReal = $img && ! \Illuminate\Support\Str::contains((string) $img, 'default-product');
+                    $imgUrl = $hasReal ? (\Illuminate\Support\Str::startsWith($img, 'http') ? $img : asset('storage/'.ltrim((string) $img, '/storage/'))) : null;
                 @endphp
                 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-3 flex gap-3 items-center">
-                    <div class="w-16 h-16 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0">
-                        <x-gazu.part-image kind="{{ $kind }}" size="50"/>
+                    <div class="w-16 h-16 bg-[var(--gazu-paper)] rounded flex items-center justify-center shrink-0 overflow-hidden">
+                        @if($imgUrl)
+                            <img src="{{ $imgUrl }}" alt="" class="w-16 h-16 object-contain">
+                        @else
+                            <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-16 h-16"/>
+                        @endif
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-medium text-[var(--gazu-ink)] truncate">{{ $title }}</div>

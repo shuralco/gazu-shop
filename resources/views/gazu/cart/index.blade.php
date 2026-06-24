@@ -138,9 +138,9 @@
                             @if($imgUrl)
                                 <img src="{{ $imgUrl }}" alt="" class="w-20 h-20 object-contain"
                                      onerror="this.style.display='none'; this.nextElementSibling?.style.removeProperty('display');">
-                                <x-gazu.part-image kind="{{ $kind }}" size="80" style="display:none"/>
+                                <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-20 h-20" style="display:none"/>
                             @else
-                                <x-gazu.part-image kind="{{ $kind }}" size="80"/>
+                                <x-gazu.product-placeholder :name="$title" :seed="$productId" class="w-20 h-20"/>
                             @endif
                         </div>
                         <div class="min-w-0">
