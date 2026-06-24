@@ -115,6 +115,19 @@ if [ "$WARM_CACHE_AFTER_DEPLOY" != "false" ]; then
       fi
       sleep 3
     done
+
+    # POST-CUTOVER re-clear: при rolling-деплої СТАРИЙ контейнер ще обслуговує
+    # трафік між нашим responsecache:clear (вище) і своєю зупинкою — і встигає
+    # перекешувати STALE HTML (старий код/asset-хеші), який потім тримається
+    # 7-денним TTL. Раніше це лікувалось лише ручним restart+довбанням голого
+    # URL. Тепер: чекаємо ~90с (cutover завершено, старий контейнер зупинено),
+    # чистимо ще раз і доварюємо — БЕЗ ручного втручання на кожен реліз.
+    if [ "$POST_CUTOVER_RECLEAR" != "false" ]; then
+      sleep 90
+      echo "[entrypoint] post-cutover re-clear ResponseCache (anti-stale)..."
+      php artisan responsecache:clear 2>&1 | sed 's/^/[reclear] /' || true
+      php artisan cache:warm --products 2>&1 | sed 's/^/[rewarm] /' || true
+    fi
   ) &
 fi
 
