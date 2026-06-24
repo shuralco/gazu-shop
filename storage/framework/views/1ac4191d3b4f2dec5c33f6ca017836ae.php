@@ -435,11 +435,28 @@
                     </div>
                 <?php endif; ?>
 
+                <?php
+                    // Backorder = немає жодного складу з доступним залишком (>0).
+                    // Точно та сама умова, що й «available<=0» у кнопці buy-panel —
+                    // тож наявність/доставка/кнопка завжди узгоджені між собою.
+                    $whColl = $warehouseStocks ?? collect();
+                    $isBackorder = ! $whColl->contains(
+                        fn ($s) => (($s->quantity ?? 0) - ($s->reserved_quantity ?? 0)) > 0
+                    );
+                ?>
                 
                 <div class="gazu-grid-product-rhs mt-4">
                     
                     <div>
-                        <?php if($stockStatusModel): ?>
+                        <?php if($isBackorder): ?>
+                            
+                            <div class="mb-2.5">
+                                <span class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--gazu-blue)]">
+                                    <span class="w-2 h-2 rounded-full bg-[var(--gazu-blue)]"></span>
+                                    Під замовлення
+                                </span>
+                            </div>
+                        <?php elseif($stockStatusModel): ?>
                             <div class="mb-2.5">
                                 <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalad88f7cb9026c66df0388f34b883b8a5 = $attributes; } ?>
@@ -465,14 +482,14 @@
                         <?php endif; ?>
                         <?php if (isset($component)) { $__componentOriginale6917196fe944ed89b394fcef90e97f3 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginale6917196fe944ed89b394fcef90e97f3 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.warehouse-selector','data' => ['warehouseStocks' => $warehouseStocks ?? collect(),'closestWarehouseId' => $closestWarehouseId ?? null,'price' => $price,'brand' => $brand,'brandUrl' => $brandUrl,'article' => $oemReal,'availabilityLabel' => $stockStatusModel?->label]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.warehouse-selector','data' => ['warehouseStocks' => $warehouseStocks ?? collect(),'closestWarehouseId' => $closestWarehouseId ?? null,'price' => $price,'brand' => $brand,'brandUrl' => $brandUrl,'article' => $oemReal,'availabilityLabel' => $isBackorder ? 'Під замовлення' : $stockStatusModel?->label]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.warehouse-selector'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['warehouseStocks' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($warehouseStocks ?? collect()),'closestWarehouseId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($closestWarehouseId ?? null),'price' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($price),'brand' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brand),'brandUrl' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brandUrl),'article' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oemReal),'availabilityLabel' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($stockStatusModel?->label)]); ?>
+<?php $component->withAttributes(['warehouseStocks' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($warehouseStocks ?? collect()),'closestWarehouseId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($closestWarehouseId ?? null),'price' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($price),'brand' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brand),'brandUrl' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($brandUrl),'article' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oemReal),'availabilityLabel' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($isBackorder ? 'Під замовлення' : $stockStatusModel?->label)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginale6917196fe944ed89b394fcef90e97f3)): ?>
@@ -508,14 +525,14 @@
                         <?php endif; ?>
                         <?php if (isset($component)) { $__componentOriginala3e840b12d118989ee8c832a7cb2ee4b = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginala3e840b12d118989ee8c832a7cb2ee4b = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.buy-panel','data' => ['price' => $price,'oldPrice' => $oldPrice,'qty' => $qty,'discount' => $discount,'productId' => is_object($p) ? ($p->id ?? null) : null,'name' => $name,'warehouseStocks' => $warehouseStocks ?? collect(),'closestWarehouseId' => $closestWarehouseId ?? null,'groupActive' => $isGroupPrice]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.buy-panel','data' => ['price' => $price,'oldPrice' => $oldPrice,'qty' => $qty,'discount' => $discount,'productId' => is_object($p) ? ($p->id ?? null) : null,'name' => $name,'warehouseStocks' => $warehouseStocks ?? collect(),'closestWarehouseId' => $closestWarehouseId ?? null,'groupActive' => $isGroupPrice,'isBackorder' => $isBackorder]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.buy-panel'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['price' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($price),'oldPrice' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oldPrice),'qty' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($qty),'discount' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($discount),'productId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(is_object($p) ? ($p->id ?? null) : null),'name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'warehouseStocks' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($warehouseStocks ?? collect()),'closestWarehouseId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($closestWarehouseId ?? null),'groupActive' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($isGroupPrice)]); ?>
+<?php $component->withAttributes(['price' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($price),'oldPrice' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oldPrice),'qty' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($qty),'discount' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($discount),'productId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute(is_object($p) ? ($p->id ?? null) : null),'name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'warehouseStocks' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($warehouseStocks ?? collect()),'closestWarehouseId' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($closestWarehouseId ?? null),'groupActive' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($isGroupPrice),'isBackorder' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($isBackorder)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginala3e840b12d118989ee8c832a7cb2ee4b)): ?>

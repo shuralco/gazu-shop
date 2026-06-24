@@ -8,6 +8,7 @@
     'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
     'closestWarehouseId' => null, // geo-detected warehouse ID (Phase 6)
     'groupActive' => false, // персональна гуртова ціна групи активна → склад не перебиває ціну
+    'isBackorder' => false, // немає складських залишків → «під замовлення» (без «доставка завтра»)
 ])
 @php
     $priceFmt = number_format((float) $price, 0, '.', ' ');
@@ -203,6 +204,11 @@
                 $bTitle = str_replace('{date}', $tomorrow, (string) ($badge['title'] ?? ''));
                 $bSub = $badge['subtitle'] ?? '';
                 $bIcon = $badge['icon'] ?? 'shield';
+                // Backorder: «доставка завтра» оманлива → показуємо реальний статус.
+                if ($isBackorder && $bIcon === 'truck') {
+                    $bTitle = 'Постачання під замовлення';
+                    $bSub = 'Менеджер уточнить термін · Нова Пошта по Україні';
+                }
             @endphp
             <div class="flex gap-2.5 items-start">
                 <x-gazu.icon :name="$bIcon" size="18" stroke="var(--gazu-blue)" class="shrink-0"/>

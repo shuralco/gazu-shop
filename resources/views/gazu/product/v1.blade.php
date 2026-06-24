@@ -362,12 +362,30 @@
                     </div>
                 @endif
 
+                @php
+                    // Backorder = немає жодного складу з доступним залишком (>0).
+                    // Точно та сама умова, що й «available<=0» у кнопці buy-panel —
+                    // тож наявність/доставка/кнопка завжди узгоджені між собою.
+                    $whColl = $warehouseStocks ?? collect();
+                    $isBackorder = ! $whColl->contains(
+                        fn ($s) => (($s->quantity ?? 0) - ($s->reserved_quantity ?? 0)) > 0
+                    );
+                @endphp
                 {{-- Nested grid: central info+warehouse column · buy-panel --}}
                 <div class="gazu-grid-product-rhs mt-4">
                     {{-- Central column — condition · brand · article · availability
                          + warehouse picker. Syncs the buy-panel via `warehouse-selected`. --}}
                     <div>
-                        @if($stockStatusModel)
+                        @if($isBackorder)
+                            {{-- Без складу → «Під замовлення» (не показуємо зелене
+                                 «В наявності», щоб не суперечити кнопці й доставці). --}}
+                            <div class="mb-2.5">
+                                <span class="inline-flex items-center gap-1.5 text-[13px] font-medium text-[var(--gazu-blue)]">
+                                    <span class="w-2 h-2 rounded-full bg-[var(--gazu-blue)]"></span>
+                                    Під замовлення
+                                </span>
+                            </div>
+                        @elseif($stockStatusModel)
                             <div class="mb-2.5">
                                 <x-gazu.stock :status="$stockStatus"/>
                             </div>
@@ -379,7 +397,7 @@
                             :brand="$brand"
                             :brandUrl="$brandUrl"
                             :article="$oemReal"
-                            :availabilityLabel="$stockStatusModel?->label"/>
+                            :availabilityLabel="$isBackorder ? 'Під замовлення' : $stockStatusModel?->label"/>
                     </div>
 
                     {{-- buy-panel --}}
@@ -411,7 +429,8 @@
                             :name="$name"
                             :warehouseStocks="$warehouseStocks ?? collect()"
                             :closestWarehouseId="$closestWarehouseId ?? null"
-                            :groupActive="$isGroupPrice"/>
+                            :groupActive="$isGroupPrice"
+                            :isBackorder="$isBackorder"/>
                     </div>
                 </div>
             </div>

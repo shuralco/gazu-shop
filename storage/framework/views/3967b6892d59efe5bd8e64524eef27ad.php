@@ -11,6 +11,7 @@ $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
     'closestWarehouseId' => null, // geo-detected warehouse ID (Phase 6)
     'groupActive' => false, // персональна гуртова ціна групи активна → склад не перебиває ціну
+    'isBackorder' => false, // немає складських залишків → «під замовлення» (без «доставка завтра»)
 ]));
 
 foreach ($attributes->all() as $__key => $__value) {
@@ -36,6 +37,7 @@ foreach (array_filter(([
     'warehouseStocks' => null, // Collection of Inventory rows with .warehouse loaded
     'closestWarehouseId' => null, // geo-detected warehouse ID (Phase 6)
     'groupActive' => false, // персональна гуртова ціна групи активна → склад не перебиває ціну
+    'isBackorder' => false, // немає складських залишків → «під замовлення» (без «доставка завтра»)
 ]), 'is_string', ARRAY_FILTER_USE_KEY) as $__key => $__value) {
     $$__key = $$__key ?? $__value;
 }
@@ -332,6 +334,11 @@ unset($__defined_vars, $__key, $__value); ?>
                 $bTitle = str_replace('{date}', $tomorrow, (string) ($badge['title'] ?? ''));
                 $bSub = $badge['subtitle'] ?? '';
                 $bIcon = $badge['icon'] ?? 'shield';
+                // Backorder: «доставка завтра» оманлива → показуємо реальний статус.
+                if ($isBackorder && $bIcon === 'truck') {
+                    $bTitle = 'Постачання під замовлення';
+                    $bSub = 'Менеджер уточнить термін · Нова Пошта по Україні';
+                }
             ?>
             <div class="flex gap-2.5 items-start">
                 <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
