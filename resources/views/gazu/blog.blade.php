@@ -58,7 +58,9 @@
                         @if($imgSrc)
                             <img src="{{ $imgSrc }}" alt="" class="w-full h-full object-cover">
                         @else
-                            <x-gazu.part-image kind="{{ $kind }}" size="120"/>
+                            {{-- Пост без фото: нейтральна генеративна заглушка з назвою,
+                                 НЕ авто-деталь SVG (брейк-пад на статті — безглуздо). --}}
+                            <x-gazu.product-placeholder :name="$title" :seed="$post->id ?? 0" class="w-full h-full"/>
                         @endif
                     </div>
                     <div class="p-5 flex flex-col gap-2 flex-1">
