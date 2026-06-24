@@ -85,6 +85,7 @@
                                     $kind = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');
                                     $price = is_object($p) ? (float)($p->price ?? 0) : (float)($p['price'] ?? 0);
                                     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
+                                    $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
                                     $condition = is_object($p) ? ($p->condition ?? 'Новий') : ($p['condition'] ?? 'Новий');
                                     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
                                     $fits = is_object($p) ? ($p->fits ?? '') : ($p['fits'] ?? '');

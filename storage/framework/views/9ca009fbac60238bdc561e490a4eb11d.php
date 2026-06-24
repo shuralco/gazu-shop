@@ -84,7 +84,7 @@
         <?php endif; ?>
         <div class="flex items-baseline gap-2 mb-2">
             <span class="gazu-display text-2xl font-bold"><?php echo e(number_format((float)($p->price ?? 0), 0, '.', ' ')); ?> ₴</span>
-            <?php if(!empty($p->old_price)): ?><span class="text-sm text-[var(--gazu-muted)] line-through"><?php echo e(number_format((float)$p->old_price, 0, '.', ' ')); ?> ₴</span><?php endif; ?>
+            <?php if((float)($p->old_price ?? 0) > (float)($p->price ?? 0)): ?><span class="text-sm text-[var(--gazu-muted)] line-through"><?php echo e(number_format((float)$p->old_price, 0, '.', ' ')); ?> ₴</span><?php endif; ?>
         </div>
         <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalad88f7cb9026c66df0388f34b883b8a5 = $attributes; } ?>

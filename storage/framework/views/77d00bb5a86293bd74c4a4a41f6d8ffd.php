@@ -36,6 +36,14 @@ unset($__defined_vars, $__key, $__value); ?>
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $qty = is_object($p) ? (int) ($p->qty ?? $p->quantity ?? 0) : (int) ($p['qty'] ?? 0);
+    // Реальне фото товару (пріоритет над генеративною заглушкою) — як у картці.
+    $realImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://', 'https://'])) {
+        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
+    }
+    // Backorder: товар без залишку можна замовити, якщо увімкнено в адмінці.
+    $allowBackorder = isset($gazuSettings) ? (bool) ($gazuSettings['gazu_allow_backorder'] ?? true) : true;
+    $isBackorder = $qty <= 0;
     $rating = is_object($p) ? (float) ($p->rating ?? 0) : 0;
     $reviews = is_object($p) ? (int) ($p->reviews ?? $p->reviews_count ?? 0) : 0;
     $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
@@ -45,26 +53,30 @@ unset($__defined_vars, $__key, $__value); ?>
 ?>
 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-3 flex gap-3 hover:border-[var(--gazu-line-2)] transition-colors">
     <a wire:navigate href="<?php echo e($url); ?>" class="shrink-0 w-24 h-24 sm:w-32 sm:h-32 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center relative no-underline overflow-hidden p-1.5">
-        <?php if (isset($component)) { $__componentOriginale68023f03052ea26bcc9e709ab0711bb = $component; } ?>
-<?php if (isset($attributes)) { $__attributesOriginale68023f03052ea26bcc9e709ab0711bb = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.part-image','data' => ['kind' => ''.e($image).'','seed' => $productId,'fit' => true]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
-<?php $component->withName('gazu.part-image'); ?>
+        <?php if($realImg): ?>
+            <img src="<?php echo e($realImg); ?>" alt="<?php echo e($name); ?>" loading="lazy" class="w-full h-full object-contain"/>
+        <?php else: ?>
+            <?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $oem,'seed' => $productId,'kind' => $image]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['kind' => ''.e($image).'','seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'fit' => true]); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($oem),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($productId),'kind' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($image)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
-<?php if (isset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $attributes = $__attributesOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__attributesOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $attributes = $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
-<?php if (isset($__componentOriginale68023f03052ea26bcc9e709ab0711bb)): ?>
-<?php $component = $__componentOriginale68023f03052ea26bcc9e709ab0711bb; ?>
-<?php unset($__componentOriginale68023f03052ea26bcc9e709ab0711bb); ?>
+<?php if (isset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
+<?php $component = $__componentOriginalb3ce7faecba1472bd9053bf57696fe20; ?>
+<?php unset($__componentOriginalb3ce7faecba1472bd9053bf57696fe20); ?>
 <?php endif; ?>
+        <?php endif; ?>
         <?php if($oem): ?>
             <span class="absolute top-1 left-1 px-1.5 py-0.5 gazu-mono text-[9px] text-[var(--gazu-graphite)] bg-[var(--gazu-surface)]/90 border border-[var(--gazu-line)] rounded"><?php echo e($oem); ?></span>
         <?php endif; ?>
@@ -100,7 +112,12 @@ unset($__defined_vars, $__key, $__value); ?>
         <?php if($excerpt): ?>
             <p class="text-[12px] text-[var(--gazu-graphite)] m-0 line-clamp-2 hidden sm:block"><?php echo e($excerpt); ?></p>
         <?php endif; ?>
-        <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
+        <?php if($isBackorder && $allowBackorder): ?>
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--gazu-blue)]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-blue)]"></span>Під замовлення
+            </span>
+        <?php else: ?>
+            <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalad88f7cb9026c66df0388f34b883b8a5 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.stock','data' => ['qty' => ''.e($qty).'']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.stock'); ?>
@@ -120,6 +137,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $component = $__componentOriginalad88f7cb9026c66df0388f34b883b8a5; ?>
 <?php unset($__componentOriginalad88f7cb9026c66df0388f34b883b8a5); ?>
 <?php endif; ?>
+        <?php endif; ?>
     </div>
     <div class="shrink-0 flex flex-col items-end gap-2 min-w-[160px]">
         <div class="flex flex-col items-end">
@@ -128,7 +146,7 @@ unset($__defined_vars, $__key, $__value); ?>
             <?php endif; ?>
             <span class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] leading-none"><?php echo e(number_format($price, 0, '.', ' ')); ?> <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span></span>
         </div>
-        <?php if($productId && $qty > 0): ?>
+        <?php if($productId && ($qty > 0 || $allowBackorder)): ?>
             <button type="button"
                     x-data="{ busy: false, added: false }"
                     @click.prevent="
@@ -171,7 +189,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php if (isset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
 <?php $component = $__componentOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
 <?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
-<?php endif; ?> У кошик</span>
+<?php endif; ?> <?php echo e($qty > 0 ? 'У кошик' : 'Замовити'); ?></span>
                 <span x-show="added" x-cloak>✓ Додано</span>
             </button>
         <?php else: ?>

@@ -28,7 +28,7 @@
         @endif
         <div class="flex items-baseline gap-2 mb-2">
             <span class="gazu-display text-2xl font-bold">{{ number_format((float)($p->price ?? 0), 0, '.', ' ') }} ₴</span>
-            @if(!empty($p->old_price))<span class="text-sm text-[var(--gazu-muted)] line-through">{{ number_format((float)$p->old_price, 0, '.', ' ') }} ₴</span>@endif
+            @if((float)($p->old_price ?? 0) > (float)($p->price ?? 0))<span class="text-sm text-[var(--gazu-muted)] line-through">{{ number_format((float)$p->old_price, 0, '.', ' ') }} ₴</span>@endif
         </div>
         <x-gazu.stock qty="{{ (int)($p->qty ?? 12) }}"/>
 

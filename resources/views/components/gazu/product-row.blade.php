@@ -8,6 +8,14 @@
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $qty = is_object($p) ? (int) ($p->qty ?? $p->quantity ?? 0) : (int) ($p['qty'] ?? 0);
+    // Реальне фото товару (пріоритет над генеративною заглушкою) — як у картці.
+    $realImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
+    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://', 'https://'])) {
+        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
+    }
+    // Backorder: товар без залишку можна замовити, якщо увімкнено в адмінці.
+    $allowBackorder = isset($gazuSettings) ? (bool) ($gazuSettings['gazu_allow_backorder'] ?? true) : true;
+    $isBackorder = $qty <= 0;
     $rating = is_object($p) ? (float) ($p->rating ?? 0) : 0;
     $reviews = is_object($p) ? (int) ($p->reviews ?? $p->reviews_count ?? 0) : 0;
     $url = is_object($p) ? ($p->url ?? '#') : ($p['url'] ?? '#');
@@ -17,7 +25,11 @@
 @endphp
 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-3 flex gap-3 hover:border-[var(--gazu-line-2)] transition-colors">
     <a wire:navigate href="{{ $url }}" class="shrink-0 w-24 h-24 sm:w-32 sm:h-32 bg-[var(--gazu-paper)] rounded-md flex items-center justify-center relative no-underline overflow-hidden p-1.5">
-        <x-gazu.part-image kind="{{ $image }}" :seed="$productId" fit/>
+        @if($realImg)
+            <img src="{{ $realImg }}" alt="{{ $name }}" loading="lazy" class="w-full h-full object-contain"/>
+        @else
+            <x-gazu.product-placeholder :name="$name" :code="$oem" :seed="$productId" :kind="$image"/>
+        @endif
         @if($oem)
             <span class="absolute top-1 left-1 px-1.5 py-0.5 gazu-mono text-[9px] text-[var(--gazu-graphite)] bg-[var(--gazu-surface)]/90 border border-[var(--gazu-line)] rounded">{{ $oem }}</span>
         @endif
@@ -34,7 +46,13 @@
         @if($excerpt)
             <p class="text-[12px] text-[var(--gazu-graphite)] m-0 line-clamp-2 hidden sm:block">{{ $excerpt }}</p>
         @endif
-        <x-gazu.stock qty="{{ $qty }}"/>
+        @if($isBackorder && $allowBackorder)
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--gazu-blue)]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-blue)]"></span>Під замовлення
+            </span>
+        @else
+            <x-gazu.stock qty="{{ $qty }}"/>
+        @endif
     </div>
     <div class="shrink-0 flex flex-col items-end gap-2 min-w-[160px]">
         <div class="flex flex-col items-end">
@@ -43,7 +61,7 @@
             @endif
             <span class="gazu-display text-[22px] font-bold text-[var(--gazu-ink)] leading-none">{{ number_format($price, 0, '.', ' ') }} <span class="text-sm font-medium text-[var(--gazu-graphite)]">₴</span></span>
         </div>
-        @if($productId && $qty > 0)
+        @if($productId && ($qty > 0 || $allowBackorder))
             <button type="button"
                     x-data="{ busy: false, added: false }"
                     @click.prevent="
@@ -67,7 +85,7 @@
                     :class="added ? 'bg-[var(--gazu-success)]' : 'bg-[var(--gazu-ink)] hover:bg-[var(--gazu-ink-2)]'"
                     :disabled="busy"
                     class="w-full px-4 py-2 text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-colors">
-                <span x-show="!added"><x-gazu.icon name="cart" size="14"/> У кошик</span>
+                <span x-show="!added"><x-gazu.icon name="cart" size="14"/> {{ $qty > 0 ? 'У кошик' : 'Замовити' }}</span>
                 <span x-show="added" x-cloak>✓ Додано</span>
             </button>
         @else
