@@ -60,6 +60,10 @@ unset($__defined_vars, $__key, $__value); ?>
     $rawQty = is_object($p) ? ($p->qty ?? $p->quantity ?? 0) : ($p['qty'] ?? 0);
     $qty = is_numeric($rawQty) ? (int) $rawQty : 0;
     $stockStatus = is_object($p) ? ($p->stock_status ?? null) : ($p['stock_status'] ?? null);
+    // Backorder: товар без залишку (qty<=0) можна замовити, якщо увімкнено в адмінці.
+    $allowBackorder = isset($gazuSettings) ? (bool) ($gazuSettings['gazu_allow_backorder'] ?? true) : true;
+    $isBackorder = $qty <= 0;
+    $canOrder = $qty > 0 || $allowBackorder;
     $rawRating = is_object($p) ? ($p->rating ?? 0) : ($p['rating'] ?? 0);
     $rating = is_numeric($rawRating) ? (float) $rawRating : 0.0;
     $rawReviews = is_object($p) ? ($p->reviews_count ?? $p->reviews ?? 0) : ($p['reviews'] ?? 0);
@@ -232,7 +236,12 @@ unset($__defined_vars, $__key, $__value); ?>
             </div>
         <?php endif; ?>
 
-        <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
+        <?php if($isBackorder && $allowBackorder): ?>
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--gazu-blue)]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-blue)]"></span>Під замовлення
+            </span>
+        <?php else: ?>
+            <?php if (isset($component)) { $__componentOriginalad88f7cb9026c66df0388f34b883b8a5 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalad88f7cb9026c66df0388f34b883b8a5 = $attributes; } ?>
 <?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.stock','data' => ['qty' => ''.e($qty).'','status' => $stockStatus]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.stock'); ?>
@@ -252,6 +261,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php $component = $__componentOriginalad88f7cb9026c66df0388f34b883b8a5; ?>
 <?php unset($__componentOriginalad88f7cb9026c66df0388f34b883b8a5); ?>
 <?php endif; ?>
+        <?php endif; ?>
 
         <div class="flex items-end gap-2 mt-1 flex-wrap">
             <?php if($oldPrice): ?>
@@ -276,7 +286,7 @@ unset($__defined_vars, $__key, $__value); ?>
         <?php endif; ?>
 
         <div class="flex gap-1.5 mt-1">
-            <?php if($productId && $qty > 0): ?>
+            <?php if($productId && ($qty > 0 || $allowBackorder)): ?>
                 <button type="button"
                         x-data="{ busy: false, added: false }"
                         @click.prevent="
@@ -321,7 +331,8 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php if (isset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
 <?php $component = $__componentOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
 <?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
-<?php endif; ?> У кошик
+<?php endif; ?> <?php echo e($qty > 0 ? 'У кошик' : 'Замовити'); ?>
+
                     </span>
                     <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
@@ -383,7 +394,7 @@ unset($__defined_vars, $__key, $__value); ?>
 <?php endif; ?> Деталі
                 </a>
             <?php endif; ?>
-            <?php if($productId && $qty > 0): ?>
+            <?php if($productId && ($qty > 0 || $allowBackorder)): ?>
                 <button type="button"
                         title="Купити в 1 клік"
                         x-data

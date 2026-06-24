@@ -143,7 +143,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 <template x-if="compareAt && compareAt > price">
                     <span class="text-sm text-[var(--gazu-muted)] line-through" x-text="fmt(compareAt) + ' ₴'"></span>
                 </template>
-                <?php if($oldPrice && !$stocks->isNotEmpty()): ?>
+                <?php if((float) $oldPrice > (float) $price && !$stocks->isNotEmpty()): ?>
                     <span class="text-sm text-[var(--gazu-muted)] line-through"><?php echo e(number_format((float)$oldPrice, 0, '.', ' ')); ?> ₴</span>
                     <?php if($discount): ?>
                         <span class="text-[11px] gazu-mono px-1.5 py-0.5 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] rounded">−<?php echo e($discount); ?>%</span>

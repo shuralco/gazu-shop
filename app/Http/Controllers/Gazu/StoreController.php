@@ -523,7 +523,13 @@ class StoreController extends Controller
             $product = $this->mockProducts(1)->first();
         }
 
-        $related = $this->fetchProducts(4);
+        // «Часто купують разом» — виключаємо сам товар (інакше самореком,
+        // особливо коли в каталозі мало позицій). Беремо із запасом → take(4).
+        $currentId = (int) ($product->id ?? 0);
+        $related = $this->fetchProducts(6)
+            ->reject(fn ($x) => (int) (is_object($x) ? ($x->id ?? 0) : ($x['id'] ?? 0)) === $currentId)
+            ->take(4)
+            ->values();
 
         // Real "analogs": same-category products excluding self.
         // Prefer explicit related_products pivot if any rows of type='analog' exist;

@@ -32,6 +32,10 @@
     $rawQty = is_object($p) ? ($p->qty ?? $p->quantity ?? 0) : ($p['qty'] ?? 0);
     $qty = is_numeric($rawQty) ? (int) $rawQty : 0;
     $stockStatus = is_object($p) ? ($p->stock_status ?? null) : ($p['stock_status'] ?? null);
+    // Backorder: товар без залишку (qty<=0) можна замовити, якщо увімкнено в адмінці.
+    $allowBackorder = isset($gazuSettings) ? (bool) ($gazuSettings['gazu_allow_backorder'] ?? true) : true;
+    $isBackorder = $qty <= 0;
+    $canOrder = $qty > 0 || $allowBackorder;
     $rawRating = is_object($p) ? ($p->rating ?? 0) : ($p['rating'] ?? 0);
     $rating = is_numeric($rawRating) ? (float) $rawRating : 0.0;
     $rawReviews = is_object($p) ? ($p->reviews_count ?? $p->reviews ?? 0) : ($p['reviews'] ?? 0);
@@ -129,7 +133,13 @@
             </div>
         @endif
 
-        <x-gazu.stock qty="{{ $qty }}" :status="$stockStatus"/>
+        @if($isBackorder && $allowBackorder)
+            <span class="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--gazu-blue)]">
+                <span class="w-1.5 h-1.5 rounded-full bg-[var(--gazu-blue)]"></span>Під замовлення
+            </span>
+        @else
+            <x-gazu.stock qty="{{ $qty }}" :status="$stockStatus"/>
+        @endif
 
         <div class="flex items-end gap-2 mt-1 flex-wrap">
             @if($oldPrice)
@@ -153,7 +163,7 @@
         @endif
 
         <div class="flex gap-1.5 mt-1">
-            @if($productId && $qty > 0)
+            @if($productId && ($qty > 0 || $allowBackorder))
                 <button type="button"
                         x-data="{ busy: false, added: false }"
                         @click.prevent="
@@ -179,7 +189,7 @@
                         :disabled="busy"
                         class="flex-1 min-w-0 py-2.5 text-[var(--gazu-on-brand)] border-0 rounded-md text-[13px] font-medium cursor-pointer inline-flex items-center justify-center gap-1.5 whitespace-nowrap transition-all duration-200">
                     <span x-show="!busy && !added" class="inline-flex items-center gap-1.5">
-                        <x-gazu.icon name="cart" size="14"/> У кошик
+                        <x-gazu.icon name="cart" size="14"/> {{ $qty > 0 ? 'У кошик' : 'Замовити' }}
                     </span>
                     <svg x-show="busy" x-cloak class="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
                         <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-opacity="0.25" stroke-width="3"/>
@@ -203,7 +213,7 @@
                     <x-gazu.icon name="cart" size="14"/> Деталі
                 </a>
             @endif
-            @if($productId && $qty > 0)
+            @if($productId && ($qty > 0 || $allowBackorder))
                 <button type="button"
                         title="Купити в 1 клік"
                         x-data

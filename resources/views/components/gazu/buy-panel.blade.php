@@ -107,7 +107,7 @@
                 <template x-if="compareAt && compareAt > price">
                     <span class="text-sm text-[var(--gazu-muted)] line-through" x-text="fmt(compareAt) + ' ₴'"></span>
                 </template>
-                @if($oldPrice && !$stocks->isNotEmpty())
+                @if((float) $oldPrice > (float) $price && !$stocks->isNotEmpty())
                     <span class="text-sm text-[var(--gazu-muted)] line-through">{{ number_format((float)$oldPrice, 0, '.', ' ') }} ₴</span>
                     @if($discount)
                         <span class="text-[11px] gazu-mono px-1.5 py-0.5 bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] rounded">−{{ $discount }}%</span>
