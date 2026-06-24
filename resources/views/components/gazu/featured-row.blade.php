@@ -1,5 +1,7 @@
 @props(['title' => '', 'badge' => null, 'items' => [], 'viewAll' => null, 'bare' => false])
-@if(! empty($items))
+{{-- count() замість empty(): empty() на Collection-об'єкті ЗАВЖДИ false →
+     показувало самотній заголовок без карток. --}}
+@if(($items instanceof \Countable || is_array($items) ? count($items) : (! empty($items))))
 {{-- `bare=true` пропускає gazu-container wrapper — використовуй коли блок
      рендериться ВСЕРЕДИНІ existing gazu-container (product page).
      Інакше отримуєш double padding 48px (стиснутий вигляд). --}}

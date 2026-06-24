@@ -27,7 +27,8 @@ foreach ($attributes->all() as $__key => $__value) {
 }
 
 unset($__defined_vars, $__key, $__value); ?>
-<?php if(! empty($items)): ?>
+
+<?php if(($items instanceof \Countable || is_array($items) ? count($items) : (! empty($items)))): ?>
 
 <section class="<?php echo e($bare ? 'pt-8 pb-2' : 'gazu-container pt-4 pb-2'); ?>">
     <div class="flex items-baseline gap-3.5 mb-4">
