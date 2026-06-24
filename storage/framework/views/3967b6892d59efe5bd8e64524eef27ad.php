@@ -71,10 +71,16 @@ unset($__defined_vars, $__key, $__value); ?>
             'eta'     => $s->warehouse->delivery_eta ?: '1-3 дні',
         ],
     ])->all();
+    // Backorder: дозвіл із адмінки (gazu_allow_backorder) + текст кнопки.
+    $allowBackorder = (bool) ($gazuSettings['gazu_allow_backorder'] ?? true);
+    $backorderLabel = $gazuSettings['gazu_backorder_button_label'] ?? 'Замовити під замовлення';
 ?>
 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
      x-data="{
         q: 1,
+        isBackorder: <?php echo e($isBackorder ? 'true' : 'false'); ?>,
+        allowBackorder: <?php echo e($allowBackorder ? 'true' : 'false'); ?>,
+        get canOrder() { return this.available > 0 || (this.isBackorder && this.allowBackorder); },
         warehouseId: <?php echo e($defaultWh ? (int) $defaultWh : 'null'); ?>,
         stocks: <?php echo e(\Illuminate\Support\Js::from($stocksJs)); ?>,
         // AJAX variant-switching state — overrides take priority over per-warehouse stock.
@@ -96,7 +102,7 @@ unset($__defined_vars, $__key, $__value); ?>
         fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); },
         adding: false,
         async addToCart() {
-            if (this.adding || this.available <= 0) return;
+            if (this.adding || !this.canOrder) return;
             this.adding = true;
             try {
                 const r = await fetch('<?php echo e(route('gazu.cart.add')); ?>', {
@@ -227,9 +233,10 @@ unset($__defined_vars, $__key, $__value); ?>
         
         <?php if($productId): ?>
             <div class="grid grid-cols-1 gap-2.5">
-                <button type="submit" :disabled="available <= 0"
-                    :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
+                <button type="submit" :disabled="!canOrder"
+                    :class="!canOrder ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
                     class="w-full h-14 border-0 rounded-lg text-[15px] font-semibold inline-flex items-center justify-center gap-2.5 transition-colors">
+                    
                     <template x-if="available > 0">
                         <span class="inline-flex items-center gap-2.5">
                             <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
@@ -257,7 +264,36 @@ unset($__defined_vars, $__key, $__value); ?>
                             <span class="gazu-mono"><span x-text="fmt(price * q)"><?php echo e($priceFmt); ?></span> ₴</span>
                         </span>
                     </template>
-                    <template x-if="available <= 0">
+                    
+                    <template x-if="available <= 0 && isBackorder && allowBackorder">
+                        <span class="inline-flex items-center gap-2.5">
+                            <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'cart','size' => '20']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.icon'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['name' => 'cart','size' => '20']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
+<?php $attributes = $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
+<?php unset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
+<?php $component = $__componentOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
+<?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
+<?php endif; ?>
+                            <span><?php echo e($backorderLabel); ?></span>
+                            <span class="opacity-70">·</span>
+                            <span class="gazu-mono"><span x-text="fmt(price * q)"><?php echo e($priceFmt); ?></span> ₴</span>
+                        </span>
+                    </template>
+                    
+                    <template x-if="available <= 0 && !(isBackorder && allowBackorder)">
                         <span class="inline-flex items-center gap-2">
                             <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>

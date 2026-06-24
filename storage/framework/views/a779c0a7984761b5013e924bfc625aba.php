@@ -344,7 +344,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 <span class="w-6 h-6 rounded-md bg-[var(--gazu-mist)] text-[var(--gazu-blue)] flex items-center justify-center flex-shrink-0 mt-px">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
                 </span>
-                <span class="text-[13px] text-[var(--gazu-ink)] leading-snug">Без передоплати — натисніть «Під замовлення» або «Купити в один клік»</span>
+                <span class="text-[13px] text-[var(--gazu-ink)] leading-snug">Без передоплати — оформте замовлення або «Купити в один клік»</span>
             </li>
         </ul>
     </div>

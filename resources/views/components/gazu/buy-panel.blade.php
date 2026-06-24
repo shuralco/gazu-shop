@@ -32,10 +32,16 @@
             'eta'     => $s->warehouse->delivery_eta ?: '1-3 дні',
         ],
     ])->all();
+    // Backorder: дозвіл із адмінки (gazu_allow_backorder) + текст кнопки.
+    $allowBackorder = (bool) ($gazuSettings['gazu_allow_backorder'] ?? true);
+    $backorderLabel = $gazuSettings['gazu_backorder_button_label'] ?? 'Замовити під замовлення';
 @endphp
 <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-[10px] p-6 font-text"
      x-data="{
         q: 1,
+        isBackorder: {{ $isBackorder ? 'true' : 'false' }},
+        allowBackorder: {{ $allowBackorder ? 'true' : 'false' }},
+        get canOrder() { return this.available > 0 || (this.isBackorder && this.allowBackorder); },
         warehouseId: {{ $defaultWh ? (int) $defaultWh : 'null' }},
         stocks: {{ \Illuminate\Support\Js::from($stocksJs) }},
         // AJAX variant-switching state — overrides take priority over per-warehouse stock.
@@ -57,7 +63,7 @@
         fmt(n) { return Math.round(n).toLocaleString('uk-UA').replace(/,/g, ' '); },
         adding: false,
         async addToCart() {
-            if (this.adding || this.available <= 0) return;
+            if (this.adding || !this.canOrder) return;
             this.adding = true;
             try {
                 const r = await fetch('{{ route('gazu.cart.add') }}', {
@@ -153,9 +159,10 @@
         {{-- Primary + secondary action grid: cart fills width, 1-click is companion --}}
         @if($productId)
             <div class="grid grid-cols-1 gap-2.5">
-                <button type="submit" :disabled="available <= 0"
-                    :class="available <= 0 ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
+                <button type="submit" :disabled="!canOrder"
+                    :class="!canOrder ? 'bg-[var(--gazu-line-2)] text-[var(--gazu-graphite)] cursor-not-allowed' : 'bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] hover:bg-[var(--gazu-ink-2)] cursor-pointer'"
                     class="w-full h-14 border-0 rounded-lg text-[15px] font-semibold inline-flex items-center justify-center gap-2.5 transition-colors">
+                    {{-- В наявності --}}
                     <template x-if="available > 0">
                         <span class="inline-flex items-center gap-2.5">
                             <x-gazu.icon name="cart" size="20"/>
@@ -164,7 +171,17 @@
                             <span class="gazu-mono"><span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴</span>
                         </span>
                     </template>
-                    <template x-if="available <= 0">
+                    {{-- Backorder, але замовлення дозволено в адмінці → активна кнопка --}}
+                    <template x-if="available <= 0 && isBackorder && allowBackorder">
+                        <span class="inline-flex items-center gap-2.5">
+                            <x-gazu.icon name="cart" size="20"/>
+                            <span>{{ $backorderLabel }}</span>
+                            <span class="opacity-70">·</span>
+                            <span class="gazu-mono"><span x-text="fmt(price * q)">{{ $priceFmt }}</span> ₴</span>
+                        </span>
+                    </template>
+                    {{-- Недоступно (backorder вимкнено або реально немає) → неактивно --}}
+                    <template x-if="available <= 0 && !(isBackorder && allowBackorder)">
                         <span class="inline-flex items-center gap-2">
                             <x-gazu.icon name="clock" size="18"/>
                             Під замовлення

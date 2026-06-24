@@ -178,6 +178,10 @@ class GazuVisualSettings extends Page implements HasForms
         'gazu_oneclick_label' => 'Купити в один клік',
         'gazu_oneclick_message' => 'Менеджер передзвонить за 5 хвилин для уточнення доставки',
 
+        // Backorder — дозволити додавати в кошик товари без складського залишку
+        'gazu_allow_backorder' => true,
+        'gazu_backorder_button_label' => 'Замовити під замовлення',
+
         // Product page — tab "Доставка та оплата"
         'gazu_product_delivery_text' => 'Нова Пошта по Україні · Доставка наступного дня для замовлень до 16:00 · Безкоштовно від 1500 ₴.',
         'gazu_product_payment_text'  => 'Visa / Mastercard, Apple Pay, Google Pay, готівка при отриманні (накладений платіж), безпечна оплата через LiqPay.',
@@ -380,6 +384,14 @@ class GazuVisualSettings extends Page implements HasForms
                                     ->helperText('Якщо вимкнено — кнопка не показується на product page'),
                                 Forms\Components\TextInput::make('gazu_oneclick_label')->label('Текст кнопки'),
                                 Forms\Components\Textarea::make('gazu_oneclick_message')->label('Підпис у модалці після кліку')->rows(2),
+                            ]),
+                        Forms\Components\Section::make('Замовлення «під замовлення»')
+                            ->description('Товари без складського залишку — чи можна додати в кошик і замовити')
+                            ->schema([
+                                Forms\Components\Toggle::make('gazu_allow_backorder')->label('Дозволити замовлення товарів без залишку')
+                                    ->helperText('Увімкнено — кнопка «Замовити» активна навіть без складу (постачання під замовлення). Вимкнено — кнопка неактивна, лише «Купити в 1 клік».'),
+                                Forms\Components\TextInput::make('gazu_backorder_button_label')->label('Текст кнопки для backorder')
+                                    ->placeholder('Замовити під замовлення'),
                             ]),
                         Forms\Components\Section::make('Таб «Доставка та оплата» на товарі')
                             ->schema([
