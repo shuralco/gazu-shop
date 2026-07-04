@@ -168,6 +168,16 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/_dbg/compat/{id}', function ($id) {
         $p = \App\Models\Product::find((int) $id);
         if (! $p) return response()->json(['error' => 'not found']);
+        // ?action=add-unyx — додати рядок Unyx 06 «усі варіації» (демо критерію приймання).
+        if (request('action') === 'add-unyx') {
+            $rows = is_array($p->compatibility) ? $p->compatibility : [];
+            $has = collect($rows)->contains(fn ($r) => is_array($r) && mb_stripos(($r['model'] ?? ''), 'unyx') !== false);
+            if (! $has) {
+                $rows[] = ['make' => 'Volkswagen', 'model' => 'ID Unyx 06', 'years' => '2024-', 'engine' => '', 'all_engines' => true];
+                $p->compatibility = $rows;
+                $p->save(); // Product::saved → CompatibilitySync
+            }
+        }
         $rep = \App\Services\Gazu\CompatibilitySync::syncProductReport($p);
         return response()->json([
             'id' => $p->id,
