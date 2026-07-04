@@ -27,28 +27,23 @@ class SyncCompatibility extends Command
 
         $total = 0;
         $linked = 0;
-        $unresolved = [];
-        $query->chunkById(200, function ($products) use (&$total, &$linked, &$unresolved) {
+        $misses = [];
+        $query->chunkById(200, function ($products) use (&$total, &$linked, &$misses) {
             foreach ($products as $p) {
-                $n = CompatibilitySync::syncProduct($p);
+                $rep = CompatibilitySync::syncProductReport($p);
                 $total++;
-                $linked += $n;
-                // Товар має заповнену сумісність, але жоден рядок не розв'язався
-                // у двигуни (модель/двигун відсутні в довіднику авто).
-                if ($n === 0 && ! empty($p->compatibility)) {
-                    $rows = collect(is_array($p->compatibility) ? $p->compatibility : [])
-                        ->map(fn ($r) => is_array($r) ? trim(($r['make'] ?? '').' '.($r['model'] ?? '')) : '')
-                        ->filter()->take(3)->implode('; ');
-                    $unresolved[] = "#{$p->id} [{$rows}]";
+                $linked += $rep['linked'];
+                foreach ($rep['misses'] as $m) {
+                    $misses[] = "#{$p->id}: {$m}";
                 }
             }
         });
 
         $this->info("[sync-compatibility] Оброблено товарів: {$total}; активних зв'язків двигунів: {$linked}.");
-        if ($unresolved) {
-            $this->warn('[sync-compatibility] Не розв\'язано (модель/двигун відсутні в довіднику): '.count($unresolved));
-            foreach (array_slice($unresolved, 0, 20) as $u) {
-                $this->line('  ⚠ '.$u);
+        if ($misses) {
+            $this->warn('[sync-compatibility] Рядків без прив\'язки: '.count($misses));
+            foreach (array_slice($misses, 0, 30) as $m) {
+                $this->line('  ⚠ '.$m);
             }
         }
 

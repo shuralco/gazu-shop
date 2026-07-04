@@ -40,8 +40,17 @@ class CompatibilitySync
      */
     public static function syncProduct(Product $product): int
     {
+        return static::syncProductReport($product)['linked'];
+    }
+
+    /**
+     * Синхронізує + повертає діагностику по рядках.
+     * @return array{linked:int, misses:list<string>}
+     */
+    public static function syncProductReport(Product $product): array
+    {
         if (! Schema::hasTable('product_compatibility') || ! Schema::hasTable('car_engines')) {
-            return 0;
+            return ['linked' => 0, 'misses' => []];
         }
 
         $rows = $product->compatibility;
@@ -49,6 +58,7 @@ class CompatibilitySync
             $rows = [];
         }
 
+        $misses = [];
         $engineIds = [];
         foreach ($rows as $row) {
             if (! is_array($row)) {
@@ -63,6 +73,10 @@ class CompatibilitySync
                 continue;
             }
 
+            $rawMake = trim((string) ($row['make'] ?? ''));
+            $rawModel = trim((string) ($row['model'] ?? ''));
+            $tag = "{$rawMake}|{$rawModel}|eng='{$engineLabel}'|all=".($allEngines ? '1' : '0');
+
             // Усі моделі, що збігаються за назвою+маркою (з урахуванням дублів).
             $modelIds = \App\Models\CarModel::query()
                 ->whereRaw('LOWER(TRIM(name)) = ?', [$modelName])
@@ -70,6 +84,7 @@ class CompatibilitySync
                 ->pluck('id')
                 ->all();
             if (empty($modelIds)) {
+                $misses[] = "{$tag} → модель НЕ знайдено в довіднику";
                 continue;
             }
 
@@ -85,9 +100,15 @@ class CompatibilitySync
                         || self::normLabel((string) $e->code) === $wanted);
                 if ($match) {
                     $engineIds[] = (int) $match->id;
+                } else {
+                    $misses[] = "{$tag} → двигун '{$engineLabel}' не збігся (моделей: ".count($modelIds).')';
                 }
             } else {
-                foreach ($engQ->pluck('id')->all() as $id) {
+                $ids = $engQ->pluck('id')->all();
+                if (empty($ids)) {
+                    $misses[] = "{$tag} → модель знайдено (id ".implode(',', $modelIds)."), але 0 активних двигунів";
+                }
+                foreach ($ids as $id) {
                     $engineIds[] = (int) $id;
                 }
             }
@@ -96,6 +117,6 @@ class CompatibilitySync
         $engineIds = array_values(array_unique(array_filter($engineIds)));
         $product->compatibleEngines()->sync($engineIds);
 
-        return count($engineIds);
+        return ['linked' => count($engineIds), 'misses' => $misses];
     }
 }
