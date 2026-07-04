@@ -164,33 +164,6 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/cars/engines', [$c, 'apiCarEngines'])->name('api.cars.engines');
     // 4D: compat-check — «чи підходить ця запчастина моєму авто?»
     Route::get('/api/compat/check', [$c, 'apiCompatCheck'])->name('api.compat.check');
-    // TEMP debug (прибрати): сирий JSON сумісності + звіт синку по товару.
-    Route::get('/api/_dbg/compat/{id}', function ($id) {
-        $p = \App\Models\Product::find((int) $id);
-        if (! $p) return response()->json(['error' => 'not found']);
-        // ?action=add-unyx — додати рядок Unyx 06 «усі варіації» (демо критерію приймання).
-        if (request('action') === 'add-unyx') {
-            $rows = is_array($p->compatibility) ? $p->compatibility : [];
-            $has = collect($rows)->contains(fn ($r) => is_array($r) && mb_stripos(($r['model'] ?? ''), 'unyx') !== false);
-            if (! $has) {
-                $rows[] = ['make' => 'Volkswagen', 'model' => 'ID Unyx 06', 'years' => '2024-', 'engine' => '', 'all_engines' => true];
-                $p->compatibility = $rows;
-                $p->save(); // Product::saved → CompatibilitySync
-            }
-        }
-        $rep = \App\Services\Gazu\CompatibilitySync::syncProductReport($p);
-        return response()->json([
-            'id' => $p->id,
-            'compatibility_raw' => $p->compatibility,
-            'report' => $rep,
-            'linked_engine_ids' => $p->compatibleEngines()->pluck('car_engines.id'),
-            'unyx_models_by_name' => \App\Models\CarModel::query()
-                ->whereRaw("LOWER(TRIM(name)) LIKE '%unyx%'")
-                ->with('make:id,name')
-                ->get(['id', 'name', 'make_id', 'is_active'])
-                ->map(fn ($m) => ['id' => $m->id, 'name' => $m->name, 'make' => $m->make?->name, 'active' => $m->is_active, 'engines' => \App\Models\CarEngine::where('model_id', $m->id)->count()]),
-        ]);
-    });
     // Recently-viewed: повертає products by ID list (для recently-viewed block)
     Route::get('/api/products/by-ids', [$c, 'apiProductsByIds'])->name('api.products.by-ids');
 
