@@ -860,8 +860,15 @@ class ProductResource extends Resource
                                                         ->searchable()
                                                         ->placeholder('Оберіть модель'),
                                                 ]),
+                                                // «Усі варіації» — застосувати деталь до ВСІХ двигунів обраної
+                                                // моделі однією галочкою (не додаючи кожен двигун вручну).
+                                                Forms\Components\Toggle::make('all_engines')
+                                                    ->label('Додати всі варіації (усі двигуни цієї моделі)')
+                                                    ->helperText('Увімкнено — деталь застосується до ВСІХ двигунів обраної моделі. Якщо вимкнено й обрано конкретний двигун — лише для нього. Якщо двигун не обрано взагалі — теж застосовується до всіх.')
+                                                    ->default(false)
+                                                    ->inline(false),
                                             ])
-                                            ->itemLabel(fn (array $state) => trim(($state['make'] ?? '').' '.($state['model'] ?? '').' '.($state['years'] ?? '')))
+                                            ->itemLabel(fn (array $state) => trim(($state['make'] ?? '').' '.($state['model'] ?? '').' '.($state['years'] ?? '').(! empty($state['all_engines']) ? ' · усі двигуни' : '')))
                                             ->reorderable()
                                             ->collapsible()
                                             ->columnSpanFull(),

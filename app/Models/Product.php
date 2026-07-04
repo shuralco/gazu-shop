@@ -117,6 +117,16 @@ class Product extends Model
 
             // Invalidate CacheService product caches
             app(\App\Services\CacheService::class)->invalidateProductCaches();
+
+            // Синхронізувати сумісність JSON → pivot (product_compatibility), який
+            // читає фільтр підбору по авто. Лише при зміні поля — не на кожен save.
+            if ($product->wasChanged('compatibility') || $product->wasRecentlyCreated) {
+                try {
+                    \App\Services\Gazu\CompatibilitySync::syncProduct($product);
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            }
         });
 
         static::deleted(function ($product) {

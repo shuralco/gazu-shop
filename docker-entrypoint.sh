@@ -31,6 +31,10 @@ php artisan filament:assets --ansi 2>&1 || echo "[entrypoint] WARNING: filament:
 echo "[entrypoint] Running migrations..."
 php artisan migrate --force 2>&1 || echo "[entrypoint] WARNING: Migrations failed, continuing..."
 
+# Синк сумісності авто: JSON products.compatibility → pivot product_compatibility
+# (self-healing після кожного деплою; ідемпотентно; дешево для наявного каталогу).
+php artisan gazu:sync-compatibility 2>&1 | sed 's/^/[compat] /' || echo "[entrypoint] WARNING: sync-compatibility failed, continuing..."
+
 # Auto-seed demo catalog on FIRST deploy only (when products table is empty).
 # Triggered by MODULE_AUTO_PARTS_SEED=true. Runs ONLY when the products table
 # is genuinely empty — we check the DB directly, not a marker file. The
