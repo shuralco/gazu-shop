@@ -8,24 +8,40 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Синхронізує адмінський JSON `products.compatibility` (марка/модель/роки/двигун)
  * у pivot `product_compatibility` (relation compatibleEngines, engine_id), який
- * реально використовує фільтр підбору по авто на сайті (CatalogQuery::applyVehicle)
- * та віджет «Перевірити сумісність».
+ * реально використовує фільтр підбору по авто (CatalogQuery::applyVehicle) та
+ * віджет «Перевірити сумісність».
  *
  * Правила рядка:
  *   • конкретний двигун (label) і БЕЗ прапорця → лише цей двигун;
  *   • прапорець `all_engines=true` АБО двигун не вказано → ВСІ активні двигуни
  *     обраної моделі («Додати всі варіації»).
  *
- * До цього редактор сумісності писав лише JSON і НЕ впливав на фільтр — тепер
- * впливає. Викликається з Product::saved (при зміні compatibility) + бекфіл
- * командою gazu:sync-compatibility.
+ * Робастність: назви марки/моделі порівнюємо case-insensitive + без зайвих
+ * пробілів; двигуни збираємо з УСІХ моделей, що збігаються (у БД бувають
+ * дублікати CarModel після ре-сідінгу — інакше ->first() міг узяти дубль без
+ * двигунів); label двигуна нормалізуємо (дефіс/тире/пробіли).
  */
 class CompatibilitySync
 {
-    public static function syncProduct(Product $product): void
+    /** Нормалізація для порівняння: trim + сколапс пробілів + lower. */
+    private static function norm(string $s): string
+    {
+        return mb_strtolower(trim(preg_replace('/\s+/u', ' ', $s)));
+    }
+
+    /** Нормалізація label двигуна: додатково зводимо всі тире/дефіси до '-'. */
+    private static function normLabel(string $s): string
+    {
+        return self::norm(preg_replace('/[\x{2010}-\x{2015}\x{2212}]/u', '-', $s));
+    }
+
+    /**
+     * @return int Кількість прив'язаних двигунів (для діагностики).
+     */
+    public static function syncProduct(Product $product): int
     {
         if (! Schema::hasTable('product_compatibility') || ! Schema::hasTable('car_engines')) {
-            return;
+            return 0;
         }
 
         $rows = $product->compatibility;
@@ -38,41 +54,40 @@ class CompatibilitySync
             if (! is_array($row)) {
                 continue;
             }
-            $makeName = trim((string) ($row['make'] ?? ''));
-            $modelName = trim((string) ($row['model'] ?? ''));
+            $makeName = self::norm((string) ($row['make'] ?? ''));
+            $modelName = self::norm((string) ($row['model'] ?? ''));
             $engineLabel = trim((string) ($row['engine'] ?? ''));
-            // «Усі варіації» — явний прапорець АБО двигун не вказано (рядок
-            // рівня моделі логічно означає «підходить для всіх двигунів»).
             $allEngines = ! empty($row['all_engines']) || $engineLabel === '';
 
             if ($makeName === '' || $modelName === '') {
                 continue;
             }
 
-            $model = \App\Models\CarModel::query()
-                ->where('name', $modelName)
-                ->whereHas('make', fn ($q) => $q->where('name', $makeName))
-                ->first();
-            if (! $model) {
+            // Усі моделі, що збігаються за назвою+маркою (з урахуванням дублів).
+            $modelIds = \App\Models\CarModel::query()
+                ->whereRaw('LOWER(TRIM(name)) = ?', [$modelName])
+                ->whereHas('make', fn ($q) => $q->whereRaw('LOWER(TRIM(name)) = ?', [$makeName]))
+                ->pluck('id')
+                ->all();
+            if (empty($modelIds)) {
                 continue;
             }
 
+            $engQ = \App\Models\CarEngine::query()
+                ->whereIn('model_id', $modelIds)
+                ->where('is_active', true);
+
             if (! $allEngines) {
-                $eng = \App\Models\CarEngine::query()
-                    ->where('model_id', $model->id)
-                    ->where('label', $engineLabel)
-                    ->where('is_active', true)
-                    ->value('id');
-                if ($eng) {
-                    $engineIds[] = (int) $eng;
+                // Конкретний двигун — зіставляємо за нормалізованим label (або code).
+                $wanted = self::normLabel($engineLabel);
+                $match = $engQ->get(['id', 'label', 'code'])
+                    ->first(fn ($e) => self::normLabel((string) $e->label) === $wanted
+                        || self::normLabel((string) $e->code) === $wanted);
+                if ($match) {
+                    $engineIds[] = (int) $match->id;
                 }
             } else {
-                $ids = \App\Models\CarEngine::query()
-                    ->where('model_id', $model->id)
-                    ->where('is_active', true)
-                    ->pluck('id')
-                    ->all();
-                foreach ($ids as $id) {
+                foreach ($engQ->pluck('id')->all() as $id) {
                     $engineIds[] = (int) $id;
                 }
             }
@@ -80,5 +95,7 @@ class CompatibilitySync
 
         $engineIds = array_values(array_unique(array_filter($engineIds)));
         $product->compatibleEngines()->sync($engineIds);
+
+        return count($engineIds);
     }
 }
