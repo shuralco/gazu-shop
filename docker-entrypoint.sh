@@ -39,6 +39,13 @@ php artisan gazu:sync-compatibility 2>&1 | sed 's/^/[compat] /' || echo "[entryp
 # зʼявлялись разом із фічею. Правки статей у адмінці перезаписуються.
 php artisan db:seed --class=HelpArticlesSeeder --force 2>&1 | sed 's/^/[help] /' || echo "[entrypoint] WARNING: HelpArticlesSeeder failed, continuing..."
 
+# Разове наповнення фільтрів із назв товарів (каталог заповнювали без поля
+# «Характеристики»). Ідемпотентно: звʼязки не дублюються. Вимикається зняттям
+# GAZU_FILTERS_FROM_TITLES. Те саме доступно кнопкою в адмінці.
+if [ "$GAZU_FILTERS_FROM_TITLES" = "true" ]; then
+    php artisan gazu:filters-from-titles 2>&1 | sed 's/^/[titles] /' || echo "[entrypoint] WARNING: filters-from-titles failed, continuing..."
+fi
+
 # Auto-seed demo catalog on FIRST deploy only (when products table is empty).
 # Triggered by MODULE_AUTO_PARTS_SEED=true. Runs ONLY when the products table
 # is genuinely empty — we check the DB directly, not a marker file. The

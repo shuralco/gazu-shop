@@ -28,7 +28,24 @@ class ListFilters extends ListRecords
                     \Filament\Notifications\Notification::make()
                         ->success()
                         ->title('Фільтри згенеровано')
-                        ->body('Каталог оновиться протягом хвилини.')
+                        ->body('Ключі-ідентифікатори (артикул, крос-код) пропущено — фільтр із них марний.')
+                        ->send();
+                }),
+            Actions\Action::make('fromTitles')
+                ->label('Витягти характеристики з назв')
+                ->icon('heroicon-o-language')
+                ->color('gray')
+                ->modalHeading('Витягти характеристики з назв товарів')
+                ->modalDescription('Розпізнаємо в назвах обʼєм («3.5л»), оригінал/копію та місце встановлення («в салоні», «під капотом») і проставимо їх товарам. Нічого не видаляється, повторний запуск не дублює.')
+                ->modalSubmitActionLabel('Витягти')
+                ->requiresConfirmation()
+                ->action(function () {
+                    \Artisan::call('gazu:filters-from-titles');
+
+                    \Filament\Notifications\Notification::make()
+                        ->success()
+                        ->title('Характеристики витягнуто з назв')
+                        ->body('Перевірте список нижче — зайве можна вимкнути або видалити.')
                         ->send();
                 }),
         ];
