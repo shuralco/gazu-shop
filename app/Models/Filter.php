@@ -29,6 +29,19 @@ class Filter extends Model
         static::deleting(function (self $f) {
             \Illuminate\Support\Facades\DB::table('filter_products')->where('filter_id', $f->id)->delete();
         });
+
+        // Ліва панель каталогу кешує фасети на 10 хв — без скидання правки
+        // характеристик не видно на вітрині.
+        static::saved(fn () => self::flushCatalogCache());
+        static::deleted(fn () => self::flushCatalogCache());
+    }
+
+    public static function flushCatalogCache(): void
+    {
+        $store = \Illuminate\Support\Facades\Cache::store();
+        if (method_exists($store->getStore(), 'tags')) {
+            $store->tags(['catalog'])->flush();
+        }
     }
 
     public function filterGroup(): BelongsTo

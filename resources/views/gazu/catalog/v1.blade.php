@@ -173,6 +173,8 @@
                     :selectedBrands="$selectedBrands"
                     :availableConditions="$availableConditions ?? null"
                     :selectedConditions="$selectedConditions ?? []"
+                    :availableFilters="$availableFilters ?? collect()"
+                    :selectedFilters="$selectedFilters ?? []"
                     :inStockOnly="$inStockOnly"
                     :searchQuery="$searchQuery"
                     :category="$category"/>

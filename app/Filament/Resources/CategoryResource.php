@@ -76,6 +76,14 @@ class CategoryResource extends Resource
                                     ->label('Активна')
                                     ->default(true)
                                     ->columnSpan(1),
+                                Forms\Components\Select::make('filterGroups')
+                                    ->label('Фільтри в каталозі (групи характеристик)')
+                                    ->helperText('Якщо порожньо — у цій категорії показуються всі групи характеристик, що реально трапляються серед її товарів. Оберіть групи, щоб обмежити список.')
+                                    ->relationship('filterGroups', 'title')
+                                    ->multiple()
+                                    ->preload()
+                                    ->searchable()
+                                    ->columnSpanFull(),
                                 Forms\Components\FileUpload::make('image')
                                     ->label('Зображення категорії')
                                     ->helperText('Показується на плитці категорії на головній. PNG/JPG/WEBP. Якщо не задано — використовується стандартне фото.')

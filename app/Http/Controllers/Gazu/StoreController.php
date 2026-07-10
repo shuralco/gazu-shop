@@ -403,6 +403,8 @@ class StoreController extends Controller
             'selectedBrands'      => $query->selectedBrands(),
             'availableConditions' => $query->availableConditions($category),
             'selectedConditions'  => $query->selectedConditions(),
+            'availableFilters'    => $query->availableFilters($category),
+            'selectedFilters'     => $query->selectedFilters(),
             'searchQuery'         => (string) $request->query('q', ''),
             'currentSort'         => (string) $request->query('sort', 'popular'),
             'inStockOnly'         => $request->query('stock') === 'in',

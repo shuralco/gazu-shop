@@ -5,6 +5,8 @@
     'selectedBrands' => [],
     'availableConditions' => null,
     'selectedConditions' => [],
+    'availableFilters' => null,
+    'selectedFilters' => [],
     'inStockOnly' => false,
     'searchQuery' => '',
     'category' => null,
@@ -13,7 +15,7 @@
     $brands = collect($availableBrands);
     $selected = collect($selectedBrands);
     $rangeFromUrl = ['min','max','sort'];
-    $hasFilters = !empty(request('brand')) || request()->filled('min') || request()->filled('max') || request('stock') === 'in';
+    $hasFilters = !empty(request('brand')) || !empty(request('filter')) || request()->filled('min') || request()->filled('max') || request('stock') === 'in';
 @endphp
 
 <form method="GET" action="{{ url()->current() }}" class="font-text text-sm" x-data="{
@@ -268,6 +270,36 @@
             </div>
         </details>
     @endif
+
+    {{-- Характеристики: групи фільтрів (filter_groups → filters), лічильники
+         рахуються у facet-scope без вибору всередині самої групи. --}}
+    @php
+        $filterGroups = collect($availableFilters ?? []);
+        $selectedFilterIds = collect($selectedFilters ?? [])->map(fn ($i) => (int) $i);
+    @endphp
+    @foreach($filterGroups as $group)
+        <details class="border-b border-[var(--gazu-line)] py-3.5" {{ $group->hasSelected ? 'open' : '' }}>
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+                <span class="text-sm font-medium text-[var(--gazu-ink)]">{{ $group->title }}</span>
+                <x-gazu.icon name="chevron" size="16" stroke="var(--gazu-graphite)"/>
+            </summary>
+            <div class="mt-3">
+                @foreach($group->items as $item)
+                    @php $checked = $selectedFilterIds->contains((int) $item->id); @endphp
+                    <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]">
+                        <input type="checkbox" name="filter[]" value="{{ $item->id }}"
+                               class="sr-only" {{ $checked ? 'checked' : '' }}
+                               onchange="this.form.submit()">
+                        <span class="w-4 h-4 border-[1.5px] {{ $checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]' }} rounded inline-flex items-center justify-center shrink-0">
+                            @if($checked)<x-gazu.icon name="check" size="11" stroke="#fff" strokeWidth="2.5"/>@endif
+                        </span>
+                        <span class="flex-1">{{ $item->title }}</span>
+                        <span class="text-xs text-[var(--gazu-muted)] gazu-mono">{{ $item->count }}</span>
+                    </label>
+                @endforeach
+            </div>
+        </details>
+    @endforeach
 
     {{-- Наявність --}}
     <details class="border-b border-[var(--gazu-line)] py-3.5" {{ $inStockOnly ? 'open' : '' }}>

@@ -31,6 +31,9 @@ class FilterGroup extends Model
             \Illuminate\Support\Facades\DB::table('category_filters')->where('filter_group_id', $g->id)->delete();
             \Illuminate\Support\Facades\DB::table('filters')->where('filter_group_id', $g->id)->delete();
         });
+
+        static::saved(fn () => Filter::flushCatalogCache());
+        static::deleted(fn () => Filter::flushCatalogCache());
     }
 
     public function filters(): HasMany

@@ -18,6 +18,7 @@ use Illuminate\Support\Collection;
  *   ?brand[]=Bosch         — multi-select по manufacturer (фолбек коли немає brand_id)
  *   ?min=&max=             — діапазон ціни
  *   ?stock=in              — тільки в наявності
+ *   ?filter[]=12&filter[]=15 — характеристики (filters.id): OR всередині групи, AND між групами
  *   ?sort=popular|price-asc|price-desc|new
  */
 class CatalogQuery
@@ -25,6 +26,7 @@ class CatalogQuery
     public const PER_PAGE = 24;
 
     private static ?bool $hasConditionColumn = null;
+    private static ?bool $hasFilterTables = null;
     private static ?array $categoryTree = null;
 
     public function __construct(private Request $request) {}
@@ -32,6 +34,11 @@ class CatalogQuery
     private static function hasConditionColumn(): bool
     {
         return self::$hasConditionColumn ??= \Schema::hasColumn('products', 'condition');
+    }
+
+    private static function hasFilterTables(): bool
+    {
+        return self::$hasFilterTables ??= \Schema::hasTable('filters') && \Schema::hasTable('filter_products');
     }
 
     public function category(): ?Category
@@ -208,7 +215,13 @@ class CatalogQuery
         $catId = $cat?->id ?? 0;
         $search = trim((string) $this->request->query('q', ''));
         $stock = $this->request->query('stock') === 'in' ? 1 : 0;
-        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock";
+        // Характеристики входять у scope() → без них ключ схлопнув би всі
+        // комбінації фільтрів в один запис кешу.
+        $filters = $this->selectedFilters();
+        sort($filters);
+        $fh = $filters ? md5(implode(',', $filters)) : '0';
+
+        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock:f=$fh";
     }
 
     public function selectedBrands(): array
@@ -243,6 +256,7 @@ class CatalogQuery
         $q = $this->applyPrice($q);
         $q = $this->applyStock($q);
         $q = $this->applyVehicle($q);
+        $q = $this->applyFilters($q);
         $q = $this->applyFlags($q);
         $q = $this->applySort($q);
 
@@ -250,27 +264,137 @@ class CatalogQuery
     }
 
     /** Базові обмеження — для price-range. Без brand/price/condition/sort. */
-    private function scope(Builder $q, ?Category $cat): Builder
+    private function scope(Builder $q, ?Category $cat, ?int $exceptFilterGroup = null): Builder
     {
         $q->where('is_active', true);
         $q = $this->applyCategory($q, $cat);
         $q = $this->applySearch($q);
         $q = $this->applyStock($q);
         $q = $this->applyVehicle($q);
+        $q = $this->applyFilters($q, $exceptFilterGroup);
         return $q;
     }
 
     /** Facet scope — додає price + condition для accurate counts brand/category facets.
-     *  Excludes brand filter from itself (user має бачити інші brands щоб переключитись). */
-    private function facetScope(Builder $q, ?Category $cat, bool $excludeBrand = false): Builder
+     *  Excludes brand filter from itself (user має бачити інші brands щоб переключитись).
+     *  $exceptFilterGroup — так само для характеристик: рахуючи лічильники групи,
+     *  не застосовуємо вибір усередині неї самої. */
+    private function facetScope(Builder $q, ?Category $cat, bool $excludeBrand = false, ?int $exceptFilterGroup = null): Builder
     {
-        $q = $this->scope($q, $cat);
+        $q = $this->scope($q, $cat, $exceptFilterGroup);
         $q = $this->applyPrice($q);
         $q = $this->applyConditions($q);
         if (! $excludeBrand) {
             $q = $this->applyBrands($q);
         }
         return $q;
+    }
+
+    /** Обрані характеристики: ?filter[]=12&filter[]=15 → [12, 15] */
+    public function selectedFilters(): array
+    {
+        $f = $this->request->query('filter', []);
+        $f = is_array($f) ? $f : [$f];
+
+        return array_values(array_unique(array_filter(array_map('intval', $f))));
+    }
+
+    /**
+     * Фільтрація по характеристиках: OR всередині однієї групи, AND між групами.
+     * Товар мусить мати збіг у КОЖНІЙ групі, з якої обрано хоч одне значення.
+     * $exceptFilterGroup — пропустити цю групу (потрібно для її ж лічильників).
+     */
+    private function applyFilters(Builder $q, ?int $exceptFilterGroup = null): Builder
+    {
+        $ids = $this->selectedFilters();
+        if (empty($ids) || ! self::hasFilterTables()) {
+            return $q;
+        }
+
+        $byGroup = [];
+        foreach (\DB::table('filters')->whereIn('id', $ids)->get(['id', 'filter_group_id']) as $row) {
+            $gid = (int) $row->filter_group_id;
+            if ($exceptFilterGroup !== null && $gid === $exceptFilterGroup) {
+                continue;
+            }
+            $byGroup[$gid][] = (int) $row->id;
+        }
+
+        foreach ($byGroup as $groupFilterIds) {
+            $q->whereIn('products.id', function ($sub) use ($groupFilterIds) {
+                $sub->select('product_id')
+                    ->from('filter_products')
+                    ->whereIn('filter_id', $groupFilterIds);
+            });
+        }
+
+        return $q;
+    }
+
+    /**
+     * Групи характеристик із лічильниками для лівої панелі каталогу.
+     * Які групи показувати: явно прив'язані до категорії (category_filters),
+     * інакше — усі активні, що реально трапляються серед товарів у scope.
+     */
+    public function availableFilters(?Category $cat): Collection
+    {
+        if (! self::hasFilterTables()) {
+            return collect();
+        }
+
+        $key = $this->aggregateCacheKey('filters', $cat);
+
+        return $this->cacheStore()->remember($key, 600, function () use ($cat) {
+            $selected = $this->selectedFilters();
+
+            $pinned = [];
+            if ($cat && \Schema::hasTable('category_filters')) {
+                $pinned = \DB::table('category_filters')
+                    ->whereIn('category_id', $this->collectDescendantIds($cat))
+                    ->distinct()
+                    ->pluck('filter_group_id')
+                    ->all();
+            }
+
+            $groups = \App\Models\FilterGroup::query()
+                ->where('is_active', true)
+                ->when($pinned, fn ($q) => $q->whereIn('id', $pinned))
+                ->orderBy('sort_order')
+                ->orderBy('title')
+                ->get(['id', 'title']);
+
+            $out = collect();
+            foreach ($groups as $g) {
+                $scoped = $this->facetScope(Product::query(), $cat, exceptFilterGroup: (int) $g->id)
+                    ->reorder()
+                    ->select('products.id')
+                    ->getQuery();
+
+                $items = \DB::table('filter_products as fp')
+                    ->join('filters as f', 'f.id', '=', 'fp.filter_id')
+                    ->where('f.filter_group_id', $g->id)
+                    ->where('f.is_active', true)
+                    ->whereIn('fp.product_id', $scoped)
+                    ->groupBy('f.id', 'f.title')
+                    ->orderByDesc('count')
+                    ->orderBy('f.title')
+                    ->limit(30)
+                    ->get([\DB::raw('f.id'), \DB::raw('f.title'), \DB::raw('COUNT(DISTINCT fp.product_id) as count')]);
+
+                if ($items->isEmpty()) {
+                    continue;
+                }
+
+                $out->push((object) [
+                    'id' => (int) $g->id,
+                    'title' => (string) $g->title,
+                    'items' => $items,
+                    'hasSelected' => $items->contains(fn ($i) => in_array((int) $i->id, $selected, true)),
+                ]);
+            }
+
+            return $out;
+        });
     }
 
     private function applyCategory(Builder $q, ?Category $cat): Builder
