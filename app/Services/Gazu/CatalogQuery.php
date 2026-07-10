@@ -29,6 +29,9 @@ class CatalogQuery
     private static ?bool $hasFilterTables = null;
     private static ?array $categoryTree = null;
 
+    /** Кеш на час запиту: у Octane static жив би між запитами і заморозив би курс. */
+    private ?string $basePriceExpr = null;
+
     public function __construct(private Request $request) {}
 
     private static function hasConditionColumn(): bool
@@ -39,6 +42,53 @@ class CatalogQuery
     private static function hasFilterTables(): bool
     {
         return self::$hasFilterTables ??= \Schema::hasTable('filters') && \Schema::hasTable('filter_products');
+    }
+
+    /**
+     * SQL-вираз ціни товару в базовій валюті (грн).
+     *
+     * `products.price` зберігається у валюті товару (`price_currency`), а вітрина
+     * показує `display_price` = price / rate. Тому фільтр «від/до», діапазон
+     * повзунка і сортування мусять рахувати ТОЙ САМИЙ перерахунок — інакше
+     * товар за 458 ₴ потрапляє в діапазон «10–11».
+     *
+     * Акцесором тут не обійтись: WHERE/ORDER BY виконує БД.
+     */
+    private function basePriceExpr(): string
+    {
+        if ($this->basePriceExpr !== null) {
+            return $this->basePriceExpr;
+        }
+
+        $raw = 'products.price';
+        if (! \Schema::hasColumn('products', 'price_currency') || ! \Schema::hasTable('currencies')) {
+            return $this->basePriceExpr = $raw;
+        }
+
+        $map = \App\Models\Currency::availableMap();
+        $base = $map ? \App\Models\Currency::baseCode() : null;
+        if (! $map || ! $base) {
+            return $this->basePriceExpr = $raw;
+        }
+        $base = strtoupper($base);
+
+        $cases = '';
+        foreach ($map as $code => $meta) {
+            $code = strtoupper((string) $code);
+            $rate = (float) ($meta['rate'] ?? 1);
+            // Коди валют беруться з БД — у SQL вставляємо лише ISO-подібні,
+            // решту ігноруємо (жодного інтерполювання довільного рядка).
+            if ($code === $base || $rate <= 0 || $rate == 1.0 || ! preg_match('/^[A-Z]{3}$/', $code)) {
+                continue;
+            }
+            $cases .= " WHEN '{$code}' THEN {$rate}";
+        }
+
+        if ($cases === '') {
+            return $this->basePriceExpr = $raw;
+        }
+
+        return $this->basePriceExpr = "($raw / (CASE UPPER(COALESCE(products.price_currency, '{$base}')){$cases} ELSE 1 END))";
     }
 
     public function category(): ?Category
@@ -60,7 +110,8 @@ class CatalogQuery
         $key = $this->aggregateCacheKey('price-range', $cat);
         [$absMin, $absMax] = $this->cacheStore()->remember($key, 600, function () use ($cat) {
             $base = $this->scope(Product::query(), $cat);
-            $row = $base->reorder()->selectRaw('MIN(price) as mn, MAX(price) as mx')->first();
+            $expr = $this->basePriceExpr();
+            $row = $base->reorder()->selectRaw("MIN($expr) as mn, MAX($expr) as mx")->first();
             $mn = (int) floor((float) ($row?->mn ?? 0));
             $mx = (int) ceil((float) ($row?->mx ?? 1));
             if ($mx <= $mn) $mx = $mn + 1;
@@ -508,9 +559,19 @@ class CatalogQuery
     {
         $min = $this->request->query('min');
         $max = $this->request->query('max');
-        if ($min !== null && $min !== '') $q->where('price', '>=', (float) $min);
-        if ($max !== null && $max !== '') $q->where('price', '<=', (float) $max);
+        $expr = $this->basePriceExpr();
+        // Число вставляємо в SQL, а не біндимо: PDO віддає float як рядок, і
+        // SQLite (тести) порівнює число з текстом завжди на користь тексту —
+        // умова стає хибною. sprintf('%F') робить вставку безпечною.
+        if ($min !== null && $min !== '') $q->whereRaw("$expr >= ".$this->sqlNumber($min));
+        if ($max !== null && $max !== '') $q->whereRaw("$expr <= ".$this->sqlNumber($max));
         return $q;
+    }
+
+    /** Літерал числа для SQL — жодного інтерполювання довільного рядка. */
+    private function sqlNumber(mixed $value): string
+    {
+        return sprintf('%F', (float) $value);
     }
 
     private function applyStock(Builder $q): Builder
@@ -631,9 +692,11 @@ class CatalogQuery
             }
         }
 
+        $priceExpr = $this->basePriceExpr();
+
         return match ($sort) {
-            'price-asc'  => $q->orderBy('price'),
-            'price-desc' => $q->orderByDesc('price'),
+            'price-asc'  => $q->orderByRaw("$priceExpr asc"),
+            'price-desc' => $q->orderByRaw("$priceExpr desc"),
             'new'        => $q->orderByDesc('id'),
             // «Популярні» (дефолт): рейтинг → відгуки → новизна. Тай-брейк за id
             // піднімає щойно додані товари (rating=0, reviews=0) на початок серед
