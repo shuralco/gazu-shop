@@ -1442,6 +1442,9 @@ class StoreController extends Controller
                 ->where('is_active', true)
                 ->orderBy('sort_order')
                 ->get(['id', 'model_id', 'code', 'label', 'fuel_type', 'hp', 'years_range'])
+                // slug — URL-безпечна форма коду для pretty-URL: сирий code
+                // містить пробіли/слеші й дає 404. Селектор лінкує саме на нього.
+                ->each(fn ($e) => $e->setAttribute('slug', \App\Models\CarEngine::urlSlug($e->code)))
                 ->all();
         });
         return response()->json(['items' => $items]);

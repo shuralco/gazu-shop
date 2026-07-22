@@ -599,6 +599,11 @@ class CatalogQuery
         if ($make === '' && $model === '' && $engine === '') {
             return $q;
         }
+        // engine у URL — slug (сирий code містить пробіли/слеш → 404 у pretty-URL).
+        // Резолвимо назад у реальний code; сирий code теж приймаємо (backward-compat).
+        if ($engine !== '') {
+            $engine = $this->resolveEngineCode($make, $model, $engine);
+        }
         $q->whereHas('compatibleEngines', function (Builder $eq) use ($make, $model, $engine) {
             if ($engine !== '') {
                 $eq->where('car_engines.code', $engine);
@@ -619,6 +624,43 @@ class CatalogQuery
             }
         });
         return $q;
+    }
+
+    /**
+     * Резолв engine-сегмента URL у реальний `car_engines.code`.
+     *
+     * У pretty-URL іде slug (CarEngine::urlSlug), бо сирий code містить пробіли.
+     * Точний code теж приймаємо — старі посилання / боти. Якщо не знайдено —
+     * повертаємо як є (фільтр просто нічого не збіжить, але без 404).
+     */
+    private function resolveEngineCode(string $make, string $model, string $engine): string
+    {
+        if (! \Schema::hasTable('car_engines') || ! \Schema::hasTable('car_models')) {
+            return $engine;
+        }
+
+        $codes = \DB::table('car_engines as e')
+            ->join('car_models as m', 'm.id', '=', 'e.model_id')
+            ->when($make !== '', fn ($q) => $q
+                ->join('car_makes as mk', 'mk.id', '=', 'm.make_id')
+                ->where('mk.slug', $make))
+            ->when($model !== '', fn ($q) => $q->where('m.slug', $model))
+            ->pluck('e.code');
+
+        foreach ($codes as $code) {
+            if ((string) $code === $engine) {
+                return $engine;
+            }
+        }
+
+        $want = \App\Models\CarEngine::urlSlug($engine);
+        foreach ($codes as $code) {
+            if (\App\Models\CarEngine::urlSlug((string) $code) === $want) {
+                return (string) $code;
+            }
+        }
+
+        return $engine;
     }
 
     /**
