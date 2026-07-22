@@ -39,6 +39,22 @@ php artisan gazu:sync-compatibility 2>&1 | sed 's/^/[compat] /' || echo "[entryp
 # зʼявлялись разом із фічею. Правки статей у адмінці перезаписуються.
 php artisan db:seed --class=HelpArticlesSeeder --force 2>&1 | sed 's/^/[help] /' || echo "[entrypoint] WARNING: HelpArticlesSeeder failed, continuing..."
 
+# RBAC-пресети ролей (admin_full, client_admin, ...) — updateOrCreate за key.
+# Без цього пресет «Адмін клієнта» не існує і клієнту нема що призначити.
+php artisan db:seed --class=AccessPresetSeeder --force 2>&1 | sed 's/^/[rbac] /' || echo "[entrypoint] WARNING: AccessPresetSeeder failed, continuing..."
+
+# Разова діагностика доступу (email, пресет, приховані пункти) — у лог.
+if [ "$GAZU_ACCESS_LIST" = "true" ]; then
+    php artisan gazu:access --list 2>&1 | sed 's/^/[access] /' || true
+fi
+
+# Разове призначення пресету клієнту: GAZU_GRANT_ACCESS=<email>.
+# GAZU_GRANT_PRESET (типово client_admin), GAZU_GRANT_CLEAR_HIDDEN=true скидає «Моє меню».
+if [ -n "$GAZU_GRANT_ACCESS" ]; then
+    _clear=""; [ "$GAZU_GRANT_CLEAR_HIDDEN" = "true" ] && _clear="--clear-hidden"
+    php artisan gazu:access "$GAZU_GRANT_ACCESS" --preset="${GAZU_GRANT_PRESET:-client_admin}" $_clear 2>&1 | sed 's/^/[access] /' || true
+fi
+
 # Разове наповнення фільтрів із назв товарів (каталог заповнювали без поля
 # «Характеристики»). Ідемпотентно: звʼязки не дублюються. Вимикається зняттям
 # GAZU_FILTERS_FROM_TITLES. Те саме доступно кнопкою в адмінці.
