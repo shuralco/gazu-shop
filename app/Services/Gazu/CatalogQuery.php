@@ -27,10 +27,15 @@ class CatalogQuery
 
     private static ?bool $hasConditionColumn = null;
     private static ?bool $hasFilterTables = null;
-    private static ?array $categoryTree = null;
 
-    /** Кеш на час запиту: у Octane static жив би між запитами і заморозив би курс. */
+    /**
+     * Кеші на ЧАС ЗАПИТУ. Свідомо не static: під Octane воркер живе між
+     * запитами, тож static-кеш віддавав би лічильники/курс/дерево іншого
+     * запиту (напр. фасети попереднього авто) аж до перезапуску.
+     */
     private ?string $basePriceExpr = null;
+    private array $subtreeCountCache = [];
+    private ?array $categoryTree = null;
 
     public function __construct(private Request $request) {}
 
@@ -156,26 +161,33 @@ class CatalogQuery
                 $c->products_count = $this->countProductsInSubtree($c->id);
             }
 
-            return $categories->sortByDesc('products_count')->values();
+            // Категорії, у яких у поточному скоупі нічого немає, не показуємо —
+            // клікати по них безглуздо (0 товарів).
+            return $categories
+                ->filter(fn ($c) => $c->products_count > 0)
+                ->sortByDesc('products_count')
+                ->values();
         });
     }
 
     /**
      * Рекурсивний підрахунок products у категорії + всіх її descendants.
-     * Cached per request через static array.
+     * Кешується в межах запиту (див. subtreeCountCache).
      */
     private function countProductsInSubtree(int $categoryId): int
     {
-        static $cache = [];
-        if (isset($cache[$categoryId])) return $cache[$categoryId];
+        if (isset($this->subtreeCountCache[$categoryId])) return $this->subtreeCountCache[$categoryId];
 
         $ids = $this->collectSubtreeIds($categoryId);
-        $count = Product::query()
-            ->where('is_active', true)
+        // Лічильник мусить рахуватись у ПОТОЧНОМУ скоупі (підбір по авто, пошук,
+        // наявність, характеристики) — інакше на сторінці конкретної моделі
+        // категорії показують кількість по всьому каталогу.
+        // $cat = null: категорію не звужуємо, її задає whereIn нижче.
+        $count = $this->scope(Product::query(), null)
             ->whereIn('category_id', $ids)
             ->count();
 
-        return $cache[$categoryId] = $count;
+        return $this->subtreeCountCache[$categoryId] = $count;
     }
 
     /**
@@ -272,7 +284,18 @@ class CatalogQuery
         sort($filters);
         $fh = $filters ? md5(implode(',', $filters)) : '0';
 
-        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock:f=$fh";
+        // Підбір по авто ТЕЖ входить у scope() — без нього фасети сторінки
+        // /zapchastyny/{make}/{model}/{engine} і загального каталогу писались би
+        // в ОДИН запис кешу, і показувалось те, що потрапило туди першим
+        // («іноді актуальні фільтри, іноді по всьому каталогу»).
+        $vehicle = implode('|', [
+            trim((string) $this->request->query('make', '')),
+            trim((string) $this->request->query('model', '')),
+            trim((string) $this->request->query('engine', '')),
+        ]);
+        $vh = trim($vehicle, '|') !== '' ? md5($vehicle) : '0';
+
+        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock:f=$fh:v=$vh";
     }
 
     public function selectedBrands(): array
@@ -457,7 +480,7 @@ class CatalogQuery
 
     private function collectDescendantIds(Category $cat): array
     {
-        $tree = self::$categoryTree ??= Category::query()
+        $tree = $this->categoryTree ??= Category::query()
             ->select('id', 'parent_id')
             ->get()
             ->groupBy('parent_id')
