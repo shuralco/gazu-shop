@@ -449,6 +449,14 @@ class Product extends Model
     public function priceViewForUser(?User $user, int $qty = 1, ?float $baseUah = null): array
     {
         $base = $baseUah ?? (float) $this->display_price;
+
+        // Ціна в картці — БАЗОВА. Модуль pricing_markup через цей фільтр додає
+        // % націнки групи клієнта (гість → «стандартна» група), і результат стає
+        // «звичайною» ціною для нього. Знижки/гуртові ціни нижче відштовхуються
+        // вже від неї, тож перекреслена ціна лишається коректною.
+        // Модуль вимкнено → фільтра немає → база без змін.
+        $base = (float) \App\Support\Hooks::filter('pricing.base_price', $base, $user);
+
         $regular = round($base, 2);
         $price = $regular;
         $fromQty = null;

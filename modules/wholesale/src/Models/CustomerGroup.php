@@ -12,6 +12,7 @@ class CustomerGroup extends Model
         'name',
         'display_name',
         'discount_percentage',
+        'markup_percentage',
         'min_order_amount',
         'payment_terms',
         'is_default',
@@ -21,6 +22,7 @@ class CustomerGroup extends Model
 
     protected $casts = [
         'discount_percentage' => 'decimal:2',
+        'markup_percentage' => 'decimal:2',
         'min_order_amount' => 'decimal:2',
         'is_default' => 'boolean',
         'is_active' => 'boolean',

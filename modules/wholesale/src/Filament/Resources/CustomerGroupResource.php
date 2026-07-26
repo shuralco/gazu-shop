@@ -46,8 +46,18 @@ class CustomerGroupResource extends Resource
                             ->label('Назва для відображення')
                             ->required()
                             ->maxLength(100),
+                        Forms\Components\TextInput::make('markup_percentage')
+                            ->label('Відсоток націнки')
+                            ->helperText('Ціна товару = базова + ця націнка. Керувати всіма групами разом: Продажі → «Націнки по групах».')
+                            ->numeric()
+                            ->default(0)
+                            ->minValue(-100)
+                            ->maxValue(1000)
+                            ->step(0.01)
+                            ->suffix('%'),
                         Forms\Components\TextInput::make('discount_percentage')
                             ->label('Відсоток знижки')
+                            ->helperText('Застосовується ПОВЕРХ націненої ціни (акційні групи). Зазвичай 0.')
                             ->numeric()
                             ->minValue(0)
                             ->maxValue(100)
@@ -82,6 +92,11 @@ class CustomerGroupResource extends Resource
                 Tables\Columns\TextColumn::make('display_name')
                     ->label('Назва')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('markup_percentage')
+                    ->label('Націнка')
+                    ->suffix('%')
+                    ->badge()
+                    ->color('success'),
                 Tables\Columns\TextColumn::make('discount_percentage')
                     ->label('Знижка')
                     ->suffix('%')

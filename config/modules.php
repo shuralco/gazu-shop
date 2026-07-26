@@ -36,6 +36,13 @@ return [
         'requires' => [],
     ],
 
+    'pricing_markup' => [
+        'name' => 'Націнка по групах клієнтів',
+        'description' => 'Ціна товару = базова; клієнт бачить базову + % націнки своєї групи (гість → стандартна група)',
+        'enabled' => env('MODULE_PRICING_MARKUP', true),
+        'requires' => ['wholesale'],
+    ],
+
     'comparison' => [
         'name' => 'Порівняння товарів',
         'description' => 'Кнопка «порівняти», окрема сторінка зі списком та характеристиками',

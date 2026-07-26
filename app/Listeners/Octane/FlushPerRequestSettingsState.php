@@ -26,5 +26,11 @@ class FlushPerRequestSettingsState
         ThemeManager::clearCache();
         \App\Support\Access\AccessControl::flush();
         \App\Support\Access\NavPreferences::flush();
+
+        // Стандартна група для націнки (модуль pricing_markup): без скидання
+        // зміна % або перемикання стандартної групи не діяла б до перезапуску.
+        if (class_exists(\Modules\PricingMarkup\Services\MarkupPricing::class)) {
+            \Modules\PricingMarkup\Services\MarkupPricing::flush();
+        }
     }
 }

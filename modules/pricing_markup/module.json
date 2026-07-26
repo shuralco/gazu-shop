@@ -1,0 +1,21 @@
+{
+    "name": "pricing_markup",
+    "label": "Націнка по групах клієнтів",
+    "description": "Ціна в картці товару — базова (закупка/собівартість). Клієнт бачить базову + % націнки своєї групи. Неавторизований отримує «стандартну» групу.",
+    "version": "1.0.0",
+    "author": "Lionex",
+    "engine": ">=2.0",
+    "requires_modules": ["wholesale"],
+    "composer_packages": [],
+    "providers": ["Modules\\PricingMarkup\\PricingMarkupServiceProvider"],
+    "filament_resources": [],
+    "filament_pages": [
+        "App\\Filament\\Pages\\PricingMarkupSettings"
+    ],
+    "migrations_path": "database/migrations",
+    "views_path": "resources/views",
+    "views_namespace": "pricing_markup",
+    "translations_path": "resources/lang",
+    "settings_schema": {},
+    "enabled_by_default": true
+}
