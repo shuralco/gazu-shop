@@ -150,8 +150,16 @@ class ModuleLifecycleRunner
         exec($cmd, $output, $exitCode);
         if ($exitCode === 0) {
             $report['actions'][] = 'autoload: refreshed';
-            Artisan::call('gazu:views:refresh');
-            Artisan::call('filament:cache-components');
+            // best-effort: недоступний для запису bootstrap/cache не має валити
+            // життєвий цикл модуля (кеш — оптимізація).
+            foreach (['gazu:views:refresh', 'filament:cache-components'] as $command) {
+                try {
+                    Artisan::call($command);
+                } catch (\Throwable $e) {
+                    $report['actions'][] = "{$command}: failed";
+                    Log::warning("[ModuleLifecycle] {$command} failed: ".$e->getMessage());
+                }
+            }
         } else {
             $report['actions'][] = 'autoload: failed';
             Log::warning('[ModuleLifecycle] composer dump-autoload failed', ['exit' => $exitCode, 'output' => $output]);

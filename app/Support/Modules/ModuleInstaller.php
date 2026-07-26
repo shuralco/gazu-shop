@@ -7,6 +7,7 @@ use App\Support\ModuleDiscovery;
 use App\Support\ModuleManager;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\File;
 use RuntimeException;
 use ZipArchive;
@@ -591,17 +592,41 @@ class ModuleInstaller
             $cmd = $composer.' dump-autoload --no-interaction --no-scripts 2>&1';
             exec($cmd, $output, $exitCode);
             if ($exitCode === 0) {
-                Artisan::call('gazu:views:refresh');
-                Artisan::call('cache:clear');
-                Artisan::call('responsecache:clear');
-                Artisan::call('filament:cache-components');
+                self::runCacheCommands([
+                    'gazu:views:refresh',
+                    'cache:clear',
+                    'responsecache:clear',
+                    'filament:cache-components',
+                ]);
                 return;
             }
         }
         // Fallback — at least drop framework caches so views/routes re-resolve.
-        Artisan::call('optimize:clear');
-        Artisan::call('responsecache:clear');
-        Artisan::call('filament:cache-components');
+        self::runCacheCommands([
+            'optimize:clear',
+            'responsecache:clear',
+            'filament:cache-components',
+        ]);
+    }
+
+    /**
+     * Скидання кешів — best-effort. Якщо bootstrap/cache недоступний для запису
+     * (read-only FS, чужий власник після деплою), filament:cache-components кидає
+     * виняток. Раніше він летів нагору й переривав установку ПІСЛЯ копіювання
+     * файлів — модуль лишався напів-встановленим. Кеш — оптимізація, не частина
+     * установки: логуємо й продовжуємо.
+     *
+     * @param  list<string>  $commands
+     */
+    private static function runCacheCommands(array $commands): void
+    {
+        foreach ($commands as $command) {
+            try {
+                Artisan::call($command);
+            } catch (\Throwable $e) {
+                Log::warning("[ModuleInstaller] {$command} failed: ".$e->getMessage());
+            }
+        }
     }
 
     private static function findComposerBinary(): ?string
