@@ -237,20 +237,33 @@
             @php
                 $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0;
                 $galleryCode = $oem ?: (is_object($p) ? ($p->sku ?? null) : null);
-                // Без реального фото — ОДНЕ генеративне демо-фото (не 4 «ракурси»,
-                // щоб не плодити дублі). З реальним фото лишаємо 4 слоти (legacy).
-                $variants = $realImg
-                    ? [$gallerySeed, $gallerySeed + 1001, $gallerySeed + 2002, $gallerySeed + 3003]
-                    : [$gallerySeed];
+                // Слайди галереї — РЕАЛЬНІ зображення: головне фото + додаткові з
+                // поля «gallery» (кожне перевіряємо на існування, дублі прибираємо).
+                // Раніше при наявному фото робилось 4 слоти-«ракурси», і в усіх
+                // чотирьох показувався ОДИН і той самий файл — 4 однакові слайди
+                // й 4 однакові мініатюри. Немає жодного фото → одне генеративне.
+                $variants = [];
+                if ($realImg) {
+                    $variants[] = $realImg;
+                }
+                foreach ((array) (is_object($p) ? ($p->gallery ?? []) : []) as $extra) {
+                    $extraUrl = \App\Support\UploadedImage::url(is_string($extra) ? $extra : null);
+                    if ($extraUrl && ! in_array($extraUrl, $variants, true)) {
+                        $variants[] = $extraUrl;
+                    }
+                }
+                if (! $variants) {
+                    $variants = [$gallerySeed]; // int-seed = генеративний плейсхолдер
+                }
             @endphp
             <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
                 <div class="aspect-square bg-[var(--gazu-surface)] rounded-lg relative overflow-hidden cursor-zoom-in group/main"
                      @click="zoom = true" title="Натисніть щоб збільшити">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
-                    @foreach($variants as $i => $seed)
+                    @foreach($variants as $i => $slide)
                         <div class="absolute inset-0 transition-opacity duration-200"
                              :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                            @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$gallerySeed"/>@endif
+                            @if(is_string($slide))<img src="{{ $slide }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$slide"/>@endif
                         </div>
                     @endforeach
                     {{-- AJAX variant-switch overlay. Default opacity-0 + display:none.
@@ -311,10 +324,10 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                     <div class="relative w-full max-w-[90vw] max-h-[85vh] aspect-square bg-[var(--gazu-surface)] rounded-2xl overflow-hidden flex items-center justify-center" @click.stop>
-                        @foreach($variants as $i => $seed)
+                        @foreach($variants as $i => $slide)
                             <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
                                  :class="idx === {{ $i }} ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                                @if($realImg)<img src="{{ $realImg }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$gallerySeed"/>@endif
+                                @if(is_string($slide))<img src="{{ $slide }}" alt="{{ $name }}" class="w-full h-full object-contain"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$slide"/>@endif
                             </div>
                         @endforeach
                         <div class="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-black/70 text-white gazu-mono text-[12px] rounded">
@@ -322,14 +335,14 @@
                         </div>
                     </div>
                 </div>
-                {{-- Real thumbnails (4 variants) — клік/hover для перемикання головної. --}}
+                {{-- Мініатюри — по одній на реальне зображення (без клонів). --}}
                 <div class="grid grid-cols-4 gap-2">
-                    @foreach($variants as $i => $seed)
+                    @foreach($variants as $i => $slide)
                         <button type="button"
                                 @click="idx = {{ $i }}" @mouseover="idx = {{ $i }}"
                                 :class="idx === {{ $i }} ? 'ring-2 ring-[var(--gazu-blue)] ring-offset-1' : 'opacity-80 hover:opacity-100'"
                                 class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden cursor-pointer transition-all">
-                            @if($realImg)<img src="{{ $realImg }}" alt="" class="w-full h-full object-cover"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$gallerySeed"/>@endif
+                            @if(is_string($slide))<img src="{{ $slide }}" alt="" class="w-full h-full object-cover"/>@else<x-gazu.product-placeholder :name="$name" :code="$galleryCode" :seed="$slide"/>@endif
                         </button>
                     @endforeach
                 </div>
