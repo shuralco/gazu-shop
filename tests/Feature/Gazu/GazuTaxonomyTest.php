@@ -63,7 +63,13 @@ class GazuTaxonomyTest extends TestCase
         ]);
         $this->assertStringContainsString('/img/car-makes/mg.svg', $make->logo_url);
 
-        $none = CarMake::create(['slug' => 'jac', 'name' => 'JAC', 'is_active' => true]);
+        // Марка без завантаженого лого підхоплює файл із репозиторію за slug'ом —
+        // саме це врятувало вітрину, коли аплоади зникли з контейнера.
+        $fromRepo = CarMake::create(['slug' => 'jac', 'name' => 'JAC', 'is_active' => true]);
+        $this->assertStringEndsWith('/img/car-makes/jac.svg', (string) $fromRepo->logo_url);
+
+        // А якщо в репозиторії нічого немає — null, і шаблон малює літерний бейдж.
+        $none = CarMake::create(['slug' => 'brand-without-logo', 'name' => 'X', 'is_active' => true]);
         $this->assertNull($none->logo_url);
     }
 

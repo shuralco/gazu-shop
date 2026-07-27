@@ -58,7 +58,7 @@
                                     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
                                     $fits = is_object($p) ? ($p->fits ?? '') : ($p['fits'] ?? '');
                                     $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-                                    if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
+                                    $rImg = \App\Support\UploadedImage::url($rImg);
                                 @endphp
                                 <tr class="border-b border-[var(--gazu-line)]">
                                     <td class="py-2.5 px-2" style="width: 56px;">

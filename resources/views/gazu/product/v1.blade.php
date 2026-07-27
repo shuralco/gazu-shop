@@ -138,9 +138,7 @@
     ];
     // Реальне завантажене фото товару (тільки воно — без демо-заглушок по типу).
     $realImg = is_object($p) ? ($p->image ?? null) : null;
-    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://','https://'])) {
-        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
-    }
+    $realImg = \App\Support\UploadedImage::url($realImg);
     // Для og/JSON-LD: реальне фото → інакше нейтральний og-default (НЕ демо-пул,
     // щоб у соцмережах/пошуку не світились випадкові «фото запчастин»).
     $productImageUrl = $realImg ?: url('/og-default.png');

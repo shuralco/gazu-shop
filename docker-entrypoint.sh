@@ -23,6 +23,20 @@ if [ ! -e /var/www/html/public/storage ] || [ ! -d /var/www/html/public/storage/
     php artisan storage:link --force 2>/dev/null || true
 fi
 
+# Seed завантажених файлів. Аплоади живуть у ФС контейнера, тож перезбірка
+# образу їх стирає (23.07.2026 так зникли всі лого марок і фото товарів —
+# відновлювали з добового бекапу Hetzner). Поки для storage/app/public не
+# налаштований постійний том у Coolify, тримаємо копію в репозиторії й
+# підкладаємо ТІЛЬКИ відсутні файли (--skip-old-files) — свіжі аплоади не чіпаємо.
+if [ -f /var/www/html/deploy/seed-uploads.tar.gz ]; then
+    BEFORE=$(find /var/www/html/storage/app/public -type f 2>/dev/null | wc -l)
+    tar xzf /var/www/html/deploy/seed-uploads.tar.gz \
+        -C /var/www/html/storage/app/public --skip-old-files 2>/dev/null || true
+    AFTER=$(find /var/www/html/storage/app/public -type f 2>/dev/null | wc -l)
+    chown -R www-data:www-data /var/www/html/storage/app/public 2>/dev/null || true
+    echo "[entrypoint] seed-uploads: файлів було $BEFORE, стало $AFTER"
+fi
+
 # Publish Filament assets (re-publish on every start — bind-mounted public/ may not have them)
 echo "[entrypoint] Publishing Filament assets..."
 php artisan filament:assets --ansi 2>&1 || echo "[entrypoint] WARNING: filament:assets failed, continuing..."
@@ -38,6 +52,11 @@ php artisan gazu:sync-compatibility 2>&1 | sed 's/^/[compat] /' || echo "[entryp
 # Статті довідки адмінки (updateOrCreate за slug) — щоб нові розділи вікі
 # зʼявлялись разом із фічею. Правки статей у адмінці перезаписуються.
 php artisan db:seed --class=HelpArticlesSeeder --force 2>&1 | sed 's/^/[help] /' || echo "[entrypoint] WARNING: HelpArticlesSeeder failed, continuing..."
+
+# Лагодимо посилання на зображення, файли яких зникли (аплоади живуть у ФС
+# контейнера — без постійного тому перезбірка їх стирає). Марки отримують лого
+# з репозиторію, товари — генеративний плейсхолдер. Ідемпотентно.
+php artisan gazu:restore-images 2>&1 | sed 's/^/[images] /' || echo "[entrypoint] WARNING: restore-images failed, continuing..."
 
 # RBAC-пресети ролей (admin_full, client_admin, ...) — updateOrCreate за key.
 # Без цього пресет «Адмін клієнта» не існує і клієнту нема що призначити.

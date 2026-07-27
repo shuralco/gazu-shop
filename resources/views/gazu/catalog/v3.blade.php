@@ -53,7 +53,7 @@
                             $cOem = is_object($p) ? ($p->oem ?? $p->sku ?? '') : ($p['oem'] ?? '');
                             $cId = is_object($p) ? ($p->id ?? 0) : ($p['id'] ?? 0);
                             $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-                            if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
+                            $rImg = \App\Support\UploadedImage::url($rImg);
                         @endphp
                         <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
                             <a wire:navigate href="{{ $url }}" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center overflow-hidden" style="aspect-ratio:1;">

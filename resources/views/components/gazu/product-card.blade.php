@@ -14,10 +14,8 @@
     $brandUrl = $brandSlug ? route('gazu.brand', ['slug' => $brandSlug]) : null;
     $image = is_object($p) ? ($p->image_kind ?? 'filter') : ($p['image_kind'] ?? 'filter');
     // Реальне завантажене фото товару (пріоритет над заглушкою).
-    $realImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://', 'https://'])) {
-        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
-    }
+    // Зникле фото → null → генеративний плейсхолдер (а не битий <img>).
+    $realImg = \App\Support\UploadedImage::url(is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null));
     $price = is_object($p) ? (float) ($p->price ?? 0) : (float) ($p['price'] ?? 0);
     $oldPrice = is_object($p) ? ($p->old_price ?? null) : ($p['old_price'] ?? null);
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
