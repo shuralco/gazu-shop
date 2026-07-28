@@ -124,4 +124,35 @@ class MissingImageFallbackTest extends TestCase
             );
         }
     }
+
+    public function test_restore_command_repoints_brand_logo_and_clears_category(): void
+    {
+        $brand = \App\Models\Brand::create(['name' => 'BYD', 'slug' => 'byd', 'logo' => 'brands/logos/gone.png', 'is_active' => true]);
+        $noRepo = \App\Models\Brand::create(['name' => 'VW-FAW', 'slug' => 'vw-faw', 'logo' => 'brands/logos/gone2.png', 'is_active' => true]);
+        $cat = \App\Models\Category::create(['title' => 'Фільтри', 'slug' => 'filtry', 'is_active' => true, 'image' => 'categories/gone.png']);
+
+        $this->artisan('gazu:restore-images')->assertSuccessful();
+
+        $this->assertSame('/img/car-makes/byd.svg', $brand->fresh()->logo, 'бренд із репо-асетом → лого з репо');
+        $this->assertNull($noRepo->fresh()->logo, 'без репо-асета → очищено, буде назва замість битого лого');
+        $this->assertNull($cat->fresh()->image, 'мертве зображення категорії очищено');
+    }
+
+    public function test_restore_command_drops_only_missing_gallery_frames(): void
+    {
+        $p = Product::factory()->create([
+            'is_active' => true,
+            'image' => '/img/car-makes/vw.svg',
+            'gallery' => ['/img/car-makes/byd.png', 'products/main/gone.jpg', '/img/car-makes/audi.svg'],
+        ]);
+
+        $this->artisan('gazu:restore-images')->assertSuccessful();
+
+        $this->assertSame(
+            ['/img/car-makes/byd.png', '/img/car-makes/audi.svg'],
+            $p->fresh()->gallery,
+            'зниклий кадр прибрано, живі лишились'
+        );
+        $this->assertSame('/img/car-makes/vw.svg', $p->fresh()->image, 'головне фото не чіпаємо');
+    }
 }
