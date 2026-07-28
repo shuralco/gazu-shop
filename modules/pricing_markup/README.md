@@ -16,6 +16,21 @@
 (для неавторизованих). Окремої сторінки НЕМАЄ — свідомо, щоб не тримати керування
 групами у двох місцях.
 
+## У картці товару
+
+**Каталог → Товари → картка товару**, блок «Закупка та ціни по групах»:
+
+- **Ціна закупки** (+ валюта) — внутрішня цифра, покупець її ніде не бачить.
+  Колонки `cost_price`/`cost_currency` існували в базі й раніше (їх заповнював
+  імпорт `quick_fill`) — модуль просто дає їх редагувати руками.
+- **«Що побачить покупець»** — таблиця, що перераховується прямо під час
+  введення: для кожної активної групи показує % націнки, підсумкову ціну
+  та маржу відносно закупки.
+
+У списку товарів є колонки **«Закупка»** і **«Маржа»** — приховані за
+замовчуванням, вмикаються в меню колонок (щоб цифри собівартості не світились
+на екрані випадково).
+
 ## Як під'єднано до ядра
 
 Ядро **не знає** про націнку. `Product::priceViewForUser()` (єдина точка ціноутворення)
@@ -38,6 +53,8 @@ $base = Hooks::filter('pricing.base_price', $base, $user);
 |---|---|
 | `src/Services/MarkupPricing.php` | резолв групи (гість → стандартна), розрахунок націнки |
 | `src/PricingMarkupServiceProvider.php` | фільтр `pricing.base_price`, гарантія «стандартна лише одна» |
+| `src/Filament/CustomerGroupFields.php` | поля націнки в картці групи клієнтів |
+| `src/Filament/ProductPricingFields.php` | закупка й розрахунок цін у картці товару |
 | `database/migrations/*_add_markup_percentage_to_customer_groups.php` | колонка `markup_percentage` |
 
 Колонка `discount_percentage` **не видаляється** — лишається для знижкових сценаріїв
@@ -66,8 +83,11 @@ php artisan module:install <шлях-до.zip>      # поставити в ін
    просто не збережеться з адмінки.
 3. Ядро мусить мати точку `Hooks::filter('pricing.base_price', $base, $user)`
    у `Product::priceViewForUser()` та точки розширення
-   `wholesale.customer_group.form` / `.columns` у `CustomerGroupResource`.
+   `wholesale.customer_group.form` / `.columns` у `CustomerGroupResource`
+   та `product.form.pricing` / `product.table.columns` у `ProductResource`.
    У цьому движку вони вже є.
+4. Для блоку закупки — колонки `cost_price` / `cost_currency` в таблиці
+   `products` (є в базовому движку SimpleShop).
 
 **Після встановлення**
 - `php artisan migrate` додасть колонку `markup_percentage`;
