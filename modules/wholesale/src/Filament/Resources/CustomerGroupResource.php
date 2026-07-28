@@ -48,13 +48,23 @@ class CustomerGroupResource extends Resource
                             ->maxLength(100),
                         Forms\Components\TextInput::make('markup_percentage')
                             ->label('Відсоток націнки')
-                            ->helperText('Ціна товару = базова + ця націнка. Керувати всіма групами разом: Продажі → «Націнки по групах».')
+                            ->helperText('Ціна для покупця = базова ціна товару + цей відсоток. 0 — ціна дорівнює базовій, відʼємний — дешевше за базову (гурт, партнери).')
                             ->numeric()
                             ->default(0)
                             ->minValue(-100)
                             ->maxValue(1000)
                             ->step(0.01)
-                            ->suffix('%'),
+                            ->suffix('%')
+                            ->live(onBlur: true),
+                        Forms\Components\Placeholder::make('markup_preview')
+                            ->label('Приклад')
+                            ->content(function (Forms\Get $get): string {
+                                $percent = (float) ($get('markup_percentage') ?? 0);
+                                $price = round(max(0, 1000 * (1 + $percent / 100)), 2);
+
+                                return 'Товар із базовою ціною 1 000 ₴ покупець цієї групи побачить за '
+                                    .number_format($price, 2, ',', ' ').' ₴';
+                            }),
                         Forms\Components\TextInput::make('discount_percentage')
                             ->label('Відсоток знижки')
                             ->helperText('Застосовується ПОВЕРХ націненої ціни (акційні групи). Зазвичай 0.')
@@ -72,7 +82,8 @@ class CustomerGroupResource extends Resource
                             ->rows(3)
                             ->columnSpanFull(),
                         Forms\Components\Toggle::make('is_default')
-                            ->label('Група за замовчуванням'),
+                            ->label('Стандартна група')
+                            ->helperText('Її отримують неавторизовані покупці й клієнти без призначеної групи. Стандартна може бути лише одна — щойно позначите цю, з попередньої позначка зніметься сама.'),
                         Forms\Components\Toggle::make('is_active')
                             ->label('Активна')
                             ->default(true),
@@ -107,6 +118,10 @@ class CustomerGroupResource extends Resource
                 Tables\Columns\TextColumn::make('users_count')
                     ->label('Кількість користувачів')
                     ->counts('users'),
+                Tables\Columns\IconColumn::make('is_default')
+                    ->label('Стандартна')
+                    ->boolean()
+                    ->tooltip('Ціна для неавторизованих покупців'),
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Активна')
                     ->boolean(),

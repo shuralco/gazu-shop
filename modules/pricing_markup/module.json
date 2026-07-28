@@ -5,13 +5,15 @@
     "version": "1.0.0",
     "author": "Lionex",
     "engine": ">=2.0",
-    "requires_modules": ["wholesale"],
-    "composer_packages": [],
-    "providers": ["Modules\\PricingMarkup\\PricingMarkupServiceProvider"],
-    "filament_resources": [],
-    "filament_pages": [
-        "App\\Filament\\Pages\\PricingMarkupSettings"
+    "requires_modules": [
+        "wholesale"
     ],
+    "composer_packages": [],
+    "providers": [
+        "Modules\\PricingMarkup\\PricingMarkupServiceProvider"
+    ],
+    "filament_resources": [],
+    "filament_pages": [],
     "migrations_path": "database/migrations",
     "views_path": "resources/views",
     "views_namespace": "pricing_markup",
