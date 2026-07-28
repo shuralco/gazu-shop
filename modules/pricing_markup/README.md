@@ -43,6 +43,42 @@ $base = Hooks::filter('pricing.base_price', $base, $user);
 Колонка `discount_percentage` **не видаляється** — лишається для знижкових сценаріїв
 і як шлях відкату.
 
+
+## Встановлення в інший магазин на движку SimpleShop
+
+Модуль самодостатній: усе, що він додає (колонка в БД, логіка ціни, поля в адмінці),
+приїжджає разом із ним. Чужі файли він не редагує.
+
+```bash
+php artisan module:export pricing_markup      # зібрати ZIP із цього магазину
+php artisan module:preview <шлях-до.zip>      # подивитись, що саме встановиться
+php artisan module:install <шлях-до.zip>      # поставити в іншому магазині
+```
+Те саме доступно в адмінці: **Система → Розширення** (завантаження ZIP).
+
+**Вимоги до магазину-приймача**
+1. Увімкнений модуль **`wholesale`** — він володіє таблицею `customer_groups`
+   і моделлю `CustomerGroup` (оголошено в `requires_modules`).
+2. У моделі `CustomerGroup` поле **`markup_percentage`** має бути в `$fillable`
+   (і бажано в `$casts` як `decimal:2`). Це єдине, чого модуль не може зробити
+   за себе; якщо забути — при старті в лог піде попередження
+   `[pricing_markup] Додайте "markup_percentage" у $fillable…`, а відсоток
+   просто не збережеться з адмінки.
+3. Ядро мусить мати точку `Hooks::filter('pricing.base_price', $base, $user)`
+   у `Product::priceViewForUser()` та точки розширення
+   `wholesale.customer_group.form` / `.columns` у `CustomerGroupResource`.
+   У цьому движку вони вже є.
+
+**Після встановлення**
+- `php artisan migrate` додасть колонку `markup_percentage`;
+- у **Продажі → Групи клієнтів** з'являться поле «Відсоток націнки» з живим
+  прикладом і колонка «Націнка»;
+- усі націнки за замовчуванням `0 %`, тож ціни магазину не зміняться, поки
+  власник не проставить свої відсотки.
+
+**Видалення** — `php artisan module:uninstall pricing_markup`. Поля з адмінки
+зникнуть самі (вони приходили через хуки), ціни повернуться до базових.
+
 ## Вимоги
 
 Модуль `wholesale` (він володіє таблицею `customer_groups` і моделлю `CustomerGroup`).

@@ -46,25 +46,6 @@ class CustomerGroupResource extends Resource
                             ->label('Назва для відображення')
                             ->required()
                             ->maxLength(100),
-                        Forms\Components\TextInput::make('markup_percentage')
-                            ->label('Відсоток націнки')
-                            ->helperText('Ціна для покупця = базова ціна товару + цей відсоток. 0 — ціна дорівнює базовій, відʼємний — дешевше за базову (гурт, партнери).')
-                            ->numeric()
-                            ->default(0)
-                            ->minValue(-100)
-                            ->maxValue(1000)
-                            ->step(0.01)
-                            ->suffix('%')
-                            ->live(onBlur: true),
-                        Forms\Components\Placeholder::make('markup_preview')
-                            ->label('Приклад')
-                            ->content(function (Forms\Get $get): string {
-                                $percent = (float) ($get('markup_percentage') ?? 0);
-                                $price = round(max(0, 1000 * (1 + $percent / 100)), 2);
-
-                                return 'Товар із базовою ціною 1 000 ₴ покупець цієї групи побачить за '
-                                    .number_format($price, 2, ',', ' ').' ₴';
-                            }),
                         Forms\Components\TextInput::make('discount_percentage')
                             ->label('Відсоток знижки')
                             ->helperText('Застосовується ПОВЕРХ націненої ціни (акційні групи). Зазвичай 0.')
@@ -93,6 +74,9 @@ class CustomerGroupResource extends Resource
                             ->default(0),
                     ])
                     ->columns(2),
+                // Точка розширення: модулі (напр. pricing_markup) додають свої
+                // поля групи, не редагуючи цей файл. Без підписників — порожньо.
+                ...\App\Support\Hooks::filter('wholesale.customer_group.form', []),
             ]);
     }
 
@@ -103,11 +87,6 @@ class CustomerGroupResource extends Resource
                 Tables\Columns\TextColumn::make('display_name')
                     ->label('Назва')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('markup_percentage')
-                    ->label('Націнка')
-                    ->suffix('%')
-                    ->badge()
-                    ->color('success'),
                 Tables\Columns\TextColumn::make('discount_percentage')
                     ->label('Знижка')
                     ->suffix('%')
@@ -125,6 +104,7 @@ class CustomerGroupResource extends Resource
                 Tables\Columns\IconColumn::make('is_active')
                     ->label('Активна')
                     ->boolean(),
+                ...\App\Support\Hooks::filter('wholesale.customer_group.columns', []),
                 Tables\Columns\TextColumn::make('sort_order')
                     ->label('Порядок')
                     ->sortable(),
