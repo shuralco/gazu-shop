@@ -324,6 +324,11 @@ class ProductResource extends Resource
                                             ->helperText('Загальний залишок. Розподіл по конкретних складах — у вкладці «Інвентар по складах» (після збереження товару).'),
                                     ]),
 
+                                // Точка розширення: модулі ціноутворення (pricing_markup)
+                                // додають сюди закупку й розрахунок цін по групах.
+                                // Без підписників — порожньо, форма не змінюється.
+                                ...\App\Support\Hooks::filter('product.form.pricing', []),
+
                                 Forms\Components\TextInput::make('wholesale_min_quantity')
                                     ->label('Мін. кількість для гурту')
                                     ->numeric()
@@ -1002,6 +1007,7 @@ class ProductResource extends Resource
                     ->color('warning')
                     ->sortable()
                     ->toggleable(),
+                ...\App\Support\Hooks::filter('product.table.columns', []),
                 Tables\Columns\TextColumn::make('price')
                     ->label('Ціна')
                     ->formatStateUsing(fn ($state) => number_format($state, 2, '.', ' ').' грн')

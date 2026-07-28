@@ -136,9 +136,7 @@
     ];
     // Реальне завантажене фото товару (тільки воно — без демо-заглушок по типу).
     $realImg = is_object($p) ? ($p->image ?? null) : null;
-    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://','https://'])) {
-        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
-    }
+    $realImg = \App\Support\UploadedImage::url($realImg);
     // Для og/JSON-LD: реальне фото → інакше нейтральний og-default (НЕ демо-пул,
     // щоб у соцмережах/пошуку не світились випадкові «фото запчастин»).
     $productImageUrl = $realImg ?: url('/og-default.png');
@@ -236,29 +234,42 @@
             <?php
                 $gallerySeed = is_object($p) ? (int) ($p->id ?? 0) : 0;
                 $galleryCode = $oem ?: (is_object($p) ? ($p->sku ?? null) : null);
-                // Без реального фото — ОДНЕ генеративне демо-фото (не 4 «ракурси»,
-                // щоб не плодити дублі). З реальним фото лишаємо 4 слоти (legacy).
-                $variants = $realImg
-                    ? [$gallerySeed, $gallerySeed + 1001, $gallerySeed + 2002, $gallerySeed + 3003]
-                    : [$gallerySeed];
+                // Слайди галереї — РЕАЛЬНІ зображення: головне фото + додаткові з
+                // поля «gallery» (кожне перевіряємо на існування, дублі прибираємо).
+                // Раніше при наявному фото робилось 4 слоти-«ракурси», і в усіх
+                // чотирьох показувався ОДИН і той самий файл — 4 однакові слайди
+                // й 4 однакові мініатюри. Немає жодного фото → одне генеративне.
+                $variants = [];
+                if ($realImg) {
+                    $variants[] = $realImg;
+                }
+                foreach ((array) (is_object($p) ? ($p->gallery ?? []) : []) as $extra) {
+                    $extraUrl = \App\Support\UploadedImage::url(is_string($extra) ? $extra : null);
+                    if ($extraUrl && ! in_array($extraUrl, $variants, true)) {
+                        $variants[] = $extraUrl;
+                    }
+                }
+                if (! $variants) {
+                    $variants = [$gallerySeed]; // int-seed = генеративний плейсхолдер
+                }
             ?>
             <div class="flex flex-col gap-3" x-data="{ idx: 0, zoom: false }" @keydown.escape.window="zoom = false">
                 <div class="aspect-square bg-[var(--gazu-surface)] rounded-lg relative overflow-hidden cursor-zoom-in group/main"
                      @click="zoom = true" title="Натисніть щоб збільшити">
                     <div class="absolute inset-0 gazu-grid-pattern"></div>
-                    <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $seed): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $slide): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <div class="absolute inset-0 transition-opacity duration-200"
                              :class="idx === <?php echo e($i); ?> ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                            <?php if($realImg): ?><img src="<?php echo e($realImg); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+                            <?php if(is_string($slide)): ?><img src="<?php echo e($slide); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $gallerySeed]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $slide]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($gallerySeed)]); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($slide)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
@@ -328,19 +339,19 @@
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                     </button>
                     <div class="relative w-full max-w-[90vw] max-h-[85vh] aspect-square bg-[var(--gazu-surface)] rounded-2xl overflow-hidden flex items-center justify-center" @click.stop>
-                        <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $seed): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $slide): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                             <div class="absolute inset-0 flex items-center justify-center p-8 transition-opacity"
                                  :class="idx === <?php echo e($i); ?> ? 'opacity-100' : 'opacity-0 pointer-events-none'">
-                                <?php if($realImg): ?><img src="<?php echo e($realImg); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+                                <?php if(is_string($slide)): ?><img src="<?php echo e($slide); ?>" alt="<?php echo e($name); ?>" class="w-full h-full object-contain"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $gallerySeed]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $slide]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($gallerySeed)]); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($slide)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>
@@ -361,21 +372,21 @@
                 </div>
                 
                 <div class="grid grid-cols-4 gap-2">
-                    <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $seed): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $__currentLoopData = $variants; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i => $slide): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                         <button type="button"
                                 @click="idx = <?php echo e($i); ?>" @mouseover="idx = <?php echo e($i); ?>"
                                 :class="idx === <?php echo e($i); ?> ? 'ring-2 ring-[var(--gazu-blue)] ring-offset-1' : 'opacity-80 hover:opacity-100'"
                                 class="aspect-square bg-[var(--gazu-paper)] rounded-md overflow-hidden cursor-pointer transition-all">
-                            <?php if($realImg): ?><img src="<?php echo e($realImg); ?>" alt="" class="w-full h-full object-cover"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
+                            <?php if(is_string($slide)): ?><img src="<?php echo e($slide); ?>" alt="" class="w-full h-full object-cover"/><?php else: ?><?php if (isset($component)) { $__componentOriginalb3ce7faecba1472bd9053bf57696fe20 = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginalb3ce7faecba1472bd9053bf57696fe20 = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $gallerySeed]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.product-placeholder','data' => ['name' => $name,'code' => $galleryCode,'seed' => $slide]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.product-placeholder'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($gallerySeed)]); ?>
+<?php $component->withAttributes(['name' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($name),'code' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($galleryCode),'seed' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($slide)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginalb3ce7faecba1472bd9053bf57696fe20)): ?>

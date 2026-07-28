@@ -30,7 +30,7 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split($getComponent(), $getComponentProperties());
 
-$__html = app('livewire')->mount($__name, $__params, 'lw-1049026910-0', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'lw-1049026910-1', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 

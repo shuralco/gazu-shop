@@ -172,7 +172,7 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split(\App\Filament\Widgets\LatestOrders::class);
 
-$__html = app('livewire')->mount($__name, $__params, 'lw-1500760794-0', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'lw-1500760794-1', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 

@@ -156,7 +156,7 @@
                             $line = (float) $op->price * (int) $op->quantity;
                             // Реальне фото → генеративна заглушка (як скрізь), не kind-SVG.
                             $opImg = $op->image ?? null;
-                            $opImgUrl = $opImg ? (\Illuminate\Support\Str::startsWith($opImg, ['http://','https://']) ? $opImg : url('/storage/'.ltrim((string) $opImg, '/'))) : null;
+                            $opImgUrl = \App\Support\UploadedImage::url($opImg);
                             $opCode = $op->sku ?? $op->cross_code ?? null;
                         ?>
                         <div class="flex items-center gap-3 p-4 <?php echo e(($i || ! $loop->parent->first) ? 'border-t border-[var(--gazu-line)]' : ''); ?>">

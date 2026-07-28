@@ -21,7 +21,7 @@ class ShippingProviderSeeder extends Seeder
                 'api_endpoint' => 'https://api.novaposhta.ua/v2.0/json/',
                 'is_active' => true,
                 'configuration' => [
-                    'api_key' => '737254fe131eca6c3ab91925ef9eff45',
+                    'api_key' => env('NOVAPOSHTA_API_KEY', ''),
                     'sandbox' => false,
                     'sender_city_ref' => '8d5a980d-391c-11dd-90d9-001a92567626', // Київ
                     'sender_phone' => '+380000000000',

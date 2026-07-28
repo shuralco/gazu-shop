@@ -503,7 +503,7 @@
                         [
                             'title' => 'Налаштування API ключа Нової Пошти',
                             'completed' => $isConfigured,
-                            'description' => 'API ключ: 737254fe131eca6c3ab91925ef9eff45',
+                            'description' => 'API ключ: YOUR_NP_API_KEY',
                             'link' => $npProvider ? \App\Filament\Resources\ShippingProviderResource::getUrl('edit', ['record' => $npProvider->id]) : \App\Filament\Resources\ShippingProviderResource::getUrl('index')
                         ],
                         [

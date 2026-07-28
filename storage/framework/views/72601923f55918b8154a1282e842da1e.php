@@ -343,7 +343,7 @@ $__split = function ($name, $params = []) {
 };
 [$__name, $__params] = $__split(Filament\Livewire\GlobalSearch::class);
 
-$__html = app('livewire')->mount($__name, $__params, 'lw-1100364991-0', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'lw-1100364991-2', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 
@@ -368,7 +368,7 @@ $__split = function ($name, $params = []) {
                         'lazy' => filament()->hasLazyLoadedDatabaseNotifications(),
                     ]);
 
-$__html = app('livewire')->mount($__name, $__params, 'lw-1100364991-1', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'lw-1100364991-3', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 

@@ -42,14 +42,14 @@
         <div class="gazu-grid-sidebar">
             <?php if (isset($component)) { $__componentOriginal939926802e1c3fbb39005b130947314c = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal939926802e1c3fbb39005b130947314c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.filter-panel','data' => ['priceRange' => $priceRange,'availableBrands' => $availableBrands,'selectedBrands' => $selectedBrands,'availableConditions' => $availableConditions ?? null,'selectedConditions' => $selectedConditions ?? [],'inStockOnly' => $inStockOnly,'searchQuery' => $searchQuery,'category' => $category]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.filter-panel','data' => ['priceRange' => $priceRange,'availableBrands' => $availableBrands,'selectedBrands' => $selectedBrands,'availableConditions' => $availableConditions ?? null,'selectedConditions' => $selectedConditions ?? [],'availableFilters' => $availableFilters ?? collect(),'selectedFilters' => $selectedFilters ?? [],'inStockOnly' => $inStockOnly,'searchQuery' => $searchQuery,'category' => $category]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.filter-panel'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['priceRange' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($priceRange),'availableBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableBrands),'selectedBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedBrands),'availableConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableConditions ?? null),'selectedConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedConditions ?? []),'inStockOnly' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($inStockOnly),'searchQuery' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($searchQuery),'category' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($category)]); ?>
+<?php $component->withAttributes(['priceRange' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($priceRange),'availableBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableBrands),'selectedBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedBrands),'availableConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableConditions ?? null),'selectedConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedConditions ?? []),'availableFilters' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableFilters ?? collect()),'selectedFilters' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedFilters ?? []),'inStockOnly' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($inStockOnly),'searchQuery' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($searchQuery),'category' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($category)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal939926802e1c3fbb39005b130947314c)): ?>
@@ -90,7 +90,7 @@
                                     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
                                     $fits = is_object($p) ? ($p->fits ?? '') : ($p['fits'] ?? '');
                                     $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-                                    if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
+                                    $rImg = \App\Support\UploadedImage::url($rImg);
                                 ?>
                                 <tr class="border-b border-[var(--gazu-line)]">
                                     <td class="py-2.5 px-2" style="width: 56px;">

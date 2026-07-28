@@ -8,9 +8,7 @@
     $primaryCar = auth()->check() ? auth()->user()->primaryCar : null;
     // Реальне фото → генеративна заглушка (як на десктоп-сторінці товару).
     $mRealImg = is_object($p) ? ($p->image ?? null) : null;
-    if ($mRealImg && ! \Illuminate\Support\Str::startsWith($mRealImg, ['http://', 'https://'])) {
-        $mRealImg = url('/storage/'.ltrim((string) $mRealImg, '/'));
-    }
+    $mRealImg = \App\Support\UploadedImage::url($mRealImg);
     $mCode = is_object($p) ? ($p->oem ?? $p->cross_code ?? $p->sku ?? null) : null;
     $mId = is_object($p) ? ($p->id ?? null) : null;
 ?>

@@ -96,7 +96,7 @@ php artisan np:track --silent         # без output (для cron)
 
 ### Базове (вже з коробки)
 
-API ключ `737254fe131eca6c3ab91925ef9eff45` (публічний dev-ключ Нової Пошти) працює одразу. Магазин може:
+API ключ `YOUR_NP_API_KEY` задається у `.env` (`NOVAPOSHTA_API_KEY`) — без нього модуль НП вимкнено. Магазин може:
 
 - Шукати міста і відділення
 - Рахувати ціну доставки
@@ -357,7 +357,7 @@ Schedule::command('np:track')->everyThirtyMinutes();
 
 | Кл | Звідки | Default |
 |---|---|---|
-| `NOVA_POSHTA_API_KEY` (config) | `.env` | `737254fe131eca6c3ab91925ef9eff45` (public dev) |
+| `NOVA_POSHTA_API_KEY` (config) | `.env` | `YOUR_NP_API_KEY`|
 | `shipping_providers.novaposhta.configuration.api_key` | DB | `null` (fallback на config) |
 
 Логіка `NovaPoshtaProvider::__construct`:

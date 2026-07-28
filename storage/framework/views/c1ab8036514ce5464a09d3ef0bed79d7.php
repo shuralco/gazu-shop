@@ -10,7 +10,7 @@
     $oldPrice = ((float) $oldPrice > (float) $price) ? $oldPrice : null; // ignore 0 / ≤ price
     $pId = is_object($p) ? ($p->id ?? 0) : ($p['id'] ?? 0);
     $pRealImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-    if ($pRealImg && ! \Illuminate\Support\Str::startsWith($pRealImg, ['http://','https://'])) { $pRealImg = url('/storage/'.ltrim((string)$pRealImg,'/')); }
+    $pRealImg = \App\Support\UploadedImage::url($pRealImg);
     $discount = is_object($p) ? ($p->discount ?? null) : ($p['discount'] ?? null);
     $qty = is_object($p) ? (int)($p->qty ?? 0) : (int)($p['qty'] ?? 0);
 

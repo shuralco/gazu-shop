@@ -7,6 +7,7 @@ use App\Support\Hooks;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\ServiceProvider;
 use Modules\PricingMarkup\Filament\CustomerGroupFields;
+use Modules\PricingMarkup\Filament\ProductPricingFields;
 use Modules\PricingMarkup\Services\MarkupPricing;
 
 /**
@@ -65,6 +66,8 @@ class PricingMarkupServiceProvider extends ServiceProvider
         foreach ([
             'wholesale.customer_group.form' => [CustomerGroupFields::class, 'formSchema'],
             'wholesale.customer_group.columns' => [CustomerGroupFields::class, 'tableColumns'],
+            'product.form.pricing' => [ProductPricingFields::class, 'formSchema'],
+            'product.table.columns' => [ProductPricingFields::class, 'tableColumns'],
         ] as $event => $factory) {
             if (in_array($event, Hooks::eventsBySource('pricing_markup'), true)) {
                 continue;

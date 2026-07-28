@@ -10,7 +10,7 @@ return [
     |
     */
 
-    'api_key' => env('NOVAPOSHTA_API_KEY', '737254fe131eca6c3ab91925ef9eff45'),
+    'api_key' => env('NOVAPOSHTA_API_KEY'),
 
     'api_url' => env('NOVAPOSHTA_API_URL', 'https://api.novaposhta.ua/v2.0/json/'),
 

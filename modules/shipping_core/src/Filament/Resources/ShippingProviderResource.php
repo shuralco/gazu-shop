@@ -93,10 +93,10 @@ class ShippingProviderResource extends Resource
                             ->schema([
                                 Forms\Components\TextInput::make('configuration.api_key')
                                     ->label('API Ключ')
-                                    ->default('737254fe131eca6c3ab91925ef9eff45')
+                                    ->default(null)
                                     ->password()
                                     ->revealable()
-                                    ->helperText('API ключ: 737254fe131eca6c3ab91925ef9eff45'),
+                                    ->helperText('API ключ: YOUR_NP_API_KEY'),
 
                                 Forms\Components\Toggle::make('configuration.sandbox')
                                     ->label('Тестовий режим')

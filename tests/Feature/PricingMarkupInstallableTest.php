@@ -64,4 +64,35 @@ class PricingMarkupInstallableTest extends TestCase
         $this->assertNotEmpty($manifest['providers']);
         $this->assertSame('database/migrations', $manifest['migrations_path']);
     }
+
+    public function test_product_form_gets_cost_price_and_breakdown(): void
+    {
+        $names = collect(Hooks::filter('product.form.pricing', []))
+            ->flatMap(fn ($c) => method_exists($c, 'getChildComponents') ? $c->getChildComponents() : [$c])
+            ->map(fn ($c) => method_exists($c, 'getName') ? $c->getName() : null)
+            ->filter()->all();
+
+        $this->assertContains('cost_price', $names, 'закупка редагується в картці товару');
+        $this->assertContains('cost_currency', $names);
+        $this->assertContains('markup_breakdown', $names, 'розрахунок цін по групах');
+    }
+
+    public function test_product_table_gets_cost_and_margin_columns(): void
+    {
+        $names = collect(Hooks::filter('product.table.columns', []))
+            ->map(fn ($c) => method_exists($c, 'getName') ? $c->getName() : null)
+            ->filter()->all();
+
+        $this->assertContains('cost_price', $names);
+        $this->assertContains('margin_hint', $names);
+    }
+
+    public function test_cost_fields_already_exist_in_schema(): void
+    {
+        // Ми не заводимо нових колонок — показуємо ті, що вже були (їх заповнює
+        // імпорт quick_fill). Якщо вони зникнуть — модуль має впасти голосно.
+        $this->assertTrue(\Schema::hasColumn('products', 'cost_price'));
+        $this->assertTrue(\Schema::hasColumn('products', 'cost_currency'));
+        $this->assertContains('cost_price', (new \App\Models\Product)->getFillable());
+    }
 }

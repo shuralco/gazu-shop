@@ -38,9 +38,7 @@ unset($__defined_vars, $__key, $__value); ?>
     $qty = is_object($p) ? (int) ($p->qty ?? $p->quantity ?? 0) : (int) ($p['qty'] ?? 0);
     // Реальне фото товару (пріоритет над генеративною заглушкою) — як у картці.
     $realImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-    if ($realImg && ! \Illuminate\Support\Str::startsWith($realImg, ['http://', 'https://'])) {
-        $realImg = url('/storage/'.ltrim((string) $realImg, '/'));
-    }
+    $realImg = \App\Support\UploadedImage::url($realImg);
     // Backorder: товар без залишку можна замовити, якщо увімкнено в адмінці.
     $allowBackorder = isset($gazuSettings) ? (bool) ($gazuSettings['gazu_allow_backorder'] ?? true) : true;
     $isBackorder = $qty <= 0;

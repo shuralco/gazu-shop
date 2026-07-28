@@ -42,14 +42,14 @@
         <div class="gazu-grid-sidebar">
             <?php if (isset($component)) { $__componentOriginal939926802e1c3fbb39005b130947314c = $component; } ?>
 <?php if (isset($attributes)) { $__attributesOriginal939926802e1c3fbb39005b130947314c = $attributes; } ?>
-<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.filter-panel','data' => ['priceRange' => $priceRange,'availableBrands' => $availableBrands,'selectedBrands' => $selectedBrands,'availableConditions' => $availableConditions ?? null,'selectedConditions' => $selectedConditions ?? [],'inStockOnly' => $inStockOnly,'searchQuery' => $searchQuery,'category' => $category]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.filter-panel','data' => ['priceRange' => $priceRange,'availableBrands' => $availableBrands,'selectedBrands' => $selectedBrands,'availableConditions' => $availableConditions ?? null,'selectedConditions' => $selectedConditions ?? [],'availableFilters' => $availableFilters ?? collect(),'selectedFilters' => $selectedFilters ?? [],'inStockOnly' => $inStockOnly,'searchQuery' => $searchQuery,'category' => $category]] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
 <?php $component->withName('gazu.filter-panel'); ?>
 <?php if ($component->shouldRender()): ?>
 <?php $__env->startComponent($component->resolveView(), $component->data()); ?>
 <?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
 <?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
 <?php endif; ?>
-<?php $component->withAttributes(['priceRange' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($priceRange),'availableBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableBrands),'selectedBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedBrands),'availableConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableConditions ?? null),'selectedConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedConditions ?? []),'inStockOnly' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($inStockOnly),'searchQuery' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($searchQuery),'category' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($category)]); ?>
+<?php $component->withAttributes(['priceRange' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($priceRange),'availableBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableBrands),'selectedBrands' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedBrands),'availableConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableConditions ?? null),'selectedConditions' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedConditions ?? []),'availableFilters' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($availableFilters ?? collect()),'selectedFilters' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($selectedFilters ?? []),'inStockOnly' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($inStockOnly),'searchQuery' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($searchQuery),'category' => \Illuminate\View\Compilers\BladeCompiler::sanitizeComponentAttribute($category)]); ?>
 <?php echo $__env->renderComponent(); ?>
 <?php endif; ?>
 <?php if (isset($__attributesOriginal939926802e1c3fbb39005b130947314c)): ?>
@@ -85,7 +85,7 @@
                             $cOem = is_object($p) ? ($p->oem ?? $p->sku ?? '') : ($p['oem'] ?? '');
                             $cId = is_object($p) ? ($p->id ?? 0) : ($p['id'] ?? 0);
                             $rImg = is_object($p) ? ($p->image ?? null) : ($p['image'] ?? null);
-                            if ($rImg && ! \Illuminate\Support\Str::startsWith($rImg, ['http://','https://'])) { $rImg = url('/storage/'.ltrim((string)$rImg,'/')); }
+                            $rImg = \App\Support\UploadedImage::url($rImg);
                         ?>
                         <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-4 gazu-grid-list font-text">
                             <a wire:navigate href="<?php echo e($url); ?>" class="bg-[var(--gazu-paper)] rounded-md flex items-center justify-center overflow-hidden" style="aspect-ratio:1;">

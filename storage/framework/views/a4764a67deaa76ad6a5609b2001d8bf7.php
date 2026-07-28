@@ -176,19 +176,26 @@ unset($__defined_vars, $__key, $__value); ?>
     </div>
 </div>
 
-<?php if (! $__env->hasRenderedOnce('eb01ba27-d02a-4ec8-93e3-d426255b8b5f')): $__env->markAsRenderedOnce('eb01ba27-d02a-4ec8-93e3-d426255b8b5f'); ?>
+<?php if (! $__env->hasRenderedOnce('0089d189-a024-4a5a-bc15-1d3a7b18a3d2')): $__env->markAsRenderedOnce('0089d189-a024-4a5a-bc15-1d3a7b18a3d2'); ?>
 <script>
     (function() {
         if (typeof window.__gazuCarSelectorRegistered !== 'undefined') return;
         window.__gazuCarSelectorRegistered = true;
         const register = () => {
             if (! window.Alpine) { document.addEventListener('alpine:init', register, { once: true }); return; }
+            // URL-slug коду двигуна. МУСИТЬ збігатися з CarEngine::urlSlug (PHP).
+            window.gazuEngineSlug = window.gazuEngineSlug || function (code) {
+                return (code || '').toString().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+            };
+            const gazuEngineSlug = window.gazuEngineSlug;
+
             window.Alpine.data('gazuCarSelector', (opts) => ({
                 makes: Array.isArray(opts.initialMakes) ? opts.initialMakes : [],
                 models: [], engines: [],
                 make: opts.initialMake || '',
                 model: opts.initialModel || '',
                 engine: opts.initialEngine || '',
+                engineSlug: opts.initialEngine ? gazuEngineSlug(opts.initialEngine) : '',
                 search: '', expanded: false, loading: false,
                 _redirecting: false,
                 _opts: opts,
@@ -260,7 +267,7 @@ unset($__defined_vars, $__key, $__value); ?>
                 pick(item) {
                     const l = this.activeLevel();
                     if (l === 'make') {
-                        this.make = item.slug; this.model = ''; this.engine = ''; this.models = []; this.engines = [];
+                        this.make = item.slug; this.model = ''; this.engine = ''; this.engineSlug = ''; this.models = []; this.engines = [];
                         // У межах категорії фільтруємо одразу по марці (лишаючись на сторінці
                         // категорії). У глобальному каталозі — продовжуємо каскад до двигуна.
                         if (opts.categoryUrl) {
@@ -270,10 +277,12 @@ unset($__defined_vars, $__key, $__value); ?>
                         }
                         this.fetchModels();
                     } else if (l === 'model') {
-                        this.model = item.slug; this.engine = ''; this.engines = [];
+                        this.model = item.slug; this.engine = ''; this.engineSlug = ''; this.engines = [];
                         this.fetchEngines();
                     } else if (l === 'engine') {
                         this.engine = item.code;
+                        // slug для URL: сирий code містить пробіли/слеш → 404.
+                        this.engineSlug = item.slug || gazuEngineSlug(item.code);
                         // Auto-submit — small delay so the loading state renders briefly.
                         if (opts.autoSubmit) {
                             this._redirecting = true;
@@ -291,15 +300,15 @@ unset($__defined_vars, $__key, $__value); ?>
                     return chips;
                 },
                 changeLevel(level) {
-                    if (level === 'make')   { this.make = ''; this.model = ''; this.engine = ''; this.models = []; this.engines = []; }
-                    if (level === 'model')  { this.model = ''; this.engine = ''; this.engines = []; }
-                    if (level === 'engine') { this.engine = ''; }
+                    if (level === 'make')   { this.make = ''; this.model = ''; this.engine = ''; this.engineSlug = ''; this.models = []; this.engines = []; }
+                    if (level === 'model')  { this.model = ''; this.engine = ''; this.engineSlug = ''; this.engines = []; }
+                    if (level === 'engine') { this.engine = ''; this.engineSlug = ''; }
                     this.search = ''; this.expanded = false;
                 },
 
                 hasAnySelection() { return !!(this.make || this.model || this.engine); },
                 reset() {
-                    this.make = ''; this.model = ''; this.engine = '';
+                    this.make = ''; this.model = ''; this.engine = ''; this.engineSlug = '';
                     this.models = []; this.engines = []; this.search = ''; this.expanded = false;
                     // У категорії reset веде назад на чисту категорію, не на /catalog.
                     if (window.location.search) window.location.assign(opts.categoryUrl || opts.catalogUrl);
@@ -312,13 +321,15 @@ unset($__defined_vars, $__key, $__value); ?>
                         const qs = new URLSearchParams();
                         qs.set('make', this.make);
                         if (this.model)  qs.set('model', this.model);
-                        if (this.engine) qs.set('engine', this.engine);
+                        // slug, а не сирий code — бекенд резолвить його назад.
+                        if (this.engine) qs.set('engine', this.engineSlug || gazuEngineSlug(this.engine));
                         window.location.assign(opts.categoryUrl + '?' + qs.toString());
                         return;
                     }
                     // ГЛОБАЛЬНИЙ каталог: pretty URL /zapchastyny/{make}/{model}/{engine}
                     if (!(this.make && this.model && this.engine)) return;
-                    const segs = ['zapchastyny', this.make, this.model, this.engine].map(encodeURIComponent);
+                    const engSeg = this.engineSlug || gazuEngineSlug(this.engine);
+                    const segs = ['zapchastyny', this.make, this.model, engSeg].map(encodeURIComponent);
                     window.location.assign(window.location.origin + '/' + segs.join('/'));
                 },
             }));

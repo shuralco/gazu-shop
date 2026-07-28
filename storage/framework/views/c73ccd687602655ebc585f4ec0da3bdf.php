@@ -66,7 +66,7 @@ $__split = function ($name, $params = []) {
                         'lazy' => filament()->hasLazyLoadedDatabaseNotifications()
                     ]);
 
-$__html = app('livewire')->mount($__name, $__params, 'lw-1168678508-0', $__slots ?? [], get_defined_vars());
+$__html = app('livewire')->mount($__name, $__params, 'lw-1168678508-1', $__slots ?? [], get_defined_vars());
 
 echo $__html;
 

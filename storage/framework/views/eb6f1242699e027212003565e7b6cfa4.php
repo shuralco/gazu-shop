@@ -8,6 +8,8 @@ $__propNames = \Illuminate\View\ComponentAttributeBag::extractPropNames(([
     'selectedBrands' => [],
     'availableConditions' => null,
     'selectedConditions' => [],
+    'availableFilters' => null,
+    'selectedFilters' => [],
     'inStockOnly' => false,
     'searchQuery' => '',
     'category' => null,
@@ -33,6 +35,8 @@ foreach (array_filter(([
     'selectedBrands' => [],
     'availableConditions' => null,
     'selectedConditions' => [],
+    'availableFilters' => null,
+    'selectedFilters' => [],
     'inStockOnly' => false,
     'searchQuery' => '',
     'category' => null,
@@ -51,7 +55,7 @@ unset($__defined_vars, $__key, $__value); ?>
     $brands = collect($availableBrands);
     $selected = collect($selectedBrands);
     $rangeFromUrl = ['min','max','sort'];
-    $hasFilters = !empty(request('brand')) || request()->filled('min') || request()->filled('max') || request('stock') === 'in';
+    $hasFilters = !empty(request('brand')) || !empty(request('filter')) || request()->filled('min') || request()->filled('max') || request('stock') === 'in';
 ?>
 
 <form method="GET" action="<?php echo e(url()->current()); ?>" class="font-text text-sm" x-data="{
@@ -439,6 +443,74 @@ unset($__defined_vars, $__key, $__value); ?>
             </div>
         </details>
     <?php endif; ?>
+
+    
+    <?php
+        $filterGroups = collect($availableFilters ?? []);
+        $selectedFilterIds = collect($selectedFilters ?? [])->map(fn ($i) => (int) $i);
+    ?>
+    <?php $__currentLoopData = $filterGroups; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $group): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+        <details class="border-b border-[var(--gazu-line)] py-3.5" <?php echo e($group->hasSelected ? 'open' : ''); ?>>
+            <summary class="flex justify-between items-center cursor-pointer list-none">
+                <span class="text-sm font-medium text-[var(--gazu-ink)]"><?php echo e($group->title); ?></span>
+                <?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'chevron','size' => '16','stroke' => 'var(--gazu-graphite)']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.icon'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['name' => 'chevron','size' => '16','stroke' => 'var(--gazu-graphite)']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
+<?php $attributes = $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
+<?php unset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
+<?php $component = $__componentOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
+<?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
+<?php endif; ?>
+            </summary>
+            <div class="mt-3">
+                <?php $__currentLoopData = $group->items; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <?php $checked = $selectedFilterIds->contains((int) $item->id); ?>
+                    <label class="flex items-center gap-2.5 py-1.5 cursor-pointer text-[13px] text-[var(--gazu-ink)] hover:text-[var(--gazu-blue)]">
+                        <input type="checkbox" name="filter[]" value="<?php echo e($item->id); ?>"
+                               class="sr-only" <?php echo e($checked ? 'checked' : ''); ?>
+
+                               onchange="this.form.submit()">
+                        <span class="w-4 h-4 border-[1.5px] <?php echo e($checked ? 'border-[var(--gazu-ink)] bg-[var(--gazu-ink)]' : 'border-[var(--gazu-line-2)] bg-[var(--gazu-surface)]'); ?> rounded inline-flex items-center justify-center shrink-0">
+                            <?php if($checked): ?><?php if (isset($component)) { $__componentOriginal6ccaa7247ed520b12783ad61ab722d64 = $component; } ?>
+<?php if (isset($attributes)) { $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64 = $attributes; } ?>
+<?php $component = Illuminate\View\AnonymousComponent::resolve(['view' => 'components.gazu.icon','data' => ['name' => 'check','size' => '11','stroke' => '#fff','strokeWidth' => '2.5']] + (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag ? $attributes->all() : [])); ?>
+<?php $component->withName('gazu.icon'); ?>
+<?php if ($component->shouldRender()): ?>
+<?php $__env->startComponent($component->resolveView(), $component->data()); ?>
+<?php if (isset($attributes) && $attributes instanceof Illuminate\View\ComponentAttributeBag): ?>
+<?php $attributes = $attributes->except(\Illuminate\View\AnonymousComponent::ignoredParameterNames()); ?>
+<?php endif; ?>
+<?php $component->withAttributes(['name' => 'check','size' => '11','stroke' => '#fff','strokeWidth' => '2.5']); ?>
+<?php echo $__env->renderComponent(); ?>
+<?php endif; ?>
+<?php if (isset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
+<?php $attributes = $__attributesOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
+<?php unset($__attributesOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
+<?php endif; ?>
+<?php if (isset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64)): ?>
+<?php $component = $__componentOriginal6ccaa7247ed520b12783ad61ab722d64; ?>
+<?php unset($__componentOriginal6ccaa7247ed520b12783ad61ab722d64); ?>
+<?php endif; ?><?php endif; ?>
+                        </span>
+                        <span class="flex-1"><?php echo e($item->title); ?></span>
+                        <span class="text-xs text-[var(--gazu-muted)] gazu-mono"><?php echo e($item->count); ?></span>
+                    </label>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+            </div>
+        </details>
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
     
     <details class="border-b border-[var(--gazu-line)] py-3.5" <?php echo e($inStockOnly ? 'open' : ''); ?>>
