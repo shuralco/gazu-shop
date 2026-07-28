@@ -36,7 +36,11 @@ class ProductPricingFields
                     Forms\Components\Select::make('cost_currency')
                         ->label('Валюта закупки')
                         ->options(fn () => \App\Models\Currency::selectOptions())
-                        ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
+                        ->default(fn () => self::baseCode())
+                        // У старих товарів валюта порожня. Без цього Select мовчки
+                        // показував би ПЕРШУ валюту зі списку (наприклад CNY) —
+                        // виглядало б як свідомо обрана, хоча її ніхто не ставив.
+                        ->afterStateHydrated(fn ($state, Forms\Set $set) => $state ?: $set('cost_currency', self::baseCode()))
                         ->selectablePlaceholder(false)
                         ->native(false)
                         ->live()
@@ -137,6 +141,16 @@ class ProductPricingFields
             : '<div style="font-size:11px;color:#71717a;margin-top:6px">Вкажіть закупку — покажемо маржу по кожній групі.</div>';
 
         return '<table style="width:100%;font-size:13px">'.$head.$rows.'</table>'.$note;
+    }
+
+    /** Валюта магазину за замовчуванням. */
+    private static function baseCode(): string
+    {
+        try {
+            return \App\Models\Currency::baseCode() ?: 'UAH';
+        } catch (\Throwable) {
+            return 'UAH';
+        }
     }
 
     /** Сума у валюті → гривня (той самий довідник, що й на вітрині). */
