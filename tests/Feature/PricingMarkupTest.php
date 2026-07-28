@@ -166,4 +166,42 @@ class PricingMarkupTest extends TestCase
         $this->assertSame(35.0, MarkupPricing::percentFor(null));
         $this->assertSame(1350.0, MarkupPricing::apply(1000, null));
     }
+
+    public function test_discount_group_converts_to_equivalent_negative_markup(): void
+    {
+        // Перехід опту зі знижки на націнку: -X % націнки дає ТУ САМУ ціну,
+        // що й X % знижки. Різниця лише в подачі — зникає перекреслена ціна.
+        $this->group('Роздріб', 0, default: true);
+        $wholesale = $this->group('Опт', 0);
+        $wholesale->update(['discount_percentage' => 17.5]);
+        MarkupPricing::flush();
+
+        $p = $this->product(499);
+        $user = $this->user($wholesale);
+
+        $before = $p->priceViewForUser($user);
+        $this->assertSame(411.68, $before['price'], '499 - 17.5% = 411.68');
+        $this->assertSame(499.0, $before['regular']);
+        $this->assertTrue($before['is_group'], 'зі знижкою є перекреслена ціна');
+
+        // Конвертація: знижку в нуль, націнку у мінус на ту саму величину.
+        $wholesale->update(['discount_percentage' => 0, 'markup_percentage' => -17.5]);
+        MarkupPricing::flush();
+
+        $after = $p->fresh()->priceViewForUser($user->fresh());
+        $this->assertSame($before['price'], $after['price'], 'ціна для клієнта не змінюється');
+        $this->assertSame(411.68, $after['regular'], 'націнена ціна стає «звичайною»');
+        $this->assertFalse($after['is_group'], 'перекресленої ціни більше немає — це не знижка');
+    }
+
+    public function test_conversion_does_not_touch_other_groups(): void
+    {
+        $retail = $this->group('Роздріб', 0, default: true);
+        $wholesale = $this->group('Опт', -17.5);
+        $p = $this->product(1000);
+
+        $this->assertSame(1000.0, $p->priceViewForUser(null)['price'], 'гість платить базову');
+        $this->assertSame(1000.0, $p->priceViewForUser($this->user($retail))['price'], 'роздріб без змін');
+        $this->assertSame(825.0, $p->priceViewForUser($this->user($wholesale))['price'], 'опт -17.5%');
+    }
 }
