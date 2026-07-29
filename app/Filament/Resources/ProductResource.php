@@ -73,6 +73,22 @@ class ProductResource extends Resource
         return implode(' · ', $parts);
     }
 
+    /**
+     * Рядок опції «емблема + назва» для селекта марки.
+     *
+     * Використовується з ->allowHtml(), тож усе з БД проганяємо через e().
+     * Без емблеми показуємо дві літери назви — щоб не було битого <img>.
+     */
+    private static function makeOptionHtml(string $name, ?string $logoUrl): string
+    {
+        $badge = $logoUrl
+            ? '<img src="'.e($logoUrl).'" alt="" style="width:18px;height:18px;object-fit:contain;flex:none">'
+            : '<span style="width:18px;height:18px;flex:none;display:inline-flex;align-items:center;justify-content:center;'
+                .'font-size:9px;border-radius:3px;background:rgba(120,120,120,.15)">'.e(mb_substr($name, 0, 2)).'</span>';
+
+        return '<span style="display:inline-flex;align-items:center;gap:6px">'.$badge.e($name).'</span>';
+    }
+
     public static function form(Form $form): Form
     {
         return $form
@@ -785,12 +801,22 @@ class ProductResource extends Resource
                                                         ->label('Марка')
                                                         ->options(function (Forms\Get $get) {
                                                             // Кеш списку марок (статичний) — repeater запитує на КОЖЕН рядок.
-                                                            $opts = \Illuminate\Support\Facades\Cache::remember('admin:car_makes:options', 3600, fn () => \App\Models\CarMake::query()->where('is_active', true)
-                                                                ->orderBy('sort_order')->orderBy('name')->pluck('name', 'name')->all());
+                                                            // Значення — емблема + назва: марку впізнаєш оком, не читаючи.
+                                                            $opts = \Illuminate\Support\Facades\Cache::remember('admin:car_makes:options_html', 3600, function () {
+                                                                $out = [];
+                                                                foreach (\App\Models\CarMake::query()->where('is_active', true)
+                                                                    ->orderBy('sort_order')->orderBy('name')->get() as $make) {
+                                                                    $out[$make->name] = self::makeOptionHtml($make->name, $make->logo_url);
+                                                                }
+
+                                                                return $out;
+                                                            });
                                                             $cur = $get('make'); // зберегти наявне значення (навіть поза каталогом)
-                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = $cur;
+                                                            if ($cur && ! isset($opts[$cur])) $opts[$cur] = self::makeOptionHtml($cur, null);
                                                             return $opts;
                                                         })
+                                                        // Опції — розмітка, тому все, що приходить із БД, екрануємо в makeOptionHtml().
+                                                        ->allowHtml()
                                                         ->searchable()
                                                         ->live()
                                                         ->afterStateUpdated(function (Forms\Set $set) {

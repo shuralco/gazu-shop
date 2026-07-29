@@ -122,6 +122,10 @@
             }
         }
     }
+
+    // Сортуємо за маркою → моделлю → двигуном: рядки однієї марки йдуть підряд,
+    // інакше групування емблем не спрацює (VW, Audi, VW і знову емблема).
+    usort($compat, fn ($a, $b) => [$a[0], $a[1], $a[3]] <=> [$b[0], $b[1], $b[3]]);
 @endphp
 
 @php
@@ -709,15 +713,21 @@
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        @php $prevMake = null; @endphp
                                         @foreach($compat as $r)
-                                            <tr class="border-t border-[var(--gazu-line)]">
+                                            {{-- Марку показуємо лише коли вона змінилась: інакше та сама
+                                                 емблема повторювалась у кожному рядку (для VW — 41 раз). --}}
+                                            @php $newMake = ($r[0] ?? null) !== $prevMake; $prevMake = $r[0] ?? null; @endphp
+                                            <tr class="{{ $newMake ? 'border-t border-[var(--gazu-line)]' : '' }}">
                                                 <td class="px-3.5 py-3 gazu-display font-semibold text-[var(--gazu-ink)]">
-                                                    <span class="inline-flex items-center gap-2">
-                                                        <span class="w-6 h-6 rounded overflow-hidden inline-flex items-center justify-center shrink-0 {{ ($r[4] ?? null) ? '' : 'bg-[var(--gazu-mist)] text-[9px] gazu-mono text-[var(--gazu-blue)]' }}">
-                                                            @if($r[4] ?? null)<img src="{{ $r[4] }}" alt="{{ $r[0] }}" class="w-full h-full object-cover" loading="lazy">@else{{ mb_substr($r[0], 0, 2) }}@endif
+                                                    @if($newMake)
+                                                        <span class="inline-flex items-center gap-2">
+                                                            <span class="w-6 h-6 rounded overflow-hidden inline-flex items-center justify-center shrink-0 {{ ($r[4] ?? null) ? '' : 'bg-[var(--gazu-mist)] text-[9px] gazu-mono text-[var(--gazu-blue)]' }}">
+                                                                @if($r[4] ?? null)<img src="{{ $r[4] }}" alt="{{ $r[0] }}" class="w-full h-full object-cover" loading="lazy">@else{{ mb_substr($r[0], 0, 2) }}@endif
+                                                            </span>
+                                                            <span>{{ $r[0] }}</span>
                                                         </span>
-                                                        <span>{{ $r[0] }}</span>
-                                                    </span>
+                                                    @endif
                                                 </td>
                                                 <td class="px-3.5 py-3 text-[var(--gazu-ink)]">{{ $r[1] }}</td>
                                                 <td class="px-3.5 py-3 text-[var(--gazu-graphite)] gazu-mono text-xs">{{ $r[2] }}</td>
