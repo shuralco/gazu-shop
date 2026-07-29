@@ -32,7 +32,9 @@ class NovaPoshtaProvider implements ShippingProviderInterface
         // формі замовлення «не працював». ?: (не ??) щоб порожні рядки падали далі.
         $this->apiKey = ($config['api_key'] ?? null)
             ?: config('services.nova_poshta.api_key')
-            ?: config('novaposhta.api_key', '');
+            ?: config('novaposhta.api_key')
+            // null із порожнього конфіга не можна класти в типізовану string.
+            ?: '';
         $this->apiUrl = config('services.nova_poshta.api_url')
             ?: config('novaposhta.api_url', 'https://api.novaposhta.ua/v2.0/json/');
         $this->sandbox = $config['sandbox'] ?? config('novaposhta.sandbox', false);

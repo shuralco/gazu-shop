@@ -22,7 +22,7 @@ class NovaPoshtaReferenceSync
     {
         $provider = ShippingProvider::where('code', 'novaposhta')->first();
         $cfg = $provider->configuration ?? [];
-        $this->apiKey = $cfg['api_key'] ?? config('novaposhta.api_key');
+        $this->apiKey = (string) ($cfg['api_key'] ?? config('novaposhta.api_key') ?? '');
         $this->apiUrl = config('novaposhta.api_url', 'https://api.novaposhta.ua/v2.0/json/');
     }
 

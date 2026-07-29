@@ -21,7 +21,11 @@ class NovaPoshtaApiService
         // Use ?: (not ??) so empty strings fall through to the next source.
         $this->apiKey = ($cfg['api_key'] ?? null)
             ?: config('services.nova_poshta.api_key')
-            ?: config('novaposhta.api_key', '');
+            ?: config('novaposhta.api_key')
+            // Ключ у конфізі ІСНУЄ, але може бути null (магазин без NOVAPOSHTA_API_KEY).
+            // Тоді default другим аргументом config() не спрацьовує, і в типізовану
+            // string полетів би null — TypeError на кожному виклику НП.
+            ?: '';
 
         $this->apiUrl = config('services.nova_poshta.api_url')
             ?: config('novaposhta.api_url', 'https://api.novaposhta.ua/v2.0/json/');
