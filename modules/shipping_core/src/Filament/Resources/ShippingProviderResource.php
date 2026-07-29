@@ -96,7 +96,7 @@ class ShippingProviderResource extends Resource
                                     ->default(null)
                                     ->password()
                                     ->revealable()
-                                    ->helperText('API ключ: YOUR_NP_API_KEY'),
+                                    ->helperText('Особистий кабінет Нової Пошти → Налаштування → Безпека. Можна лишити порожнім і задати NOVAPOSHTA_API_KEY у .env.'),
 
                                 Forms\Components\Toggle::make('configuration.sandbox')
                                     ->label('Тестовий режим')

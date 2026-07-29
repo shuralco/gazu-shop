@@ -63,7 +63,11 @@
                 <div class="space-y-3">
                     @php
                         $npProvider = \App\Models\ShippingProvider::where('code', 'novaposhta')->first();
-                        $apiKey = $npProvider?->configuration['api_key'] ?? null;
+                        // Ключ може жити в налаштуваннях провайдера, у services або в .env —
+                        // без цього дашборд показував би «не налаштовано» магазину, що працює.
+                        $apiKey = $npProvider?->configuration['api_key']
+                            ?: config('services.nova_poshta.api_key')
+                            ?: config('novaposhta.api_key');
                         $isConfigured = !empty($apiKey);
                         
                         $isConnected = false;
@@ -164,7 +168,7 @@
                         [
                             'title' => 'Налаштування API ключа Нової Пошти',
                             'completed' => $isConfigured,
-                            'description' => 'API ключ: YOUR_NP_API_KEY',
+                            'description' => 'Ключ із кабінету Нової Пошти або змінна NOVAPOSHTA_API_KEY у .env',
                             'link' => $npProvider ? \App\Filament\Resources\ShippingProviderResource::getUrl('edit', ['record' => $npProvider->id]) : \App\Filament\Resources\ShippingProviderResource::getUrl('index')
                         ],
                         [
