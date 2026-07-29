@@ -15,5 +15,21 @@ storage/*.key
 .phpunit.cache
 storage/logs/*
 !storage/logs/.gitkeep
+
+# Runtime-стан Laravel: скомпільовані в'юшки, файловий кеш, сесії.
+# Створюється на льоту; Dockerfile і entrypoint роблять mkdir + view:cache самі,
+# а .dockerignore і так не пускає це в образ. Тримаємо лише маркери каталогів,
+# щоб структура існувала у свіжому клоні.
+storage/framework/cache/*
+!storage/framework/cache/.gitignore
+!storage/framework/cache/data/
+storage/framework/cache/data/*
+!storage/framework/cache/data/.gitignore
+storage/framework/sessions/*
+!storage/framework/sessions/.gitignore
+storage/framework/views/*
+!storage/framework/views/.gitignore
+storage/framework/testing/*
+!storage/framework/testing/.gitignore
 /bootstrap/cache/*.php
 /bootstrap/cache/filament
