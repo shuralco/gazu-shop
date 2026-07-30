@@ -38,6 +38,10 @@ class ResponseCacheObserver
         'category_hierarchy',
         'mega_menu_structure',
         'display_settings_all',
+        // Композер кешує дерево меню й список брендів окремо. Без цих ключів
+        // завантажене в адмінці лого бренду / фото категорії з'являлося на
+        // головній лише після спливання TTL.
+        'gazu:megabrands',
     ];
 
     public function saved($model): void
@@ -206,6 +210,11 @@ class ResponseCacheObserver
         $keys = config('storefront.derived_cache_keys');
         if (! is_array($keys) || $keys === []) {
             $keys = self::DERIVED_KEYS;
+        }
+        // Дерево меню кешується окремо на кожну локаль — інакше завантажене
+        // фото категорії висіло б до спливання TTL.
+        foreach ((array) config('slugs.locales', ['uk']) as $loc) {
+            $keys[] = 'gazu:megatree:'.$loc;
         }
         foreach ($keys as $key) {
             try {

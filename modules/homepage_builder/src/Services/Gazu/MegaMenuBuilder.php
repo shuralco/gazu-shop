@@ -146,12 +146,15 @@ class MegaMenuBuilder
                 ->when(\Schema::hasColumn('brands', 'sort_order'), fn ($q) => $q->orderBy('sort_order'))
                 ->orderBy('id')
                 ->limit(12)
-                ->get(['id', 'name', 'slug']);
+                // logo — інакше смужка «Топ-бренди» й блок у мега-меню
+                // отримували список без лого і завжди показували текст.
+                ->get(['id', 'name', 'slug', 'logo']);
 
             if ($brands->isNotEmpty()) {
                 return $brands->map(fn ($b) => [
                     'name' => (string) $b->name,
                     'slug' => (string) $b->slug,
+                    'logo' => $b->logo,
                 ])->filter(fn ($b) => $b['name'] && $b['slug'])->values()->all();
             }
             return $this->fallbackBrands();

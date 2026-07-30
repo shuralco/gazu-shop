@@ -66,4 +66,32 @@ class BrandLogoVisibleTest extends TestCase
         $this->assertStringNotContainsString('src="'.url('/storage/brands/logos/nemaye.png').'"', $html, 'битий <img> показувати не можна');
         $this->assertStringContainsString('Зникло', $html);
     }
+
+    public function test_homepage_strip_gets_logo_from_builder(): void
+    {
+        Brand::create([
+            'name' => 'Стрічка',
+            'slug' => 'strichka',
+            'is_active' => true,
+            'logo' => 'https://cdn.example/strip.png',
+        ]);
+
+        $list = app(\App\Services\Gazu\MegaMenuBuilder::class)->brands();
+
+        $row = collect($list)->firstWhere('slug', 'strichka');
+        $this->assertNotNull($row, 'бренд мусить бути у списку для меню/смужки');
+        $this->assertSame('https://cdn.example/strip.png', $row['logo'] ?? null);
+    }
+
+    public function test_saving_brand_flushes_menu_cache(): void
+    {
+        \Illuminate\Support\Facades\Cache::put('gazu:megabrands', [['name' => 'старе', 'slug' => 'stare']], 3600);
+
+        Brand::create(['name' => 'Нове', 'slug' => 'nove', 'is_active' => true]);
+
+        $this->assertNull(
+            \Illuminate\Support\Facades\Cache::get('gazu:megabrands'),
+            'без скидання кешу завантажене лого зʼявлялось би лише після TTL'
+        );
+    }
 }

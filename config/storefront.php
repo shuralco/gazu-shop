@@ -50,6 +50,9 @@ return [
         'category_hierarchy',
         'mega_menu_structure',
         'display_settings_all',
+        // Композер тримає список брендів окремим ключем. Без нього завантажене
+        // в адмінці лого зʼявлялося на головній лише після спливання TTL.
+        'gazu:megabrands',
     ],
 
     /*
