@@ -18,7 +18,15 @@
             @foreach($brands as $b)
                 <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b->slug ?: \Str::slug($b->name)]) }}"
                    class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)] flex flex-col items-center justify-center gap-2 aspect-[5/3]">
-                    <div class="gazu-display font-bold text-lg text-center">{{ $b->name }}</div>
+                    @php $logo = \App\Support\UploadedImage::url($b->logo ?? null); @endphp
+                    @if($logo)
+                        {{-- Завантажене в адмінці лого. Зниклий файл → null (UploadedImage), тоді назва. --}}
+                        <img src="{{ $logo }}" alt="{{ $b->name }}" loading="lazy" decoding="async"
+                             class="max-h-10 max-w-[80%] object-contain">
+                        <div class="gazu-display font-semibold text-sm text-center">{{ $b->name }}</div>
+                    @else
+                        <div class="gazu-display font-bold text-lg text-center">{{ $b->name }}</div>
+                    @endif
                     @if(($b->products_count ?? 0) > 0)
                         <div class="text-xs text-[var(--gazu-graphite)] gazu-mono">{{ plural_uk_count((int) $b->products_count, 'товар', 'товари', 'товарів') }}</div>
                     @endif
