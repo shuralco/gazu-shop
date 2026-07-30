@@ -105,7 +105,7 @@ class MegaMenuBuilder
                         'slug' => $slug,
                         'label' => $title,
                         'count' => $this->childCount($catId, $slug),
-                        'image' => null,
+                        'image' => $this->adminImageUrl($catId, $slug),
                         'groups' => $items ? [['title' => $title, 'items' => $items]] : [],
                     ];
                 }
@@ -338,6 +338,46 @@ class MegaMenuBuilder
             'image' => $imageUrl,
             'groups'=> $groups,
         ];
+    }
+
+    /** @var array<string,string|null>|null Мапа id/slug → URL зображення, один запит на збірку. */
+    private ?array $catImages = null;
+
+    /**
+     * Зображення категорії, завантажене в адмінці → URL.
+     *
+     * Меню з редактора знає лише category_id/slug, тому дістаємо картинки самі.
+     * Без цього плитки на головній ігнорували завантажене фото: у цій гілці
+     * image був жорстко null, і адмінка ні на що не впливала.
+     *
+     * Свій кеш тут НЕ тримаємо: інакше завантажене фото зʼявлялося б із
+     * запізненням. Свіжість успадковуємо від кешу самого меню, а від N+1
+     * захищає один запит на всю збірку.
+     *
+     * @param  int|string|null  $catId
+     */
+    private function adminImageUrl($catId, string $slug): ?string
+    {
+        if ($this->catImages === null) {
+            $this->catImages = [];
+            foreach (Category::query()->whereNotNull('image')->get(['id', 'slug', 'image']) as $c) {
+                // Файл міг зникнути (аплоади живуть у ФС контейнера) — тоді
+                // краще null і іконка, ніж битий <img>.
+                $url = \App\Support\UploadedImage::url($c->image);
+                if (! $url) {
+                    continue;
+                }
+
+                $this->catImages['id:'.$c->id] = $url;
+                foreach ((array) (is_array($c->slug) ? $c->slug : [$c->slug]) as $sl) {
+                    if ($sl) {
+                        $this->catImages['slug:'.$sl] = $url;
+                    }
+                }
+            }
+        }
+
+        return $this->catImages['id:'.$catId] ?? $this->catImages['slug:'.$slug] ?? null;
     }
 
     private function safeProductCount(Category $c): int
