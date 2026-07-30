@@ -52,6 +52,10 @@ class BrandResource extends Resource
                         Forms\Components\FileUpload::make('logo')
                             ->label('Логотип')
                             ->image()
+                            // disk обовʼязково: типовий диск на проді — local, тобто
+                            // файл ліг би у storage/app/private (не віддається вебом
+                            // і не на постійному томі → стирався б деплоєм).
+                            ->disk('public')
                             ->directory('brands/logos')
                             ->visibility('public')
                             ->imageEditor()

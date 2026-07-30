@@ -154,7 +154,8 @@ class MegaMenuBuilder
                 return $brands->map(fn ($b) => [
                     'name' => (string) $b->name,
                     'slug' => (string) $b->slug,
-                    'logo' => $b->logo,
+                    // logo_url: власне лого → емблема марки з такою ж назвою
+                    'logo' => $b->logo_url,
                 ])->filter(fn ($b) => $b['name'] && $b['slug'])->values()->all();
             }
             return $this->fallbackBrands();

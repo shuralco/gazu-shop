@@ -36,6 +36,62 @@ class Brand extends Model
         'sort_order',
     ];
 
+    /**
+     * Лого бренду для вітрини.
+     *
+     * Порядок: власне завантажене лого → лого марки авто з такою ж назвою →
+     * офіційний файл із репозиторію → null (тоді шаблон показує назву).
+     *
+     * Навіщо марка: клієнт заливає емблеми в «Марки авто», а бренди — окрема
+     * сутність із тими самими назвами («VW», «VW-FAW», «BYD Aftermarket»).
+     * Без цього мосту плитки брендів лишалися порожніми, хоча файл уже залитий.
+     */
+    public function getLogoUrlAttribute(): ?string
+    {
+        if ($own = \App\Support\UploadedImage::url($this->logo ?: null)) {
+            return $own;
+        }
+
+        $token = self::logoToken((string) $this->name);
+        if ($token === '') {
+            return null;
+        }
+
+        $makes = \Illuminate\Support\Facades\Cache::remember(
+            'brand_logo:makes',
+            3600,
+            fn () => class_exists(\App\Models\CarMake::class)
+                ? \App\Models\CarMake::query()->get(['name', 'slug', 'logo_path'])
+                    ->mapWithKeys(fn ($m) => [self::logoToken((string) $m->name) => $m->logo_url])
+                    ->filter()->all()
+                : []
+        );
+
+        if (! empty($makes[$token])) {
+            return $makes[$token];
+        }
+
+        foreach (['svg', 'png'] as $ext) {
+            if (is_file(public_path("img/car-makes/{$token}.{$ext}"))) {
+                return asset("img/car-makes/{$token}.{$ext}");
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Назва → ключ для пошуку емблеми: перше слово, латиниця/цифри, аліаси.
+     * «VW-FAW» → vw, «BYD Aftermarket» → byd, «Volkswagen» → vw.
+     */
+    public static function logoToken(string $name): string
+    {
+        $first = preg_split('/[\s\-_\/]+/u', mb_strtolower(trim($name)))[0] ?? '';
+        $first = preg_replace('/[^a-z0-9]/', '', $first) ?? '';
+
+        return ['volkswagen' => 'vw'][$first] ?? $first;
+    }
+
     protected function casts(): array
     {
         return [

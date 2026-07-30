@@ -18,7 +18,7 @@
             @foreach($brands as $b)
                 <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b->slug ?: \Str::slug($b->name)]) }}"
                    class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg p-5 no-underline text-[var(--gazu-ink)] hover:border-[var(--gazu-line-2)] flex flex-col items-center justify-center gap-2 aspect-[5/3]">
-                    @php $logo = \App\Support\UploadedImage::url($b->logo ?? null); @endphp
+                    @php $logo = $b->logo_url; @endphp
                     @if($logo)
                         {{-- Завантажене в адмінці лого. Зниклий файл → null (UploadedImage), тоді назва. --}}
                         <img src="{{ $logo }}" alt="{{ $b->name }}" loading="lazy" decoding="async"

@@ -94,4 +94,58 @@ class BrandLogoVisibleTest extends TestCase
             'без скидання кешу завантажене лого зʼявлялось би лише після TTL'
         );
     }
+
+    public function test_brand_falls_back_to_car_make_logo(): void
+    {
+        // Клієнт заливає емблеми в «Марки авто»; бренди — окрема сутність
+        // із тими самими назвами. Плитка бренду мусить показати ту емблему.
+        \App\Models\CarMake::create([
+            'name' => 'Volkswagen',
+            'slug' => 'volkswagen',
+            'is_active' => true,
+            'logo_path' => 'https://cdn.example/vw-make.png',
+        ]);
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $faw = Brand::create(['name' => 'VW-FAW', 'slug' => 'vw-faw', 'is_active' => true]);
+        $after = Brand::create(['name' => 'BYD Aftermarket', 'slug' => 'byd-after', 'is_active' => true]);
+
+        $this->assertSame('https://cdn.example/vw-make.png', $faw->logo_url, 'VW-FAW → емблема Volkswagen');
+        // BYD марки немає в БД, але є офіційний файл у репо
+        $this->assertStringContainsString('byd', (string) $after->logo_url);
+    }
+
+    public function test_own_logo_wins_over_make(): void
+    {
+        \App\Models\CarMake::create([
+            'name' => 'Tesla', 'slug' => 'tesla', 'is_active' => true,
+            'logo_path' => 'https://cdn.example/make.png',
+        ]);
+        \Illuminate\Support\Facades\Cache::flush();
+
+        $b = Brand::create([
+            'name' => 'Tesla', 'slug' => 'tesla-brand', 'is_active' => true,
+            'logo' => 'https://cdn.example/own.png',
+        ]);
+
+        $this->assertSame('https://cdn.example/own.png', $b->logo_url);
+    }
+
+    public function test_unknown_brand_has_no_logo(): void
+    {
+        $b = Brand::create(['name' => 'Xiaomi', 'slug' => 'xiaomi', 'is_active' => true]);
+
+        $this->assertNull($b->logo_url, 'без емблеми — шаблон покаже назву');
+    }
+
+    public function test_brand_upload_uses_public_disk(): void
+    {
+        // Типовий диск на проді — local: без disk('public') файл ліг би
+        // у storage/app/private (не віддається вебом, стирається деплоєм).
+        $src = file_get_contents(app_path('Filament/Resources/BrandResource.php'));
+        $i = strpos($src, "FileUpload::make('logo')");
+        $this->assertNotFalse($i);
+        // вікно з запасом: коментар українською — це байти, не символи
+        $this->assertStringContainsString("->disk('public')", substr($src, $i, 900));
+    }
 }

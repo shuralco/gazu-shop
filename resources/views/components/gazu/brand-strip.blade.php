@@ -12,7 +12,7 @@
                 // logo теж — інакше смужка брендів завжди була лише текстом,
                 // і завантажене в адмінці лого ніде не показувалось.
                 ->get(['name', 'slug', 'logo'])
-                ->map(fn ($b) => ['name' => $b->name, 'slug' => $b->slug, 'logo' => $b->logo])
+                ->map(fn ($b) => ['name' => $b->name, 'slug' => $b->slug, 'logo' => $b->logo_url])
                 ->all();
             if (! empty($live)) $brands = $live;
         } catch (\Throwable) {}
@@ -36,7 +36,7 @@
             return [
                 'name' => (string) $bn,
                 'slug' => (string) ($bs ?: \Illuminate\Support\Str::slug((string) $bn)),
-                'logo' => $b->logo ?? null,
+                'logo' => $b->logo_url ?? null,
             ];
         }
         $name = is_array($b) ? ($b['uk'] ?? array_values($b)[0] ?? '') : (string) $b;
@@ -56,7 +56,7 @@
             <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
                class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg flex items-center justify-center gazu-display text-lg font-semibold text-[var(--gazu-ink)] no-underline hover:border-[var(--gazu-line-2)]"
                style="aspect-ratio: 5/2;">
-                @php $logo = \App\Support\UploadedImage::url($b['logo'] ?? null); @endphp
+                @php $logo = $b['logo'] ?? null; @endphp
                 @if($logo)
                     <img src="{{ $logo }}" alt="{{ $b['name'] }}" loading="lazy" decoding="async"
                          class="max-h-8 max-w-[75%] object-contain">

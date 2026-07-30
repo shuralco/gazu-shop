@@ -128,7 +128,7 @@
                     @foreach(array_slice($brandList, 0, 9) as $b)
                         <a wire:navigate href="{{ route('gazu.brand', ['slug' => $b['slug']]) }}"
                            class="h-9 border border-[var(--gazu-line)] rounded flex items-center justify-center gazu-display text-[11px] font-semibold text-[var(--gazu-steel)] bg-[var(--gazu-surface)] hover:border-[var(--gazu-ink)] hover:text-[var(--gazu-ink)] no-underline transition-colors">
-                            @php $blogo = \App\Support\UploadedImage::url($b['logo'] ?? null); @endphp
+                            @php $blogo = $b['logo'] ?? null; @endphp
                             @if($blogo)<img src="{{ $blogo }}" alt="{{ $b['name'] }}" loading="lazy" class="max-h-5 max-w-[80%] object-contain">@else{{ $b['name'] }}@endif
                         </a>
                     @endforeach
@@ -235,7 +235,7 @@
                         return [
                             'name' => (string) $bn,
                             'slug' => (string) ($bs ?: \Illuminate\Support\Str::slug((string) $bn)),
-                            'logo' => $b->logo ?? null,
+                            'logo' => $b->logo_url ?? null,
                         ];
                     }
                     $name = is_array($b) ? ($b['uk'] ?? array_values($b)[0] ?? '') : (string) $b;
