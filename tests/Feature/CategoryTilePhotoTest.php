@@ -31,6 +31,7 @@ class CategoryTilePhotoTest extends TestCase
             ['Щітки склоочисника',        'wiper'],
             ['Деталі салону',             'mat'],
             ['Запчастини електрики та освітлення', 'bulb'],
+            ['Деталі для ТО',              'filter'],
         ];
     }
 
@@ -55,6 +56,14 @@ class CategoryTilePhotoTest extends TestCase
         $this->assertSame('wiper', PartImage::kindFromCategory('Щітки склоочисника'));
         // «антифриз» важливіший за загальне «рідин»
         $this->assertSame('coolant', PartImage::kindFromCategory('Антифриз VAG G12'));
+    }
+
+    public function test_service_parts_rule_does_not_overmatch(): void
+    {
+        // «детал то» вимагає обидва слова: інакше правило хапало б будь-що з «то»
+        $this->assertSame('filter', PartImage::kindFromCategory('Деталі для ТО'));
+        $this->assertSame('mat', PartImage::kindFromCategory('Деталі салону'));
+        $this->assertSame('oil', PartImage::kindFromCategory('Автомобільні оливи'));
     }
 
     public function test_unknown_category_gets_no_photo(): void
