@@ -46,13 +46,24 @@
         foreach (array_slice($tree, 0, 8) as $i => $node) {
             $slug = $node['slug'] ?? null;
             $children = $node['children'] ?? [];
-            // Пріоритет: admin-завантажене зображення категорії → Pexels-фото за slug.
+            // Пріоритет: admin-завантажене → Pexels-фото за slug → тематичне фото
+            // за назвою категорії. Останнє: slug'и українські («avtomobilni-olyvy»),
+            // а файли в img/categories — англійські, тож збіг за slug майже ніколи
+            // не траплявся і плитки лишались без фото.
             $photoUrl = $node['image'] ?? null;
             if (! $photoUrl) {
                 $photoPath = $slug ? public_path("img/categories/{$slug}.webp") : null;
                 // ?v=filemtime — cache-bust коли фото підмінюють (asset кеш max-age 7д).
                 $photoUrl = ($photoPath && is_file($photoPath))
                     ? asset("img/categories/{$slug}.webp").'?v='.@filemtime($photoPath)
+                    : null;
+            }
+            if (! $photoUrl) {
+                $kind = \App\Support\PartImage::kindFromCategory($node['label'] ?? null);
+                // Без відповідного набору фото лишаємо null — краще фірмова іконка,
+                // ніж картинка не з тієї теми.
+                $photoUrl = $kind
+                    ? \App\Support\PartImage::resolve(null, $kind, $slug ?: $i, (string) ($node['label'] ?? ''))
                     : null;
             }
             $cats[] = [
