@@ -33,3 +33,6 @@ storage/framework/testing/*
 !storage/framework/testing/.gitignore
 /bootstrap/cache/*.php
 /bootstrap/cache/filament
+
+# Артефакти браузерних інструментів (скріншоти, логи консолі)
+.playwright-mcp/
