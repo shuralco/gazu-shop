@@ -23,10 +23,14 @@
     <div x-data="{ open: false, sel: {{ $defaultWh ? (int) $defaultWh : 'null' }} }"
          @mouseenter.window="open = false"
          class="absolute left-0 right-0 top-full z-30 pointer-events-none">
-        {{-- Anchor used as the hover-bridge (no gap → no flicker) --}}
-        <div class="pointer-events-auto opacity-0 group-hover:opacity-100 transition-all duration-150
-                    translate-y-1 group-hover:translate-y-0"
-             :class="open ? '!opacity-100 !translate-y-0 pointer-events-auto' : ''">
+        {{-- Anchor used as the hover-bridge (no gap → no flicker).
+             ВАЖЛИВО: поки панель схована, вона мусить бути НЕклікабельною.
+             Раніше тут стояв постійний pointer-events-auto, тож під карткою
+             висіла невидима, але активна смуга: вона сама відкривала ціни при
+             наведенні й перехоплювала кліки по пагінації під каталогом. --}}
+        <div class="invisible pointer-events-none opacity-0 transition-all duration-150 translate-y-1
+                    group-hover:visible group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0"
+             :class="open ? '!visible !opacity-100 !translate-y-0 !pointer-events-auto' : ''">
             <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg shadow-[0_12px_32px_-12px_rgba(14,27,44,0.35)] p-3 mt-1">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[10px] uppercase tracking-wider font-semibold text-[var(--gazu-graphite)]">
