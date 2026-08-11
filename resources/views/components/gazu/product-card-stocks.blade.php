@@ -28,9 +28,9 @@
              Раніше тут стояв постійний pointer-events-auto, тож під карткою
              висіла невидима, але активна смуга: вона сама відкривала ціни при
              наведенні й перехоплювала кліки по пагінації під каталогом. --}}
-        <div class="invisible pointer-events-none opacity-0 transition-all duration-150 translate-y-1
-                    group-hover:visible group-hover:pointer-events-auto group-hover:opacity-100 group-hover:translate-y-0"
-             :class="open ? '!visible !opacity-100 !translate-y-0 !pointer-events-auto' : ''">
+        <div class="pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-150
+                    translate-y-1 group-hover:translate-y-0 group-hover:pointer-events-auto"
+             :class="open ? '!opacity-100 !translate-y-0 !pointer-events-auto' : ''">
             <div class="bg-[var(--gazu-surface)] border border-[var(--gazu-line)] rounded-lg shadow-[0_12px_32px_-12px_rgba(14,27,44,0.35)] p-3 mt-1">
                 <div class="flex items-center justify-between mb-2">
                     <span class="text-[10px] uppercase tracking-wider font-semibold text-[var(--gazu-graphite)]">
