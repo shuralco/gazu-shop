@@ -319,17 +319,13 @@
         </div>
     </details>
 
-    {{-- Липне до низу панелі: коли фільтрів багато, панель скролиться всередині
-         себе, і без sticky кнопка «Застосувати» лишалась би за межами екрана. --}}
-    <div class="sticky bottom-0 z-10 pt-3 pb-1 bg-[var(--gazu-surface)] border-t border-[var(--gazu-line)] mt-4">
-        <button type="submit" class="w-full py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
-            Застосувати фільтри
-        </button>
-        @if($hasFilters || request()->filled('q'))
-            <a wire:navigate href="{{ $category ? url()->current().'?cat='.($category->slug ?? $category->id) : url()->current() }}"
-               class="block w-full mt-1.5 py-2 bg-transparent text-center text-[var(--gazu-graphite)] text-xs no-underline">
-                Скинути всі фільтри
-            </a>
-        @endif
-    </div>
+    <button type="submit" class="w-full mt-4 py-3 bg-[var(--gazu-ink)] text-[var(--gazu-on-brand)] border-0 rounded text-[13px] font-medium cursor-pointer hover:bg-[var(--gazu-ink-2)]">
+        Застосувати фільтри
+    </button>
+    @if($hasFilters || request()->filled('q'))
+        <a wire:navigate href="{{ $category ? url()->current().'?cat='.($category->slug ?? $category->id) : url()->current() }}"
+           class="block w-full mt-1.5 py-2 bg-transparent text-center text-[var(--gazu-graphite)] text-xs no-underline">
+            Скинути всі фільтри
+        </a>
+    @endif
 </form>

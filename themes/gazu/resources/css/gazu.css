@@ -552,21 +552,18 @@ button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
    .gazu-card-anim is intentionally a tailwind-only hover hook now —
    no entry animation here to avoid double-firing. */
 
-/* === Sticky filters sidebar on desktop ===
- * Списки brand/condition truncate через Alpine 'show more' button (див.
- * filter-panel.blade.php), але з фільтрами по характеристиках панель усе одно
- * переростає екран. Sticky тоді прибивав її до top: 1rem, і низ — разом із
- * кнопкою «Застосувати» — залишався за межами вікна на будь-якій позиції
- * скролу. Тому обмежуємо висоту вікном; власний скрол зʼявляється ЛИШЕ коли
- * панель не вміщається, а кнопка застосування липне до низу панелі. */
+/* === Filters sidebar on desktop ===
+ * Панель НЕ липка. Спробували обидва варіанти прилипання і відкинули:
+ * top — назавжди ховав низ панелі з кнопкою «Застосувати» (панель із
+ * фільтрами по характеристиках вища за екран); обмеження висоти давало
+ * скрол усередині панелі; bottom — заважав виглядом.
+ * Звичайна колонка: їде зі сторінкою, видно її цілком, кнопка доступна. */
 @media (min-width: 1024px) {
-    .gazu-grid-sidebar > aside,
-    .gazu-grid-sidebar > .gazu-filter-panel {
+    .gazu-grid-sidebar > aside {
         position: sticky; top: 1rem; align-self: start;
-        max-height: calc(100vh - 2rem);
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        scrollbar-width: thin;
+    }
+    .gazu-grid-sidebar > .gazu-filter-panel {
+        align-self: start;
     }
 }
 
