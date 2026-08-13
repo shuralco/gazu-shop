@@ -17,7 +17,7 @@
     $pages = array_values(array_unique($pages, SORT_REGULAR));
     $url = fn ($p) => $paginator ? $paginator->url($p) : request()->fullUrlWithQuery(['page' => $p]);
 @endphp
-<div class="flex items-center justify-center gap-1 py-8 font-text">
+<div data-gazu-pagination class="flex items-center justify-center gap-1 py-8 font-text">
     @if ($current > 1)
         <a wire:navigate href="{{ $url($current - 1) }}" class="w-9 h-9 border border-[var(--gazu-line)] bg-[var(--gazu-surface)] text-[var(--gazu-ink)] rounded-md text-[13px] cursor-pointer inline-flex items-center justify-center no-underline">
             <x-gazu.icon name="arrow-l" size="14"/>

@@ -4,6 +4,9 @@
     // Pretty-URL contexts (/novynky, /khity, /akcii) have правильні title
     // замість generic 'Каталог'. Перевіряємо query string що ставить роут.
     $carSeo = $carSeo ?? null;
+    // Спосіб показу наступних товарів — адмінка (GAZU візуальні блоки → Каталог).
+    $paginationMode = \App\Models\DisplaySetting::get('gazu_catalog_pagination_mode', 'classic');
+    $paginationMode = in_array($paginationMode, ['classic', 'more', 'infinite'], true) ? $paginationMode : 'classic';
     $contextTitle = null;
     if (request('new') == 1) { $contextTitle = 'Новинки'; }
     elseif (request('hits') == 1) { $contextTitle = 'Хіти продажу'; }
@@ -205,18 +208,20 @@
                         <a wire:navigate href="{{ route('gazu.catalog') }}" class="gazu-btn-outline no-underline">Скинути фільтри</a>
                     </div>
                 @elseif($currentView === 'list')
-                    <div class="flex flex-col gap-2 mt-4">
+                    <div id="gazu-grid" class="flex flex-col gap-2 mt-4">
                         @foreach($products as $p)
                             <x-gazu.product-row :p="$p"/>
                         @endforeach
                     </div>
+                    @include('gazu.partials.catalog-load-more', ['paginator' => $paginator, 'mode' => $paginationMode])
                     <x-gazu.pagination :paginator="$paginator"/>
                 @else
-                    <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 mt-4 gazu-stagger">
+                    <div id="gazu-grid" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3.5 mt-4 gazu-stagger">
                         @foreach($products as $p)
                             <x-gazu.product-card :p="$p" :compact="true" :eager="$loop->index < 4"/>
                         @endforeach
                     </div>
+                    @include('gazu.partials.catalog-load-more', ['paginator' => $paginator, 'mode' => $paginationMode])
                     <x-gazu.pagination :paginator="$paginator"/>
                 @endif
             </div>

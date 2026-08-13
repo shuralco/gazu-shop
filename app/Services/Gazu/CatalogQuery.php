@@ -25,6 +25,17 @@ class CatalogQuery
 {
     public const PER_PAGE = 24;
 
+    /**
+     * Товарів на сторінку. Регулюється в адмінці (GAZU візуальні блоки →
+     * Каталог), із запобіжником проти нуля/від'ємного/надто великого значення.
+     */
+    public static function perPage(): int
+    {
+        $n = (int) \App\Models\DisplaySetting::get('gazu_catalog_per_page', self::PER_PAGE);
+
+        return max(8, min(96, $n ?: self::PER_PAGE));
+    }
+
     private static ?bool $hasConditionColumn = null;
     private static ?bool $hasFilterTables = null;
 
@@ -334,7 +345,7 @@ class CatalogQuery
         $q = $this->applyFlags($q);
         $q = $this->applySort($q);
 
-        return $q->paginate(self::PER_PAGE)->withQueryString();
+        return $q->paginate(self::perPage())->withQueryString();
     }
 
     /** Базові обмеження — для price-range. Без brand/price/condition/sort. */

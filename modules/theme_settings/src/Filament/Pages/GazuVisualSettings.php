@@ -46,6 +46,10 @@ class GazuVisualSettings extends Page implements HasForms
         // SEO / Privacy
         'seo_noindex_all' => true, // презентаційний домен закритий за замовчуванням
 
+        // Каталог — пагінація
+        'gazu_catalog_pagination_mode' => 'classic', // classic | more | infinite
+        'gazu_catalog_per_page' => 24,
+
         // Hero V2 (Car-picker, темний)
         'gazu_hero_v2_kicker' => 'Підбір за вашим авто',
         'gazu_hero_v2_title' => "Запчастини, які\nточно підійдуть.",
@@ -488,7 +492,35 @@ class GazuVisualSettings extends Page implements HasForms
                         Forms\Components\TextInput::make('gazu_mobile_hits_title')->label('Заголовок секції товарів'),
                     ]),
 
-                // ═══ 8. SEO / СИСТЕМНІ ТЕКСТИ ═══
+                // ═══ 8. КАТАЛОГ ═══
+                Forms\Components\Tabs\Tab::make('Каталог')
+                    ->icon('heroicon-o-squares-2x2')
+                    ->schema([
+                        Forms\Components\Section::make('Пагінація')
+                            ->description('Як відвідувач переходить до наступних товарів у каталозі, категорії та пошуку.')
+                            ->schema([
+                                Forms\Components\Radio::make('gazu_catalog_pagination_mode')
+                                    ->label('Спосіб показу наступних товарів')
+                                    ->options([
+                                        'classic' => 'Класична — нумеровані сторінки',
+                                        'more' => 'Кнопка «Показати ще» — довантаження без перезавантаження',
+                                        'infinite' => 'Автоматично при скролі — нескінченна стрічка',
+                                    ])
+                                    ->descriptions([
+                                        'classic' => 'Звичні номери сторінок унизу списку.',
+                                        'more' => 'Товари додаються до списку по кліку, сторінка не перезавантажується.',
+                                        'infinite' => 'Наступна сторінка підвантажується сама, щойно користувач докрутив до низу списку.',
+                                    ])
+                                    ->default('classic')
+                                    ->columnSpanFull(),
+                                Forms\Components\TextInput::make('gazu_catalog_per_page')
+                                    ->label('Товарів на сторінку')
+                                    ->helperText('Для режимів довантаження це розмір однієї порції. Від 8 до 96.')
+                                    ->numeric()->minValue(8)->maxValue(96)->default(24),
+                            ]),
+                    ]),
+
+                // ═══ 9. SEO / СИСТЕМНІ ТЕКСТИ ═══
                 Forms\Components\Tabs\Tab::make('SEO / тексти')
                     ->icon('heroicon-o-lock-closed')
                     ->schema([
