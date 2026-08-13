@@ -179,7 +179,7 @@
                     :searchQuery="$searchQuery"
                     :category="$category"/>
             </div>
-            <div class="min-w-0">
+            <div class="min-w-0" id="gazu-results">
                 @php
                     $currentView = request('view') === 'list' ? 'list' : 'grid';
                     $activeFilterCount = (is_array(request('brand')) ? count(request('brand')) : 0)
@@ -224,4 +224,36 @@
     </div>
 
     <x-gazu.recently-viewed/>
+
+{{-- Автоскрол до результатів.
+     Фільтри подаються звичайним GET (повне перезавантаження), а пагінація —
+     через wire:navigate (без перезавантаження), тож обробляємо обидва шляхи.
+     Скролимо ЛИШЕ коли в адресі є параметри вибірки: на «чистий» каталог
+     користувач має заходити зверху, з категоріями й підбором авто. --}}
+<script>
+(() => {
+    const KEYS = ['page', 'brand', 'condition', 'min', 'max', 'stock', 'sort', 'view', 'f', 'q'];
+    const shouldScroll = () => {
+        const q = new URLSearchParams(location.search);
+        return KEYS.some(k => q.has(k) || q.has(k + '[]'));
+    };
+    const toResults = () => {
+        if (!shouldScroll()) return;
+        const el = document.getElementById('gazu-results');
+        if (!el) return;
+        // Відступ під «липку» шапку, щоб перший ряд не ховався під нею.
+        const header = document.querySelector('header');
+        const offset = (header ? header.getBoundingClientRect().height : 0) + 12;
+        const top = el.getBoundingClientRect().top + window.scrollY - offset;
+        // Поважаємо системне «зменшити рух».
+        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
+    };
+    // Livewire сам відновлює позицію після навігації — робимо свій скрол після нього.
+    const later = () => requestAnimationFrame(() => setTimeout(toResults, 0));
+    document.addEventListener('DOMContentLoaded', later);
+    document.addEventListener('livewire:navigated', later);
+    if (document.readyState !== 'loading') later();
+})();
+</script>
 @endsection

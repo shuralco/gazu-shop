@@ -202,6 +202,13 @@ class GazuVisualSettings extends Page implements HasForms
         'gazu_social_youtube' => '#',
 
         // SEO-текст на головній (рендериться після brand-strip, перед footer)
+        // Блок «Чому обирають GAZU» — окрема секція під категоріями.
+        // Текст лишається порожнім: його переносить gazu:extract-why зі
+        // старого SEO-блоку, щоб нічого не задвоїлось.
+        'gazu_why_enabled' => true,
+        'gazu_why_title' => 'Чому обирають GAZU',
+        'gazu_why_html' => '',
+
         'gazu_seo_enabled' => true,
         'gazu_seo_title' => 'Автозапчастини для китайських авто в Україні',
         'gazu_seo_html' => '<p><strong>GAZU</strong> — спеціалізований інтернет-магазин запчастин для китайських автомобілів: <strong>BYD, Chery, Geely, Haval, Great Wall, JAC, MG, FAW, DongFeng</strong>. У каталозі понад <strong>1 278 артикулів</strong> оригінальних запчастин та перевірених аналогів — для самостійного ремонту або СТО.</p>
@@ -501,6 +508,18 @@ class GazuVisualSettings extends Page implements HasForms
                                 Forms\Components\TextInput::make('gazu_seo_title')->label('Заголовок секції (H2)')->maxLength(160)->columnSpanFull(),
                                 Forms\Components\RichEditor::make('gazu_seo_html')->label('SEO-контент (HTML)')
                                     ->toolbarButtons(['h2', 'h3', 'bold', 'italic', 'link', 'bulletList', 'orderedList', 'undo', 'redo'])
+                                    ->columnSpanFull(),
+                            ]),
+                        Forms\Components\Section::make('Блок «Чому обирають GAZU»')
+                            ->description('Окрема секція під категоріями на головній. Кожен пункт списку показується окремою плиткою.')
+                            ->collapsible()->collapsed()
+                            ->schema([
+                                Forms\Components\Toggle::make('gazu_why_enabled')->label('Показувати блок переваг')->default(true)->columnSpanFull(),
+                                Forms\Components\TextInput::make('gazu_why_title')->label('Заголовок секції')->maxLength(160)->columnSpanFull(),
+                                Forms\Components\RichEditor::make('gazu_why_html')
+                                    ->label('Переваги (список — кожен пункт стане плиткою)')
+                                    ->helperText('Жирним на початку пункту — його назва, далі пояснення.')
+                                    ->toolbarButtons(['bold', 'italic', 'link', 'bulletList', 'undo', 'redo'])
                                     ->columnSpanFull(),
                             ]),
                         Forms\Components\Section::make('Сторінка 404')

@@ -54,6 +54,7 @@
 
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
+    <x-gazu.advantages/>
 
     @if(isset($promoProducts) && $promoProducts->isNotEmpty())
         <x-gazu.featured-row title="Акції тижня" :items="$promoProducts" :viewAll="route('gazu.catalog.promo')"/>

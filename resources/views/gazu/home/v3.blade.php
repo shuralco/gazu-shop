@@ -65,6 +65,7 @@
 
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
+    <x-gazu.advantages/>
     <x-gazu.featured-row :title="$gazuSettings['gazu_section_specials'] ?? 'Новинки каталогу'" :items="$featured"/>
     <x-gazu.brand-strip/>
 @endsection

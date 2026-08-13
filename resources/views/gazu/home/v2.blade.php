@@ -62,6 +62,7 @@
 
     <x-gazu.trust-strip/>
     <x-gazu.category-tiles/>
+    <x-gazu.advantages/>
     <x-gazu.featured-row title="Популярні товари" :items="$featured"/>
     <x-gazu.featured-row title="Хіти продажів" :items="$popular"/>
     <x-gazu.brand-strip/>
