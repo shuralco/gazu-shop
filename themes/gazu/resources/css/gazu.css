@@ -553,13 +553,20 @@ button:not([disabled]):not([type="checkbox"]):not([type="radio"]):active {
    no entry animation here to avoid double-firing. */
 
 /* === Sticky filters sidebar on desktop ===
- * Прибрано max-height + overflow-y: auto — користувач не любив scroll
- * в самому фільтрі (потворно). Списки brand/condition тепер truncate
- * через Alpine 'show more' button (див. filter-panel.blade.php). */
+ * Списки brand/condition truncate через Alpine 'show more' button (див.
+ * filter-panel.blade.php), але з фільтрами по характеристиках панель усе одно
+ * переростає екран. Sticky тоді прибивав її до top: 1rem, і низ — разом із
+ * кнопкою «Застосувати» — залишався за межами вікна на будь-якій позиції
+ * скролу. Тому обмежуємо висоту вікном; власний скрол зʼявляється ЛИШЕ коли
+ * панель не вміщається, а кнопка застосування липне до низу панелі. */
 @media (min-width: 1024px) {
     .gazu-grid-sidebar > aside,
     .gazu-grid-sidebar > .gazu-filter-panel {
         position: sticky; top: 1rem; align-self: start;
+        max-height: calc(100vh - 2rem);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
     }
 }
 
