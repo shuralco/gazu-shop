@@ -37,6 +37,17 @@ class CatalogAutoScrollTest extends TestCase
         $this->assertStringContainsString("'page'", $html);
     }
 
+    public function test_retries_and_yields_to_user(): void
+    {
+        $html = $this->get('/catalog')->assertOk()->getContent();
+
+        // одного скролу мало: зображення довантажуються й зсувають розмітку
+        $this->assertStringContainsString('[0, 250, 700]', $html);
+        // будь-яка дія користувача скасовує решту спроб
+        $this->assertStringContainsString("'wheel'", $html);
+        $this->assertStringContainsString('cancelled', $html);
+    }
+
     public function test_respects_reduced_motion(): void
     {
         $html = $this->get('/catalog')->assertOk()->getContent();

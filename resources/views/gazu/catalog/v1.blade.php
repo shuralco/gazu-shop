@@ -237,23 +237,38 @@
         const q = new URLSearchParams(location.search);
         return KEYS.some(k => q.has(k) || q.has(k + '[]'));
     };
-    const toResults = () => {
-        if (!shouldScroll()) return;
+
+    let cancelled = false;
+    const cancel = () => { cancelled = true; };
+    const listen = () => ['wheel', 'touchstart', 'keydown', 'mousedown']
+        .forEach(e => window.addEventListener(e, cancel, { passive: true, once: true }));
+
+    const scroll = (smooth) => {
+        if (cancelled || !shouldScroll()) return;
         const el = document.getElementById('gazu-results');
         if (!el) return;
         // Відступ під «липку» шапку, щоб перший ряд не ховався під нею.
         const header = document.querySelector('header');
         const offset = (header ? header.getBoundingClientRect().height : 0) + 12;
-        const top = el.getBoundingClientRect().top + window.scrollY - offset;
-        // Поважаємо системне «зменшити рух».
-        const smooth = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-        window.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' });
+        const top = Math.max(0, el.getBoundingClientRect().top + window.scrollY - offset);
+        if (Math.abs(window.scrollY - top) < 8) return;
+        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top, behavior: (smooth && !reduce) ? 'smooth' : 'auto' });
     };
-    // Livewire сам відновлює позицію після навігації — робимо свій скрол після нього.
-    const later = () => requestAnimationFrame(() => setTimeout(toResults, 0));
-    document.addEventListener('DOMContentLoaded', later);
-    document.addEventListener('livewire:navigated', later);
-    if (document.readyState !== 'loading') later();
+
+    // Кілька спроб: зображення довантажуються й зсувають розмітку, тож одного
+    // скролу на DOMContentLoaded не вистачає — позиція «з'їжджає».
+    // Будь-яка дія користувача скасовує решту спроб, щоб не смикати сторінку.
+    const run = () => {
+        cancelled = false;
+        listen();
+        [0, 250, 700].forEach((delay, i) => setTimeout(() => scroll(i === 0), delay));
+    };
+
+    document.addEventListener('DOMContentLoaded', run);
+    window.addEventListener('load', run);
+    document.addEventListener('livewire:navigated', run);
+    if (document.readyState === 'complete') run();
 })();
 </script>
 @endsection
