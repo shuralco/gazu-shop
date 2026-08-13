@@ -15,7 +15,8 @@ class AdvantagesBlockTest extends TestCase
     use LazilyRefreshDatabase;
 
     private string $seo = '<p>Вступ.</p><h3>Що ви знайдете</h3><p>Каталог.</p>'
-        .'<h3>Чому обирають GAZU</h3><ul><li><strong>Гарантія</strong> 12 місяців</li></ul>'
+        // саме так це зберіг редактор на проді — з <br> усередині заголовка
+        .'<h3><br>Чому обирають GAZU</h3><ul><li><strong>Гарантія</strong> 12 місяців</li></ul>'
         .'<h3>Як підібрати</h3><p>За VIN.</p>';
 
     public function test_command_moves_block_out_of_seo_text(): void

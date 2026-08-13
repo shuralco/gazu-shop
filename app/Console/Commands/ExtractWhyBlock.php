@@ -40,17 +40,28 @@ class ExtractWhyBlock extends Command
         }
 
         // Шукаємо заголовок «Чому обирають …» і забираємо все до наступного
-        // заголовка того ж рівня. Регістр і рівень (h2/h3) не фіксуємо жорстко.
-        $pattern = '~<h([23])[^>]*>\s*Чому\s+обирают[ьи][^<]*</h\1>(.*?)(?=<h[23][^>]*>|$)~isu';
+        // заголовка. Усередині заголовка можуть бути теги (редактор лишає
+        // «<h3><br>Чому обирають GAZU</h3>»), тож звіряємо ТЕКСТ, а не розмітку.
+        $pattern = '~<h([23])[^>]*>(.*?)</h\1>(.*?)(?=<h[23][^>]*>|$)~isu';
 
-        if (! preg_match($pattern, $seo, $m)) {
+        $m = null;
+        if (preg_match_all($pattern, $seo, $all, PREG_SET_ORDER)) {
+            foreach ($all as $block) {
+                $text = trim(html_entity_decode(strip_tags($block[2]), ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                if (preg_match('~^Чому\s+обирают[ьи]~iu', $text)) {
+                    $m = [0 => $block[0], 1 => $block[1], 2 => $block[3], 'title' => $text];
+                    break;
+                }
+            }
+        }
+
+        if ($m === null) {
             $this->warn('У SEO-тексті немає заголовка «Чому обирають …» — нічого не переношу.');
 
             return self::SUCCESS;
         }
 
-        $title = trim(strip_tags($m[0]));
-        $title = preg_split('/\R/u', $title)[0] ?? 'Чому обирають GAZU';
+        $title = $m['title'] !== '' ? $m['title'] : 'Чому обирають GAZU';
         $body = trim($m[2]);
 
         if ($body === '') {
