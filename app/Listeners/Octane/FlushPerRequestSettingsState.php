@@ -27,6 +27,9 @@ class FlushPerRequestSettingsState
         \App\Support\Access\AccessControl::flush();
         \App\Support\Access\NavPreferences::flush();
         \App\Support\UploadedImage::flush();
+        // Стандартна група ціноутворення — від неї залежить роздрібна ціна
+        // КОЖНОГО товару, тож стала копія тримала б стару ціну до перезапуску.
+        \App\Support\PricingGroup::flush();
 
         // Стандартна група для націнки (модуль pricing_markup): без скидання
         // зміна % або перемикання стандартної групи не діяла б до перезапуску.

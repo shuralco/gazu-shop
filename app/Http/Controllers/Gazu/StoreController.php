@@ -153,7 +153,7 @@ class StoreController extends Controller
 
         $items = $cache->remember("home:featured:v2:limit=$limit", 300, function () use ($limit) {
             $q = Product::query()
-                ->with(['category', 'inventory.warehouse'])
+                ->with(['category', 'inventory.warehouse', 'groupPrices'])
                 ->where('is_active', true);
             if (\Schema::hasColumn('products', 'brand_id')) {
                 $q->with('brand');
@@ -1223,7 +1223,7 @@ class StoreController extends Controller
         $items = Product::query()
             ->where('is_active', true)
             ->where($searchClosure)
-            ->when($gid, fn ($qq) => $qq->with(['groupPrices' => fn ($r) => $r->where('customer_group_id', $gid)]))
+            ->with(['groupPrices' => fn ($r) => $r->whereIn('customer_group_id', \App\Support\PricingGroup::relevantGroupIds($gid))])
             // Smart ordering: exact SKU match → SKU starts-with → rating
             ->orderByRaw('CASE WHEN LOWER(sku) = ? THEN 0 WHEN LOWER(sku) LIKE ? THEN 1 ELSE 2 END', [
                 mb_strtolower($q),
@@ -1381,7 +1381,7 @@ class StoreController extends Controller
         $products = \App\Models\Product::query()
             ->whereIn('id', $ids)
             ->where('is_active', true)
-            ->when($gid, fn ($qq) => $qq->with(['groupPrices' => fn ($r) => $r->where('customer_group_id', $gid)]))
+            ->with(['groupPrices' => fn ($r) => $r->whereIn('customer_group_id', \App\Support\PricingGroup::relevantGroupIds($gid))])
             ->limit(12)
             ->get();
         $orderMap = array_flip($ids);

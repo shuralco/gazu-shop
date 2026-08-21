@@ -436,12 +436,19 @@ class Product extends Model
 
     /**
      * Дані про ціну для відображення/нарахування (усе в ГРН).
-     * Пріоритет за рішенням бізнесу:
-     *   1) explicit гуртова ціна групи (фіксована) — діє ВІД min_quantity і
-     *      ГОЛОВНІША за ціну складу ($baseUah);
-     *   2) %-знижка групи — поверх $baseUah (ціни складу або базової);
-     *   3) інакше — $baseUah.
-     * group_from_* — підказка «гуртова X грн від N шт», коли поріг ще не досягнуто.
+     *
+     * Пріоритет — явна ціна з «Гуртових цін» головніша за формулу націнки:
+     *   1) explicit рядок product_group_prices для групи → діє ВІД min_quantity
+     *      і є ФІНАЛЬНОЮ (націнка групи на неї НЕ накладається);
+     *   2) інакше — база + % націнки групи (модуль pricing_markup) і далі
+     *      %-знижка групи, якщо задана.
+     *
+     * «Звичайна» ціна (regular, перекреслена) рахується для СТАНДАРТНОЇ групи —
+     * це роздрібна ціна сайту. Тому гість, для чиєї групи ціну вписали вручну,
+     * бачить рівно її, без фальшивого перекреслення; а гуртовий клієнт бачить
+     * свою нижчу ціну на тлі роздрібної.
+     *
+     * group_from_* — підказка «гуртова X грн від N шт», коли поріг не досягнуто.
      *
      * @param  float|null  $baseUah  база в грн (ціна складу); null → display_price товару
      * @return array{price:float,regular:float,is_group:bool,group_from_qty:?int,group_from_price:?float}
@@ -450,39 +457,17 @@ class Product extends Model
     {
         $base = $baseUah ?? (float) $this->display_price;
 
-        // Ціна в картці — БАЗОВА. Модуль pricing_markup через цей фільтр додає
-        // % націнки групи клієнта (гість → «стандартна» група), і результат стає
-        // «звичайною» ціною для нього. Знижки/гуртові ціни нижче відштовхуються
-        // вже від неї, тож перекреслена ціна лишається коректною.
-        // Модуль вимкнено → фільтра немає → база без змін.
-        $base = (float) \App\Support\Hooks::filter('pricing.base_price', $base, $user);
+        $defaultGroup = \App\Support\PricingGroup::defaultGroup();
+        $userGroup = \App\Support\PricingGroup::forUser($user);
 
-        $regular = round($base, 2);
-        $price = $regular;
-        $fromQty = null;
-        $fromPrice = null;
+        // Роздрібна база сайту — ціна стандартної групи (гість).
+        [$regular, $regFromQty, $regFromPrice] = $this->priceForGroup($defaultGroup, null, $base, $qty);
 
-        if ($user && $user->customer_group_id) {
-            $row = $this->groupPriceRowFor((int) $user->customer_group_id);
-            if ($row) {
-                $min = max(1, (int) $row->min_quantity);
-                if ($qty >= $min) {
-                    // explicit гуртова ціна — головніша за склад.
-                    $price = round((float) $row->display_price, 2);
-                } else {
-                    // поріг ще не досягнуто → підказка, ціна поки звичайна.
-                    $fromQty = $min;
-                    $fromPrice = round((float) $row->display_price, 2);
-                }
-            }
-
-            // %-знижка групи — лише якщо explicit ціна не застосувалась.
-            if ($price >= $regular - 0.01) {
-                $group = $user->customerGroup;
-                if ($group && $group->is_active && (float) $group->discount_percentage > 0) {
-                    $price = round($base * (1 - (float) $group->discount_percentage / 100), 2);
-                }
-            }
+        // Клієнт стандартної групи (і будь-який гість) платить рівно роздрібну.
+        if (\App\Support\PricingGroup::isDefault($userGroup) || ! $userGroup) {
+            [$price, $fromQty, $fromPrice] = [$regular, $regFromQty, $regFromPrice];
+        } else {
+            [$price, $fromQty, $fromPrice] = $this->priceForGroup($userGroup, $user, $base, $qty);
         }
 
         return [
@@ -492,6 +477,48 @@ class Product extends Model
             'group_from_qty' => $fromQty,
             'group_from_price' => $fromPrice,
         ];
+    }
+
+    /**
+     * Ціна для конкретної групи в грн: явна з «Гуртових цін», інакше формула
+     * (націнка + знижка групи).
+     *
+     * @return array{0:float,1:?int,2:?float} [ціна, поріг-підказка, ціна-підказка]
+     */
+    private function priceForGroup(?CustomerGroup $group, ?User $forUser, float $base, int $qty): array
+    {
+        // Модуль pricing_markup через цей фільтр додає % націнки групи клієнта
+        // (гість → стандартна група). Модуль вимкнено → база без змін.
+        $formula = round((float) \App\Support\Hooks::filter('pricing.base_price', $base, $forUser), 2);
+
+        if (! $group) {
+            return [$formula, null, null];
+        }
+
+        $row = $this->groupPriceRowFor((int) $group->id);
+        if ($row) {
+            $explicit = round((float) $row->display_price, 2);
+            $min = max(1, (int) $row->min_quantity);
+            if ($qty >= $min) {
+                // Явна ціна фінальна: ні націнки, ні %-знижки поверх неї.
+                return [$explicit, null, null];
+            }
+
+            // Поріг не досягнуто → поки формула, але показуємо підказку.
+            return [$this->withGroupDiscount($formula, $group), $min, $explicit];
+        }
+
+        return [$this->withGroupDiscount($formula, $group), null, null];
+    }
+
+    /** %-знижка групи поверх ціни за формулою. */
+    private function withGroupDiscount(float $price, ?CustomerGroup $group): float
+    {
+        if ($group && $group->is_active && (float) $group->discount_percentage > 0) {
+            return round($price * (1 - (float) $group->discount_percentage / 100), 2);
+        }
+
+        return round($price, 2);
     }
 
     public function relatedProducts(): BelongsToMany

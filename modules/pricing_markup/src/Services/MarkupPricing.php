@@ -20,36 +20,24 @@ use App\Models\User;
  */
 class MarkupPricing
 {
-    /** Кеш стандартної групи на час запиту (гість → щоразу той самий SELECT). */
-    private static ?CustomerGroup $defaultGroup = null;
-
-    private static bool $defaultGroupLoaded = false;
-
-    /** Скидання per-request стану (Octane: воркер живе між запитами). */
+    /** Скидання per-request стану (Octane). Стан тримає ядро. */
     public static function flush(): void
     {
-        self::$defaultGroup = null;
-        self::$defaultGroupLoaded = false;
+        \App\Support\PricingGroup::flush();
     }
 
-    /** Стандартна група — та, що позначена is_default (і активна). */
+    /**
+     * Стандартна група — та, що позначена is_default (і активна).
+     * Делегуємо ядру (App\Support\PricingGroup), щоб модуль і вітрина
+     * визначали її ОДНАКОВО: інакше два різні кеші розходяться.
+     */
     public static function defaultGroup(): ?CustomerGroup
     {
-        if (self::$defaultGroupLoaded) {
-            return self::$defaultGroup;
-        }
-        self::$defaultGroupLoaded = true;
-
         if (! \Schema::hasTable('customer_groups') || ! \Schema::hasColumn('customer_groups', 'markup_percentage')) {
-            return self::$defaultGroup = null;
+            return null;
         }
 
-        return self::$defaultGroup = CustomerGroup::query()
-            ->where('is_default', true)
-            ->where('is_active', true)
-            ->orderBy('sort_order')
-            ->orderBy('id')
-            ->first();
+        return \App\Support\PricingGroup::defaultGroup();
     }
 
     /**
@@ -58,14 +46,7 @@ class MarkupPricing
      */
     public static function groupFor(?User $user): ?CustomerGroup
     {
-        if ($user && $user->customer_group_id) {
-            $group = $user->customerGroup;
-            if ($group && $group->is_active) {
-                return $group;
-            }
-        }
-
-        return self::defaultGroup();
+        return \App\Support\PricingGroup::forUser($user);
     }
 
     /** % націнки для користувача. 0 — якщо групи немає або модуль вимкнено. */

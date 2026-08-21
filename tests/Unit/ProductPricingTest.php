@@ -112,4 +112,86 @@ class ProductPricingTest extends TestCase
         // qty=10: explicit гуртова ціна 75.
         $this->assertEquals(75, $product->effectivePriceForUser($user, 10));
     }
+
+    /** Стандартна (роздрібна) група — та, за якою рахується ціна для гостя. */
+    private function retailGroup(float $markup = 0): CustomerGroup
+    {
+        return CustomerGroup::create([
+            'name' => 'retail'.uniqid(),
+            'display_name' => 'Роздріб',
+            'discount_percentage' => 0,
+            'markup_percentage' => $markup,
+            'is_default' => true,
+            'is_active' => true,
+        ]);
+    }
+
+    /**
+     * Ціна, вписана в «Гуртові ціни» для СТАНДАРТНОЇ групи, — це роздрібна ціна
+     * сайту: її бачить гість. Регресія з проду: гість бачив базу × націнку
+     * (45 454 грн) замість вписаних 650 USD (29 545 грн).
+     */
+    public function test_guest_sees_explicit_price_of_default_group(): void
+    {
+        $retail = $this->retailGroup();
+        $product = Product::factory()->create(['price' => 500]);
+        ProductGroupPrice::create([
+            'product_id' => $product->id,
+            'customer_group_id' => $retail->id,
+            'price' => 650,
+            'min_quantity' => 1,
+        ]);
+        \App\Support\PricingGroup::flush();
+
+        $view = $product->priceViewForUser(null, 1);
+        $this->assertEquals(650, $view['price']);
+        // Це звичайна ціна, а не знижка → без перекреслення й бейджа.
+        $this->assertEquals(650, $view['regular']);
+        $this->assertFalse($view['is_group']);
+    }
+
+    /** Гуртова ціна нижча за роздрібну → бейдж і перекреслена роздрібна. */
+    public function test_wholesale_price_is_compared_against_default_group_price(): void
+    {
+        $retail = $this->retailGroup();
+        $product = Product::factory()->create(['price' => 500]);
+        ProductGroupPrice::create([
+            'product_id' => $product->id,
+            'customer_group_id' => $retail->id,
+            'price' => 650,
+            'min_quantity' => 1,
+        ]);
+
+        $user = $this->wholesaleUser(0);
+        ProductGroupPrice::create([
+            'product_id' => $product->id,
+            'customer_group_id' => $user->customer_group_id,
+            'price' => 600,
+            'min_quantity' => 1,
+        ]);
+        \App\Support\PricingGroup::flush();
+
+        $view = $product->priceViewForUser($user->fresh(), 1);
+        $this->assertEquals(600, $view['price']);
+        $this->assertEquals(650, $view['regular']);
+        $this->assertTrue($view['is_group']);
+    }
+
+    /** Явна ціна фінальна: %-знижка групи поверх неї НЕ накладається. */
+    public function test_explicit_price_ignores_group_discount(): void
+    {
+        $this->retailGroup();
+        $user = $this->wholesaleUser(20);
+        $product = Product::factory()->create(['price' => 500]);
+        ProductGroupPrice::create([
+            'product_id' => $product->id,
+            'customer_group_id' => $user->customer_group_id,
+            'price' => 400,
+            'min_quantity' => 1,
+        ]);
+        \App\Support\PricingGroup::flush();
+
+        // 400, а не 400 − 20 % = 320.
+        $this->assertEquals(400, $product->effectivePriceForUser($user->fresh(), 1));
+    }
 }

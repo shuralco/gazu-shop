@@ -328,10 +328,15 @@ class CatalogQuery
             $q->with('brand');
         }
 
-        // Гуртові ціни — лише для залогінених клієнтів з групою (уникаємо N+1
-        // при персональному ціноутворенні; гості йдуть із ResponseCache).
-        if ($gid = auth()->user()?->customer_group_id) {
-            $q->with(['groupPrices' => fn ($r) => $r->where('customer_group_id', $gid)]);
+        // Гуртові ціни. Тепер потрібні й гостю: ціна стандартної групи — це
+        // роздрібна ціна сайту (App\Support\PricingGroup), тож без eager-load
+        // кожна картка робила б власний SELECT.
+        $groupIds = array_filter([
+            auth()->user()?->customer_group_id,
+            \App\Support\PricingGroup::defaultGroup()?->id,
+        ]);
+        if ($groupIds) {
+            $q->with(['groupPrices' => fn ($r) => $r->whereIn('customer_group_id', array_unique($groupIds))]);
         }
 
         $q = $this->applyCategory($q, $cat);

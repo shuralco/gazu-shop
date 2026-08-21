@@ -163,6 +163,11 @@ class AppServiceProvider extends ServiceProvider
             // HTML+catalog-кешу, інакше старі грн-ціни висять до TTL. Currency не
             // Product/Inventory → у спостерігача падає на повний flush().
             \App\Models\Currency::class,
+            // Ціни з «Гуртових цін» тепер видно й гостю (ціна стандартної групи =
+            // роздрібна). Без цих двох правка ціни/націнки в адмінці не збивала б
+            // закешований HTML гостя — на вітрині висіла б стара сума до TTL.
+            \App\Models\ProductGroupPrice::class,
+            \App\Models\CustomerGroup::class,
         ];
         foreach ($responseCacheModels as $model) {
             if (class_exists($model)) {
