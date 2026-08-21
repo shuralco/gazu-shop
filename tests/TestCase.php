@@ -36,5 +36,10 @@ abstract class TestCase extends BaseTestCase
         }
 
         parent::setUp();
+
+        // Кеші, що живуть у static на час запиту. У тестах процес один на весь
+        // прогін, тож без скидання група, створена одним тестом, «залипала» б
+        // у наступних (ловилось як подвоєна сума в кошику).
+        \App\Support\PricingGroup::flush();
     }
 }

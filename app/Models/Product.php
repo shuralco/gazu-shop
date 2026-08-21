@@ -461,18 +461,19 @@ class Product extends Model
         $userGroup = \App\Support\PricingGroup::forUser($user);
 
         // Роздрібна база сайту — ціна стандартної групи (гість).
-        [$regular, $regFromQty, $regFromPrice] = $this->priceForGroup($defaultGroup, null, $base, $qty);
+        [$regular, $regFromQty, $regFromPrice, $regExplicit] = $this->priceForGroup($defaultGroup, null, $base, $qty);
 
         // Клієнт стандартної групи (і будь-який гість) платить рівно роздрібну.
         if (\App\Support\PricingGroup::isDefault($userGroup) || ! $userGroup) {
-            [$price, $fromQty, $fromPrice] = [$regular, $regFromQty, $regFromPrice];
+            [$price, $fromQty, $fromPrice, $isExplicit] = [$regular, $regFromQty, $regFromPrice, $regExplicit];
         } else {
-            [$price, $fromQty, $fromPrice] = $this->priceForGroup($userGroup, $user, $base, $qty);
+            [$price, $fromQty, $fromPrice, $isExplicit] = $this->priceForGroup($userGroup, $user, $base, $qty);
         }
 
         return [
             'price' => $price,
             'regular' => $regular,
+            'old' => $this->oldPriceFor($price, $regular, $isExplicit, $user),
             'is_group' => $price < $regular - 0.01,
             'group_from_qty' => $fromQty,
             'group_from_price' => $fromPrice,
@@ -483,7 +484,7 @@ class Product extends Model
      * Ціна для конкретної групи в грн: явна з «Гуртових цін», інакше формула
      * (націнка + знижка групи).
      *
-     * @return array{0:float,1:?int,2:?float} [ціна, поріг-підказка, ціна-підказка]
+     * @return array{0:float,1:?int,2:?float,3:bool} [ціна, поріг-підказка, ціна-підказка, чи явна]
      */
     private function priceForGroup(?CustomerGroup $group, ?User $forUser, float $base, int $qty): array
     {
@@ -492,7 +493,7 @@ class Product extends Model
         $formula = round((float) \App\Support\Hooks::filter('pricing.base_price', $base, $forUser), 2);
 
         if (! $group) {
-            return [$formula, null, null];
+            return [$formula, null, null, false];
         }
 
         $row = $this->groupPriceRowFor((int) $group->id);
@@ -501,14 +502,45 @@ class Product extends Model
             $min = max(1, (int) $row->min_quantity);
             if ($qty >= $min) {
                 // Явна ціна фінальна: ні націнки, ні %-знижки поверх неї.
-                return [$explicit, null, null];
+                return [$explicit, null, null, true];
             }
 
             // Поріг не досягнуто → поки формула, але показуємо підказку.
-            return [$this->withGroupDiscount($formula, $group), $min, $explicit];
+            return [$this->withGroupDiscount($formula, $group), $min, $explicit, false];
         }
 
-        return [$this->withGroupDiscount($formula, $group), null, null];
+        return [$this->withGroupDiscount($formula, $group), null, null, false];
+    }
+
+    /**
+     * Стара (перекреслена) ціна в грн — або null, коли перекреслювати нічого.
+     *
+     * `products.old_price` зберігається на тому ж рівні, що й `price`: у валюті
+     * товару і ДО націнки. Тому показувати її «як є» поруч із націненою ціною
+     * не можна — при націнці 100 % акційні 600 виглядали б дешевше за поточні
+     * 1000, і перекреслення просто зникало разом зі знижкою.
+     *
+     * Правила:
+     *   - акційна стара ціна проходить ТОЙ САМИЙ конвеєр націнки, що й база;
+     *   - якщо для групи діє явна ціна з «Гуртових цін» — вона фінальна, а
+     *     «було» на її рівні невідоме, тож перекреслюємо роздрібну ціну сайту;
+     *   - показуємо лише те, що справді більше за поточну ціну (без фальшивих
+     *     знижок).
+     */
+    private function oldPriceFor(float $price, float $regular, bool $isExplicit, ?User $user): ?float
+    {
+        if ($isExplicit) {
+            // Явна ціна: порівнюємо лише з роздрібною ціною сайту.
+            return $regular > $price + 0.01 ? round($regular, 2) : null;
+        }
+
+        $promo = $this->display_old_price
+            ? round((float) \App\Support\Hooks::filter('pricing.base_price', (float) $this->display_old_price, $user), 2)
+            : 0.0;
+
+        $old = max($promo, $regular);
+
+        return $old > $price + 0.01 ? round($old, 2) : null;
     }
 
     /** %-знижка групи поверх ціни за формулою. */

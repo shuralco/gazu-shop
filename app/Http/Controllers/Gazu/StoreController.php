@@ -130,9 +130,9 @@ class StoreController extends Controller
         // ціни не потрапляють у кеш гостя. qty=1 для лістингу/первинного рендеру.
         $pv = $p->priceViewForUser(auth()->user(), 1);
         $p->price = $pv['price'];
-        // При гуртовій ціні показуємо роздрібну закресленою (економію клієнта);
-        // інакше — звичайну акційну стару ціну.
-        $p->old_price = $pv['is_group'] ? ($p->display_old_price ?: $pv['regular']) : $p->display_old_price;
+        // Стару (перекреслену) ціну рахує та сама логіка, що й поточну —
+        // з націнкою і без фальшивих знижок (Product::oldPriceFor).
+        $p->old_price = $pv['old'];
         $p->is_group_price = $pv['is_group'];
         $p->group_from_qty = $pv['group_from_qty'];
         $p->group_from_price = $pv['group_from_price'];

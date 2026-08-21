@@ -256,13 +256,16 @@ class ProductResource extends Resource
                                             ->default(fn () => \App\Models\Currency::baseCode() ?: 'UAH')
                                             ->selectablePlaceholder(false)
                                             ->native(false)
+                                            ->live()
                                             ->helperText('Довідник — Каталог → Валюти. На сайті ціна в грн за курсом.'),
 
                                         Forms\Components\TextInput::make('price')
                                             ->label('Ціна')
                                             ->required()
                                             ->numeric()
-                                            ->prefix('₴')
+                                            // Значення зберігається у валюті price_currency, тож
+                                            // жорсткий ₴ на полі з ціною в USD просто вводив в оману.
+                                            ->prefix(fn (Get $get) => $get('price_currency') ?: (\App\Models\Currency::baseCode() ?: 'UAH'))
                                             ->minValue(0)
                                             ->rules(['regex:/^\d+(\.\d{1,2})?$/'])
                                             // onBlur, не на кожну клавішу — інакше per-keystroke
@@ -298,9 +301,9 @@ class ProductResource extends Resource
                                             ]),
 
                                         Forms\Components\TextInput::make('old_price')
-                                            ->label('Стара ціна')
+                                            ->label('Стара ціна (до акції)')
                                             ->numeric()
-                                            ->prefix('₴')
+                                            ->prefix(fn (Get $get) => $get('price_currency') ?: (\App\Models\Currency::baseCode() ?: 'UAH'))
                                             ->minValue(0)
                                             ->default(0)
                                             ->rules([
@@ -315,7 +318,7 @@ class ProductResource extends Resource
                                                     }
                                                 },
                                             ])
-                                            ->helperText('0 = без старої ціни, або більша за поточну ціну')
+                                            ->helperText('0 = без акції. Ціна ДО знижки, у тій самій валюті, що й «Ціна» — на вітрині її перекреслять і покажуть % економії. Націнка групи накладається на неї так само, як на ціну.')
                                             ->live(onBlur: true)
                                             ->suffixAction(
                                                 Forms\Components\Actions\Action::make('copyOldPrice')

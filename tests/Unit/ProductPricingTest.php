@@ -194,4 +194,51 @@ class ProductPricingTest extends TestCase
         // 400, а не 400 − 20 % = 320.
         $this->assertEquals(400, $product->effectivePriceForUser($user->fresh(), 1));
     }
+
+    /**
+     * Акційна стара ціна лежить на тому ж рівні, що й база (до націнки), тож
+     * мусить пройти ту саму націнку. Інакше при +100 % «було 600» виглядало б
+     * дешевше за поточні 1000 і перекреслення зникало разом зі знижкою.
+     */
+    public function test_old_price_gets_same_markup_as_base(): void
+    {
+        $this->retailGroup(100);
+        $product = Product::factory()->create(['price' => 500, 'old_price' => 600]);
+        \App\Support\PricingGroup::flush();
+
+        $view = $product->priceViewForUser(null, 1);
+        $this->assertEquals(1000, $view['price']);
+        $this->assertEquals(1200, $view['old']);
+    }
+
+    /** Без акційної ціни перекреслювати нічого — фальшивих знижок не малюємо. */
+    public function test_no_old_price_without_promo(): void
+    {
+        $this->retailGroup(100);
+        $product = Product::factory()->create(['price' => 500, 'old_price' => 0]);
+        \App\Support\PricingGroup::flush();
+
+        $this->assertNull($product->priceViewForUser(null, 1)['old']);
+    }
+
+    /** Явна ціна фінальна → перекреслюємо роздрібну ціну сайту, не базове «було». */
+    public function test_explicit_price_strikes_retail_not_base_old_price(): void
+    {
+        $retail = $this->retailGroup(100);
+        $product = Product::factory()->create(['price' => 500, 'old_price' => 600]);
+
+        $user = $this->wholesaleUser(0);
+        ProductGroupPrice::create([
+            'product_id' => $product->id,
+            'customer_group_id' => $user->customer_group_id,
+            'price' => 700,
+            'min_quantity' => 1,
+        ]);
+        \App\Support\PricingGroup::flush();
+
+        $view = $product->priceViewForUser($user->fresh(), 1);
+        $this->assertEquals(700, $view['price']);
+        // Роздріб 1000 (500 × 2), а не базові 600 і не 1200.
+        $this->assertEquals(1000, $view['old']);
+    }
 }
