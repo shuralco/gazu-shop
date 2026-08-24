@@ -448,6 +448,13 @@ class BatchEditorService
             'affected_count' => count($ids),
             'created_at' => now(),
         ]);
+
+        // Пакетні операції правлять товари через query builder
+        // (DB::table(...)->update, increment/decrement) — події моделі при цьому
+        // НЕ спрацьовують, тож ResponseCacheObserver мовчить і вітрина показує
+        // старі ціни/статуси до кінця TTL. Кожна операція проходить через log(),
+        // тож інвалідацію вішаємо саме сюди — одна точка на всі операції.
+        \App\Observers\ResponseCacheObserver::flushAll();
     }
 
     public function exportCsv(array $ids, array $columns = []): StreamedResponse

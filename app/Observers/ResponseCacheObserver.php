@@ -61,10 +61,15 @@ class ResponseCacheObserver
             return;
         }
 
-        // Зміна самого товару — scoped (товар рідко редагують, але нащо валити
-        // весь storefront заради одного товару).
+        // Зміна самого товару — ПОВНИЙ flush. Scoped-інвалідація тут не працює:
+        // ключ кешу містить query-string (GazuCacheProfile::useCacheNameSuffix),
+        // а forget() уміє лише точний URL. Тому «голий» /catalog забувався, а
+        // ?page=2, ?cat=, ?brand[]=, ?sort=, ?q= — ні, і картка товару висіла
+        // зі старим фото/ціною до кінця TTL (година). Товари редагують рідко,
+        // тож холодний кеш дешевший за неправду на вітрині. Inventory нижче
+        // лишається scoped — саме він змінюється на кожне замовлення.
         if ($model instanceof \App\Models\Product) {
-            $this->flushProduct($model);
+            $this->flush();
 
             return;
         }
@@ -85,7 +90,7 @@ class ResponseCacheObserver
             return;
         }
         if ($model instanceof \App\Models\Product) {
-            $this->flushProduct($model);
+            $this->flush();
 
             return;
         }
@@ -184,6 +189,16 @@ class ResponseCacheObserver
         $new = (int) ($inv->quantity ?? 0);
 
         return ($orig > 0) !== ($new > 0);
+    }
+
+    /**
+     * Ручна інвалідація для коду, який оновлює товари в обхід подій моделі
+     * (mass-update через query builder — напр. пакетний редактор). Без неї
+     * вітрина показує старі ціни/фото до кінця TTL.
+     */
+    public static function flushAll(): void
+    {
+        (new self)->flush();
     }
 
     private function flush(): void
