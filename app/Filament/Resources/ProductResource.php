@@ -405,7 +405,11 @@ class ProductResource extends Resource
                                     ->description('Drag-and-drop для зміни порядку · клік для редагування · хрестик для видалення.')
                                     ->collapsible()
                                     ->schema([
-                                        Forms\Components\FileUpload::make('gallery_images')
+                                        // Поле мусить називатись саме як атрибут моделі: раніше
+                                        // тут стояло 'gallery_images', якого в Product немає, тож
+                                        // Filament зберігав його в нікуди — файли лягали на диск,
+                                        // а в БД не потрапляло НІЧОГО, і галерея лишалась порожня.
+                                        Forms\Components\FileUpload::make('gallery')
                                             ->hiddenLabel()
                                             ->image()
                                             ->imageEditor()

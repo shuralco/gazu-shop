@@ -595,29 +595,42 @@ class Product extends Model
         return $this->variants()->where('is_active', true)->exists();
     }
 
+    /**
+     * Додаткові зображення товару (галерея).
+     *
+     * Зберігаються так само, як головне фото — шляхом ВІДНОСНО диска `public`
+     * (`products/gallery/xxx.jpg`). Саме такий вигляд очікує UploadedImage::url(),
+     * який дописує `storage/`. Раніше цей акcесор беззастережно клеїв провідний
+     * слеш, і шлях ставав `/products/gallery/xxx.jpg` — тобто «шукай у public/»,
+     * де аплоадів немає. Через це навіть збережена галерея не показувалась.
+     * Провідний слеш лишаємо тільки легасі-значенням («4.jpg» → демо-картинки).
+     */
     protected function gallery(): Attribute
     {
         return Attribute::make(
             get: function ($value) {
-                $gallery = $value ? json_decode($value, true) : [];
+                $gallery = is_string($value) ? json_decode($value, true) : $value;
+                if (! is_array($gallery)) {
+                    return [];
+                }
 
-                // Ensure all gallery images have proper paths
-                return array_map(function ($img) {
-                    // Skip empty values
-                    if (empty($img)) {
+                $paths = array_map(function ($img) {
+                    if (! is_string($img) || trim($img) === '') {
                         return null;
                     }
+                    $img = trim($img);
 
-                    // If it's just a number like "4.jpg", prepend the full path
+                    // Легасі демо-дані: «4.jpg» лежить у public/assets/img/products.
                     if (preg_match('/^\d+\.jpg$/i', $img)) {
                         return '/assets/img/products/'.$img;
                     }
 
-                    // Ensure leading slash
-                    return str_starts_with($img, '/') ? $img : '/'.$img;
-                }, array_filter($gallery));
+                    return $img;
+                }, $gallery);
+
+                return array_values(array_filter($paths));
             },
-            set: fn ($value) => $value ? json_encode($value) : null
+            set: fn ($value) => $value ? json_encode(array_values(array_filter((array) $value))) : null
         );
     }
 
