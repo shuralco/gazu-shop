@@ -11,7 +11,7 @@ use Tests\TestCase;
 
 /**
  * gazu:filters-from-titles — розпізнавання характеристик у назвах.
- * Назви взяті з живого каталогу gazu.uno.
+ * Назви взяті з живого каталогу gazu.com.ua.
  */
 class FiltersFromTitlesTest extends TestCase
 {

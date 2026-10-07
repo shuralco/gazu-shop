@@ -10,7 +10,7 @@ use Illuminate\Foundation\Testing\LazilyRefreshDatabase;
 use Tests\TestCase;
 
 /**
- * Smoke + behaviour tests for the GAZU storefront (gazu.uno) and the recent
+ * Smoke + behaviour tests for the GAZU storefront (gazu.com.ua) and the recent
  * admin-editability / taxonomy / cart-drawer work.
  */
 class GazuStorefrontTest extends TestCase

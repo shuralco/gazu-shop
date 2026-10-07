@@ -74,7 +74,7 @@ class ShopSettings extends Page implements HasForms
             // General (контакти — для листів і SEO-meta; на вітрині — gazu-visual)
             'shop_name' => 'GAZU',
             'shop_phone' => '0 800 750 010',
-            'shop_email' => 'info@gazu.uno',
+            'shop_email' => 'info@gazu.com.ua',
             'shop_address' => '',
             'logo_type' => 'text',
             'logo_text' => 'GAZU',
@@ -91,7 +91,7 @@ class ShopSettings extends Page implements HasForms
 
             // Email
             'email_from_name' => 'GAZU',
-            'email_from_address' => 'no-reply@gazu.uno',
+            'email_from_address' => 'noreply@gazu.com.ua',
             'email_reply_to' => '',
             'email_show_logo' => true,
             'email_footer_text' => '',
@@ -140,7 +140,7 @@ class ShopSettings extends Page implements HasForms
                             ->label('Email магазину')
                             ->email()
                             ->required()
-                            ->placeholder('info@gazu.uno'),
+                            ->placeholder('info@gazu.com.ua'),
 
                         Textarea::make('shop_address')
                             ->label('Адреса магазину')
@@ -203,14 +203,14 @@ class ShopSettings extends Page implements HasForms
                             TextInput::make('email_from_address')
                                 ->label('Email вiдправника')
                                 ->email()
-                                ->placeholder('no-reply@gazu.uno')
+                                ->placeholder('noreply@gazu.com.ua')
                                 ->helperText('Адреса, з якої надсилаються листи'),
                         ]),
 
                         TextInput::make('email_reply_to')
                             ->label('Reply-To адреса')
                             ->email()
-                            ->placeholder('support@gazu.uno')
+                            ->placeholder('support@gazu.com.ua')
                             ->helperText('Адреса для вiдповiдей клiєнтiв (якщо порожньо - використовується email вiдправника)'),
 
                         Toggle::make('email_show_logo')

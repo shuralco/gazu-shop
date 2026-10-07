@@ -30,7 +30,7 @@
                     <tr>
                         <td style="background:#F5F2EC; padding:18px 28px; font-size:12px; color:#5A6573; text-align:center;">
                             GAZU · автозапчастини для китайських авто · <a href="tel:0800750010" style="color:#2453A6; text-decoration:none;">0 800 750 010</a><br>
-                            <a href="{{ url('/') }}" style="color:#2453A6; text-decoration:none;">gazu.uno</a>
+                            <a href="{{ url('/') }}" style="color:#2453A6; text-decoration:none;">gazu.com.ua</a>
                         </td>
                     </tr>
                 </table>

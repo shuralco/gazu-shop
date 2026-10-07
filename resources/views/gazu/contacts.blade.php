@@ -8,7 +8,7 @@
     $hours = $s['gazu_topbar_hours'] ?? 'Пн-Нд 8:00–20:00';
     $tg = $s['gazu_contacts_telegram'] ?? null;
     $viber = $s['gazu_contacts_viber'] ?? null;
-    $email = $s['gazu_contacts_email'] ?? 'info@gazu.uno';
+    $email = $s['gazu_contacts_email'] ?? 'info@gazu.com.ua';
     $offices = $s['gazu_contacts_offices'] ?? [];
 @endphp
 <div class="gazu-container">

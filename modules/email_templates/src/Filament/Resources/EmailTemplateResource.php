@@ -78,7 +78,7 @@ class EmailTemplateResource extends Resource
                     Forms\Components\TextInput::make('from_email')
                         ->label('From Email')
                         ->email()
-                        ->placeholder('orders@gazu.uno')
+                        ->placeholder('orders@gazu.com.ua')
                         ->helperText('Залиш порожнім для використання дефолту .env MAIL_FROM_ADDRESS'),
                     Forms\Components\TextInput::make('from_name')
                         ->label('From Name')

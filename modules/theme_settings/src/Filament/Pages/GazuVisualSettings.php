@@ -101,7 +101,7 @@ class GazuVisualSettings extends Page implements HasForms
         // Contacts
         'gazu_contacts_map' => null,            // Google Maps iframe embed або URL
         // Реальні контакти/адреси вписує клієнт. Дефолти нейтральні.
-        'gazu_contacts_email' => 'info@gazu.uno',
+        'gazu_contacts_email' => 'info@gazu.com.ua',
         'gazu_contacts_telegram' => '',
         'gazu_contacts_viber' => '',
         'gazu_contacts_offices' => [],

@@ -16,14 +16,14 @@ class WarmCacheTest extends TestCase
             '*' => Http::response('OK', 200),
         ]);
 
-        $this->artisan('cache:warm', ['--base' => 'https://gazu.uno'])
+        $this->artisan('cache:warm', ['--base' => 'https://gazu.com.ua'])
             ->assertSuccessful();
 
         // шлях узято з <loc>, але хост — із --base (не з sitemap)
-        Http::assertSent(fn ($r) => $r->url() === 'https://gazu.uno/engine');
-        Http::assertSent(fn ($r) => $r->url() === 'https://gazu.uno/brakes');
+        Http::assertSent(fn ($r) => $r->url() === 'https://gazu.com.ua/engine');
+        Http::assertSent(fn ($r) => $r->url() === 'https://gazu.com.ua/brakes');
         // головна й каталог завжди в наборі
-        Http::assertSent(fn ($r) => $r->url() === 'https://gazu.uno/catalog');
+        Http::assertSent(fn ($r) => $r->url() === 'https://gazu.com.ua/catalog');
         // sitemap товарів НЕ чіпаємо без --products
         Http::assertNotSent(fn ($r) => str_contains($r->url(), 'sitemap-products'));
     }
@@ -37,7 +37,7 @@ class WarmCacheTest extends TestCase
     {
         Http::fake(['*' => Http::response('<urlset></urlset>', 200)]);
 
-        $this->artisan('cache:warm', ['--base' => 'https://gazu.uno', '--products' => true])
+        $this->artisan('cache:warm', ['--base' => 'https://gazu.com.ua', '--products' => true])
             ->assertSuccessful();
 
         Http::assertSent(fn ($r) => str_contains($r->url(), 'sitemap-products.xml'));

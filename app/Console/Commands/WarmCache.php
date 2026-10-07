@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Http;
  *
  *   php artisan cache:warm                    # main + категорії + бренди
  *   php artisan cache:warm --products         # + усі товари (важко, 1000+)
- *   php artisan cache:warm --base=https://gazu.uno
+ *   php artisan cache:warm --base=https://gazu.com.ua
  *
  * Запускається автоматично після деплою (docker-entrypoint.sh, у фоні, коли
  * Octane вже відповідає). Безпечний, ідемпотентний, без побічних ефектів.
