@@ -223,6 +223,63 @@ class TynGateTest extends TestCase
         $this->visit('/login', ['REMOTE_ADDR' => '203.0.113.9', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1'])->assertSee('id="tyn-gate"', false);
     }
 
+    public static function allowedAgents(): array
+    {
+        return [
+            'googlebot' => ['Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)'],
+            'adsbot' => ['AdsBot-Google (+http://www.google.com/adsbot.html)'],
+            'adsbot-mobile' => ['Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X) AppleWebKit/537.36 (compatible; AdsBot-Google-Mobile)'],
+            'bingbot' => ['Mozilla/5.0 (compatible; bingbot/2.0; +http://www.bing.com/bingbot.htm)'],
+            'facebook' => ['facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'],
+            'telegram' => ['TelegramBot (like TwitterBot)'],
+        ];
+    }
+
+    /** @dataProvider allowedAgents */
+    public function test_search_ad_and_social_bots_pass_in_all_mode(string $ua): void
+    {
+        $this->visit('/catalog?gclid=1', ['HTTP_USER_AGENT' => $ua])->assertDontSee('id="tyn-gate"', false);
+    }
+
+    public static function storefrontPassPaths(): array
+    {
+        return [['/cart'], ['/checkout'], ['/checkout/success/1'], ['/zamovlennya/1/oplata'], ['/robots.txt'], ['/webhooks/wayforpay'], ['/webhooks/monobank'], ['/api/callback'], ['/yml/prom.xml']];
+    }
+
+    /** @dataProvider storefrontPassPaths */
+    public function test_cart_checkout_payment_feeds_and_callbacks_are_never_gated(string $uri): void
+    {
+        $this->visit($uri)->assertDontSee('id="tyn-gate"', false);
+        $this->visit($uri, [], [], 'POST')->assertDontSee('id="tyn-gate"', false);
+    }
+
+    public function test_gate_page_is_not_stored_by_response_cache_and_cached_pages_do_not_bypass_it(): void
+    {
+        config(['responsecache.enabled' => true]);
+        \Spatie\ResponseCache\Facades\ResponseCache::clear();
+        // перший відвідувач із позначкою кешує сторінку; наступний без позначки однаково бачить заслін
+        $this->visit('/login', [], ['tyn_pass' => $this->mark()])->assertOk()->assertDontSee('id="tyn-gate"', false);
+        $this->visit('/login')->assertSee('id="tyn-gate"', false);
+        $this->visit('/login')->assertSee('id="tyn-gate"', false);
+        $this->visit('/login', [], ['tyn_pass' => $this->mark()])->assertDontSee('id="tyn-gate"', false);
+    }
+
+    public function test_wrong_answer_still_passes_in_soft_mode_and_returns_with_utm(): void
+    {
+        $this->verify = Http::response(['ok' => true, 'attempted' => true, 'correct' => false]);
+        $r = $this->post('/tyn/pass', ['tyn_token' => 'tok_wrong', 'return' => '/catalog?utm_source=g&gclid=abc&utm_medium=cpc'], $this->srv());
+        $r->assertRedirect('/catalog?utm_source=g&gclid=abc&utm_medium=cpc');
+        $this->assertNotNull(collect($r->headers->getCookies())->first(fn ($c) => $c->getName() === 'tyn_pass'));
+    }
+
+    public function test_service_down_fails_open_to_a_short_mark_and_page(): void
+    {
+        Http::fake(fn () => throw new \Illuminate\Http\Client\ConnectionException('down'));
+        $r = $this->post('/tyn/pass', ['tyn_token' => 'tok', 'return' => '/catalog?gclid=1'], $this->srv());
+        $r->assertRedirect('/catalog?gclid=1');
+        $this->assertNotNull(collect($r->headers->getCookies())->first(fn ($c) => $c->getName() === 'tyn_pass'));
+    }
+
     public function test_pass_with_token_sets_hardened_mark_and_redirects_back(): void
     {
         $r = $this->post('/tyn/pass', ['tyn_token' => 'tok_abc', 'return' => '/catalog?page=2'], $this->srv());
@@ -290,6 +347,7 @@ class TynGateTest extends TestCase
 
     public function test_loop_protection_disables_autosubmit_and_explains_cookies(): void
     {
+        app()->setLocale('en');
         $r = $this->visit('/login?a=1', ['HTTP_REFERER' => 'http://localhost/login?a=1', 'HTTP_HOST' => 'localhost']);
         $r->assertSee('id="tyn-gate"', false)->assertSee('does not seem to keep cookies', false);
         $this->assertStringContainsString('"0"!=="1"', $r->getContent());

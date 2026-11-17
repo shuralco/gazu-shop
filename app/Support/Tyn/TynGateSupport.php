@@ -16,7 +16,7 @@ final class TynGateSupport
     public const SKIP = [
         'webhooks/*', 'up', 'csrf-token', 'api/np/*', 'api/up/*', 'sitemap*', '*sitemap*', 'feed/*', 'feeds/*',
         'admin', 'admin/*', 'livewire', 'livewire/*', 'filament/*', 'tyn/pass', 'safe-mode',
-        'build/*', 'storage/*', 'css/*', 'js/*', 'fonts/*', 'img/*', 'favicon.ico', 'robots.txt',
+        'cart', 'cart/*', 'checkout', 'checkout/*', 'zamovlennya/*', 'build/*', 'storage/*', 'css/*', 'js/*', 'fonts/*', 'img/*', 'favicon.ico', 'robots.txt',
     ];
 
     public static function route(Request $request): string
