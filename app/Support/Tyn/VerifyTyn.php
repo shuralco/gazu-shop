@@ -59,7 +59,7 @@ class VerifyTyn
     }
 
     /** @return array{status:int,body:string} */
-    private function transport(string $url, array $fields, float $timeout): array
+    public function transport(string $url, array $fields, float $timeout): array
     {
         try {
             $res = Http::asForm()->acceptJson()
