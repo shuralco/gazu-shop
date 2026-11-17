@@ -17,15 +17,26 @@ use Throwable;
  */
 class VerifyTyn
 {
-    public function handle(Request $request, Closure $next, string $form = 'other'): Response
+    /**
+     * @param string $form Тип форми (login, register, callback, subscribe, contact, review, other).
+     * @param string $mode 'observe': запит ніколи не відхиляється, рішення лише йде подією.
+     */
+    public function handle(Request $request, Closure $next, string $form = 'other', string $mode = ''): Response
     {
         $cfg = config('tyn');
         if (!($cfg['enabled'] ?? true) || empty($cfg['site_key']) || empty($cfg['secret'])) {
             return $next($request);
         }
 
+        $token = $request->input('tyn_token');
+        $this->scheduleEvent($request, $cfg, $form, $token);
+
+        if ($mode === 'observe') {
+            return $next($request);
+        }
+
         $verifier = new TynVerifier($this->transport(...), fn (string $line) => Log::warning($line));
-        $r = $verifier->check($cfg['secret'], $request->input('tyn_token'), [
+        $r = $verifier->check($cfg['secret'], $token, [
             'base_url' => $cfg['base_url'] ?? null,
             'mode' => $cfg['mode'] ?? 'soft',
             'messages' => $cfg['messages'] ?? [],
@@ -60,6 +71,51 @@ class VerifyTyn
             return ['status' => $res->status(), 'body' => substr($res->body(), 0, TynVerifier::RESPONSE_MAX + 1)];
         } catch (Throwable) {
             return ['status' => 0, 'body' => ''];
+        }
+    }
+
+    /**
+     * Подія сервісу, яку терміновано після відповіді (terminate) (POST {base}/v1/event): form_submit, якщо був токен, інакше form_no_token.
+     * Вміст форми не передається. Тайм-аут 1 с, усі збої мовчазні, відповідь не чекає.
+     */
+    private function scheduleEvent(Request $request, array $cfg, string $form, mixed $token): void
+    {
+        if (!($cfg['events'] ?? true)) {
+            return;
+        }
+        $base = TynVerifier::normalizeBase($cfg['base_url'] ?? 'https://c.tyn.com.ua');
+        $secret = (string) ($cfg['secret'] ?? '');
+        if ($base === '' || $secret === '') {
+            return;
+        }
+        $hasToken = TynVerifier::tokenOk($token) && $token !== 'unavailable';
+        $post = [
+            'secret' => $secret,
+            'event' => $hasToken ? 'form_submit' : 'form_no_token',
+            'form' => preg_match('/^[a-z0-9_]{1,32}$/', $form) ? $form : 'other',
+            'fill_s' => 0,
+            'honeypot' => 0,
+        ];
+        if ($hasToken) {
+            $post['token'] = $token;
+        }
+        $request->attributes->set('tyn_event', [$base, $post]);
+    }
+
+    /** Після відповіді: надсилає подію, якщо вона була заплановена. Будь-який збій мовчазний. */
+    public function terminate(Request $request, Response $response): void
+    {
+        try {
+            $event = $request->attributes->get('tyn_event');
+            if (!is_array($event)) {
+                return;
+            }
+            [$base, $post] = $event;
+            Http::asForm()->acceptJson()->withoutRedirecting()
+                ->connectTimeout(1)->timeout(1)
+                ->withUserAgent('tyn-laravel/1.0.0')
+                ->post($base . '/v1/event', $post);
+        } catch (Throwable) {
         }
     }
 }

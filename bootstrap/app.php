@@ -41,6 +41,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // тож бачить залогіненого адміна.
         $middleware->appendToGroup('web', \App\Http\Middleware\StorefrontMaintenance::class);
 
+        // Облік відвідувань для Тин (за TYN_TRAFFIC; без ключа не робить нічого).
+        $middleware->appendToGroup('web', \App\Http\Middleware\TynTraffic::class);
+
         $middleware->appendToGroup('web', \Spatie\ResponseCache\Middlewares\CacheResponse::class);
 
         // Trust upstream proxies (Coolify, Traefik, Caddy, nginx) so

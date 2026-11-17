@@ -84,7 +84,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/checkout', [$checkout, 'index'])->name('checkout');
     Route::post('/checkout', [$checkout, 'store'])->name('checkout.store');
     Route::get('/checkout/success/{order}', [$checkout, 'success'])->name('checkout.success');
-    Route::post('/checkout/one-click', [$checkout, 'oneClick'])->name('checkout.one-click')->middleware('tyn:other');
+    Route::post('/checkout/one-click', [$checkout, 'oneClick'])->name('checkout.one-click')
+        ->middleware('tyn:other,observe'); // лише спостерігати: якщо tyn.js заблоковано, замовлення не губиться
 
     // Свіжий CSRF-токен для клієнта (keep-alive). Лежить у web-групі (StartSession
     // активна → токен прив'язаний до поточної сесії і її TTL оновлюється при пінгу).
