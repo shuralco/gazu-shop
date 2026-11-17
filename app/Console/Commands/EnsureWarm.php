@@ -52,7 +52,8 @@ class EnsureWarm extends Command
         foreach ($probePaths as $path) {
             try {
                 $start = microtime(true);
-                $resp = Http::withHeaders(['Host' => $host])
+                $resp = Http::withUserAgent('gazu-warm/1.0')
+                    ->withHeaders(['Host' => $host, \App\Support\Tyn\TynGateSupport::WARM_HEADER => \App\Support\Tyn\TynGateSupport::warmToken()])
                     ->withoutVerifying()
                     ->timeout(8)
                     ->get('http://127.0.0.1:80'.$path);

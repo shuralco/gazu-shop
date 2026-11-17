@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Support\Tyn\TynGateSupport;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -33,6 +34,10 @@ class TynTraffic
                 return;
             }
             if (!$this->isStorefrontPage($request, $response)) {
+                return;
+            }
+            // Прогрів кешу самого сайту й запити з приватних/loopback адрес (після довірених проксі) людьми не є.
+            if (TynGateSupport::isWarm($request) || TynGateSupport::isPrivateIp((string) $request->ip())) {
                 return;
             }
 

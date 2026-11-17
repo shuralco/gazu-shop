@@ -77,7 +77,8 @@ class WarmCache extends Command
         foreach ($urls as $u) {
             try {
                 $code = Http::timeout(30)
-                    ->withHeaders(['X-Warm' => '1'])
+                    ->withUserAgent('gazu-warm/1.0')
+                    ->withHeaders(['X-Warm' => '1', \App\Support\Tyn\TynGateSupport::WARM_HEADER => \App\Support\Tyn\TynGateSupport::warmToken()])
                     ->withOptions(['sink' => '/dev/null', 'allow_redirects' => false])
                     ->get($u)->status();
             } catch (\Throwable) {
@@ -106,7 +107,7 @@ class WarmCache extends Command
     private function locs(string $sitemapUrl): array
     {
         try {
-            $body = Http::timeout(20)->get($sitemapUrl)->body();
+            $body = Http::timeout(20)->withUserAgent('gazu-warm/1.0')->get($sitemapUrl)->body();
         } catch (\Throwable) {
             return [];
         }

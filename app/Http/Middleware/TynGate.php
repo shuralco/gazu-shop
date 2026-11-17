@@ -17,7 +17,7 @@ use Throwable;
  * Станів між запитами немає (Octane): усе береться з запиту й конфігурації.
  *
  * observe нікого не зупиняє: рахується рішення режиму suspicious, а «було б показано» лише
- * іде в добовий лічильник storage/app/tyn/gate-observe-<дата>.json (див. TynGateSupport::countWouldShow).
+ * іде в добовий файл storage/app/tyn/gate-<дата>.log (див. TynGateSupport::countWouldShow).
  */
 class TynGate
 {
@@ -28,6 +28,12 @@ class TynGate
             $mode = (string) ($cfg['gate'] ?? 'off');
             if (!in_array($mode, ['observe', 'suspicious', 'all'], true)
                 || !($cfg['enabled'] ?? true) || empty($cfg['site_key']) || empty($cfg['secret'])) {
+                return $next($request);
+            }
+
+            // Власний прогрів кешу сайту (підписаний заголовок) не оцінюється й не зупиняється ніколи.
+            // За адресою тут не пропускаємо: X-Forwarded-For підробний, і приватна адреса стала б обхідною стежкою.
+            if (TynGateSupport::isWarm($request)) {
                 return $next($request);
             }
 
@@ -55,7 +61,7 @@ class TynGate
 
         if ($mode === 'observe') {
             // Нікого не зупиняємо й нічого не показуємо клієнту (ні заголовків, ні розмітки):
-            // лише добовий лічильник у файлі, без адрес і шляхів.
+            // лише рядок у добовому файлі: час UTC і код причини.
             TynGateSupport::countWouldShow((string) $decision['reason']);
 
             return $next($request);

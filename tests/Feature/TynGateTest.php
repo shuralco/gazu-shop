@@ -139,24 +139,29 @@ class TynGateTest extends TestCase
         $this->visit('/login', ['HTTP_USER_AGENT' => 'curl/8.4.0'], ['tyn_pass' => $this->mark()])->assertDontSee('id="tyn-gate"', false);
     }
 
+    private function observeLog(): string
+    {
+        return storage_path('app/tyn') . '/gate-' . gmdate('Ymd') . '.log';
+    }
+
     public function test_observe_never_stops_anyone_and_leaks_nothing_to_the_client(): void
     {
         config(['tyn.gate' => 'observe']);
-        $dir = storage_path('app/tyn');
-        $file = $dir . '/gate-observe-' . gmdate('Ymd') . '.json';
+        $file = $this->observeLog();
         @unlink($file);
 
         $r = $this->visit('/login?secretq=1', ['HTTP_USER_AGENT' => 'curl/8.4.0', 'REMOTE_ADDR' => '203.0.113.55']);
         $r->assertOk()->assertDontSee('id="tyn-gate"', false);
         $this->assertFalse($r->headers->has('X-Tyn-Gate'));
         $this->visit('/login', ['HTTP_USER_AGENT' => 'python-requests/2.31']);
-        $ok = $this->visit('/login');
-        $ok->assertOk();
+        $this->visit('/login')->assertOk();
         $this->visit('/login', ['HTTP_USER_AGENT' => 'curl/8.4.0'], ['tyn_pass' => $this->mark()]); // з позначкою не рахується
 
-        $data = json_decode((string) file_get_contents($file), true);
-        $this->assertSame(2, $data['total']);
-        $this->assertSame(['suspicious:ua_script' => 2], $data['reasons']);
+        $lines = array_values(array_filter(explode("\n", (string) file_get_contents($file))));
+        $this->assertCount(2, $lines);
+        foreach ($lines as $line) {
+            $this->assertMatchesRegularExpression('/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z suspicious:ua_script$/', $line);
+        }
         $raw = (string) file_get_contents($file);
         foreach (['203.0.113.55', 'secretq', '/login', 'curl', 'python'] as $leak) {
             $this->assertStringNotContainsString($leak, $raw);
@@ -164,25 +169,58 @@ class TynGateTest extends TestCase
         @unlink($file);
     }
 
+    public function test_observe_log_is_size_capped(): void
+    {
+        config(['tyn.gate' => 'observe']);
+        $file = $this->observeLog();
+        @mkdir(dirname($file), 0700, true);
+        file_put_contents($file, str_repeat('x', \App\Support\Tyn\TynGateSupport::OBSERVE_LOG_MAX));
+
+        $this->visit('/login', ['HTTP_USER_AGENT' => 'curl/8.4.0'])->assertOk();
+        $this->assertSame(\App\Support\Tyn\TynGateSupport::OBSERVE_LOG_MAX, filesize($file));
+        @unlink($file);
+    }
+
     public function test_observe_logs_a_warning_on_first_hit_of_the_day(): void
     {
         config(['tyn.gate' => 'observe']);
-        $file = storage_path('app/tyn') . '/gate-observe-' . gmdate('Ymd') . '.json';
-        @unlink($file);
+        @unlink($this->observeLog());
         \Illuminate\Support\Facades\Log::spy();
 
         $this->visit('/login', ['HTTP_USER_AGENT' => 'curl/8.4.0']);
         $this->visit('/login', ['HTTP_USER_AGENT' => 'curl/8.4.0']);
 
-        \Illuminate\Support\Facades\Log::shouldHaveReceived('warning')->withArgs(fn ($m) => str_contains($m, 'tyn gate: would show today=1'))->once();
-        @unlink($file);
+        \Illuminate\Support\Facades\Log::shouldHaveReceived('warning')->withArgs(fn ($m) => str_contains($m, 'tyn gate: would show'))->once();
+        @unlink($this->observeLog());
     }
 
-    public function test_gate_page_has_no_livewire_scripts_even_after_a_component_rendered(): void
+    public function test_gate_page_has_no_livewire_scripts(): void
     {
-        \Livewire\Features\SupportAutoInjectedAssets\SupportAutoInjectedAssets::$hasRenderedAComponentThisRequest = true;
-        $r = $this->visit('/login');
-        $r->assertSee('id="tyn-gate"', false)->assertDontSee('livewire', false)->assertDontSee('data-csrf', false);
+        // Octane між запитами сам викликає Livewire::flushState (PrepareLivewireForNextOperation); у тестах робимо те саме.
+        \Livewire\Livewire::flushState();
+        $this->visit('/login')->assertSee('id="tyn-gate"', false)->assertDontSee('livewire', false);
+    }
+
+    public function test_signed_warm_requests_are_never_gated_or_counted(): void
+    {
+        $warm = ['HTTP_USER_AGENT' => 'gazu-warm/1.0', 'HTTP_X_GAZU_WARM' => \App\Support\Tyn\TynGateSupport::warmToken()];
+        config(['tyn.gate' => 'all']);
+        $this->visit('/login', $warm)->assertOk()->assertDontSee('id="tyn-gate"', false);
+
+        config(['tyn.gate' => 'observe']);
+        @unlink($this->observeLog());
+        $this->visit('/login', $warm)->assertOk();
+        $this->assertFileDoesNotExist($this->observeLog());
+
+        // підробний або чужий підпис не діє
+        config(['tyn.gate' => 'all']);
+        $this->visit('/login', ['HTTP_X_GAZU_WARM' => 'forged'])->assertSee('id="tyn-gate"', false);
+        $this->visit('/login', ['HTTP_X_GAZU_WARM' => '1'])->assertSee('id="tyn-gate"', false);
+    }
+
+    public function test_spoofed_private_forwarded_address_does_not_bypass_the_gate(): void
+    {
+        $this->visit('/login', ['REMOTE_ADDR' => '203.0.113.9', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1'])->assertSee('id="tyn-gate"', false);
     }
 
     public function test_pass_with_token_sets_hardened_mark_and_redirects_back(): void

@@ -28,6 +28,8 @@ class TynTrafficTest extends TestCase
             'tyn.base_url' => 'http://127.0.0.1:9', 'tyn.traffic' => true, 'tyn.events' => false,
         ]);
         Http::fake();
+        // Типова адреса тестового клієнта loopback не обліковується: даємо публічну, як у справжнього відвідувача.
+        $this->withServerVariables(['REMOTE_ADDR' => '203.0.113.50']);
     }
 
     protected function tearDown(): void
@@ -115,6 +117,32 @@ class TynTrafficTest extends TestCase
         $recs = $this->records();
         $this->assertCount(1, $recs);
         $this->assertSame('198.51.100.0/24', $recs[0]['net']);
+    }
+
+    public static function privateAddresses(): array
+    {
+        return [['10.1.2.3'], ['172.20.0.5'], ['192.168.1.9'], ['127.0.0.1'], ['::1'], ['fd00::5']];
+    }
+
+    /** @dataProvider privateAddresses */
+    public function test_private_and_loopback_addresses_are_not_recorded(string $ip): void
+    {
+        $this->get('/login', ['REMOTE_ADDR' => $ip])->assertOk();
+        $this->assertSame([], $this->records());
+    }
+
+    public function test_public_address_is_recorded(): void
+    {
+        $this->get('/login', ['REMOTE_ADDR' => '203.0.113.9'])->assertOk();
+        $this->assertCount(1, $this->records());
+    }
+
+    public function test_signed_warm_requests_are_not_recorded_even_from_public_address(): void
+    {
+        $this->get('/login', ['REMOTE_ADDR' => '203.0.113.9', 'HTTP_USER_AGENT' => 'gazu-warm/1.0', 'HTTP_X_GAZU_WARM' => \App\Support\Tyn\TynGateSupport::warmToken()])->assertOk();
+        $this->assertSame([], $this->records());
+        $this->get('/login', ['REMOTE_ADDR' => '203.0.113.9', 'HTTP_X_GAZU_WARM' => 'forged'])->assertOk();
+        $this->assertCount(1, $this->records());
     }
 
     public function test_only_storefront_html_get_is_recorded(): void
