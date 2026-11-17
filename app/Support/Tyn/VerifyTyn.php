@@ -75,8 +75,9 @@ class VerifyTyn
     }
 
     /**
-     * Подія сервісу, яку терміновано після відповіді (terminate) (POST {base}/v1/event): form_submit, якщо був токен, інакше form_no_token.
-     * Вміст форми не передається. Тайм-аут 1 с, усі збої мовчазні, відповідь не чекає.
+     * Подія сервісу, терміновано після відповіді (terminate): form_submit, якщо був токен;
+     * form_no_token з chain (хеш id сесії, не сам id), якщо токена не було. Без сесії подію не шлемо.
+     * Вміст форми не передається (tyn_event бібліотеки пропускає лише token/chain/form/fill_s/honeypot).
      */
     private function scheduleEvent(Request $request, array $cfg, string $form, mixed $token): void
     {
@@ -88,21 +89,22 @@ class VerifyTyn
         if ($base === '' || $secret === '') {
             return;
         }
-        $hasToken = TynVerifier::tokenOk($token) && $token !== 'unavailable';
-        $post = [
-            'secret' => $secret,
-            'event' => $hasToken ? 'form_submit' : 'form_no_token',
-            'form' => preg_match('/^[a-z0-9_]{1,32}$/', $form) ? $form : 'other',
-            'fill_s' => 0,
-            'honeypot' => 0,
-        ];
-        if ($hasToken) {
-            $post['token'] = $token;
+        $fields = ['form' => preg_match('/^[a-z0-9_]{1,32}$/', $form) ? $form : 'other'];
+        if (TynVerifier::tokenOk($token) && $token !== 'unavailable') {
+            $event = 'form_submit';
+            $fields['token'] = $token;
+        } else {
+            $sessionId = $request->hasSession() ? (string) $request->session()->getId() : '';
+            if ($sessionId === '') {
+                return;
+            }
+            $event = 'form_no_token';
+            $fields['chain'] = substr(sha1($sessionId . '|tyn|' . $secret), 0, 32);
         }
-        $request->attributes->set('tyn_event', [$base, $post]);
+        $request->attributes->set('tyn_event', [$secret, $base, $event, $fields]);
     }
 
-    /** Після відповіді: надсилає подію, якщо вона була заплановена. Будь-який збій мовчазний. */
+    /** Після відповіді: надсилає подію бібліотечним tyn_event (тайм-аут 1 с), якщо вона була заплановена. */
     public function terminate(Request $request, Response $response): void
     {
         try {
@@ -110,11 +112,9 @@ class VerifyTyn
             if (!is_array($event)) {
                 return;
             }
-            [$base, $post] = $event;
-            Http::asForm()->acceptJson()->withoutRedirecting()
-                ->connectTimeout(1)->timeout(1)
-                ->withUserAgent('tyn-laravel/1.0.0')
-                ->post($base . '/v1/event', $post);
+            require_once __DIR__ . '/tyn-lib.php';
+            [$secret, $base, $name, $fields] = $event;
+            \tyn_event($secret, $base, $name, $fields);
         } catch (Throwable) {
         }
     }
