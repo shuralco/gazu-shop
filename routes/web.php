@@ -16,6 +16,11 @@ Route::get('/safe-mode', [\App\Http\Controllers\SafeModeController::class, 'trig
     ->withoutMiddleware(['web'])
     ->middleware('throttle:10,1');
 
+// Заслін Тин: проходження перевірки (див. App\Http\Middleware\TynGate). POST, no-store.
+Route::post('/tyn/pass', [\App\Http\Controllers\TynGatePassController::class, '__invoke'])
+    ->middleware(['web', 'throttle:30,1'])
+    ->name('tyn.gate.pass');
+
 // GAZU storefront — root-level URLs (no /gazu prefix, this fork is GAZU-only).
 Route::name('gazu.')->middleware(['web'])->group(function () {
     $c = \App\Http\Controllers\Gazu\StoreController::class;

@@ -593,6 +593,85 @@ if (!defined('TYN_LIB_LOADED')) {
         return (string) substr($value, 0, $max); // до PHP 8 substr('') повертає false
     }
 
+    /** Розбирає рядок запиту у масив (ключ => останнє значення, декодоване); без побічних ефектів. */
+    function tyn_traffic_query($qs)
+    {
+        $out = array();
+        if (!is_string($qs) || $qs === '') {
+            return $out;
+        }
+        foreach (explode('&', substr($qs, 0, 4000)) as $pair) {
+            if ($pair === '') {
+                continue;
+            }
+            $eq = strpos($pair, '=');
+            $k = rawurldecode(str_replace('+', ' ', $eq === false ? $pair : substr($pair, 0, $eq)));
+            $v = $eq === false ? '' : rawurldecode(str_replace('+', ' ', substr($pair, $eq + 1)));
+            $out[strtolower($k)] = $v;
+        }
+        return $out;
+    }
+
+    /** utm_*: до 64 символів, лише [A-Za-z0-9_.-] (решта символів стає «_»), нижній регістр (як на сервері). */
+    function tyn_traffic_utm($value)
+    {
+        $value = trim(is_string($value) ? $value : '');
+        if ($value === '') {
+            return '';
+        }
+        if (preg_match('/^./su', $value) && preg_match_all('/./su', $value, $m)) {
+            $chars = array_slice($m[0], 0, 64);
+        } else {
+            $chars = str_split(substr($value, 0, 64)); // не UTF-8: по байтах
+        }
+        $out = '';
+        foreach ($chars as $c) {
+            $out .= preg_match('/^[A-Za-z0-9_.\-]$/', $c) ? strtolower($c) : '_';
+        }
+        return $out;
+    }
+
+    /** Лише ТИП рекламної мітки в запиті: g (gclid/gbraid/wbraid), f (fbclid), y (yclid), t (ttclid), m (msclkid). Значення не повертається. */
+    function tyn_traffic_click_type(array $query)
+    {
+        $map = array('gclid' => 'g', 'gbraid' => 'g', 'wbraid' => 'g', 'fbclid' => 'f', 'yclid' => 'y', 'ttclid' => 't', 'msclkid' => 'm');
+        foreach ($map as $name => $type) {
+            if (isset($query[$name]) && $query[$name] !== '') {
+                return $type;
+            }
+        }
+        return '';
+    }
+
+    /** Тип сторінки: один із десяти відомих значень сервера; невідоме дає other, порожнє лишається порожнім. */
+    function tyn_traffic_page_type($value)
+    {
+        $v = strtolower(trim(is_string($value) ? $value : ''));
+        if ($v === '') {
+            return '';
+        }
+        return in_array($v, array('home', 'category', 'product', 'search', 'cart', 'checkout', 'success', 'account', 'info', 'other'), true) ? $v : 'other';
+    }
+
+    /**
+     * Анотації поточного запиту (page_type, event, amount, currency): модуль сайту викликає її де завгодно під час запиту,
+     * tyn_traffic_record підхоплює їх. Без аргументів повертає накопичене; false скидає. Без мережі, без винятків.
+     */
+    function tyn_traffic_annotate($fields = null)
+    {
+        static $acc = array();
+        if ($fields === false) {
+            $acc = array(); // скинути (довгоживучі процеси, тести)
+        } elseif (is_array($fields)) {
+            foreach (array('page_type', 'event', 'amount', 'currency') as $k) {
+                if (isset($fields[$k])) {
+                    $acc[$k] = $fields[$k];
+                }
+            }
+        }
+        return $acc;
+    }
+
     /** Чи шлях веде до статичного файла (зображення, стилі, скрипти, шрифти, map, ico). */
     function tyn_traffic_is_static($path)
     {
@@ -625,6 +704,11 @@ if (!defined('TYN_LIB_LOADED')) {
         // Шлях без рядка запиту й фрагмента.
         $uri = isset($server['REQUEST_URI']) && is_string($server['REQUEST_URI']) ? $server['REQUEST_URI'] : '/';
         $cut = strcspn($uri, '?#');
+        // Рядок запиту сам НЕ передається: з нього беруться лише utm_* (очищені) і тип рекламної мітки (без значення).
+        $qs = '';
+        if (isset($uri[$cut]) && $uri[$cut] === '?') {
+            $qs = (string) substr($uri, $cut + 1, strcspn($uri, '#', $cut + 1));
+        }
         $path = tyn_traffic_clean((string) substr($uri, 0, $cut), 200);
         if ($path === '' || $path[0] !== '/') {
             $path = '/' . ltrim($path, '/');
@@ -691,7 +775,39 @@ if (!defined('TYN_LIB_LOADED')) {
             $xhr = 1;
         }
 
-        return array(
+        $query = tyn_traffic_query($qs);
+        $extra = array();
+        foreach (array('us' => 'utm_source', 'um' => 'utm_medium', 'uc' => 'utm_campaign') as $short => $name) {
+            $v = isset($query[$name]) ? tyn_traffic_utm($query[$name]) : '';
+            if ($v !== '') {
+                $extra[$short] = $v;
+            }
+        }
+        $cid = tyn_traffic_click_type($query);
+        if ($cid !== '') {
+            $extra['cid'] = $cid;
+        }
+        // Поля з модуля сайту: $opts (page_type, event, amount, currency) або tyn_traffic_annotate().
+        $ann = array_merge(tyn_traffic_annotate(), array_intersect_key($opts, array_flip(array('page_type', 'event', 'amount', 'currency'))));
+        $pt = isset($ann['page_type']) ? tyn_traffic_page_type($ann['page_type']) : '';
+        if ($pt !== '') {
+            $extra['pt'] = $pt;
+        }
+        $ev = isset($ann['event']) && is_string($ann['event']) ? trim($ann['event']) : '';
+        if ($ev === 'cart_add') {
+            $extra['ev'] = 'cart_add';
+        } elseif ($ev === 'order') {
+            $extra['ev'] = 'order';
+            $amt = isset($ann['amount']) && is_numeric($ann['amount']) ? (float) $ann['amount'] : 0;
+            $amt = ($amt >= 0 && $amt <= 1000000000000) ? (int) round($amt) : 0;
+            $cur = isset($ann['currency']) && is_string($ann['currency']) ? strtoupper(trim($ann['currency'])) : '';
+            $extra['amt'] = $amt;
+            if (preg_match('/^[A-Z]{3}$/', $cur)) {
+                $extra['cur'] = $cur;
+            }
+        }
+
+        $rec = array(
             'ts' => time(),
             'm' => $method,
             'p' => $path,
@@ -704,6 +820,7 @@ if (!defined('TYN_LIB_LOADED')) {
             'ck' => (isset($server['HTTP_COOKIE']) && is_string($server['HTTP_COOKIE']) && trim($server['HTTP_COOKIE']) !== '') ? 1 : 0,
             'xhr' => $xhr,
         );
+        return $rec + $extra;
     }
 
     /** Дописує рядок у файл під замком; якщо файл тим часом забрали (перейменували), відкриває знову. */

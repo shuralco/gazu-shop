@@ -27,6 +27,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'webhooks/*',
             'orders/*/success',
             'mobile-test',
+            'tyn/pass', // форма заслону на no-store сторінці без сесійного токена; рішення за токеном Тин
         ]);
 
         // Full-page HTML response cache (Redis). Caches storefront GET для гостей,
@@ -43,6 +44,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Облік відвідувань для Тин (за TYN_TRAFFIC; без ключа не робить нічого).
         $middleware->appendToGroup('web', \App\Http\Middleware\TynTraffic::class);
+
+        // Заслін Тин на весь сайт: ОБОВ'ЯЗКОВО до CacheResponse, інакше закешовані сторінки йдуть в обхід.
+        $middleware->appendToGroup('web', \App\Http\Middleware\TynGate::class);
+
+        // Позначка проходу заслону підписана HMAC (бібліотека), шифрування Laravel їй не потрібне.
+        $middleware->encryptCookies(except: ['tyn_pass']);
 
         $middleware->appendToGroup('web', \Spatie\ResponseCache\Middlewares\CacheResponse::class);
 

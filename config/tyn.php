@@ -16,4 +16,14 @@ return [
     'traffic' => env('TYN_TRAFFIC', false),
     // Тексти відмов (перевизначення).
     'messages' => [],
+    // Заслін на весь сайт: off (типово) | observe (лише позначає «було б показано») | suspicious | all.
+    'gate' => env('TYN_GATE', 'off'),
+    // Додаткові винятки заслону: шаблони шляхів з * (без початкової скісної), через кому в TYN_GATE_SKIP.
+    'gate_skip' => array_values(array_filter(array_map('trim', explode(',', (string) env('TYN_GATE_SKIP', ''))))),
+    // Додаткові боти (підрядки User-Agent), яким заслін не показується; TYN_GATE_BOTS через кому.
+    'gate_bots' => array_values(array_filter(array_map('trim', explode(',', (string) env('TYN_GATE_BOTS', ''))))),
+    // Скільки годин діє позначка проходу (1..720).
+    'gate_ttl_hours' => (int) env('TYN_GATE_TTL_HOURS', 12),
+    // Прив'язка позначки до підмережі клієнта (на мобільних мережах може заважати).
+    'gate_bind' => env('TYN_GATE_BIND', false),
 ];
