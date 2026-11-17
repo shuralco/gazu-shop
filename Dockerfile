@@ -102,6 +102,7 @@ COPY docker/supervisord.conf /etc/supervisord.conf
 # validate_timestamps=0 means PHP never re-stats files — biggest single
 # perf win for Laravel under prod traffic (3s cold → ~150ms warm).
 COPY docker/php-opcache.ini /usr/local/etc/php/conf.d/zz-opcache.ini
+COPY docker/php-uploads.ini /usr/local/etc/php/conf.d/zz-uploads.ini
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh

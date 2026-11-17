@@ -158,6 +158,30 @@ class PricingMarkupTest extends TestCase
         $this->assertTrue($pv['is_group'], 'тут знижка є — перекреслена ціна доречна');
     }
 
+    public function test_fixed_group_price_row_does_not_override_markup(): void
+    {
+        // Фіксований рядок із вкладки «Гуртові ціни» не має перекривати націнку:
+        // змінили націнку або базу — ціна перераховується.
+        $group = $this->group('Оптовий', 65, default: true);
+        $p = $this->product(1000);
+        \App\Models\ProductGroupPrice::create([
+            'product_id' => $p->id,
+            'customer_group_id' => $group->id,
+            'price' => 100,
+            'price_currency' => 'UAH',
+            'min_quantity' => 1,
+        ]);
+
+        $pv = $p->fresh()->priceViewForUser($this->user($group));
+        $this->assertSame(1650.0, $pv['price'], 'база 1000 + 65 %, фіксований рядок ігнорується');
+        $this->assertFalse($pv['is_group']);
+
+        $group->update(['markup_percentage' => 80]);
+        MarkupPricing::flush();
+        $pv = $p->fresh()->priceViewForUser($this->user($group->fresh()));
+        $this->assertSame(1800.0, $pv['price'], 'зміна націнки діє одразу');
+    }
+
     public function test_default_group_resolution_is_exposed(): void
     {
         $retail = $this->group('Роздріб', 35, default: true);

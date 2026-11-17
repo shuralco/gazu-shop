@@ -463,7 +463,10 @@ class Product extends Model
         $fromPrice = null;
 
         if ($user && $user->customer_group_id) {
-            $row = $this->groupPriceRowFor((int) $user->customer_group_id);
+            // Модуль pricing_markup вимикає фіксовані рядки з вкладки «Гуртові ціни»:
+            // ціну групи тоді задає лише «база + % націнки» (зміна націнки/бази діє одразу).
+            $useRows = (bool) \App\Support\Hooks::filter('pricing.use_group_price_rows', true, $user);
+            $row = $useRows ? $this->groupPriceRowFor((int) $user->customer_group_id) : null;
             if ($row) {
                 $min = max(1, (int) $row->min_quantity);
                 if ($qty >= $min) {

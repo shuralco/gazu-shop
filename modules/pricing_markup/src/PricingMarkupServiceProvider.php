@@ -100,6 +100,12 @@ class PricingMarkupServiceProvider extends ServiceProvider
 
             return MarkupPricing::apply((float) $base, $user);
         }, 10, 'pricing_markup');
+
+        // Націнка головніша за фіксовані гуртові ціни з вкладки «Гуртові ціни»:
+        // поки модуль увімкнений, ці рядки не застосовуються (дані лишаються в БД).
+        Hooks::addFilter('pricing.use_group_price_rows', function (mixed $use, mixed $user = null) {
+            return MarkupPricing::enabled() ? false : $use;
+        }, 10, 'pricing_markup');
     }
 
     /**

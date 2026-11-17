@@ -59,7 +59,32 @@ class CatalogQuery
      *
      * Акцесором тут не обійтись: WHERE/ORDER BY виконує БД.
      */
+    /**
+     * Ціна, яку бачить ПОКУПЕЦЬ: валютний вираз × (1 + % націнки його групи).
+     * Без цього фільтр «від/до», повзунок і сортування рахувались би від закупівельної
+     * ціни, тоді як на картках показана ціна з націнкою (pricing_markup).
+     */
     private function basePriceExpr(): string
+    {
+        $expr = $this->currencyPriceExpr();
+        $factor = $this->markupFactor();
+
+        return $factor === 1.0 ? $expr : sprintf('(%s * %.6F)', $expr, $factor);
+    }
+
+    /** Множник націнки для поточного користувача (гість → стандартна група). */
+    private function markupFactor(): float
+    {
+        try {
+            $percent = \Modules\PricingMarkup\Services\MarkupPricing::percentFor(auth()->user());
+        } catch (\Throwable) {
+            return 1.0;
+        }
+
+        return $percent === 0.0 ? 1.0 : max(0.0, 1 + $percent / 100);
+    }
+
+    private function currencyPriceExpr(): string
     {
         if ($this->basePriceExpr !== null) {
             return $this->basePriceExpr;
@@ -295,7 +320,7 @@ class CatalogQuery
         ]);
         $vh = trim($vehicle, '|') !== '' ? md5($vehicle) : '0';
 
-        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock:f=$fh:v=$vh";
+        return "catalog:agg:$kind:cat=$catId:q=".md5($search).":stock=$stock:f=$fh:v=$vh:m=".$this->markupFactor();
     }
 
     public function selectedBrands(): array

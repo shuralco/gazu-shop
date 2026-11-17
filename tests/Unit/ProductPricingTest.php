@@ -18,6 +18,15 @@ class ProductPricingTest extends TestCase
 {
     use LazilyRefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        // Ці тести описують фіксовані гуртові ціни без націнки; з увімкненим
+        // pricing_markup рядки з вкладки «Гуртові ціни» навмисно ігноруються.
+        \App\Models\Module::updateOrCreate(['key' => 'pricing_markup'], ['enabled' => false]);
+        \Modules\PricingMarkup\Services\MarkupPricing::flush();
+    }
+
     private function wholesaleUser(float $discount = 0): User
     {
         $group = CustomerGroup::create([

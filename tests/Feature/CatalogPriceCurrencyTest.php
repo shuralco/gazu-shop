@@ -103,4 +103,27 @@ class CatalogPriceCurrencyTest extends TestCase
 
         $this->assertSame([$p->id], $ids);
     }
+    public function test_price_filter_and_range_use_marked_up_price_of_default_group(): void
+    {
+        \Modules\PricingMarkup\Services\MarkupPricing::flush();
+        \App\Models\CustomerGroup::query()->delete();
+        \App\Models\CustomerGroup::create([
+            'name' => 'retail', 'display_name' => 'Роздріб', 'markup_percentage' => 100,
+            'discount_percentage' => 0, 'is_default' => true, 'is_active' => true, 'sort_order' => 0,
+        ]);
+        \Modules\PricingMarkup\Services\MarkupPricing::flush();
+
+        $cheap = $this->product('Дешевий', 400, 'UAH');   // гість бачить 800 ₴
+        $dear = $this->product('Дорогий', 1000, 'UAH');   // гість бачить 2000 ₴
+
+        // 700–900 ₴ — це ціна з націнкою «Дешевого», а не його закупка 400.
+        $ids = $this->query('/catalog?min=700&max=900')->paginate(null)->pluck('id')->all();
+        $this->assertSame([$cheap->id], $ids);
+
+        $range = $this->query('/catalog')->priceRange(null);
+        $this->assertSame(800, $range['min']);
+        $this->assertSame(2000, $range['max']);
+
+        \Modules\PricingMarkup\Services\MarkupPricing::flush(); // статичний кеш групи не має текти в інші тести
+    }
 }

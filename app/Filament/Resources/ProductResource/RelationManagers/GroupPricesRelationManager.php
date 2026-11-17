@@ -50,6 +50,9 @@ class GroupPricesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->description(fn () => module('pricing_markup')->enabled()
+                ? 'Увімкнено «Націнку по групах»: фіксовані ціни з цієї вкладки на сайті НЕ застосовуються — ціна = базова + % націнки групи (Продажі → Групи клієнтів).'
+                : null)
             ->recordTitleAttribute('price')
             ->columns([
                 Tables\Columns\TextColumn::make('customerGroup.display_name')
