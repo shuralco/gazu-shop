@@ -280,6 +280,18 @@ class TynGateTest extends TestCase
         $this->assertNotNull(collect($r->headers->getCookies())->first(fn ($c) => $c->getName() === 'tyn_pass'));
     }
 
+    public function test_gate_page_keeps_no_store_on_ordinary_pages_too(): void
+    {
+        foreach (['/', '/catalog'] as $uri) {
+            $r = $this->visit($uri)->assertSee('id="tyn-gate"', false);
+            $this->assertStringContainsString('no-store', (string) $r->headers->get('Cache-Control'), $uri);
+            $this->assertStringContainsString('noindex', (string) $r->headers->get('X-Robots-Tag'), $uri);
+        }
+        // а звичайна сторінка з позначкою лишається за правилами CacheHeaders
+        $r = $this->visit('/catalog', [], ['tyn_pass' => $this->mark()]);
+        $this->assertStringNotContainsString('no-store', (string) $r->headers->get('Cache-Control'));
+    }
+
     public function test_pass_with_token_sets_hardened_mark_and_redirects_back(): void
     {
         $r = $this->post('/tyn/pass', ['tyn_token' => 'tok_abc', 'return' => '/catalog?page=2'], $this->srv());

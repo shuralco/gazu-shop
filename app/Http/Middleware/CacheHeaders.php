@@ -21,6 +21,11 @@ class CacheHeaders
     {
         $response = $next($request);
 
+        // Сторінка заслону Тин сама ставить no-store: не перезаписувати.
+        if ($request->attributes->get('tyn_gate_page') === true) {
+            return $response;
+        }
+
         // Skip for non-GET/HEAD or Livewire AJAX requests
         if (! $request->isMethodCacheable() || $request->hasHeader('X-Livewire')) {
             return $response;

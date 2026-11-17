@@ -57,6 +57,8 @@ final class TynGateSupport
             return null;
         }
 
+        $request->attributes->set('tyn_gate_page', true);
+
         return new Response($html, 200, [
             'Content-Type' => 'text/html; charset=UTF-8',
             'Cache-Control' => 'no-store, private, max-age=0',
