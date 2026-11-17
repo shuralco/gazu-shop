@@ -4,12 +4,13 @@
      variant=full → full-width primary button --}}
 <div x-data="{
         open: false,
+        opened: false,
         email: '',
         phone: '',
         busy: false,
         sent: false,
         error: '',
-        toggle() { this.open = !this.open; if (this.open) this.$nextTick(() => this.$refs.emailInput?.focus()); },
+        toggle() { this.open = !this.open; if (this.open) this.opened = true; if (this.open) this.$nextTick(() => this.$refs.emailInput?.focus()); },
         close() { this.open = false; },
         async submit() {
             this.error = '';
@@ -19,13 +20,13 @@
                 const r = await fetch('{{ route('gazu.stock.notify') }}', {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ product_id: '{{ $productId }}', email: this.email, phone: this.phone })
+                    body: new URLSearchParams({ product_id: '{{ $productId }}', email: this.email, phone: this.phone, tyn_token: this.$refs.form?.querySelector('[name=tyn_token]')?.value || '' })
                 });
                 const d = await r.json();
                 if (d.ok) { this.sent = true; setTimeout(() => this.close(), 3500); }
                 else { this.error = d.message || 'Помилка'; }
             } catch (e) { this.error = 'Помилка з\'єднання'; }
-            finally { this.busy = false; }
+            finally { this.busy = false; window.Tyn?.reset(this.$refs.form?.querySelector('[data-tyn]')); }
         }
      }"
      @keydown.escape.window="open && close()"
@@ -67,11 +68,12 @@
             </div>
         </div>
 
-        <form x-show="!sent" @submit.prevent="submit()" class="px-3.5 pb-3.5 flex flex-col gap-2">
+        <form x-ref="form" x-show="!sent" @submit.prevent="submit()" class="px-3.5 pb-3.5 flex flex-col gap-2">
             <input type="email" x-model="email" x-ref="emailInput" required placeholder="Email *"
                    class="w-full px-2.5 py-2 border border-[var(--gazu-line)] rounded text-[13px] outline-none focus:border-[var(--gazu-ink)] transition-colors">
             <input type="tel" x-model="phone" placeholder="Телефон (опційно)" inputmode="tel"
                    class="w-full px-2.5 py-2 border border-[var(--gazu-line)] rounded text-[13px] gazu-mono outline-none focus:border-[var(--gazu-ink)] transition-colors">
+            <template x-if="opened"><x-tyn-widget form="subscribe"/></template>
             <div x-show="error" x-cloak class="text-[11px] text-[var(--gazu-danger)]" x-text="error"></div>
             <button type="submit" :disabled="busy"
                     class="w-full py-2 bg-[var(--gazu-blue)] text-[var(--gazu-on-brand)] border-0 rounded text-[13px] font-semibold transition-colors inline-flex items-center justify-center gap-1.5 disabled:opacity-70 disabled:cursor-wait hover:bg-[var(--gazu-blue-600)]">

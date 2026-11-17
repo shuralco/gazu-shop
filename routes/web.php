@@ -84,7 +84,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/checkout', [$checkout, 'index'])->name('checkout');
     Route::post('/checkout', [$checkout, 'store'])->name('checkout.store');
     Route::get('/checkout/success/{order}', [$checkout, 'success'])->name('checkout.success');
-    Route::post('/checkout/one-click', [$checkout, 'oneClick'])->name('checkout.one-click');
+    Route::post('/checkout/one-click', [$checkout, 'oneClick'])->name('checkout.one-click')
+        ->middleware('tyn:other,observe'); // лише спостерігати: якщо tyn.js заблоковано, замовлення не губиться
 
     // Свіжий CSRF-токен для клієнта (keep-alive). Лежить у web-групі (StartSession
     // активна → токен прив'язаний до поточної сесії і її TTL оновлюється при пінгу).
@@ -96,8 +97,8 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/login', [$auth, 'show'])->name('auth');
     Route::get('/auth', fn () => redirect('/login', 301)); // legacy 301
     Route::middleware('throttle:10,1')->group(function () use ($auth) {
-        Route::post('/login', [$auth, 'login'])->name('auth.login');
-        Route::post('/register', [$auth, 'register'])->name('auth.register');
+        Route::post('/login', [$auth, 'login'])->name('auth.login')->middleware('tyn:login');
+        Route::post('/register', [$auth, 'register'])->name('auth.register')->middleware('tyn:register');
         Route::post('/auth/login', fn () => redirect('/login', 301)); // legacy
         Route::post('/auth/register', fn () => redirect('/register', 301)); // legacy
     });
@@ -132,10 +133,12 @@ Route::name('gazu.')->middleware(['web'])->group(function () {
     Route::get('/api/wishlist/ids', [$wish, 'ids'])->name('wishlist.ids');
 
     // Callback request (footer popup, throttled).
-    Route::post('/api/callback', [\App\Http\Controllers\Gazu\CallbackController::class, 'store'])->name('callback.store');
+    Route::post('/api/callback', [\App\Http\Controllers\Gazu\CallbackController::class, 'store'])->name('callback.store')
+        ->middleware(['throttle:10,1', 'tyn:callback']);
 
     // Stock notify: «повідомити коли з'явиться».
-    Route::post('/api/stock-notify', [\App\Http\Controllers\Gazu\StockNotificationController::class, 'store'])->name('stock.notify');
+    Route::post('/api/stock-notify', [\App\Http\Controllers\Gazu\StockNotificationController::class, 'store'])->name('stock.notify')
+        ->middleware('tyn:subscribe');
 
     // СТО page removed (Etap 91). Legacy 301 → home для backward compat у Google index.
     Route::get('/sto', fn () => redirect('/', 301))->name('sto');
