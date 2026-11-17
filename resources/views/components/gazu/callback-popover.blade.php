@@ -13,12 +13,13 @@
 @endphp
 <div x-data="{
         open: false,
+        opened: false,
         name: '',
         phone: '',
         busy: false,
         sent: false,
         error: '',
-        toggle() { this.open = !this.open; if (this.open) this.$nextTick(() => this.$refs.phoneInput?.focus()); },
+        toggle() { this.open = !this.open; if (this.open) this.opened = true; if (this.open) this.$nextTick(() => this.$refs.phoneInput?.focus()); },
         close() { this.open = false; setTimeout(() => { if (!this.open) { this.sent=false; this.error=''; } }, 200); },
         async submit() {
             this.error = '';
@@ -28,13 +29,13 @@
                 const r = await fetch('{{ route('gazu.callback.store') }}', {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ name: this.name, phone: this.phone, source: '{{ $source }}' })
+                    body: new URLSearchParams({ name: this.name, phone: this.phone, source: '{{ $source }}', tyn_token: this.$refs.form?.querySelector('[name=tyn_token]')?.value || '' })
                 });
                 const d = await r.json();
                 if (d.ok) { this.sent = true; this.phone=''; this.name=''; setTimeout(() => this.close(), 3500); }
                 else { this.error = d.message || 'Помилка'; }
             } catch (e) { this.error = 'Помилка з\'єднання'; }
-            finally { this.busy = false; }
+            finally { this.busy = false; window.Tyn?.reset(this.$refs.form?.querySelector('[data-tyn]')); }
         }
      }"
      @keydown.escape.window="open && close()"
@@ -88,12 +89,14 @@
         </div>
 
         {{-- Form --}}
-        <form x-show="!sent" @submit.prevent="submit()" class="px-4 pb-4 flex flex-col gap-2">
+        <form x-ref="form" x-show="!sent" @submit.prevent="submit()" class="px-4 pb-4 flex flex-col gap-2">
             <input type="text" x-model="name" autocomplete="name" placeholder="Ім'я (необов'язково)"
                    class="w-full px-2.5 py-2 border border-[var(--gazu-line)] rounded text-[13px] outline-none focus:border-[var(--gazu-ink)] transition-colors">
             <input type="tel" x-model="phone" x-ref="phoneInput" required autocomplete="tel" inputmode="tel" placeholder="+38 (0__) ___ __ __"
                    class="w-full px-2.5 py-2 border border-[var(--gazu-line)] rounded text-[14px] gazu-mono outline-none focus:border-[var(--gazu-ink)] transition-colors">
 
+            {{-- Тин: віджет вантажиться при першому відкритті; токен читається з прихованого tyn_token у формі --}}
+            <template x-if="opened"><x-tyn-widget form="callback"/></template>
             <div x-show="error" x-cloak class="text-[11px] text-[var(--gazu-danger)]" x-text="error"></div>
 
             <button type="submit" :disabled="busy"

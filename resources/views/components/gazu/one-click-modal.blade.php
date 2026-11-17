@@ -1,6 +1,7 @@
 {{-- Global 1-click order modal — GAZU design system. Opens on `gazu:one-click` event. --}}
 <div x-data="{
         open: false,
+        opened: false,
         productId: null,
         productName: '',
         productPrice: 0,
@@ -11,6 +12,7 @@
         init() {
             window.addEventListener('gazu:one-click', (e) => {
                 this.open = true;
+                this.opened = true;
                 this.busy = false;
                 this.err = '';
                 this.phone = '';
@@ -34,6 +36,7 @@
                         product_id: this.productId,
                         phone: this.phone,
                         name: this.name,
+                        tyn_token: this.$refs.form?.querySelector('[name=tyn_token]')?.value || '',
                     })
                 });
                 const d = await r.json();
@@ -45,7 +48,7 @@
                 }
             } catch(e) {
                 this.err = 'Помилка з\'єднання';
-            } finally { this.busy = false; }
+            } finally { this.busy = false; window.Tyn?.reset(this.$refs.form?.querySelector('[data-tyn]')); }
         }
      }"
      x-show="open"
@@ -98,7 +101,7 @@
                 </div>
             </div>
 
-            <form @submit.prevent="submit" class="space-y-3">
+            <form x-ref="form" @submit.prevent="submit" class="space-y-3">
                 <div>
                     <label class="block text-[12px] font-medium text-[var(--gazu-ink)] mb-1.5">Телефон <span class="text-[var(--gazu-danger)]">*</span></label>
                     <input x-ref="phone" x-model="phone" type="tel" required
@@ -110,6 +113,8 @@
                     <input x-model="name" type="text" placeholder="Як до вас звертатись"
                            class="w-full px-3.5 py-2.5 text-sm border border-[var(--gazu-line)] rounded-md bg-[var(--gazu-surface)] outline-none focus:border-[var(--gazu-ink)] transition-colors">
                 </div>
+
+                <template x-if="opened"><x-tyn-widget form="other"/></template>
 
                 <div x-show="err" x-cloak class="px-3 py-2 text-[13px] font-medium rounded-md"
                      style="background: var(--gazu-danger-bg); color: var(--gazu-danger);" x-text="err"></div>

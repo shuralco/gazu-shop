@@ -378,6 +378,7 @@
 
 {{-- Global brutal-style 1-click order modal (listens for `gazu:one-click`). --}}
 <x-gazu.one-click-modal/>
+<x-tyn-widget script-only/>
 
 {{-- Critical CSS for drawer + toast positioning. Inline because the prod
      Vite bundle doesn't include the arbitrary `w-[380px]` / `inset-y-0`

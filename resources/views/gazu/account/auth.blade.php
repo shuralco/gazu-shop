@@ -37,6 +37,10 @@
                     </label>
                     <a href="#" class="text-xs text-[var(--gazu-blue)]">Забули пароль?</a>
                 </div>
+                <x-tyn-widget form="login"/>
+                @if($errors->has('tyn_token') && session('tyn_form') === 'login')
+                    <div class="bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] px-3 py-2 rounded text-xs">{{ $errors->first('tyn_token') }}</div>
+                @endif
                 <button type="submit" class="gazu-btn-primary mt-2">Увійти</button>
             </form>
         </div>
@@ -95,6 +99,10 @@
                     @endforeach
                 </ul>
 
+                <x-tyn-widget form="register"/>
+                @if($errors->has('tyn_token') && session('tyn_form') === 'register')
+                    <div class="bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] px-3 py-2 rounded text-xs">{{ $errors->first('tyn_token') }}</div>
+                @endif
                 <button type="submit" class="gazu-btn-blue mt-2">Створити акаунт →</button>
             </form>
         </div>
