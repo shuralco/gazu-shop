@@ -7,7 +7,6 @@ namespace App\Http\Middleware;
 use App\Support\Tyn\TynGateSupport;
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 use Throwable;
 
@@ -18,7 +17,7 @@ use Throwable;
  * Станів між запитами немає (Octane): усе береться з запиту й конфігурації.
  *
  * observe нікого не зупиняє: рахується рішення режиму suspicious, а «було б показано» лише
- * позначається заголовком X-Tyn-Gate і рядком у журналі.
+ * іде в добовий лічильник storage/app/tyn/gate-observe-<дата>.json (див. TynGateSupport::countWouldShow).
  */
 class TynGate
 {
@@ -55,15 +54,11 @@ class TynGate
         }
 
         if ($mode === 'observe') {
-            $response = $next($request);
-            try {
-                $reason = preg_replace('/[^a-z0-9_:]/', '', (string) $decision['reason']);
-                $response->headers->set('X-Tyn-Gate', 'would-show; ' . $reason);
-                Log::info('tyn gate: would show', ['reason' => $reason, 'path' => '/' . ltrim($request->path(), '/')]);
-            } catch (Throwable) {
-            }
+            // Нікого не зупиняємо й нічого не показуємо клієнту (ні заголовків, ні розмітки):
+            // лише добовий лічильник у файлі, без адрес і шляхів.
+            TynGateSupport::countWouldShow((string) $decision['reason']);
 
-            return $response;
+            return $next($request);
         }
 
         try {
