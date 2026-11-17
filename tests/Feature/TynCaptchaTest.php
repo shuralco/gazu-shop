@@ -116,6 +116,33 @@ class TynCaptchaTest extends TestCase
         Http::assertNothingSent();
     }
 
+    /** Те, що на проді виглядало як «422 від Тин»: це валідація телефону, а не капча. */
+    public function test_unavailable_with_invalid_phone_fails_on_phone_not_on_tyn(): void
+    {
+        $this->enable();
+        Http::fake();
+
+        $this->postJson(route('gazu.callback.store'), ['phone' => '+38', 'tyn_token' => 'unavailable'])
+            ->assertStatus(422)->assertJsonValidationErrors('phone')->assertJsonMissingValidationErrors('tyn_token');
+        Http::assertNothingSent();
+    }
+
+    /** Збій сервісу (unavailable, тайм-аут, 5xx) не губить заявку: валідна форма доходить до кінця. */
+    public function test_valid_callback_goes_through_on_unavailable_timeout_and_5xx(): void
+    {
+        $this->enable();
+        $payload = ['phone' => '+380671234567', 'source' => 'footer'];
+
+        Http::fake();
+        $this->postJson(route('gazu.callback.store'), $payload + ['tyn_token' => 'unavailable'])->assertOk()->assertJson(['ok' => true]);
+
+        Http::fake(fn () => throw new ConnectionException('timeout'));
+        $this->postJson(route('gazu.callback.store'), $payload + ['tyn_token' => 'tok_abc'])->assertOk()->assertJson(['ok' => true]);
+
+        Http::fake(fn () => Http::response('x', 503));
+        $this->postJson(route('gazu.callback.store'), $payload + ['tyn_token' => 'tok_abc2'])->assertOk()->assertJson(['ok' => true]);
+    }
+
     /** @dataProvider blockingForms */
     public function test_attempted_token_passes_and_calls_siteverify(string $route, array $payload, bool $json): void
     {
