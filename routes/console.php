@@ -34,6 +34,8 @@ Schedule::command('currency:update-rates')->twiceDaily(9, 15);
 // Курси fx_*_uah (DisplaySetting) для перерахунку цін товарів у грн — НБУ, двічі на день.
 Schedule::command('gazu:fx-update')->twiceDaily(9, 15);
 Schedule::command('stock:check')->daily()->at('09:00');
+// Каталог у Тин (id, категорія, ціна, наявність): раз на добу вночі; без TYN_TRACK команда нічого не робить.
+Schedule::command('tyn:catalog')->dailyAt('03:10')->withoutOverlapping();
 
 if ($enabled('novaposhta')) {
     Schedule::command('np:sync --warehouses-only')->dailyAt('04:00');
