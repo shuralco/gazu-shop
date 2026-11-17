@@ -263,6 +263,10 @@
         <script defer src="{{ asset('assets/js/gazu-np-map.js') }}"></script>
     @endif
     <script defer src="{{ asset('assets/js/gazu-fx.js') }}"></script>
+    @if(config('tyn.collector') && config('tyn.enabled', true) && config('tyn.site_key'))
+        {{-- Браузерний збирач Тин: рахує лише кількість натискань, вмісту полів не читає. --}}
+        <script async src="{{ rtrim((string) config('tyn.base_url', 'https://c.tyn.com.ua'), '/') }}/w/t.js" data-key="{{ config('tyn.site_key') }}" data-pt="{{ request()->attributes->get('tyn_page_type', request()->routeIs('home') ? 'home' : 'other') }}"></script>
+    @endif
 </head>
 <body class="gazu gazu-theme min-h-screen flex flex-col">
 {{-- Accessibility: skip-to-main link для keyboard navigation (Tab key) --}}

@@ -126,6 +126,14 @@ class AppServiceProvider extends ServiceProvider
 
         \App\Models\Order::observe(\App\Observers\OrderObserver::class);
         \App\Models\Order::observe(\App\Observers\OrderNotificationObserver::class);
+        \App\Models\Order::observe(\App\Observers\TynOrderObserver::class);
+        // Тин: хто це (лише uid і ідентифікатор браузера, без контактів) при вході й реєстрації.
+        \Illuminate\Support\Facades\Event::listen([\Illuminate\Auth\Events\Login::class, \Illuminate\Auth\Events\Registered::class], function ($e) {
+            $uid = $e->user?->getAuthIdentifier();
+            if ($uid !== null && \App\Support\Tyn\TynTrack::enabled()) {
+                \App\Support\Tyn\TynTrack::add('identify', ['uid' => (string) $uid, 'vc' => (string) request()->attributes->get('tyn_cid', '')]);
+            }
+        });
         \App\Models\Category::observe(\App\Observers\CategoryObserver::class);
         \App\Models\Brand::observe(\App\Observers\BrandObserver::class);
         \App\Models\Product::observe(\App\Observers\ProductObserver::class);

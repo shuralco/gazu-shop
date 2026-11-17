@@ -331,6 +331,7 @@ class StoreController extends Controller
 
     public function catalog(Request $request, string $variant = 'v1')
     {
+        $request->attributes->set('tyn_page_type', 'category');
         // Canonical-redirect: if both make and at least the path '/catalog' are used,
         // 301 to the pretty URL so search engines see one URL per vehicle filter.
         $routeName = optional($request->route())->getName();
@@ -477,6 +478,7 @@ class StoreController extends Controller
 
     public function product(string $slug, string $variant = 'v1')
     {
+        request()->attributes->set('tyn_page_type', 'product');
         $variant = in_array($variant, ['v1', 'v2', 'v3'], true) ? $variant : 'v1';
 
         // 1) Спробуємо чисельний id (якщо переданий sample-1 → 1)

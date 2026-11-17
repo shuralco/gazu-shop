@@ -388,4 +388,27 @@ class TynGateTest extends TestCase
         config(['tyn.gate' => 'all']);
         $this->visit('/login', ['HTTP_USER_AGENT' => 'curl/8.4.0'])->assertSee('id="tyn-gate"', false);
     }
+
+    public function test_admin_login_gate_only_when_switch_is_all_and_guest(): void
+    {
+        // Перемикач вимкнено: адмінка заслону не бачить.
+        config(['tyn.gate_admin' => 'off']);
+        $this->visit('/admin/login')->assertDontSee('id="tyn-gate"', false);
+
+        config(['tyn.gate_admin' => 'all']);
+        $this->visit('/admin/login')->assertOk()->assertSee('id="tyn-gate"', false);
+        // З cookie проходу вхід доступний.
+        $this->visit('/admin/login', [], ['tyn_pass' => $this->mark()])->assertDontSee('id="tyn-gate"', false);
+        // Не-GET, Livewire й ajax не чіпаємо.
+        $this->visit('/admin/login', [], [], 'POST')->assertDontSee('id="tyn-gate"', false);
+        $this->visit('/livewire/update', [], [], 'POST')->assertDontSee('id="tyn-gate"', false);
+        $this->visit('/admin/login', ['HTTP_X_REQUESTED_WITH' => 'XMLHttpRequest'])->assertDontSee('id="tyn-gate"', false);
+    }
+
+    public function test_admin_gate_fails_open_and_never_stops_logged_in_admin(): void
+    {
+        config(['tyn.gate_admin' => 'all']);
+        $admin = \App\Models\User::factory()->create(['is_admin' => true]);
+        $this->actingAs($admin)->call('GET', '/admin', [], [], [], $this->srv())->assertDontSee('id="tyn-gate"', false);
+    }
 }

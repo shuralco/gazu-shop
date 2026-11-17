@@ -32,6 +32,12 @@ final class TynGateSupport
         return array_values(array_merge(self::SKIP, array_filter($extra, fn ($p) => $p !== '')));
     }
 
+    /** Винятки без адмінки (для режиму TYN_GATE_ADMIN=all): livewire й решта лишаються. */
+    public static function skipWithoutAdmin(array $cfg): array
+    {
+        return array_values(array_filter(self::skip($cfg), fn ($p) => !in_array($p, ['admin', 'admin/*', 'filament/*'], true)));
+    }
+
     /** Сторінка-заслін (200, no-store, noindex) або null, якщо зібрати не вдалося. */
     public static function page(Request $request, array $cfg, string $note): ?Response
     {

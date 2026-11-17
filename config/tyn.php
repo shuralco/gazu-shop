@@ -14,6 +14,12 @@ return [
     'events' => env('TYN_EVENTS', true),
     // Облік відвідувань вітрини (/v1/traffic); типово вимкнено.
     'traffic' => env('TYN_TRAFFIC', false),
+    // Серверні події (/v1/track: order, order_status, gate, identify лише з uid, catalog); типово вимкнено.
+    'track' => env('TYN_TRACK', false),
+    // Браузерний збирач https://<base>/w/t.js на сторінках вітрини; типово вимкнено.
+    'collector' => env('TYN_COLLECTOR', false),
+    // Заслін на вхід в адмінку: off (типово) | all. Лише для НЕзалогіненого, fail-open.
+    'gate_admin' => env('TYN_GATE_ADMIN', 'off'),
     // Тексти відмов (перевизначення).
     'messages' => [],
     // Заслін на весь сайт: off (типово) | observe (лише позначає «було б показано») | suspicious | all.

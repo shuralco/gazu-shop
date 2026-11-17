@@ -105,10 +105,13 @@ class TynTrafficTest extends TestCase
         $this->assertSame(1, $r['ck']);
         $this->assertSame('TestBrowser/1.0', $r['ua']);
         $raw = $this->raw();
-        foreach (['COOKIEVALUE123', 'QUERYVALUE456', 'SECRETQUERY', '203.0.113.77', '?'] as $bad) {
+        foreach (['COOKIEVALUE123', 'QUERYVALUE456', 'SECRETQUERY', '?'] as $bad) {
             $this->assertStringNotContainsString($bad, $raw, $bad);
         }
         $this->assertStringNotContainsString('test-secret', $raw);
+        // Рішення власника 2026-11-17: повна публічна адреса, ua й ідентифікатор браузера йдуть у запис.
+        $this->assertSame('203.0.113.77', $r['ip']);
+        $this->assertMatchesRegularExpression('/^[0-9a-f]{32}$/', $r['vc']);
     }
 
     public function test_real_client_ip_via_trusted_proxy_header(): void

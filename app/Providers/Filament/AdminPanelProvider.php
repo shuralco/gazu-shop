@@ -88,6 +88,8 @@ class AdminPanelProvider extends PanelProvider
                 ShareErrorsFromSession::class,
                 VerifyCsrfToken::class,
                 SubstituteBindings::class,
+                // Заслін Тин на вхід в адмінку (TYN_GATE_ADMIN=all): лише незалогіненому, fail-open; інакше проходить без дій.
+                \App\Http\Middleware\TynGate::class,
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])

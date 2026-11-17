@@ -49,7 +49,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', \App\Http\Middleware\TynGate::class);
 
         // Позначка проходу заслону підписана HMAC (бібліотека), шифрування Laravel їй не потрібне.
-        $middleware->encryptCookies(except: ['tyn_pass']);
+        $middleware->encryptCookies(except: ['tyn_pass', 'tyn_cid']);
 
         $middleware->appendToGroup('web', \Spatie\ResponseCache\Middlewares\CacheResponse::class);
 
