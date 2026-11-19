@@ -106,6 +106,36 @@ class TynCaptchaTest extends TestCase
         Http::assertNothingSent();
     }
 
+    /** @dataProvider blockingForms */
+    public function test_filled_honeypot_is_rejected_even_with_valid_looking_token(string $route, array $payload, bool $json): void
+    {
+        $this->enable();
+        Http::fake();
+
+        $response = $this->send($route, $payload + ['tyn_token' => 'unavailable', 'website_url' => 'http://spam.example'], $json);
+
+        $this->assertBlocked($response, $json, self::MSG_REJECTED);
+        Http::assertNothingSent();
+    }
+
+    /** @dataProvider forms */
+    public function test_empty_honeypot_does_not_change_outcome(string $route, array $payload, bool $json): void
+    {
+        $this->enable();
+        Http::fake();
+
+        $this->assertPassed($this->send($route, $payload + ['tyn_token' => 'unavailable', 'website_url' => ''], $json), $json);
+    }
+
+    public function test_honeypot_field_renders_only_when_tyn_is_on(): void
+    {
+        config(['tyn.site_key' => null, 'tyn.secret' => null]);
+        $this->get('/login')->assertDontSee('name="website_url"', false);
+
+        $this->enable();
+        $this->get('/login')->assertSee('name="website_url"', false)->assertSee('tabindex="-1"', false);
+    }
+
     /** @dataProvider forms */
     public function test_unavailable_token_passes_without_call(string $route, array $payload, bool $json): void
     {

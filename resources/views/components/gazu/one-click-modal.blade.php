@@ -37,6 +37,7 @@
                         phone: this.phone,
                         name: this.name,
                         tyn_token: this.$refs.form?.querySelector('[name=tyn_token]')?.value || '',
+                        website_url: this.$refs.form?.querySelector('[name=website_url]')?.value || '',
                     })
                 });
                 const d = await r.json();
@@ -114,7 +115,7 @@
                            class="w-full px-3.5 py-2.5 text-sm border border-[var(--gazu-line)] rounded-md bg-[var(--gazu-surface)] outline-none focus:border-[var(--gazu-ink)] transition-colors">
                 </div>
 
-                <template x-if="opened"><x-tyn-widget form="other"/></template>
+                <template x-if="opened"><x-tyn-widget form="other"/><x-tyn-honeypot/></template>
 
                 <div x-show="err" x-cloak class="px-3 py-2 text-[13px] font-medium rounded-md"
                      style="background: var(--gazu-danger-bg); color: var(--gazu-danger);" x-text="err"></div>

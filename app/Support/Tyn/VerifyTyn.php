@@ -29,10 +29,16 @@ class VerifyTyn
         }
 
         $token = $request->input('tyn_token');
-        $this->scheduleEvent($request, $cfg, $form, $token);
+        // Пастка: людина поле website_url не бачить; заповнене означає бота.
+        $honeypot = is_string($request->input('website_url')) && trim($request->input('website_url')) !== '';
+        $this->scheduleEvent($request, $cfg, $form, $token, $honeypot);
 
         if ($mode === 'observe') {
             return $next($request);
+        }
+
+        if ($honeypot) {
+            return $this->reject($request, $form, $cfg['messages']['rejected'] ?? 'Перевірка застаріла, спробуйте ще раз');
         }
 
         $verifier = new TynVerifier($this->transport(...), fn (string $line) => Log::warning($line));
@@ -47,15 +53,20 @@ class VerifyTyn
             return $next($request);
         }
 
-        $errors = ['tyn_token' => [$r['message']]];
+        return $this->reject($request, $form, $r['message']);
+    }
+
+    private function reject(Request $request, string $form, string $message): Response
+    {
+        $errors = ['tyn_token' => [$message]];
         if ($request->expectsJson()) {
             // ok:false: так фронт форм (Alpine fetch) показує d.message як звичайну помилку.
-            return response()->json(['ok' => false, 'message' => $r['message'], 'errors' => $errors], 422);
+            return response()->json(['ok' => false, 'message' => $message, 'errors' => $errors], 422);
         }
         return back()
             ->withErrors($errors)
             ->with('tyn_form', $form)
-            ->withInput($request->except(['tyn_token', 'password', 'password_confirmation']));
+            ->withInput($request->except(['tyn_token', 'website_url', 'password', 'password_confirmation']));
     }
 
     /** @return array{status:int,body:string} */
@@ -79,7 +90,7 @@ class VerifyTyn
      * form_no_token з chain (хеш id сесії, не сам id), якщо токена не було. Без сесії подію не шлемо.
      * Вміст форми не передається (tyn_event бібліотеки пропускає лише token/chain/form/fill_s/honeypot).
      */
-    private function scheduleEvent(Request $request, array $cfg, string $form, mixed $token): void
+    private function scheduleEvent(Request $request, array $cfg, string $form, mixed $token, bool $honeypot = false): void
     {
         if (!($cfg['events'] ?? true)) {
             return;
@@ -100,6 +111,10 @@ class VerifyTyn
             }
             $event = 'form_no_token';
             $fields['chain'] = substr(sha1($sessionId . '|tyn|' . $secret), 0, 32);
+        }
+        if ($honeypot) {
+            $event = 'honeypot';
+            $fields['honeypot'] = 1;
         }
         $request->attributes->set('tyn_event', [$secret, $base, $event, $fields]);
     }

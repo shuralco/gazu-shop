@@ -37,7 +37,7 @@
                     </label>
                     <a href="#" class="text-xs text-[var(--gazu-blue)]">Забули пароль?</a>
                 </div>
-                <x-tyn-widget form="login"/>
+                <x-tyn-widget form="login"/><x-tyn-honeypot/>
                 @if($errors->has('tyn_token') && session('tyn_form') === 'login')
                     <div class="bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] px-3 py-2 rounded text-xs">{{ $errors->first('tyn_token') }}</div>
                 @endif
@@ -99,7 +99,7 @@
                     @endforeach
                 </ul>
 
-                <x-tyn-widget form="register"/>
+                <x-tyn-widget form="register"/><x-tyn-honeypot/>
                 @if($errors->has('tyn_token') && session('tyn_form') === 'register')
                     <div class="bg-[var(--gazu-danger-bg)] text-[var(--gazu-danger)] px-3 py-2 rounded text-xs">{{ $errors->first('tyn_token') }}</div>
                 @endif

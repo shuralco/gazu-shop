@@ -29,7 +29,7 @@
                 const r = await fetch('{{ route('gazu.callback.store') }}', {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': window.GAZU_CSRF, 'Accept': 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: new URLSearchParams({ name: this.name, phone: this.phone, source: '{{ $source }}', tyn_token: this.$refs.form?.querySelector('[name=tyn_token]')?.value || '' })
+                    body: new URLSearchParams({ name: this.name, phone: this.phone, source: '{{ $source }}', tyn_token: this.$refs.form?.querySelector('[name=tyn_token]')?.value || '', website_url: this.$refs.form?.querySelector('[name=website_url]')?.value || '' })
                 });
                 const d = await r.json();
                 if (d.ok) { this.sent = true; this.phone=''; this.name=''; setTimeout(() => this.close(), 3500); }
@@ -96,7 +96,7 @@
                    class="w-full px-2.5 py-2 border border-[var(--gazu-line)] rounded text-[14px] gazu-mono outline-none focus:border-[var(--gazu-ink)] transition-colors">
 
             {{-- Тин: віджет вантажиться при першому відкритті; токен читається з прихованого tyn_token у формі --}}
-            <template x-if="opened"><x-tyn-widget form="callback"/></template>
+            <template x-if="opened"><x-tyn-widget form="callback"/><x-tyn-honeypot/></template>
             <div x-show="error" x-cloak class="text-[11px] text-[var(--gazu-danger)]" x-text="error"></div>
 
             <button type="submit" :disabled="busy"
