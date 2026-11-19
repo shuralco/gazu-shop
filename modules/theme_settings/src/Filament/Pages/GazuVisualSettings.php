@@ -329,7 +329,7 @@ class GazuVisualSettings extends Page implements HasForms
                             ->schema([
                                 Forms\Components\FileUpload::make('gazu_logo')->label('Логотип сайту')
                                     ->helperText('PNG/SVG/WEBP з прозорим фоном, висотою ≥ 60px. Якщо не задано — стандартний знак GAZU (GZ).')
-                                    ->image()->disk('public')->directory('branding')->visibility('public')->imageEditor()->maxSize(1024)
+                                    ->image()->disk('public')->directory('branding')->visibility('public')->imageEditor()->maxSize(2048)
                                     ->acceptedFileTypes(['image/png', 'image/svg+xml', 'image/webp', 'image/jpeg']),
                                 Forms\Components\TextInput::make('gazu_brand_name')->label('Назва бренду')->placeholder('GAZU')
                                     ->helperText('Alt-текст лого та текст, якщо лого не завантажено.'),

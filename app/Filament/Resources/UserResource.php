@@ -57,7 +57,7 @@ class UserResource extends Resource
                             ->image()
                             ->disk('public')
                             ->directory('avatars')
-                            ->maxSize(2048)
+                            ->maxSize(5120)
                             ->imageResizeMode('cover')
                             ->imageCropAspectRatio('1:1')
                             ->imageResizeTargetWidth('150')

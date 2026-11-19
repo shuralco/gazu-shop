@@ -36,8 +36,21 @@ class EditProduct extends EditRecord
         ];
     }
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        $data['gallery_images'] = \App\Support\ProductGallery::forForm($this->record->gallery);
+
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
+        $data['gallery'] = \App\Support\ProductGallery::forStorage(
+            $data['gallery_images'] ?? [],
+            $this->record->gallery,
+        );
+        unset($data['gallery_images']);
+
         if (isset($data['seo_title']) || isset($data['seo_description']) || isset($data['seo_keywords'])) {
             $this->saveSeoMeta($data);
         }

@@ -35,6 +35,9 @@ class CreateProduct extends CreateRecord
             'keywords' => $data['seo_keywords'] ?? null,
         ];
 
+        $data['gallery'] = \App\Support\ProductGallery::forStorage($data['gallery_images'] ?? [], null);
+        unset($data['gallery_images']);
+
         // Slug залишається в основних даних товару
         unset($data['seo_title'], $data['seo_description'], $data['seo_keywords']);
 

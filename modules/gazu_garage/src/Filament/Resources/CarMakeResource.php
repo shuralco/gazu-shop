@@ -51,7 +51,7 @@ class CarMakeResource extends Resource
                 ->directory('car-makes')
                 ->visibility('public')
                 ->imageEditor()
-                ->maxSize(1024)
+                ->maxSize(2048)
                 ->acceptedFileTypes(['image/png', 'image/svg+xml', 'image/webp', 'image/jpeg']),
             Forms\Components\TextInput::make('sort_order')
                 ->label('Порядок')

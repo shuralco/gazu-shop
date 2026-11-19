@@ -92,7 +92,7 @@ class CategoryResource extends Resource
                                     ->directory('categories')
                                     ->visibility('public')
                                     ->imageEditor()
-                                    ->maxSize(2048)
+                                    ->maxSize(5120)
                                     ->columnSpanFull(),
                                 Forms\Components\RichEditor::make('description')
                                     ->label('Опис категорії')
