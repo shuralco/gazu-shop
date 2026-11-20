@@ -64,6 +64,17 @@ class ResponseCacheObserver
         // Зміна самого товару — scoped (товар рідко редагують, але нащо валити
         // весь storefront заради одного товару).
         if ($model instanceof \App\Models\Product) {
+            // Ціна/валюта/акційна ціна/видимість/категорія/бренд видно на БАГАТЬОХ
+            // сторінках (каталог із фільтрами, пошук, сортування, бренд, схожі):
+            // scoped-forget їх не покриває, тож стара ціна висіла до TTL (7 днів).
+            // Решта правок (опис, SEO…) лишається scoped.
+            if ($model->wasChanged(['price', 'price_currency', 'old_price', 'is_active', 'category_id', 'brand_id'])) {
+                $this->flush();
+                $this->forgetCartProduct($model->id);
+
+                return;
+            }
+
             $this->flushProduct($model);
 
             return;
@@ -184,6 +195,30 @@ class ResponseCacheObserver
         $new = (int) ($inv->quantity ?? 0);
 
         return ($orig > 0) !== ($new > 0);
+    }
+
+    /**
+     * Повний скид кешу storefront для масових змін, що йдуть повз події моделі
+     * (batch editor: DB-запити `update()`), — інакше сайт показує старі ціни.
+     *
+     * @param  array<int>  $productIds  для скиду кеша товару в кошику
+     */
+    public static function flushStorefront(array $productIds = []): void
+    {
+        $self = new self;
+        $self->flush();
+        foreach ($productIds as $id) {
+            $self->forgetCartProduct((int) $id);
+        }
+    }
+
+    private function forgetCartProduct(int $id): void
+    {
+        try {
+            Cache::forget("cart_product_{$id}");
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     private function flush(): void

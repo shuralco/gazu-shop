@@ -417,6 +417,7 @@ class BatchEditorService
             foreach ($oldValues['old_prices'] as $productId => $price) {
                 Product::where('id', $productId)->update(['price' => $price]);
             }
+            \App\Observers\ResponseCacheObserver::flushStorefront(array_keys($oldValues['old_prices']));
             $log->update(['rolled_back' => true]);
             return true;
         }
@@ -431,6 +432,7 @@ class BatchEditorService
             }
         }
 
+        \App\Observers\ResponseCacheObserver::flushStorefront(array_map('intval', array_keys($oldValues)));
         $log->update(['rolled_back' => true]);
         return true;
     }
@@ -448,6 +450,10 @@ class BatchEditorService
             'affected_count' => count($ids),
             'created_at' => now(),
         ]);
+
+        // Усі масові операції йдуть прямими запитами повз події моделі → без
+        // цього кеш storefront (HTML до 7 днів) показував старі ціни/статуси.
+        \App\Observers\ResponseCacheObserver::flushStorefront(array_map('intval', $ids));
     }
 
     public function exportCsv(array $ids, array $columns = []): StreamedResponse
